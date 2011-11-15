@@ -81,6 +81,7 @@
 #define WEBSERVER_CONF_ROUTES    1
 #define WEBSERVER_CONF_SENSORS   0
 #define WEBSERVER_CONF_TICTACTOE 0   //Needs passquery of at least 10 chars 
+#define WEBSERVER_CONF_AJAX      0
 //#define WEBSERVER_CONF_PASSQUERY 10
 #if WEBSERVER_CONF_PASSQUERY
 extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
@@ -126,6 +127,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #define WEBSERVER_CONF_ROUTES    1
 #define WEBSERVER_CONF_SENSORS   1
 #define WEBSERVER_CONF_TICTACTOE 1   //Needs passquery of at least 10 chars 
+#define WEBSERVER_CONF_AJAX      1
 #define WEBSERVER_CONF_PASSQUERY 10
 #if WEBSERVER_CONF_PASSQUERY
 extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
@@ -149,10 +151,14 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 
 /* Address printing used by cgi's and logging, but it can be turned off if desired */
 #if WEBSERVER_CONF_LOG || WEBSERVER_CONF_ADDRESSES || WEBSERVER_CONF_NEIGHBORS || WEBSERVER_CONF_ROUTES
+extern uip_ds6_netif_t uip_ds6_if;
 #define WEBSERVER_CONF_PRINTADDR 1
-uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result);
 #endif
-
+#if WEBSERVER_CONF_PRINTADDR
+uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result);
+#else
+#define httpd_cgi_sprint_ip6(...) 0
+#endif
 
 #include "contiki-net.h"
 #include "httpd-fs.h"
