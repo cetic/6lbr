@@ -48,9 +48,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
@@ -145,6 +147,8 @@ public class LogListener extends VisPlugin {
 
   private boolean hideDebug = false;
   private JCheckBoxMenuItem hideDebugCheckbox;
+  
+  private JCheckBoxMenuItem appendCheckBox;
   
   private static final int UPDATE_INTERVAL = 250;
   private UpdateAggregator<LogData> logUpdateAggregator = new UpdateAggregator<LogData>(UPDATE_INTERVAL) {
@@ -348,6 +352,8 @@ public class LogListener extends VisPlugin {
     popupMenu.add(new JMenuItem(clearAction));
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(saveAction));
+    appendCheckBox = new JCheckBoxMenuItem(appendAction);
+    popupMenu.add(appendCheckBox);
     popupMenu.addSeparator();
     JMenu focusMenu = new JMenu("Show in");
     focusMenu.add(new JMenuItem(showInAllAction));
@@ -431,12 +437,7 @@ public class LogListener extends VisPlugin {
         updateTitle();
       }
       public void newLogOutput(LogOutputEvent ev) {
-        /* Display new log output */
-      	if (!hasHours && ev.getTime() > TIME_HOUR) {
-      		hasHours = true;
-      		repaintTimeColumn();
-      	}
-        logUpdateAggregator.add(new LogData(ev));
+        registerNewLogOutput(ev);
       }
       public void removedLogOutput(LogOutputEvent ev) {
       }
@@ -485,6 +486,28 @@ public class LogListener extends VisPlugin {
     setLocation(0, gui.getDesktopPane().getHeight() - 300);
   }
 
+  public void registerNewLogOutput(Mote mote, long time, String msg) {
+    LogOutputEvent ev = new LogOutputEvent(mote, time, msg);
+    registerNewLogOutput(ev);
+  }
+
+  private void registerNewLogOutput(LogOutputEvent ev) {
+    /* Display new log output */
+    if (!hasHours && ev.getTime() > TIME_HOUR) {
+            hasHours = true;
+            repaintTimeColumn();
+    }
+    LogData data = new LogData(ev);
+    logUpdateAggregator.add(data);
+    if (appendToFile) {
+      appendToFile(appendStreamFile,
+          data.getTime() + "\t" +
+          data.getID() + "\t" +
+          data.ev.getMessage() + "\n"
+      );
+    }
+  }
+
   private void repaintTimeColumn() {
   	logTable.getColumnModel().getColumn(COLUMN_TIME).setHeaderValue(
   			logTable.getModel().getColumnName(COLUMN_TIME));
@@ -498,6 +521,7 @@ public class LogListener extends VisPlugin {
 
   public void closePlugin() {
     /* Stop observing motes */
+    appendToFile(null, null);
     logUpdateAggregator.stop();
     simulation.getEventCentral().removeLogOutputListener(logOutputListener);
   }
@@ -526,6 +550,11 @@ public class LogListener extends VisPlugin {
     	element = new Element("inversefilter");
     	config.add(element);
     }
+    if (appendToFile) {
+      element = new Element("append");
+      element.setText(simulation.getGUI().createPortablePath(appendStreamFile).getPath());
+      config.add(element);
+    }
     return config;
   }
 
@@ -551,6 +580,16 @@ public class LogListener extends VisPlugin {
       } else if ("formatted_time".equals(name)) {
       	formatTimeString = true;
       	repaintTimeColumn();
+      } else if ("append".equals(name)) {
+        appendToFile = true;
+        appendStreamFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        appendCheckBox.setSelected(true);
+        if (!appendStreamFile.exists()) {
+          try {
+            appendStreamFile.createNewFile();
+          } catch (IOException e) {
+          }
+        }
       }
     }
 
@@ -625,29 +664,29 @@ public class LogListener extends VisPlugin {
       this.ev = ev;
     }
 
-		public String getID() {
-			return "ID:" + ev.getMote().getID();
-		}
+    public String getID() {
+      return "ID:" + ev.getMote().getID();
+    }
 
-		public String getTime() {
-			if (formatTimeString) {
-				long t = ev.getTime();
-				long h = (t / TIME_HOUR);
-				t -= (t / TIME_HOUR)*TIME_HOUR;
-				long m = (t / TIME_MINUTE);
-				t -= (t / TIME_MINUTE)*TIME_MINUTE;
-				long s = (t / TIME_SECOND);
-				t -= (t / TIME_SECOND)*TIME_SECOND;
-				long ms = t / Simulation.MILLISECOND;
-				if (hasHours) {
-					return String.format("%d:%02d:%02d.%03d", h,m,s,ms);
-				} else {
-					return String.format("%02d:%02d.%03d", m,s,ms);
-				}
-			} else {
-				return "" + ev.getTime() / Simulation.MILLISECOND;
-			}
-		}
+    public String getTime() {
+      if (formatTimeString) {
+        long t = ev.getTime();
+        long h = (t / TIME_HOUR);
+        t -= (t / TIME_HOUR)*TIME_HOUR;
+        long m = (t / TIME_MINUTE);
+        t -= (t / TIME_MINUTE)*TIME_MINUTE;
+        long s = (t / TIME_SECOND);
+        t -= (t / TIME_SECOND)*TIME_SECOND;
+        long ms = t / Simulation.MILLISECOND;
+        if (hasHours) {
+          return String.format("%d:%02d:%02d.%03d", h,m,s,ms);
+        } else {
+          return String.format("%02d:%02d.%03d", m,s,ms);
+        }
+      } else {
+        return "" + ev.getTime() / Simulation.MILLISECOND;
+      }
+    }
   }
 
   private Action saveAction = new AbstractAction("Save to file") {
@@ -699,6 +738,86 @@ public class LogListener extends VisPlugin {
     }
   };
 
+  private boolean appendToFile = false;
+  private File appendStreamFile = null;
+  private boolean appendToFileWroteHeader = false;
+  private PrintWriter appendStream = null;
+  public boolean appendToFile(File file, String text) {
+    /* Close stream */
+    if (file == null) {
+      if (appendStream != null) {
+        appendStream.close();
+        appendStream = null;
+      }
+      return false;
+    }
+
+    /* Open stream */
+    if (appendStream == null || file != appendStreamFile) {
+      try {
+        if (appendStream != null) {
+          appendStream.close();
+          appendStream = null;
+        }
+        appendStream = new PrintWriter(new FileWriter(file,true));
+        appendStreamFile = file;
+        appendToFileWroteHeader = false;
+      } catch (Exception ex) {
+        logger.fatal("Append file failed: " + ex.getMessage(), ex);
+        return false;
+      }
+    }
+
+    /* Append to file */
+    if (!appendToFileWroteHeader) {
+      appendStream.println("-- Log Listener [" + simulation.getTitle() + "]: Started at " + (new Date()).toString());
+      appendToFileWroteHeader = true;
+    }
+    appendStream.print(text);
+    appendStream.flush();
+    return true;
+  }
+
+  private Action appendAction = new AbstractAction("Append to file") {
+    private static final long serialVersionUID = -3041714249257346688L;
+    public void actionPerformed(ActionEvent e) {
+      JCheckBoxMenuItem cb = (JCheckBoxMenuItem) e.getSource();
+      appendToFile = cb.isSelected();
+      if (!appendToFile) {
+        appendToFile(null, null);
+        appendStreamFile = null;
+        return;
+      }
+
+      JFileChooser fc = new JFileChooser();
+      File suggest = new File(GUI.getExternalToolsSetting("LOG_LISTENER_APPENDFILE", "loglistener_append.txt"));
+      fc.setSelectedFile(suggest);
+      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        appendToFile = false;
+        cb.setSelected(appendToFile);
+        return;
+      }
+
+      File saveFile = fc.getSelectedFile();
+      GUI.setExternalToolsSetting("LOG_LISTENER_APPENDFILE", saveFile.getPath());
+      if (saveFile.exists() && !saveFile.canWrite()) {
+        logger.fatal("No write access to file: " + saveFile);
+        appendToFile = false;
+        cb.setSelected(appendToFile);
+        return;
+      }
+      appendToFile = true;
+      appendStreamFile = saveFile;
+      if (!appendStreamFile.exists()) {
+        try {
+          appendStreamFile.createNewFile();
+        } catch (IOException ex) {
+        }
+      }
+    }
+  };
+  
   private Action timeLineAction = new AbstractAction("Timeline") {
     private static final long serialVersionUID = -6358463434933029699L;
     public void actionPerformed(ActionEvent e) {
@@ -761,14 +880,18 @@ public class LogListener extends VisPlugin {
     private static final long serialVersionUID = -2115620313183440224L;
 
     public void actionPerformed(ActionEvent e) {
-      int size = logs.size();
-      if (size > 0) {
-        logs.clear();
-        model.fireTableRowsDeleted(0, size - 1);
-      }
+      clear();
     }
   };
 
+  public void clear() {
+    int size = logs.size();
+    if (size > 0) {
+      logs.clear();
+      model.fireTableRowsDeleted(0, size - 1);
+    }
+  }
+  
   private Action copyAction = new AbstractAction("Selected") {
     private static final long serialVersionUID = -8433490108577001803L;
 

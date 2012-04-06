@@ -39,6 +39,8 @@
 
 #include "net/neighbor-info.h"
 #include "net/neighbor-attr.h"
+#include "net/uip-ds6.h"
+#include "net/uip-nd6.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -48,7 +50,8 @@
 #define ETX_ALPHA		90
 #define ETX_NOACK_PENALTY       ETX_LIMIT
 /*---------------------------------------------------------------------------*/
-NEIGHBOR_ATTRIBUTE(link_metric_t, etx, NULL);
+NEIGHBOR_ATTRIBUTE_GLOBAL(link_metric_t, attr_etx, NULL);
+NEIGHBOR_ATTRIBUTE_GLOBAL(unsigned long, attr_timestamp, NULL);
 
 static neighbor_info_subscriber_t subscriber_callback;
 /*---------------------------------------------------------------------------*/
@@ -57,8 +60,9 @@ update_metric(const rimeaddr_t *dest, int packet_metric)
 {
   link_metric_t *metricp;
   link_metric_t recorded_metric, new_metric;
+  unsigned long time;
 
-  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, dest);
+  metricp = (link_metric_t *)neighbor_attr_get_data(&attr_etx, dest);
   packet_metric = NEIGHBOR_INFO_ETX2FIX(packet_metric);
   if(metricp == NULL || *metricp == 0) {
     recorded_metric = NEIGHBOR_INFO_ETX2FIX(ETX_LIMIT);
@@ -77,7 +81,9 @@ update_metric(const rimeaddr_t *dest, int packet_metric)
          dest->u8[7]);
 
   if(neighbor_attr_has_neighbor(dest)) {
-    neighbor_attr_set_data(&etx, dest, &new_metric);
+    time = clock_seconds();
+    neighbor_attr_set_data(&attr_etx, dest, &new_metric);
+    neighbor_attr_set_data(&attr_timestamp, dest, &time);
     if(new_metric != recorded_metric && subscriber_callback != NULL) {
       subscriber_callback(dest, 1, new_metric);
     }
@@ -104,6 +110,9 @@ neighbor_info_packet_sent(int status, int numtx)
 {
   const rimeaddr_t *dest;
   link_metric_t packet_metric;
+#if UIP_DS6_LL_NUD
+  uip_ds6_nbr_t *nbr;
+#endif /* UIP_DS6_LL_NUD */
 
   dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   if(rimeaddr_cmp(dest, &rimeaddr_null)) {
@@ -119,6 +128,17 @@ neighbor_info_packet_sent(int status, int numtx)
   switch(status) {
   case MAC_TX_OK:
     add_neighbor(dest);
+#if UIP_DS6_LL_NUD
+    nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
+    if(nbr != NULL &&
+       (nbr->state == STALE || nbr->state == DELAY || nbr->state == PROBE)) {
+      nbr->state = REACHABLE;
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+      PRINTF("neighbor-info : received a link layer ACK : ");
+      PRINTLLADDR((uip_lladdr_t *)dest);
+      PRINTF(" is reachable.\n");
+    }
+#endif /* UIP_DS6_LL_NUD */
     break;
   case MAC_TX_NOACK:
     packet_metric = ETX_NOACK_PENALTY;
@@ -152,7 +172,8 @@ int
 neighbor_info_subscribe(neighbor_info_subscriber_t s)
 {
   if(subscriber_callback == NULL) {
-    neighbor_attr_register(&etx);
+    neighbor_attr_register(&attr_etx);
+    neighbor_attr_register(&attr_timestamp);
     subscriber_callback = s;
     return 1;
   }
@@ -165,7 +186,7 @@ neighbor_info_get_metric(const rimeaddr_t *addr)
 {
   link_metric_t *metricp;
 
-  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, addr);
+  metricp = (link_metric_t *)neighbor_attr_get_data(&attr_etx, addr);
   return metricp == NULL ? ETX_LIMIT : *metricp;
 }
 /*---------------------------------------------------------------------------*/

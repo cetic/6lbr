@@ -97,12 +97,12 @@ tmp102_init (void)
 */
 
 void
-tmp102_write_reg (u8_t reg, u16_t val)
+tmp102_write_reg (uint8_t reg, uint16_t val)
 {
-  u8_t tx_buf[] = { reg, 0x00, 0x00 };
+  uint8_t tx_buf[] = { reg, 0x00, 0x00 };
 
-  tx_buf[1] = (u8_t) (val >> 8);
-  tx_buf[2] = (u8_t) (val & 0x00FF);
+  tx_buf[1] = (uint8_t) (val >> 8);
+  tx_buf[2] = (uint8_t) (val & 0x00FF);
 
   i2c_transmitinit (TMP102_ADDR);
   while (i2c_busy ());
@@ -117,15 +117,15 @@ tmp102_write_reg (u8_t reg, u16_t val)
 /* Read register.
     args:
       reg       what register to read
-    returns the value of the read register type u16_t
+    returns the value of the read register type uint16_t
 */
 
-u16_t
-tmp102_read_reg (u8_t reg)
+uint16_t
+tmp102_read_reg (uint8_t reg)
 {
-  u8_t buf[] = { 0x00, 0x00 };
-  u16_t retVal = 0;
-  u8_t rtx = reg;
+  uint8_t buf[] = { 0x00, 0x00 };
+  uint16_t retVal = 0;
+  uint8_t rtx = reg;
   PRINTFDEBUG ("READ_REG 0x%02X\n", reg);
 
   // transmit the register to read 
@@ -140,7 +140,7 @@ tmp102_read_reg (u8_t reg)
   i2c_receive_n (2, &buf[0]);
   while (i2c_busy ());
 
-  retVal = (u16_t) (buf[0] << 8 | (buf[1]));
+  retVal = (uint16_t) (buf[0] << 8 | (buf[1]));
 
   return retVal;
 }
@@ -150,23 +150,18 @@ tmp102_read_reg (u8_t reg)
    to make an interpretation of these 12 or 13-bit data, depending on configuration
 */
 
-u16_t
+uint16_t
 tmp102_read_temp_raw (void)
 {
-  u16_t rd = 0;
+  uint16_t rd = 0;
 
   rd = tmp102_read_reg (TMP102_TEMP);
 
   return rd;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Simple Read temperature. Return is an integer with temperature in 1deg. precision 
-   Return value is a signed 8 bit integer.
-*/
-
-int8_t
-tmp102_read_temp_simple (void)
+int16_t
+tmp102_read_temp_x100(void)
 {
   int16_t raw = 0;
   int8_t rd = 0;
@@ -181,9 +176,10 @@ tmp102_read_temp_simple (void)
     abstemp = raw;
   }
 
-  /* Integer part of the temperature value */
-  temp_int = (abstemp >> 8) * sign;
-
+  /* Integer part of the temperature value and percents*/
+  temp_int = (abstemp >> 8) * sign * 100;
+  temp_int += ((abstemp & 0xff) * 100) / 0x100;
+  
   /* See test-tmp102.c on how to print values of temperature with decimals 
      fractional part in 1/10000 of degree 
      temp_frac = ((abstemp >>4) % 16) * 625; 
@@ -191,6 +187,16 @@ tmp102_read_temp_simple (void)
      Data could be multiplied by 64 (<< 6) to trade-off precision for speed 
   */
 
-  rd = (int8_t) (temp_int);
-  return rd;
+  return temp_int;
+}
+
+/*---------------------------------------------------------------------------*/
+/* Simple Read temperature. Return is an integer with temperature in 1deg. precision 
+   Return value is a signed 8 bit integer.
+*/
+
+int8_t
+tmp102_read_temp_simple (void)
+{
+  return (int8_t) tmp102_read_temp_x100() / 100;
 }

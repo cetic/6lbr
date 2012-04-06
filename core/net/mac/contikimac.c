@@ -96,10 +96,22 @@ struct hdr {
 };
 #endif /* WITH_CONTIKIMAC_HEADER */
 
+/* CYCLE_TIME for channel cca checks, in rtimer ticks. */
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
 #define CYCLE_TIME (CONTIKIMAC_CONF_CYCLE_TIME)
 #else
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE)
+#endif
+
+/* CHANNEL_CHECK_RATE is enforced to be a power of two.
+ * If RTIMER_ARCH_SECOND is not also a power of two, there will be an inexact
+ * number of channel checks per second due to the truncation of CYCLE_TIME.
+ * This will degrade the effectiveness of phase optimization with neighbors that
+ * do not have the same truncation error.
+ * Define SYNC_CYCLE_STARTS to ensure an integral number of checks per second.
+ */
+#if RTIMER_ARCH_SECOND & (RTIMER_ARCH_SECOND - 1)
+#define SYNC_CYCLE_STARTS                    1
 #endif
 
 /* Are we currently receiving a burst? */
@@ -348,14 +360,35 @@ powercycle(struct rtimer *t, void *ptr)
 {
   PT_BEGIN(&pt);
 
+#if SYNC_CYCLE_STARTS
+static volatile rtimer_clock_t sync_cycle_start;
+static volatile uint8_t sync_cycle_phase;
+  sync_cycle_start = RTIMER_NOW();
+#else
   cycle_start = RTIMER_NOW();
-  
+#endif
+
   while(1) {
     static uint8_t packet_seen;
     static rtimer_clock_t t0;
     static uint8_t count;
 
+#if SYNC_CYCLE_STARTS
+    /* Compute cycle start when RTIMER_ARCH_SECOND is not a multiple of CHANNEL_CHECK_RATE */
+    if (sync_cycle_phase++ == NETSTACK_RDC_CHANNEL_CHECK_RATE) {
+       sync_cycle_phase = 0;
+       sync_cycle_start += RTIMER_ARCH_SECOND;
+       cycle_start = sync_cycle_start;
+    } else {
+#if (RTIMER_ARCH_SECOND * NETSTACK_RDC_CHANNEL_CHECK_RATE) > 65535
+       cycle_start = sync_cycle_start + ((unsigned long)(sync_cycle_phase*RTIMER_ARCH_SECOND))/NETSTACK_RDC_CHANNEL_CHECK_RATE;
+#else
+       cycle_start = sync_cycle_start + (sync_cycle_phase*RTIMER_ARCH_SECOND)/NETSTACK_RDC_CHANNEL_CHECK_RATE;
+#endif
+    }
+#else
     cycle_start += CYCLE_TIME;
+#endif
 
     packet_seen = 0;
 
@@ -502,6 +535,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   struct hdr *chdr;
 #endif /* WITH_CONTIKIMAC_HEADER */
 
+ /* Exit if RDC and radio were explicitly turned off */
+   if (!contikimac_is_on && !contikimac_keep_radio_on) {
+    PRINTF("contikimac: radio is turned off\n");
+    return MAC_TX_ERR_FATAL;
+  }
+  
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
     return MAC_TX_ERR_FATAL;
@@ -550,7 +589,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   
   /* Create the MAC header for the data packet. */
   hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
+  if(hdrlen < 0) {
     /* Failed to send */
     PRINTF("contikimac: send failed, too large header\n");
     packetbuf_hdr_remove(sizeof(struct hdr));
@@ -560,7 +599,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 #else
   /* Create the MAC header for the data packet. */
   hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
+  if(hdrlen < 0) {
     /* Failed to send */
     PRINTF("contikimac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
@@ -817,11 +856,12 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   if(curr == NULL) {
-    mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
     return;
   }
   /* Do not send during reception of a burst */
   if(we_are_receiving_burst) {
+    /* Prepare the packetbuf for callback */
+    queuebuf_to_packetbuf(curr->buf);
     /* Return COLLISION so the MAC may try again later */
     mac_call_sent_callback(sent, ptr, MAC_TX_COLLISION, 1);
     return;
@@ -876,7 +916,7 @@ input_packet(void)
 
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
   
-  if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
+  if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse() >= 0) {
 
 #if WITH_CONTIKIMAC_HEADER
     struct hdr *chdr;

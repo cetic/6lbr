@@ -83,19 +83,11 @@
 /* For Debug, logging, statistics                                            */
 /*---------------------------------------------------------------------------*/
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#endif
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 #if UIP_CONF_IPV6_RPL
-void uip_rpl_input(void);
+#include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_LOGGING == 1
@@ -133,16 +125,16 @@ uip_lladdr_t uip_lladdr = {{0x00,0x06,0x98,0x00,0x02,0x32}};
  * field in the header before the fragmentation header, hence we need a pointer
  * to this field.
  */
-u8_t *uip_next_hdr;
+uint8_t *uip_next_hdr;
 /** \brief bitmap we use to record which IPv6 headers we have already seen */
-u8_t uip_ext_bitmap = 0;
+uint8_t uip_ext_bitmap = 0;
 /**
  * \brief length of the extension headers read. updated each time we process
  * a header
  */
-u8_t uip_ext_len = 0;
+uint8_t uip_ext_len = 0;
 /** \brief length of the header options read */
-u8_t uip_ext_opt_offset = 0;
+uint8_t uip_ext_opt_offset = 0;
 /** @} */
 
 /*---------------------------------------------------------------------------*/
@@ -154,8 +146,8 @@ u8_t uip_ext_opt_offset = 0;
 #define FBUF                             ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
 #define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_TCP_BUF                        ((struct uip_tcp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_TCP_BUF                        ((struct uip_tcp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 #define UIP_EXT_BUF                        ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ROUTING_BUF                ((struct uip_routing_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_FRAG_BUF                      ((struct uip_frag_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -163,6 +155,9 @@ u8_t uip_ext_opt_offset = 0;
 #define UIP_DESTO_BUF                    ((struct uip_desto_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_EXT_HDR_OPT_BUF            ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#if UIP_CONF_IPV6_RPL
+#define UIP_EXT_HDR_OPT_RPL_BUF    ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#endif /* UIP_CONF_IPV6_RPL */
 #define UIP_ICMP6_ERROR_BUF            ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 /** @} */
 /** \name Buffer variables
@@ -181,11 +176,11 @@ void *uip_sappdata;
 #if UIP_URGDATA > 0
 /* The uip_urgdata pointer points to urgent data (out-of-band data), if present */
 void *uip_urgdata;
-u16_t uip_urglen, uip_surglen;
+uint16_t uip_urglen, uip_surglen;
 #endif /* UIP_URGDATA > 0 */
 
 /* The uip_len is either 8 or 16 bits, depending on the maximum packet size.*/
-u16_t uip_len, uip_slen;
+uint16_t uip_len, uip_slen;
 /** @} */
 
 /*---------------------------------------------------------------------------*/
@@ -194,19 +189,19 @@ u16_t uip_len, uip_slen;
 
 /* The uip_flags variable is used for communication between the TCP/IP stack
 and the application program. */
-u8_t uip_flags;
+uint8_t uip_flags;
 
 /* uip_conn always points to the current connection (set to NULL for UDP). */
 struct uip_conn *uip_conn;
 
 /* Temporary variables. */
 #if (UIP_TCP || UIP_UDP)
-static u8_t c;
+static uint8_t c;
 #endif
 
 #if UIP_ACTIVE_OPEN || UIP_UDP
 /* Keeps track of the last port used for a new connection. */
-static u16_t lastport;
+static uint16_t lastport;
 #endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 /** @} */
 
@@ -239,15 +234,15 @@ static u16_t lastport;
 struct uip_conn uip_conns[UIP_CONNS];
 
 /* The uip_listenports list all currently listning ports. */
-u16_t uip_listenports[UIP_LISTENPORTS];
+uint16_t uip_listenports[UIP_LISTENPORTS];
 
 /* The iss variable is used for the TCP initial sequence number. */
-static u8_t iss[4];
+static uint8_t iss[4];
 
 /* Temporary variables. */
-u8_t uip_acc32[4];
-static u8_t opt;
-static u16_t tmp16;
+uint8_t uip_acc32[4];
+static uint8_t opt;
+static uint16_t tmp16;
 #endif /* UIP_TCP */
 /** @} */
 
@@ -273,7 +268,7 @@ struct uip_icmp6_conn uip_icmp6_conns;
 /*---------------------------------------------------------------------------*/
 #if (!UIP_ARCH_ADD32 && UIP_TCP)
 void
-uip_add32(u8_t *op32, u16_t op16)
+uip_add32(uint8_t *op32, uint16_t op16)
 {
   uip_acc32[3] = op32[3] + (op16 & 0xff);
   uip_acc32[2] = op32[2] + (op16 >> 8);
@@ -303,12 +298,12 @@ uip_add32(u8_t *op32, u16_t op16)
 
 #if ! UIP_ARCH_CHKSUM
 /*---------------------------------------------------------------------------*/
-static u16_t
-chksum(u16_t sum, const u8_t *data, u16_t len)
+static uint16_t
+chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
-  u16_t t;
-  const u8_t *dataptr;
-  const u8_t *last_byte;
+  uint16_t t;
+  const uint8_t *dataptr;
+  const uint8_t *last_byte;
 
   dataptr = data;
   last_byte = data + len - 1;
@@ -334,17 +329,17 @@ chksum(u16_t sum, const u8_t *data, u16_t len)
   return sum;
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-uip_chksum(u16_t *data, u16_t len)
+uint16_t
+uip_chksum(uint16_t *data, uint16_t len)
 {
-  return uip_htons(chksum(0, (u8_t *)data, len));
+  return uip_htons(chksum(0, (uint8_t *)data, len));
 }
 /*---------------------------------------------------------------------------*/
 #ifndef UIP_ARCH_IPCHKSUM
-u16_t
+uint16_t
 uip_ipchksum(void)
 {
-  u16_t sum;
+  uint16_t sum;
 
   sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
   PRINTF("uip_ipchksum: sum 0x%04x\n", sum);
@@ -352,8 +347,8 @@ uip_ipchksum(void)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-static u16_t
-upper_layer_chksum(u8_t proto)
+static uint16_t
+upper_layer_chksum(uint8_t proto)
 {
 /* gcc 4.4.0 - 4.6.1 (maybe 4.3...) with -Os on 8 bit CPUS incorrectly compiles:
  * int bar (int);
@@ -364,16 +359,19 @@ upper_layer_chksum(u8_t proto)
  * upper_layer_len triggers this bug unless it is declared volatile.
  * See https://sourceforge.net/apps/mantisbt/contiki/view.php?id=3
  */
-  volatile u16_t upper_layer_len;
-  u16_t sum;
+  volatile uint16_t upper_layer_len;
+  uint16_t sum;
   
-  upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len) ;
+  upper_layer_len = (((uint16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len);
   
+  PRINTF("Upper layer checksum len: %d from: %d\n", upper_layer_len,
+	 UIP_IPH_LEN + UIP_LLH_LEN + uip_ext_len);
+
   /* First sum pseudoheader. */
   /* IP protocol and length fields. This addition cannot carry. */
   sum = upper_layer_len + proto;
   /* Sum IP source and destination addresses. */
-  sum = chksum(sum, (u8_t *)&UIP_IP_BUF->srcipaddr, 2 * sizeof(uip_ipaddr_t));
+  sum = chksum(sum, (uint8_t *)&UIP_IP_BUF->srcipaddr, 2 * sizeof(uip_ipaddr_t));
 
   /* Sum TCP header and data. */
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN + uip_ext_len],
@@ -382,7 +380,7 @@ upper_layer_chksum(u8_t proto)
   return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 /*---------------------------------------------------------------------------*/
-u16_t
+uint16_t
 uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6);
@@ -390,7 +388,7 @@ uip_icmp6chksum(void)
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
-u16_t
+uint16_t
 uip_tcpchksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_TCP);
@@ -398,7 +396,7 @@ uip_tcpchksum(void)
 #endif /* UIP_TCP */
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP && UIP_UDP_CHECKSUMS
-u16_t
+uint16_t
 uip_udpchksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_UDP);
@@ -434,7 +432,7 @@ uip_init(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
 struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
+uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
   
@@ -503,9 +501,34 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
 }
 #endif /* UIP_TCP && UIP_ACTIVE_OPEN */
 /*---------------------------------------------------------------------------*/
+void
+remove_ext_hdr(void)
+{
+  /* Remove ext header before TCP/UDP processing. */
+  if(uip_ext_len > 0) {
+    PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
+	   uip_ext_len, uip_len);
+    if(uip_len - UIP_IPH_LEN - uip_ext_len < 0) {
+      PRINTF("ERROR: uip_len too short compared to ext len\n");
+      uip_ext_len = 0;
+      uip_len = 0;
+      return;
+    }
+    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + uip_ext_len,
+	    uip_len - UIP_IPH_LEN - uip_ext_len);
+
+    uip_len -= uip_ext_len;
+
+    /* Update the IP length. */
+    UIP_IP_BUF->len[0] = (uip_len - UIP_IPH_LEN) >> 8;
+    UIP_IP_BUF->len[1] = (uip_len - UIP_IPH_LEN) & 0xff;
+    uip_ext_len = 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if UIP_UDP
 struct uip_udp_conn *
-uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
+uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_udp_conn *conn;
   
@@ -550,7 +573,7 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
 void
-uip_unlisten(u16_t port)
+uip_unlisten(uint16_t port)
 {
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     if(uip_listenports[c] == port) {
@@ -561,7 +584,7 @@ uip_unlisten(u16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_listen(u16_t port)
+uip_listen(uint16_t port)
 {
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     if(uip_listenports[c] == 0) {
@@ -576,15 +599,15 @@ uip_listen(u16_t port)
 #if UIP_CONF_IPV6_REASSEMBLY
 #define UIP_REASS_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN)
 
-static u8_t uip_reassbuf[UIP_REASS_BUFSIZE];
+static uint8_t uip_reassbuf[UIP_REASS_BUFSIZE];
 
-static u8_t uip_reassbitmap[UIP_REASS_BUFSIZE / (8 * 8)];
+static uint8_t uip_reassbitmap[UIP_REASS_BUFSIZE / (8 * 8)];
 /*the first byte of an IP fragment is aligned on an 8-byte boundary */
 
-static const u8_t bitmap_bits[8] = {0xff, 0x7f, 0x3f, 0x1f,
+static const uint8_t bitmap_bits[8] = {0xff, 0x7f, 0x3f, 0x1f,
                                     0x0f, 0x07, 0x03, 0x01};
-static u16_t uip_reasslen;
-static u8_t uip_reassflags;
+static uint16_t uip_reasslen;
+static uint8_t uip_reassflags;
 
 #define UIP_REASS_FLAG_LASTFRAG 0x01
 #define UIP_REASS_FLAG_FIRSTFRAG 0x02
@@ -602,19 +625,19 @@ static u8_t uip_reassflags;
 
 
 struct etimer uip_reass_timer; /* timer for reassembly */
-u8_t uip_reass_on; /* equal to 1 if we are currently reassembling a packet */
+uint8_t uip_reass_on; /* equal to 1 if we are currently reassembling a packet */
 
-static u32_t uip_id; /* For every packet that is to be fragmented, the source
+static uint32_t uip_id; /* For every packet that is to be fragmented, the source
                         node generates an Identification value that is present
                         in all the fragments */
 #define IP_MF   0x0001
 
-static u16_t
+static uint16_t
 uip_reass(void)
 {
-  u16_t offset=0;
-  u16_t len;
-  u16_t i;
+  uint16_t offset=0;
+  uint16_t len;
+  uint16_t i;
   
   /* If ip_reasstmr is zero, no packet is present in the buffer */
   /* We first write the unfragmentable part of IP header into the reassembly
@@ -730,7 +753,7 @@ uip_reass(void)
       /* Check the last byte in the bitmap. It should contain just the
          right amount of bits. */
       if(uip_reassbitmap[uip_reasslen >> 6] !=
-         (u8_t)~bitmap_bits[(uip_reasslen >> 3) & 7]) {
+         (uint8_t)~bitmap_bits[(uip_reasslen >> 3) & 7]) {
         return 0;
       }
 
@@ -790,7 +813,7 @@ uip_reass_over(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
 static void
-uip_add_rcv_nxt(u16_t n)
+uip_add_rcv_nxt(uint16_t n)
 {
   uip_add32(uip_conn->rcv_nxt, n);
   uip_conn->rcv_nxt[0] = uip_acc32[0];
@@ -804,7 +827,7 @@ uip_add_rcv_nxt(u16_t n)
 /**
  * \brief Process the options in Destination and Hop By Hop extension headers
  */
-static u8_t
+static uint8_t
 ext_hdr_options_process(void)
 {
  /*
@@ -828,6 +851,16 @@ ext_hdr_options_process(void)
         PRINTF("Processing PADN option\n");
         uip_ext_opt_offset += UIP_EXT_HDR_OPT_PADN_BUF->opt_len + 2;
         break;
+#if UIP_CONF_IPV6_RPL
+      case UIP_EXT_HDR_OPT_RPL:
+        PRINTF("Processing RPL option\n");
+        if(rpl_verify_header(uip_ext_opt_offset)) {
+          PRINTF("RPL Option Error : Dropping Packet");
+          return 1;
+        }
+        uip_ext_opt_offset += (UIP_EXT_HDR_OPT_RPL_BUF->opt_len) + 2;
+        return 0;
+#endif /* UIP_CONF_IPV6_RPL */
       default:
         /*
          * check the two highest order bits of the option
@@ -854,7 +887,7 @@ ext_hdr_options_process(void)
             }
           case 0x80:
             uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_OPTION,
-                             (u32_t)UIP_IPH_LEN + uip_ext_len + uip_ext_opt_offset);
+                             (uint32_t)UIP_IPH_LEN + uip_ext_len + uip_ext_opt_offset);
             return 2;
         }
         /* in the cases were we did not discard, update ext_opt* */
@@ -868,7 +901,7 @@ ext_hdr_options_process(void)
 
 /*---------------------------------------------------------------------------*/
 void
-uip_process(u8_t flag)
+uip_process(uint8_t flag)
 {
 #if UIP_TCP
   register struct uip_conn *uip_connr = uip_conn;
@@ -1015,7 +1048,7 @@ uip_process(u8_t flag)
   if(flag == UIP_UDP_TIMER) {
     if(uip_udp_conn->lport != 0) {
       uip_conn = NULL;
-      uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
+      uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
       uip_len = uip_slen = 0;
       uip_flags = UIP_POLL;
       UIP_UDP_APPCALL();
@@ -1079,6 +1112,35 @@ uip_process(u8_t flag)
   }
 
 #if UIP_CONF_ROUTER
+  /*
+   * Next header field processing. In IPv6, we can have extension headers,
+   * if present, the Hop-by-Hop Option must be processed before forwarding
+   * the packet.
+   */
+  uip_next_hdr = &UIP_IP_BUF->proto;
+  uip_ext_len = 0;
+  uip_ext_bitmap = 0;
+  if(*uip_next_hdr == UIP_PROTO_HBHO) {
+#if UIP_CONF_IPV6_CHECKS
+    uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
+#endif /*UIP_CONF_IPV6_CHECKS*/
+    switch(ext_hdr_options_process()) {
+      case 0:
+        /*continue*/
+        uip_next_hdr = &UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
+        break;
+      case 1:
+        /*silently discard*/
+        goto drop;
+      case 2:
+        /* send icmp error message (created in ext_hdr_options_process)
+         * and discard*/
+        goto send;
+    }
+  }
+
+
   /* TBD Some Parameter problem messages */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
@@ -1102,6 +1164,11 @@ uip_process(u8_t flag)
         UIP_STAT(++uip_stat.ip.drop);
         goto send;
       }
+
+#if UIP_CONF_IPV6_RPL
+      rpl_update_header_empty();
+#endif /* UIP_CONF_IPV6_RPL */
+
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       PRINTF("Forwarding packet to ");
       PRINT6ADDR(&UIP_IP_BUF->destipaddr);
@@ -1132,7 +1199,6 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.ip.drop);
     goto drop;
   }
-#endif /* UIP_CONF_ROUTER */
 
   /*
    * Next header field processing. In IPv6, we can have extension headers,
@@ -1141,6 +1207,8 @@ uip_process(u8_t flag)
   uip_next_hdr = &UIP_IP_BUF->proto;
   uip_ext_len = 0;
   uip_ext_bitmap = 0;
+#endif /* UIP_CONF_ROUTER */
+
   while(1) {
     switch(*uip_next_hdr){
 #if UIP_TCP
@@ -1274,7 +1342,7 @@ uip_process(u8_t flag)
    * RFC 2460 send error message parameterr problem, code unrecognized
    * next header, pointing to the next header field
    */
-  uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_NEXTHEADER, (u32_t)(uip_next_hdr - (uint8_t *)UIP_IP_BUF));
+  uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_NEXTHEADER, (uint32_t)(uip_next_hdr - (uint8_t *)UIP_IP_BUF));
   UIP_STAT(++uip_stat.ip.drop);
   UIP_STAT(++uip_stat.ip.protoerr);
   UIP_LOG("ip6: unrecognized header");
@@ -1283,7 +1351,7 @@ uip_process(u8_t flag)
   
   icmp6_input:
   /* This is IPv6 ICMPv6 processing code. */
-  PRINTF("icmp6_input: length %d\n", uip_len);
+  PRINTF("icmp6_input: length %d type: %d \n", uip_len, UIP_ICMP_BUF->type);
 
 #if UIP_CONF_IPV6_CHECKS
   /* Compute and check the ICMP header checksum */
@@ -1291,6 +1359,7 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.icmp.drop);
     UIP_STAT(++uip_stat.icmp.chkerr);
     UIP_LOG("icmpv6: bad checksum.");
+    PRINTF("icmpv6: bad checksum.");
     goto drop;
   }
 #endif /*UIP_CONF_IPV6_CHECKS*/
@@ -1366,6 +1435,9 @@ uip_process(u8_t flag)
 #if UIP_UDP
   /* UDP input processing. */
  udp_input:
+
+  remove_ext_hdr();
+
   PRINTF("Receiving UDP packet\n");
   UIP_STAT(++uip_stat.udp.recv);
  
@@ -1375,7 +1447,7 @@ uip_process(u8_t flag)
      send. */
 #if UIP_UDP_CHECKSUMS
   uip_len = uip_len - UIP_IPUDPH_LEN;
-  uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
+  uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
   if(UIP_UDP_BUF->udpchksum != 0 && uip_udpchksum() != 0xffff) {
     UIP_STAT(++uip_stat.udp.drop);
     UIP_STAT(++uip_stat.udp.chkerr);
@@ -1428,7 +1500,7 @@ uip_process(u8_t flag)
  
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
-  uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
+  uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
   uip_slen = 0;
   UIP_UDP_APPCALL();
 
@@ -1474,6 +1546,8 @@ uip_process(u8_t flag)
   /* TCP input processing. */
  tcp_input:
 
+  remove_ext_hdr();
+
   UIP_STAT(++uip_stat.tcp.recv);
   PRINTF("Receiving TCP packet\n");
   /* Start of TCP input header processing code. */
@@ -1482,13 +1556,14 @@ uip_process(u8_t flag)
                                        checksum. */
     UIP_STAT(++uip_stat.tcp.drop);
     UIP_STAT(++uip_stat.tcp.chkerr);
-    UIP_LOG("tcp: bad checksum.");
+    PRINTF("tcp: bad checksum 0x%04x 0x%04x\n", UIP_TCP_BUF->tcpchksum,
+           uip_tcpchksum());
     goto drop;
   }
 
   /* Make sure that the TCP port number is not zero. */
   if(UIP_TCP_BUF->destport == 0 || UIP_TCP_BUF->srcport == 0) {
-    UIP_LOG("tcp: zero port.");
+    PRINTF("tcp: zero port.");
     goto drop;
   }
 
@@ -1646,8 +1721,8 @@ uip_process(u8_t flag)
       } else if(opt == TCP_OPT_MSS &&
                 uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c] == TCP_OPT_MSS_LEN) {
         /* An MSS option with the right option length. */
-        tmp16 = ((u16_t)uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 2 + c] << 8) |
-          (u16_t)uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN + 3 + c];
+        tmp16 = ((uint16_t)uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 2 + c] << 8) |
+          (uint16_t)uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN + 3 + c];
         uip_connr->initialmss = uip_connr->mss =
           tmp16 > UIP_TCP_MSS? UIP_TCP_MSS: tmp16;
    
@@ -1940,7 +2015,7 @@ uip_process(u8_t flag)
          and the application will retransmit it. This is called the
          "persistent timer" and uses the retransmission mechanim.
       */
-      tmp16 = ((u16_t)UIP_TCP_BUF->wnd[0] << 8) + (u16_t)UIP_TCP_BUF->wnd[1];
+      tmp16 = ((uint16_t)UIP_TCP_BUF->wnd[0] << 8) + (uint16_t)UIP_TCP_BUF->wnd[1];
       if(tmp16 > uip_connr->initialmss ||
          tmp16 == 0) {
         tmp16 = uip_connr->initialmss;
@@ -2194,14 +2269,14 @@ uip_process(u8_t flag)
   return;
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-uip_htons(u16_t val)
+uint16_t
+uip_htons(uint16_t val)
 {
   return UIP_HTONS(val);
 }
 
-u32_t
-uip_htonl(u32_t val)
+uint32_t
+uip_htonl(uint32_t val)
 {
   return UIP_HTONL(val);
 }

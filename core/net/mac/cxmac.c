@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.15 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -421,7 +420,7 @@ send_packet(void)
   uint8_t strobe[MAX_STROBE_SIZE];
   int strobe_len, len;
   int is_broadcast = 0;
-  int is_reliable;
+/*int is_reliable;*/
   struct encounter *e;
   struct queuebuf *packet;
   int is_already_streaming = 0;
@@ -450,11 +449,11 @@ send_packet(void)
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 #endif /* UIP_CONF_IPV6 */
   }
-  is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-    packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
+/* is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
+    packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);*/
   len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct cxmac_hdr);
-  if(len == 0 || strobe_len > (int)sizeof(strobe)) {
+  if(len < 0 || strobe_len > (int)sizeof(strobe)) {
     /* Failed to send */
    PRINTF("cxmac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
@@ -565,7 +564,7 @@ send_packet(void)
 	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
 	if(len > 0) {
 	  packetbuf_set_datalen(len);
-	  if(NETSTACK_FRAMER.parse()) {
+	  if(NETSTACK_FRAMER.parse() >= 0) {
 	    hdr = packetbuf_dataptr();
 	    if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
 	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -713,7 +712,7 @@ input_packet(void)
 {
   struct cxmac_hdr *hdr;
 
-  if(NETSTACK_FRAMER.parse()) {
+  if(NETSTACK_FRAMER.parse() >= 0) {
     hdr = packetbuf_dataptr();
 
     if(hdr->dispatch != DISPATCH) {
@@ -768,7 +767,7 @@ input_packet(void)
 			   packetbuf_addr(PACKETBUF_ADDR_SENDER));
 	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
 	packetbuf_compact();
-	if(NETSTACK_FRAMER.create()) {
+	if(NETSTACK_FRAMER.create() >= 0) {
 	  /* We turn on the radio in anticipation of the incoming
 	     packet. */
 	  someone_is_sending = 1;
@@ -832,7 +831,7 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
-    if(NETSTACK_FRAMER.create()) {
+    if(NETSTACK_FRAMER.create() >= 0) {
       NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
     }
   }

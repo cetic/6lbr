@@ -47,7 +47,7 @@
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
 #define PRINTBITS(buf,len) { \
       int i,j=0; \
@@ -96,21 +96,18 @@ handle_incoming_data(void)
 
   PRINTF("handle_incoming_data(): received uip_datalen=%u \n",(uint16_t)uip_datalen());
 
-  uint8_t *data = uip_appdata + uip_ext_len;
-  uint16_t data_len = uip_datalen() - uip_ext_len;
-
   if (uip_newdata()) {
 
     PRINTF("receiving UDP datagram from: ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), data_len );
-    PRINTBITS(data, data_len);
+    PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), uip_datalen() );
+    PRINTBITS(uip_appdata, uip_datalen());
     PRINTF("\n");
 
     coap_packet_t message[1];
     coap_transaction_t *transaction = NULL;
 
-    error = coap_parse_message(message, data, data_len);
+    error = coap_parse_message(message, uip_appdata, uip_datalen());
 
     if (error==NO_ERROR)
     {
@@ -209,7 +206,7 @@ handle_incoming_data(void)
             }
 
         } else {
-            error = MEMORY_ALLOC_ERR;
+            error = MEMORY_ALLOCATION_ERROR;
         }
       }
       else
@@ -257,7 +254,7 @@ handle_incoming_data(void)
       /* reuse input buffer */
       coap_init_message(message, COAP_TYPE_ACK, INTERNAL_SERVER_ERROR_500, message->tid);
       coap_set_payload(message, (uint8_t *) error_messages[error], strlen(error_messages[error]));
-      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, data, coap_serialize_message(message, data));
+      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
   } /* if (new data) */
 
