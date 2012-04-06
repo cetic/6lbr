@@ -1,6 +1,11 @@
 
 .SUFFIXES:
 
+define \n
+
+
+endef
+
 ifdef IAR
 ${info Using IAR...}
 #IAR_PATH =  C:/Program\ Files/IAR\ Systems/Embedded\ Workbench\ 5.4\ Evaluation
@@ -163,7 +168,7 @@ endif
 
 
 
-FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
+FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -224,11 +229,11 @@ CUSTOM_RULE_C_TO_CE = 1
 
 CUSTOM_RULE_LINK = 1
 
-.PHONY: symbols.c symbols.h
 ifdef CORE
 ifeq ($(wildcard $(CORE)),)
  ${error $(CORE) doesn't exist}
 endif
+.PHONY: symbols.c symbols.h
 symbols.c:
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
 else
@@ -250,6 +255,19 @@ endif
 
 endif #IAR
 
+MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
+
+MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+
+motelist: stm-motelist
+
+stm-motelist:
+	$(MOTELIST)
+stm-motes:
+	@echo $(MOTES)
+
 $(OBJECTDIR)/%.o: %.s79
 	$(AS) $(ASFLAGS) -o $@ $<
 	
@@ -258,7 +276,33 @@ $(OBJECTDIR)/%.o: %.s
 	
 %.bin: %.$(TARGET)
 	$(OBJCOPY) $(OBJOPTS) $< $@ 
-	
-%.flash: %.bin
-	$(FLASHER) $(FLASHEROPTS) $<
-	
+
+# reset all stm32w devices sequentially, as stm32w_flasher cannot access different ports in parallel
+stm-reset:
+	$(foreach PORT, $(MOTES), $(FLASHER) -r -p $(PORT);$(\n))
+	@echo Done
+		
+ifdef MOTE
+%.upload: %.bin
+	$(FLASHER) $(FLASHEROPTS) $< -p $(word $(MOTE), $(MOTES))
+else # MOTE
+%.upload: %.bin
+	$(foreach PORT, $(MOTES), $(FLASHER) $(FLASHEROPTS) $< -p $(PORT);$(\n))
+endif # MOTE
+
+ifdef MOTE
+login:
+	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(word $(MOTE), $(MOTES))
+else
+login:
+	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(firstword $(MOTES))
+endif
+
+# a target that gives a user-friendly memory profile, taking into account the RAM
+# that is statically occupied by the stack as defined in cpu/stm32w108/gnu.ld
+RAM_SIZE = 8192
+FLASH_SIZE = 128*1024
+STACK_SIZE = 1280
+%.size: %.$(TARGET)
+	@size -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
+	@size -A $< | egrep "text|isr_vector" | awk '{s+=$$2} END {f=$(FLASH_SIZE)-s; printf "[Flash] used %6d, free %6d\n",s,f;}'

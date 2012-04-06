@@ -57,7 +57,7 @@
 
 
 
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
 #warning "Compiling with static routing!"
 #include "static-routing.h"
 #endif
@@ -349,18 +349,28 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 }
 #endif
 
-#if REST_RES_SEPARATE && WITH_COAP > 3
+#if defined (PLATFORM_HAS_BUTTON) && REST_RES_SEPARATE && WITH_COAP > 3
 /* Required to manually (=not by the engine) handle the response transaction. */
 #include "er-coap-07-separate.h"
 #include "er-coap-07-transactions.h"
 /*
  * CoAP-specific example for separate responses.
- * This resource is .
+ * Note the call "rest_set_pre_handler(&resource_separate, coap_separate_handler);" in the main process.
+ * The pre-handler takes care of the empty ACK and updates the MID and message type for CON requests.
+ * The resource handler must store all information that required to finalize the response later.
  */
 RESOURCE(separate, METHOD_GET, "debug/separate", "title=\"Separate demo\"");
 
+/* A structure to store the required information */
+typedef struct application_separate_store {
+  /* Provided by Erbium to store generic request information such as remote address and token. */
+  coap_separate_t request_metadata;
+  /* Add fields for addition information to be stored for finalizing, e.g.: */
+  char buffer[16];
+} application_separate_store_t;
+
 static uint8_t separate_active = 0;
-static coap_separate_t separate_store[1];
+static application_separate_store_t separate_store[1];
 
 void
 separate_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
@@ -371,16 +381,15 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
    */
   if (separate_active)
   {
-    REST.set_response_status(response, REST.status.SERVICE_UNAVAILABLE);
-    const char *msg = "AlreadyInUse";
-    REST.set_response_payload(response, msg, strlen(msg));
+    coap_separate_reject();
   }
   else
   {
     separate_active = 1;
 
     /* Take over and skip response by engine. */
-    coap_separate_response(response, separate_store);
+    coap_separate_accept(request, &separate_store->request_metadata);
+    /* Be aware to respect the Block2 option, which is also stored in the coap_separate_t. */
 
     /*
      * At the moment, only the minimal information is stored in the store (client address, port, token, MID, type, and Block2).
@@ -397,12 +406,20 @@ separate_finalize_handler()
   if (separate_active)
   {
     coap_transaction_t *transaction = NULL;
-    if ( (transaction = coap_new_transaction(separate_store->mid, &separate_store->addr, separate_store->port)) )
+    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
     {
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
-      coap_init_message(response, separate_store->type, CONTENT_2_05, separate_store->mid);
+
+      /* Restore the request information for the response. */
+      coap_separate_resume(response, &separate_store->request_metadata, CONTENT_2_05);
 
       coap_set_payload(response, separate_store->buffer, strlen(separate_store->buffer));
+
+      /*
+       * Be aware to respect the Block2 option, which is also stored in the coap_separate_t.
+       * As it is a critical option, this example resource pretends to handle it for compliance.
+       */
+      coap_set_header_block2(response, separate_store->request_metadata.block2_num, 0, separate_store->request_metadata.block2_size);
 
       /* Warning: No check for serialization error. */
       transaction->packet_len = coap_serialize_message(response, transaction->packet);
@@ -428,7 +445,7 @@ separate_finalize_handler()
  * It takes an additional period parameter, which defines the interval to call [name]_periodic_handler().
  * A default post_handler takes care of subscriptions by managing a list of subscribers to notify.
  */
-PERIODIC_RESOURCE(pushing, METHOD_GET, "debug/push", "title=\"Periodic demo\";rt=\"Observable\"", 5*CLOCK_SECOND);
+PERIODIC_RESOURCE(pushing, METHOD_GET, "debug/push", "title=\"Periodic demo\";obs", 5*CLOCK_SECOND);
 
 void
 pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
@@ -446,20 +463,23 @@ pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
  * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
  * It will be called by the REST manager process with the defined period.
  */
-int
+void
 pushing_periodic_handler(resource_t *r)
 {
-  static uint32_t periodic_i = 0;
-  static char content[16];
+  static uint16_t obs_counter = 0;
+  static char content[11];
 
-  PRINTF("TICK /%s\n", r->url);
-  periodic_i = periodic_i + 1;
+  ++obs_counter;
+
+  PRINTF("TICK %u for /%s\n", periodic_i, r->url);
+
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
+  coap_set_payload(notification, content, snprintf(content, sizeof(content), "TICK %u", obs_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
-  REST.notify_subscribers(r->url, 1, periodic_i, (uint8_t *)content, snprintf(content, sizeof(content), "TICK %lu", periodic_i));
-  /*                              |-> implementation-specific, e.g. CoAP: 1=CON and 0=NON notification */
-
-  return 1;
+  REST.notify_subscribers(r, obs_counter, notification);
 }
 #endif
 
@@ -469,7 +489,7 @@ pushing_periodic_handler(resource_t *r)
  * Additionally takes a period parameter that defines the interval to call [name]_periodic_handler().
  * A default post_handler takes care of subscriptions and manages a list of subscribers to notify.
  */
-EVENT_RESOURCE(event, METHOD_GET, "sensors/button", "title=\"Event demo\";rt=\"Observable\"");
+EVENT_RESOURCE(event, METHOD_GET, "sensors/button", "title=\"Event demo\";obs");
 
 void
 event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
@@ -484,21 +504,23 @@ event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 
 /* Additionally, a handler function named [resource name]_event_handler must be implemented for each PERIODIC_RESOURCE defined.
  * It will be called by the REST manager process with the defined period. */
-int
+void
 event_event_handler(resource_t *r)
 {
-  static uint32_t event_i = 0;
-  static char content[10];
+  static uint16_t event_counter = 0;
+  static char content[12];
 
-  PRINTF("EVENT /%s\n", r->url);
-  ++event_i;
+  ++event_counter;
 
-  /* Notify registered observers with the given message type, observe option, and payload.
-   * The token will be set automatically. */
+  PRINTF("TICK %u for /%s\n", event_counter, r->url);
 
-  // FIXME provide a rest_notify_subscribers call; how to manage specific options such as COAP_TYPE?
-  REST.notify_subscribers(r->url, 0, event_i, content, snprintf(content, sizeof(content), "EVENT %lu", event_i));
-  return 1;
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_CON, CONTENT_2_05, 0 );
+  coap_set_payload(notification, content, snprintf(content, sizeof(content), "EVENT %u", event_counter));
+
+  /* Notify the registered observers with the given message type, observe option, and payload. */
+  REST.notify_subscribers(r, event_counter, notification);
 }
 #endif /* PLATFORM_HAS_BUTTON */
 
@@ -682,14 +704,15 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if REST_RES_PUSHING
   rest_activate_periodic_resource(&periodic_resource_pushing);
 #endif
-#if REST_RES_SEPARATE && WITH_COAP > 3
-  rest_set_pre_handler(&resource_separate, coap_separate_handler);
+#if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
+  rest_activate_event_resource(&resource_event);
+#endif
+#if defined (PLATFORM_HAS_BUTTON) && REST_RES_SEPARATE && WITH_COAP > 3
+  /* No pre-handler anymore, user coap_separate_accept() and coap_separate_reject(). */
   rest_activate_resource(&resource_separate);
 #endif
-
-#if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
+#if defined (PLATFORM_HAS_BUTTON) && (REST_RES_EVENT || (REST_RES_SEPARATE && WITH_COAP > 3))
   SENSORS_ACTIVATE(button_sensor);
-  rest_activate_event_resource(&resource_event);
 #endif
 #if defined (PLATFORM_HAS_LEDS)
 #if REST_RES_LEDS

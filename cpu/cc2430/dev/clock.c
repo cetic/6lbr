@@ -27,53 +27,46 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: clock.c,v 1.1 2009/09/08 20:07:35 zdshelby Exp $
  */
 
 /**
  * \file
- *         Implementation of the clock functions for the 8051 CPU
+ *         Implementation of the clock functions for the cc243x
  * \author
- *         Zach Shelby (zach@sensinode.com)
+ *         Zach Shelby (zach@sensinode.com) - original
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
-
-/**
- * TODO: Implement clock_fine() and clock_fine_max_ticks() using another timer?
- */
-
-#include <stdio.h> /*for debug printf*/
 #include "sys/clock.h"
 #include "sys/etimer.h"
 #include "cc2430_sfr.h"
+#include "sys/energest.h"
 
-
-/*Sleep timer runs on the 32k RC osc. */
+/* Sleep timer runs on the 32k RC osc. */
 /* One clock tick is 7.8 ms */
-#define TICK_VAL (32768/128)
-
-#define MAX_TICKS (~((clock_time_t)0) / 2)
-
+#define TICK_VAL (32768/128)  /* 256 */
+/*---------------------------------------------------------------------------*/
+#if CLOCK_CONF_STACK_FRIENDLY
+volatile __bit sleep_flag;
+#else
+#endif
+/*---------------------------------------------------------------------------*/
 /* Used in sleep timer interrupt for calculating the next interrupt time */
 static unsigned long timer_value;
-/*starts calculating the ticks right after reset*/
-static volatile clock_time_t count = 0;
-/*calculates seconds*/
-static volatile clock_time_t seconds = 0;
-
+static volatile __data clock_time_t count = 0; /* Uptime in ticks */
+static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
 /**
- * One delay is about 0.6 us, so this function delays for len * 0.6 us
+ * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
  */
 void
 clock_delay(unsigned int len)
 {
-  unsigned int i;
-  for(i = 0; i< len; i++) {
-    __asm
-      nop
-      __endasm;
+  DISABLE_INTERRUPTS();
+  while(len--) {
+    ASM(nop); ASM(nop); ASM(nop);
+    ASM(nop); ASM(nop);
   }
+  ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -88,7 +81,7 @@ clock_wait(int i)
   while(clock_time() - start < (clock_time_t)i);
 }
 /*---------------------------------------------------------------------------*/
-clock_time_t
+CCIF clock_time_t
 clock_time(void)
 {
   return count;
@@ -103,32 +96,40 @@ clock_seconds(void)
 void
 clock_init(void)
 {
-  CLKCON = OSC32K |  TICKSPD2|TICKSPD1|TICKSPD0;	/*tickspeed 250 kHz*/
-  
-  /*Initialize tick value*/
-  timer_value = ST0;									/*sleep timer 0. low bits [7:0]*/
-  timer_value += ((unsigned long int)ST1) << 8;		/*middle bits [15:8]*/
-  timer_value += ((unsigned long int)ST2) << 16;		/*high bits [23:16]*/
-  timer_value += TICK_VAL;							/*init value 256*/
+  CLKCON = OSC32K | TICKSPD2 | TICKSPD1; /* tickspeed 500 kHz for timers[1-4] */
+
+  /* Initialize tick value */
+  timer_value = ST0;                              /* ST low bits [7:0] */
+  timer_value += ((unsigned long int) ST1) << 8;  /* middle bits [15:8] */
+  timer_value += ((unsigned long int) ST2) << 16; /*   high bits [23:16] */
+  timer_value += TICK_VAL;                        /* Init value 256 */
   ST2 = (unsigned char) (timer_value >> 16);
   ST1 = (unsigned char) (timer_value >> 8);
   ST0 = (unsigned char) timer_value;
   
-  IEN0 |= STIE;		/*interrupt enable for sleep timers. STIE=Interrupt mask, CPU. */
+  IEN0_STIE = 1; /* IEN0.STIE acknowledge Sleep Timer Interrupt */
 }
 /*---------------------------------------------------------------------------*/
 void
-cc2430_clock_ISR( void ) __interrupt (ST_VECTOR)
+clock_ISR(void) __interrupt(ST_VECTOR)
 {
-  IEN0_EA = 0;	/*interrupt disable*/
-  /* When using the cooperative scheduler the timer 2 ISR is only
-     required to increment the RTOS tick count. */
-  
-  /*Read value of the ST0,ST1,ST2 and then add TICK_VAL and write it back.
-    Next interrupt occurs after the current time + TICK_VAL*/
+  DISABLE_INTERRUPTS();
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  /*
+   * If the Sleep timer throws an interrupt while we are powering down to
+   * PM1, we need to abort the power down. Clear SLEEP.MODE, this will signal
+   * main() to abort the PM1 transition
+   */
+  SLEEP &= 0xFC;
+
+  /*
+   * Read value of the ST0:ST1:ST2, add TICK_VAL and write it back.
+   * Next interrupt occurs after the current time + TICK_VAL
+   */
   timer_value = ST0;
-  timer_value += ((unsigned long int)ST1) << 8;
-  timer_value += ((unsigned long int)ST2) << 16;
+  timer_value += ((unsigned long int) ST1) << 8;
+  timer_value += ((unsigned long int) ST2) << 16;
   timer_value += TICK_VAL;
   ST2 = (unsigned char) (timer_value >> 16);
   ST1 = (unsigned char) (timer_value >> 8);
@@ -148,12 +149,17 @@ cc2430_clock_ISR( void ) __interrupt (ST_VECTOR)
     ++seconds;
   }
   
-  if(etimer_pending() &&
-     (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {	/*core/sys/etimer.c*/
+#if CLOCK_CONF_STACK_FRIENDLY
+  sleep_flag = 1;
+#else
+  if(etimer_pending()
+      && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
     etimer_request_poll();
   }
+#endif
   
-  IRCON &= ~STIF;		/*IRCON.STIF=Sleep timer interrupt flag. This flag called this interrupt func, now reset it*/
-  IEN0_EA = 1;		/*interrupt enable*/
+  IRCON_STIF = 0;
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/

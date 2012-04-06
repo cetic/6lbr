@@ -1,11 +1,13 @@
-all: rest-server-example coap-client-example
+all: rest-server-example coap-client-example plugtest-server
 
 CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # for static routing, if enabled
 ifneq ($(TARGET), minimal-net)
+ifneq ($(TARGET), native)
 PROJECT_SOURCEFILES += static-routing.c
+endif
 endif
 
 # variable for root Makefile.include
@@ -17,10 +19,16 @@ UIP_CONF_IPV6=1
 # configure CoAP implementation (3|7)
 WITH_COAP=7
 
-# must be CFLAGS not variables
-# minimal-net does not support RPL, avoid redefine warnings
+# new variable since slip-radio
 ifneq ($(TARGET), minimal-net)
-CFLAGS += -DUIP_CONF_IPV6_RPL=1
+UIP_CONF_RPL=1
+else
+# minimal-net does not support RPL under Linux and is mostly used to test CoAP only
+${info INFO: compiling without RPL}
+UIP_CONF_RPL=0
+CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
+CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
+CFLAGS += -DUIP_CONF_BUFFER_SIZE=1280
 endif
 
 # linker optimizations
@@ -31,13 +39,11 @@ ifeq ($(WITH_COAP), 7)
 ${info INFO: compiling with CoAP-07}
 CFLAGS += -DWITH_COAP=7
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-07
 else ifeq ($(WITH_COAP), 3)
 ${info INFO: compiling with CoAP-03}
 CFLAGS += -DWITH_COAP=3
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-03
 else
 ${info INFO: compiling with HTTP}
@@ -74,3 +80,6 @@ connect-router:	$(CONTIKI)/tools/tunslip6
 
 connect-router-cooja:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 aaaa::1/64
+
+tap0up:
+	sudo ip address add fdfd::1/64 dev tap0

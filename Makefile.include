@@ -107,11 +107,8 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
 	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-	     ${addprefix , $(APPS)}}
-  APPINCLUDES = ${foreach APP, $(APPS),  ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)} \
-                 $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
-                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP) \
-	         $(APP)/Makefile.$(APP)}}
+	     $(APPS)}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
@@ -230,6 +227,12 @@ ifndef CUSTOM_RULE_LINK
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
+
+%.ramprof: %.$(TARGET)
+	nm -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
+
+%.flashprof: %.$(TARGET)
+	nm -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
 
 # Don't treat %.$(TARGET) as an intermediate file because it is
 # in fact the primary target.
