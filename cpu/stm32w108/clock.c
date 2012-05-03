@@ -46,6 +46,7 @@
 #include "dev/stm32w_systick.h"
 
 #include "contiki.h"
+#include "sys/clock.h"
 
 #include "uart1.h"
 #include "dev/leds.h"
@@ -54,17 +55,17 @@
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
-// The value that will be load in the SysTick value register.
-#define RELOAD_VALUE 24000-1   // 1 ms with a 24 MHz clock
+/* The value that will be load in the SysTick value register. */
+#define RELOAD_VALUE 24000-1   /* 1 ms with a 24 MHz clock */
 
 static volatile clock_time_t count;
 static volatile unsigned long current_seconds = 0;
 static unsigned int second_countdown = CLOCK_SECOND;
 
 /*---------------------------------------------------------------------------*/
-void SysTick_Handler(void)
+void
+SysTick_Handler(void)
 {
-
   count++;
 
   if(etimer_pending()) {
@@ -77,10 +78,9 @@ void SysTick_Handler(void)
   }
   
 }
-
 /*---------------------------------------------------------------------------*/
-
-void clock_init(void)
+void
+clock_init(void)
 { 
   
   ATOMIC(
@@ -96,19 +96,18 @@ void clock_init(void)
   )
 
 }
-
 /*---------------------------------------------------------------------------*/
-
-clock_time_t clock_time(void)
+clock_time_t
+clock_time(void)
 {
   return count;
 }
-
 /*---------------------------------------------------------------------------*/
 /**
  * Delay the CPU for a multiple of TODO
  */
-void clock_delay(unsigned int i)
+void
+clock_delay(unsigned int i)
 {
   for (; i > 0; i--) {		/* Needs fixing XXX */
     unsigned j;
@@ -116,13 +115,13 @@ void clock_delay(unsigned int i)
       asm ("nop");
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /**
  * Wait for a multiple of 1 ms.
  *
  */
-void clock_wait(int i)
+void
+clock_wait(clock_time_t i)
 {
   clock_time_t start;
 
@@ -130,19 +129,19 @@ void clock_wait(int i)
   while(clock_time() - start < (clock_time_t)i);
 }
 /*---------------------------------------------------------------------------*/
-
-unsigned long clock_seconds(void)
+unsigned long
+clock_seconds(void)
 {
   return current_seconds;
 }
 
 #include <stdio.h>
 
-void sleep_seconds(int seconds)
+void
+sleep_seconds(int seconds)
 {
   int32u quarter_seconds = seconds * 4;
   uint8_t radio_on;
-
 
   halPowerDown();
   radio_on = stm32w_radio_is_on();
@@ -155,8 +154,8 @@ void sleep_seconds(int seconds)
 
   halPowerUp();
 
-  // Update OS system ticks.
-  current_seconds += seconds - quarter_seconds / 4 ; // Passed seconds
+  /* Update OS system ticks. */
+  current_seconds += seconds - quarter_seconds / 4 ; /* Passed seconds */
   count += seconds * CLOCK_SECOND - quarter_seconds * CLOCK_SECOND / 4 ;
 
   if(etimer_pending()) {
@@ -167,12 +166,11 @@ void sleep_seconds(int seconds)
   SysTick_SetReload(RELOAD_VALUE);
   SysTick_ITConfig(ENABLE);
   SysTick_CounterCmd(SysTick_Counter_Enable);
-
   )
 
   stm32w_radio_driver.init();
-  if(radio_on){
-	  stm32w_radio_driver.on();
+  if(radio_on) {
+    stm32w_radio_driver.on();
   }
 
   uart1_init(115200);
@@ -180,6 +178,5 @@ void sleep_seconds(int seconds)
   rtimer_init();
 
   PRINTF("WakeInfo: %04x\r\n", halGetWakeInfo());
-
 
 }
