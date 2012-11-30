@@ -102,13 +102,6 @@ public class LogScriptEngine {
   private long startRealTime;
   private long nextProgress;
 
-  private interface ScriptLog {
-    public void log(String log);
-    public void testOK();
-    public void testFailed();
-    public void generateMessage(long delay, String msg);
-  }
-
   public LogScriptEngine(Simulation simulation) {
     this.simulation = simulation;
   }
@@ -411,7 +404,7 @@ public class LogScriptEngine {
       new Thread() {
         public void run() {
           try { Thread.sleep(2000); } catch (InterruptedException e) { }
-          logger.warn("Killing COOJA");
+          logger.warn("Killing Cooja");
           System.exit(1);
         };
       }.start();
@@ -457,7 +450,7 @@ public class LogScriptEngine {
       deactivateScript();
 
       if (GUI.isVisualized()) {
-        log("[if test was run without visualization, COOJA would now have been terminated]\n");
+        log("[if test was run without visualization, Cooja would now have been terminated]\n");
         stopSimulation = true;
         simulation.invokeSimulationThread(stopSimulationRunnable);
       } else {

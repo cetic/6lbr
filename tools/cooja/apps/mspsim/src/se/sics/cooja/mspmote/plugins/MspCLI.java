@@ -48,10 +48,12 @@ import javax.swing.JTextField;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.UpdateAggregator;
 import se.sics.cooja.mspmote.MspMote;
@@ -61,7 +63,8 @@ import se.sics.mspsim.cli.LineOutputStream;
 
 @ClassDescription("Msp CLI")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MspCLI extends VisPlugin implements MotePlugin {
+@SupportedArguments(motes = {MspMote.class})
+public class MspCLI extends VisPlugin implements MotePlugin, HasQuickHelp {
 
   private static final long serialVersionUID = 2833218439838209672L;
 
@@ -218,6 +221,15 @@ public class MspCLI extends VisPlugin implements MotePlugin {
 
   public Mote getMote() {
     return mspMote;
+  }
+
+  public String getQuickHelp() {
+    return
+        "<b>MSPSim's Command Line Interface</b>" +
+        "<br><br>help<br><i>lists available commands</i>" +
+        "<br><br>info CC2420<br><i>shows radio chip details</i>" +
+        "<br><br>log CC2420 > mylog.txt<br><i>logs radio chip details to file</i>" +
+        "<br><br>stacktrace<br><i>shows current stacktrace</i>";
   }
 
 }

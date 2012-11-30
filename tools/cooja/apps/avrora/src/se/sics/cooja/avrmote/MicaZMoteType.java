@@ -37,7 +37,6 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -72,18 +71,16 @@ import se.sics.cooja.interfaces.Position;
 
 /**
  * AVR-based MicaZ mote types emulated in Avrora.
- * 
+ *
  * @author Joakim Eriksson, Fredrik Osterlind
  */
-@ClassDescription("MicaZ Mote Type")
+@ClassDescription("MicaZ mote")
 @AbstractionLevelDescription("Emulated level")
 public class MicaZMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(MicaZMoteType.class);
 
   private String identifier = null;
   private String description = null;
-
-  protected Simulation simulation;
 
   /* If source file is defined, the firmware is recompiled when loading simulations */
   private File fileFirmware = null;
@@ -227,8 +224,8 @@ public class MicaZMoteType implements MoteType {
     return null;
   }
 
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+  public Collection<Element> getConfigXML(Simulation simulation) {
+    ArrayList<Element> config = new ArrayList<Element>();
 
     Element element;
 
@@ -260,7 +257,7 @@ public class MicaZMoteType implements MoteType {
     config.add(element);
 
     // Mote interfaces
-    for (Class moteInterface : getMoteInterfaceClasses()) {
+    for (Class<? extends MoteInterface> moteInterface : getMoteInterfaceClasses()) {
       element = new Element("moteinterface");
       element.setText(moteInterface.getName());
       config.add(element);
@@ -272,7 +269,6 @@ public class MicaZMoteType implements MoteType {
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     ArrayList<Class<? extends MoteInterface>> intfClassList = new ArrayList<Class<? extends MoteInterface>>();
     for (Element element : configXML) {
@@ -325,7 +321,6 @@ public class MicaZMoteType implements MoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     /* If visualized, show compile dialog and let user configure */
     if (visAvailable) {

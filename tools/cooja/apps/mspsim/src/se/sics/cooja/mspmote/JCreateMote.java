@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,54 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: RandomIPDistributor.java,v 1.2 2009/02/18 12:07:19 fros4943 Exp $
  */
 
-package se.sics.cooja.ipdistributors;
-import java.util.Random;
-import java.util.Vector;
-import se.sics.cooja.*;
+package se.sics.cooja.mspmote;
+import java.io.File;
+
+import org.apache.log4j.Logger;
+
+import se.sics.cooja.Simulation;
+import se.sics.cooja.mspmote.interfaces.CoojaM25P80;
+import se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem;
+import se.sics.mspsim.platform.jcreate.JCreateNode;
 
 /**
- * Generates IP addresses randomly on the form 10.10.[1-20].[1-20].
- * Nothing prevents several motes from getting the same IP number.
- *
- * @author Fredrik Osterlind
+ * @author Fredrik Osterlind, Niclas Finne
  */
-@ClassDescription("Random (10.10.?.?)")
-public class RandomIPDistributor extends IPDistributor {
+public class JCreateMote extends MspMote {
 
-  private Random random = new Random(); /* Do not use main random generator for setup */
+    private static Logger logger = Logger.getLogger(JCreateMote.class);
 
-  /**
-   * Creates a random IP distributor.
-   * @param newMotes All motes which later will be assigned IP numbers.
-   */
-  public RandomIPDistributor(Vector<Mote> newMotes) {
-  }
+    private JCreateNode mote;
 
-  public String getNextIPAddress() {
-    return "" + 10 + "." + 10 + "." + (1+random.nextInt(20)) + "." + (1+random.nextInt(20));
-  }
+    public JCreateMote(MspMoteType moteType, Simulation sim) {
+        super(moteType, sim);
+    }
+
+    protected boolean initEmulator(File fileELF) {
+        try {
+            mote = new JCreateNode();
+            registry = mote.getRegistry();
+            prepareMote(fileELF, mote);
+            mote.setFlash(new CoojaM25P80(mote.getCPU()));
+        } catch (Exception e) {
+            logger.fatal("Error when creating JCreate mote: ", e);
+            return false;
+        }
+        return true;
+    }
+
+    public void idUpdated(int newID) {
+        mote.setNodeID(newID);
+    }
+
+    public SkyCoffeeFilesystem getFilesystem() {
+        return getInterfaces().getInterfaceOfType(SkyCoffeeFilesystem.class);
+    }
+
+    public String toString() {
+        return "JCreate " + getID();
+    }
 
 }

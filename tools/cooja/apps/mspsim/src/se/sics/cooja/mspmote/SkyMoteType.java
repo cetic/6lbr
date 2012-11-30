@@ -58,18 +58,18 @@ import se.sics.cooja.interfaces.Mote2MoteRelations;
 import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
+import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.interfaces.SkyButton;
-import se.sics.cooja.mspmote.interfaces.SkyByteRadio;
 import se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem;
 import se.sics.cooja.mspmote.interfaces.SkyFlash;
 import se.sics.cooja.mspmote.interfaces.SkyLED;
-import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.interfaces.SkyTemperature;
 
-@ClassDescription("Sky Mote Type")
+@ClassDescription("Sky mote")
 @AbstractionLevelDescription("Emulated level")
 public class SkyMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(SkyMoteType.class);
@@ -80,7 +80,6 @@ public class SkyMoteType extends MspMoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     /* SPECIAL CASE: Cooja started in applet.
      * Use preconfigured Contiki firmware */
@@ -216,7 +215,7 @@ public class SkyMoteType extends MspMoteType {
         SkyButton.class,
         SkyFlash.class,
         SkyCoffeeFilesystem.class,
-        SkyByteRadio.class,
+        Msp802154Radio.class,
         MspSerial.class,
         SkyLED.class,
         MspDebugOutput.class, /* EXPERIMENTAL: Enable me for COOJA_DEBUG(..) */
@@ -230,7 +229,7 @@ public class SkyMoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".sky");
   }
-  
+
   protected String getTargetName() {
   	return "sky";
   }

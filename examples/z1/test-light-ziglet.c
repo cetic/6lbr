@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Zolertia(TM) is a trademark of Advancare,SL
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,49 +26,58 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IdIPDistributor.java,v 1.2 2009/09/17 13:20:03 fros4943 Exp $
+ * This file is part of the Contiki operating system.
+ *
  */
-
-package se.sics.cooja.ipdistributors;
-import java.util.Vector;
-import se.sics.cooja.*;
 
 /**
- * Generates IP addresses on the form 10.[id/256 mod 256*256].[id mod 256].1.
- * 
- * Observe!
- * - ID must be set before this is called (otherwise IP=0.0.0.0).
- * - Only supports 256*256 motes, (IPs will wrap if above).
- * 
- * @author Fredrik Osterlind
+ * \file
+ *         A quick program for testing the light ziglet driver in the Z1 platform
+ * \author
+ *         Antonio Lignan <alinan@zolertia.com>
  */
-@ClassDescription("From ID (10.id.id.1)")
-public class IdIPDistributor extends IPDistributor {
-  private Vector<String> generatedIPAddresses;
 
-  /**
-   * Creates a Id IP distributor.
-   * @param newMotes All motes which later will be assigned IP numbers.
-   */
-  public IdIPDistributor(Vector<Mote> newMotes) {
-    generatedIPAddresses = new Vector<String>();
+#include <stdio.h>
+#include "contiki.h"
+#include "dev/i2cmaster.h"
+#include "dev/light-ziglet.h"
 
-    for (int i=0; i < newMotes.size(); i++) {
-      int moteId = newMotes.get(i).getID();
-      generatedIPAddresses.add("10." + 
-          (moteId / 256 % (256*256))
-          + "." + 
-          (moteId % 256)
-          + ".1");
-    }
 
+#if 1
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+
+#if 0
+#define PRINTFDEBUG(...) printf(__VA_ARGS__)
+#else
+#define PRINTFDEBUG(...)
+#endif
+
+
+#define SENSOR_READ_INTERVAL (CLOCK_SECOND)
+
+PROCESS(test_process, "Test light ziglet process");
+AUTOSTART_PROCESSES(&test_process);
+/*---------------------------------------------------------------------------*/
+static struct etimer et;
+
+PROCESS_THREAD(test_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  uint16_t light;
+
+  light_ziglet_init();
+
+  while(1) {
+    etimer_set(&et, SENSOR_READ_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    light = light_ziglet_read();
+    PRINTF("Light = %u\n", light);
   }
-
-  public String getNextIPAddress() {
-    if (generatedIPAddresses.size() > 0)
-      return generatedIPAddresses.remove(0);
-    else
-      return "0.0.0.0";
-  }
-
+  PROCESS_END();
 }

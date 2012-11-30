@@ -55,6 +55,7 @@ import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.motes.AbstractEmulatedMote;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.plugins.CodeVisualizerSkin;
 import se.sics.cooja.mspmote.plugins.MspBreakpoint;
 import se.sics.cooja.plugins.Visualizer;
@@ -99,13 +100,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   private int stackPointerLow = Integer.MAX_VALUE;
   private int heapStartAddress;
   private StackOverflowObservable stackOverflowObservable = new StackOverflowObservable();
-
-  public MspMote() {
-    myMoteType = null;
-    myCpu = null;
-    myMemory = null;
-    myMoteInterfaceHandler = null;
-  }
 
   public MspMote(MspMoteType moteType, Simulation simulation) {
     this.simulation = simulation;
@@ -220,10 +214,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     this.myCpu.setMonitorExec(true);
     this.myCpu.setTrace(0); /* TODO Enable */
 
-    int[] memory = myCpu.memory;
     logger.info("Loading firmware from: " + fileELF.getAbsolutePath());
     GUI.setProgressMessage("Loading " + fileELF.getName());
-    node.loadFirmware(((MspMoteType)getType()).getELF(), memory);
+    node.loadFirmware(((MspMoteType)getType()).getELF());
 
     /* Throw exceptions at bad memory access */
     /*myCpu.setThrowIfWarning(true);*/
@@ -408,6 +401,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.ESBLog")) {
           intfClass = MspSerial.class.getName();
         }
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkyByteRadio")) {
+          intfClass = Msp802154Radio.class.getName();
+        }
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkySerial")) {
           intfClass = MspSerial.class.getName();
         }
@@ -420,6 +416,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         }
 
         MoteInterface moteInterface = getInterfaces().getInterfaceOfType(moteInterfaceClass);
+        if (moteInterface == null) {
+            logger.fatal("Could not find mote interface of class: " + moteInterfaceClass);
+            return false;
+        }
         moteInterface.setConfigXML(element.getChildren(), visAvailable);
       }
     }
@@ -573,9 +573,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     return false;
   }
 
-  public Integer getExecutableAddressOf(File file, int lineNr) {
+  public int getExecutableAddressOf(File file, int lineNr) {
     if (file == null || lineNr < 0 || debuggingInfo == null) {
-      return null;
+      return -1;
     }
 
     /* Match file */
@@ -589,7 +589,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       }
     }
     if (lineTable == null) {
-      return null;
+      return -1;
     }
 
     /* Match line number */
@@ -603,10 +603,16 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       }
     }
 
-    return null;
+    return -1;
   }
 
+  private long lastBreakpointCycles = -1;
   public void signalBreakpointTrigger(MspBreakpoint b) {
+    if (lastBreakpointCycles == myCpu.cycles) {
+      return;
+    }
+
+    lastBreakpointCycles = myCpu.cycles;
     if (b.stopsSimulation() && getSimulation().isRunning()) {
       /* Stop simulation immediately */
       stopNextInstruction();

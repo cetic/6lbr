@@ -89,7 +89,7 @@ import se.sics.cooja.GUI;
 import se.sics.cooja.ProjectConfig;
 
 /**
- * This dialog allows a user to manage COOJA projects: extensions to COOJA that 
+ * This dialog allows a user to manage Cooja extensions: extensions to COOJA that 
  * provide new functionality such as radio mediums, plugins, and mote types.
  *
  * @author Fredrik Osterlind
@@ -101,7 +101,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 	private GUI gui;
 
 	private JTable table = null;
-	private JTextArea projectInfo = new JTextArea("Project information:");
+	private JTextArea projectInfo = new JTextArea("Extension information:");
 	private DirectoryTreePanel treePanel = null;
 
 	private ArrayList<COOJAProject> currentProjects = new ArrayList<COOJAProject>();
@@ -132,7 +132,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 		super(
 				parent instanceof Dialog?(Dialog)parent:
 					parent instanceof Window?(Window)parent:
-						(Frame)parent, "COOJA projects", ModalityType.APPLICATION_MODAL);
+						(Frame)parent, "Cooja extensions", ModalityType.APPLICATION_MODAL);
 
 		table = new JTable(new AbstractTableModel() {
 			private static final long serialVersionUID = 591599455927509191L;
@@ -189,7 +189,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			}
 		});
 
-		/* Add current projects */
+		/* Add current extensions */
 		for (COOJAProject project : projects) {
 			addProjectDir(project);
 		}
@@ -204,7 +204,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			buttonPane.setBorder(BorderFactory.createEmptyBorder(0,3,3,3));
 			buttonPane.add(Box.createHorizontalGlue());
 
-			button = new JButton("View merged config");
+			button = new JButton("View config");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					try {
@@ -237,7 +237,18 @@ public class ProjectDirectoriesDialog extends JDialog {
 
 			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-			button = new JButton("Save as default");
+			button = new JButton("Apply for session");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ProjectDirectoriesDialog.this.returnedProjects = currentProjects.toArray(new COOJAProject[0]);
+					dispose();
+				}
+			});
+			buttonPane.add(button);
+
+			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+			
+			button = new JButton("Save");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Object[] options = { "Ok", "Cancel" };
@@ -266,20 +277,11 @@ public class ProjectDirectoriesDialog extends JDialog {
 					}
 
 					GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
-				}
-			});
-			buttonPane.add(button);
-
-			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			button = new JButton("OK");
-			button.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					ProjectDirectoriesDialog.this.returnedProjects = currentProjects.toArray(new COOJAProject[0]);
 					dispose();
 				}
 			});
 			buttonPane.add(button);
+
 			this.getRootPane().setDefaultButton(button);
 		}
 
@@ -288,12 +290,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			treePanel = new DirectoryTreePanel(this);
 
 			sortPane = new JPanel(new BorderLayout());
-			Icon icon = UIManager.getLookAndFeelDefaults().getIcon("Table.ascendingSortIcon");
-			if (icon == null) {
-				button = new JButton("Up");
-			} else {
-				button = new JButton(icon);
-			}
+			button = new JButton("Move up");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int selectedIndex = table.getSelectedRow();
@@ -307,12 +304,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 				}
 			});
 			sortPane.add(BorderLayout.NORTH, button);
-			icon = UIManager.getLookAndFeelDefaults().getIcon("Table.descendingSortIcon");
-			if (icon == null) {
-				button = new JButton("Down");
-			} else {
-				button = new JButton(icon);
-			}
+			
+			button = new JButton("Move down");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int selectedIndex = table.getSelectedRow();
@@ -331,8 +324,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 			sortPane.add(BorderLayout.SOUTH, button);
 
 			{
-				button = new JButton("X");
-				button.setBackground(Color.RED);
+				button = new JButton("Remove");
+				
 				button.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						int selectedIndex = table.getSelectedRow();
@@ -348,8 +341,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 						String s2 = "Cancel";
 						Object[] options = { s1, s2 };
 						int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-								"Remove COOJA project?\n" + project,
-								"Remove COOJA project?", JOptionPane.YES_NO_OPTION,
+								"Remove Cooja project?\n" + project,
+								"Remove Cooja project?", JOptionPane.YES_NO_OPTION,
 								JOptionPane.WARNING_MESSAGE, null, options, s1);
 						if (n != JOptionPane.YES_OPTION) {
 							return;
@@ -386,8 +379,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 		}
 
 		JPanel topPanel = new JPanel(new BorderLayout());
-		topPanel.add(BorderLayout.CENTER, new JLabel(" A COOJA project depends on a cooja.config file, and extends COOJA with radio mediums, mote types, plugins etc."));
-		topPanel.setBackground(Color.WHITE);
+		/*		topPanel.add(BorderLayout.CENTER, new JLabel("A Cooja project depends on a cooja.config file, and extends Cooja with radio mediums, mote types, plugins etc."));
+				topPanel.setBackground(Color.WHITE);*/
 		getContentPane().add(BorderLayout.NORTH, topPanel);
 		getContentPane().add(BorderLayout.CENTER, mainPane);
 		getContentPane().add(BorderLayout.SOUTH, buttonPane);
@@ -410,9 +403,9 @@ public class ProjectDirectoriesDialog extends JDialog {
 		if (!project.configExists()) {
 			return;
 		}
-		projectInfo.append("Parsing: " +
-				(project.configRead()?"OK":"FAILED") + "\n\n");
 		if (!project.configRead()) {
+		        projectInfo.append("Parsing: " +
+					   (project.configRead()?"OK":"FAILED") + "\n\n");
 			return;
 		}
 		
@@ -425,9 +418,9 @@ public class ProjectDirectoriesDialog extends JDialog {
 			for (String jar: jars) {
 				File jarFile = GUI.findJarFile(project.dir, jar);
 				if (jarFile == null) {
-					projectInfo.append("\tERROR: " + jar + " could not be found!\n");
+					projectInfo.append("\tError: " + jar + " could not be found.\n");
 				} else if (!jarFile.exists()) {
-					projectInfo.append("\tERROR: " + jarFile.getAbsolutePath() + " could not be found!\n");
+					projectInfo.append("\tError: " + jarFile.getAbsolutePath() + " could not be found.\n");
 				} else {
 					projectInfo.append("\t" + jarFile.getAbsolutePath() + " found\n");
 				}
@@ -440,10 +433,10 @@ public class ProjectDirectoriesDialog extends JDialog {
 			projectInfo.append("Radio mediums: " + Arrays.toString(project.getConfigRadioMediums()) + "\n");
 		}
 		if (project.getConfigMoteInterfaces() != null) {
-			projectInfo.append("Contiki mote interfaces: " + Arrays.toString(project.getConfigMoteInterfaces()) + "\n");
+			projectInfo.append("Cooja mote interfaces: " + Arrays.toString(project.getConfigMoteInterfaces()) + "\n");
 		}
 		if (project.getConfigCSources() != null) {
-			projectInfo.append("Contiki mote C sources: " + Arrays.toString(project.getConfigCSources()) + "\n");
+			projectInfo.append("Cooja mote C sources: " + Arrays.toString(project.getConfigCSources()) + "\n");
 		}
 	}
 

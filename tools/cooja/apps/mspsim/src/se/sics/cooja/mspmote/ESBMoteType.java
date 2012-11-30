@@ -31,13 +31,25 @@
 
 package se.sics.cooja.mspmote;
 
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
 import java.io.File;
 import java.net.URL;
-import javax.swing.*;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
-import se.sics.cooja.*;
+
+import se.sics.cooja.AbstractionLevelDescription;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
@@ -53,7 +65,7 @@ import se.sics.cooja.mspmote.interfaces.MspMoteID;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 
-@ClassDescription("ESB Mote Type")
+@ClassDescription("ESB mote")
 @AbstractionLevelDescription("Emulated level")
 public class ESBMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(ESBMoteType.class);
@@ -82,7 +94,6 @@ public class ESBMoteType extends MspMoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     /* SPECIAL CASE: Cooja started in applet.
      * Use preconfigured Contiki firmware */
@@ -210,7 +221,7 @@ public class ESBMoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".esb");
   }
-  
+
   protected String getTargetName() {
   	return "esb";
   }

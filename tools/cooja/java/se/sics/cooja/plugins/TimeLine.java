@@ -56,7 +56,6 @@ import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -64,6 +63,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -85,6 +85,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
@@ -106,7 +107,7 @@ import se.sics.cooja.motes.AbstractEmulatedMote;
  */
 @ClassDescription("Timeline")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
-public class TimeLine extends VisPlugin {
+public class TimeLine extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = -883154261246961973L;
   public static final int LED_PIXEL_HEIGHT = 2;
   public static final int EVENT_PIXEL_HEIGHT = 4;
@@ -161,13 +162,120 @@ public class TimeLine extends VisPlugin {
    * @param gui GUI
    */
   public TimeLine(final Simulation simulation, final GUI gui) {
-    super("Timeline (Add motes to observe by clicking +)", gui);
+    super("Timeline", gui);
     this.simulation = simulation;
 
     currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length/2];
 
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    JMenu editMenu = new JMenu("Edit");
+    JMenu motesMenu = new JMenu("Motes");
+    JMenu eventsMenu = new JMenu("Events");
+    JMenu viewMenu = new JMenu("View");
+    JMenu zoomMenu = new JMenu("Zoom");
+
+    menuBar.add(fileMenu);
+    menuBar.add(editMenu);
+    menuBar.add(viewMenu);
+    menuBar.add(zoomMenu);
+    menuBar.add(eventsMenu);
+    menuBar.add(motesMenu);
+
+    this.setJMenuBar(menuBar);
+
+    motesMenu.add(new JMenuItem(addMoteAction));
+    zoomMenu.add(new JMenuItem(zoomInAction));
+    zoomMenu.add(new JMenuItem(zoomOutAction));
+    zoomMenu.add(new JMenuItem(zoomSliderAction));
+    viewMenu.add(new JCheckBoxMenuItem(executionDetailsAction) {
+	    private static final long serialVersionUID = 8314556794750277113L;
+	    public boolean isSelected() {
+      		return executionDetails;
+	    }
+    });
+    viewMenu.add(new JCheckBoxMenuItem(radioChannelsAction) {
+	    private static final long serialVersionUID = 6830282466652559714L;
+	    public boolean isSelected() {
+      		return radioChannels;
+	    }
+    });
+
+    fileMenu.add(new JMenuItem(saveDataAction));
+    fileMenu.add(new JMenuItem(statisticsAction));
+    editMenu.add(new JMenuItem(clearAction));
+
+    JCheckBox eventCheckBox;
+    eventCheckBox = createEventCheckbox("Radio traffic", "Show radio transmissions, receptions, and collisions");
+    eventCheckBox.setSelected(showRadioRXTX);
+    eventCheckBox.setName("showRadioRXTX");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showRadioRXTX = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    eventsMenu.add(eventCheckBox);
+    eventCheckBox = createEventCheckbox("Radio channel", "Show different radio channels");
+    eventCheckBox.setSelected(showRadioChannels);
+    eventCheckBox.setName("showRadioChannels");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showRadioChannels = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    /*eventCheckboxes.add(eventCheckBox);*/
+    eventsMenu.add(eventCheckBox);
+    eventCheckBox = createEventCheckbox("Radio state", "Show radio hardware state");
+    eventCheckBox.setSelected(showRadioHW);
+    eventCheckBox.setName("showRadioHW");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showRadioHW = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    eventsMenu.add(eventCheckBox);
+    eventCheckBox = createEventCheckbox("LEDs", "Show LED state");
+    eventCheckBox.setSelected(showLEDs);
+    eventCheckBox.setName("showLEDs");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showLEDs = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    eventsMenu.add(eventCheckBox);
+    eventCheckBox = createEventCheckbox("Log output", "Show mote log output, such as by printf()'s");
+    eventCheckBox.setSelected(showLogOutputs);
+    eventCheckBox.setName("showLogOutput");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showLogOutputs = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    /*eventCheckboxes.add(eventCheckBox);*/
+    eventCheckBox = createEventCheckbox("Watchpoints", "Show code watchpoints (for MSPSim-based motes)");
+    eventCheckBox.setSelected(showWatchpoints);
+    eventCheckBox.setName("showWatchpoints");
+    eventCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        showWatchpoints = ((JCheckBox) e.getSource()).isSelected();
+        recalculateMoteHeight();
+      }
+    });
+    eventsMenu.add(eventCheckBox);
+
     /* Box: events to observe */
+
     eventCheckboxes = Box.createVerticalBox();
+    /*
+    eventCheckboxes.add(new JButton(addMoteAction));
+    eventCheckboxes.add(new JSeparator());
+
     JCheckBox eventCheckBox;
     eventCheckBox = createEventCheckbox("Radio RX/TX", "Show radio transmissions, receptions, and collisions");
     eventCheckBox.setSelected(showRadioRXTX);
@@ -188,7 +296,7 @@ public class TimeLine extends VisPlugin {
         recalculateMoteHeight();
       }
     });
-    /*eventCheckboxes.add(eventCheckBox);*/
+
     eventCheckBox = createEventCheckbox("Radio ON/OFF", "Show radio hardware state");
     eventCheckBox.setSelected(showRadioHW);
     eventCheckBox.setName("showRadioHW");
@@ -218,7 +326,7 @@ public class TimeLine extends VisPlugin {
         recalculateMoteHeight();
       }
     });
-    /*eventCheckboxes.add(eventCheckBox);*/
+
     eventCheckBox = createEventCheckbox("Watchpoints", "Show code watchpoints (for MSPSim-based motes)");
     eventCheckBox.setSelected(showWatchpoints);
     eventCheckBox.setName("showWatchpoints");
@@ -229,7 +337,7 @@ public class TimeLine extends VisPlugin {
       }
     });
     eventCheckboxes.add(eventCheckBox);
-
+    */
     /* Panel: timeline canvas w. scroll pane and add mote button */
     timeline = new Timeline();
     timelineScrollPane = new JScrollPane(
@@ -237,15 +345,9 @@ public class TimeLine extends VisPlugin {
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     timelineScrollPane.getHorizontalScrollBar().setUnitIncrement(50);
-    JButton timelineAddMoteButton = new JButton(addMoteAction);
-    timelineAddMoteButton.setText("+");
-    timelineAddMoteButton.setToolTipText("Add mote");
-    timelineAddMoteButton.setBorderPainted(false);
-    timelineAddMoteButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
 
     timelineMoteRuler = new MoteRuler();
     timelineScrollPane.setRowHeaderView(timelineMoteRuler);
-    timelineScrollPane.setCorner(JScrollPane.LOWER_LEFT_CORNER, timelineAddMoteButton);
     timelineScrollPane.setBackground(Color.WHITE);
 
     splitPane = new JSplitPane(
@@ -261,12 +363,11 @@ public class TimeLine extends VisPlugin {
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.CTRL_DOWN_MASK), "zoomOut");
     getActionMap().put("zoomOut", zoomOutAction);
 
-    getContentPane().add(splitPane);
+    /*    getContentPane().add(splitPane);*/
+    getContentPane().add(timelineScrollPane);
 
     recalculateMoteHeight();
     pack();
-    setSize(gui.getDesktopPane().getWidth(), 150);
-    setLocation(0, gui.getDesktopPane().getHeight() - 150);
 
     numberMotesWasUpdated();
 
@@ -317,6 +418,10 @@ public class TimeLine extends VisPlugin {
         timer.start();
       }
     });
+
+    /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
+    this.setLocation(0, gui.getDesktopPane().getHeight() - 166);
+    this.setSize(gui.getDesktopPane().getWidth(), 166);
   }
 
   private JCheckBox createEventCheckbox(String text, String tooltip) {
@@ -391,7 +496,7 @@ public class TimeLine extends VisPlugin {
   		numberMotesWasUpdated();
   	}
   };
-  private Action addMoteAction = new AbstractAction("Add motes to timeline") {
+  private Action addMoteAction = new AbstractAction("Show motes...") {
     private static final long serialVersionUID = 7546685285707302865L;
     public void actionPerformed(ActionEvent e) {
 
@@ -406,13 +511,13 @@ public class TimeLine extends VisPlugin {
       JOptionPane optionPane = new JOptionPane();
       optionPane.setMessage(description);
       optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-      String options[] = new String[] {"Cancel", "Add"};
+      String options[] = new String[] {"Cancel", "Show"};
       optionPane.setOptions(options);
       optionPane.setInitialValue(options[1]);
-      JDialog dialog = optionPane.createDialog(GUI.getTopParentContainer(), "Add mote to timeline");
+      JDialog dialog = optionPane.createDialog(GUI.getTopParentContainer(), "Show mote in timeline");
       dialog.setVisible(true);
 
-      if (optionPane.getValue() == null || !optionPane.getValue().equals("Add")) {
+      if (optionPane.getValue() == null || !optionPane.getValue().equals("Show")) {
         return;
       }
 
@@ -555,7 +660,7 @@ public class TimeLine extends VisPlugin {
   /**
    * Save logged raw data to file for post-processing.
    */
-  private Action saveDataAction = new AbstractAction("Save raw data to file") {
+  private Action saveDataAction = new AbstractAction("Save to file...") {
     private static final long serialVersionUID = 975176793514425718L;
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
@@ -621,7 +726,7 @@ public class TimeLine extends VisPlugin {
     }
   };
 
-  private Action clearAction = new AbstractAction("Clear logs") {
+  private Action clearAction = new AbstractAction("Clear all timeline data") {
     private static final long serialVersionUID = -4592530582786872403L;
     public void actionPerformed(ActionEvent e) {
       if (simulation.isRunning()) {
@@ -845,7 +950,7 @@ public class TimeLine extends VisPlugin {
     });
   }
 
-  private Action radioLoggerAction = new AbstractAction("in Radio Logger") {
+  private Action radioLoggerAction = new AbstractAction("Show in Radio Logger") {
     private static final long serialVersionUID = 7690116136861949864L;
     public void actionPerformed(ActionEvent e) {
       if (popupLocation == null) {
@@ -865,7 +970,7 @@ public class TimeLine extends VisPlugin {
       }
     }
   };
-  private Action logListenerAction = new AbstractAction("in Log Listener") {
+  private Action logListenerAction = new AbstractAction("Show in Log Listener") {
     private static final long serialVersionUID = -8626118368774023257L;
     public void actionPerformed(ActionEvent e) {
       if (popupLocation == null) {
@@ -886,7 +991,7 @@ public class TimeLine extends VisPlugin {
     }
   };
 
-  private Action showInAllAction = new AbstractAction("All") {
+  private Action showInAllAction = new AbstractAction("Show in log listener and radio logger") {
     private static final long serialVersionUID = -2458733078524773995L;
     public void actionPerformed(ActionEvent e) {
       logListenerAction.actionPerformed(null);
@@ -913,9 +1018,9 @@ public class TimeLine extends VisPlugin {
   private void numberMotesWasUpdated() {
     /* Plugin title */
     if (allMoteEvents.isEmpty()) {
-      setTitle("Timeline (Add motes to observe by clicking +)");
+      setTitle("Timeline");
     } else {
-      setTitle("Timeline (" + allMoteEvents.size() + " motes)");
+      setTitle("Timeline showing " + allMoteEvents.size() + " motes");
     }
     timelineMoteRuler.revalidate();
     timelineMoteRuler.repaint();
@@ -1004,7 +1109,7 @@ public class TimeLine extends VisPlugin {
     final Radio moteRadio = mote.getInterfaces().getRadio();
     if (moteRadio != null) {
       RadioHWEvent startupHW = new RadioHWEvent(
-          simulation.getSimulationTime(), moteRadio.isReceiverOn());
+          simulation.getSimulationTime(), moteRadio.isRadioOn());
       if (radioChannels) {
       	startupHW.channel = moteRadio.getChannel();
       }
@@ -1024,7 +1129,7 @@ public class TimeLine extends VisPlugin {
       			lastChannel = nowChannel;
 
             RadioHWEvent ev = new RadioHWEvent(
-                simulation.getSimulationTime(), moteRadio.isReceiverOn());
+                simulation.getSimulationTime(), moteRadio.isRadioOn());
             if (radioChannels) {
             	ev.channel = moteRadio.getChannel();
             }
@@ -1044,7 +1149,7 @@ public class TimeLine extends VisPlugin {
         	if (moteRadio.getLastEvent() == RadioEvent.HW_ON ||
               moteRadio.getLastEvent() == RadioEvent.HW_OFF) {
             RadioHWEvent ev = new RadioHWEvent(
-                simulation.getSimulationTime(), moteRadio.isReceiverOn());
+                simulation.getSimulationTime(), moteRadio.isRadioOn());
             if (radioChannels) {
             	ev.channel = moteRadio.getChannel();
             }
@@ -1074,7 +1179,7 @@ public class TimeLine extends VisPlugin {
             if (moteRadio.isTransmitting()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.TRANSMITTING);
-            } else if (!moteRadio.isReceiverOn()) {
+            } else if (!moteRadio.isRadioOn()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.IDLE);
             } else if (moteRadio.isInterfered()) {
@@ -1371,7 +1476,7 @@ public class TimeLine extends VisPlugin {
       /* Popup menu */
       final JPopupMenu popupMenu = new JPopupMenu();
 
-      popupMenu.add(new JMenuItem(addMoteAction));
+      /*      popupMenu.add(new JMenuItem(addMoteAction));
 
       popupMenu.addSeparator();
 
@@ -1386,13 +1491,13 @@ public class TimeLine extends VisPlugin {
       popupMenu.add(new JMenuItem(clearAction));
 
       popupMenu.addSeparator();
-
-      JMenu focusMenu = new JMenu("Show in");
-      focusMenu.add(new JMenuItem(showInAllAction));
-      focusMenu.addSeparator();
-      focusMenu.add(new JMenuItem(logListenerAction));
-      focusMenu.add(new JMenuItem(radioLoggerAction));
-      popupMenu.add(focusMenu);
+      */
+      /*      JMenu focusMenu = new JMenu("Show in");*/
+      popupMenu.add(new JMenuItem(showInAllAction));
+      /*   focusMenu.addSeparator(); */
+      popupMenu.add(new JMenuItem(logListenerAction));
+      popupMenu.add(new JMenuItem(radioLoggerAction));
+      /*      popupMenu.add(focusMenu);*/
 
       JMenu advancedMenu = new JMenu("Advanced");
       advancedMenu.add(new JCheckBoxMenuItem(executionDetailsAction) {
@@ -1407,7 +1512,7 @@ public class TimeLine extends VisPlugin {
       		return radioChannels;
       	}
       });
-      popupMenu.add(advancedMenu);
+      /*      popupMenu.add(advancedMenu);*/
 
       addMouseListener(new MouseAdapter() {
       	long lastClick = -1;
@@ -2387,4 +2492,24 @@ public class TimeLine extends VisPlugin {
     }
   });
 
+  public String getQuickHelp() {
+    return
+        "<b>Timeline</b>" +
+        "<p>The timeline shows simulation events over time. " +
+        "The timeline can be used to inspect activities of individual nodes as well as interactions between nodes." +
+        "<p>For each mote, simulation events are shown on a colored line. Different colors correspond to different events. For more information about a particular event, hover the mouse above it." +
+        "<p>The <i>Events</i> menu control what event types are shown in the timeline. " +
+        "Currently, four event types are supported (see below). " +
+        "<p>All motes are by default shown in the timeline. Motes can be removed from the timeline by right-clicking the node ID on the left." +
+        "<p>To display a vertical time marker on the timeline, press and hold the mouse on the time ruler (top)." +
+        "<p>For more options for a given event, right-click the mouse for a popup menu." +
+        "<p><b>Radio traffic</b>" +
+        "<br>Shows radio traffic events. Transmissions are painted blue, receptions are green, and interfered radios are red." +
+        "<p><b>Radio state</b>" +
+        "<br>Shows whether the mote radio is on or off. When gray, the radio is on." +
+        "<p><b>LEDs</b>" +
+        "<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)" +
+        "<p><b>Watchpoints</b>" +
+        "<br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.";
+  }
 }

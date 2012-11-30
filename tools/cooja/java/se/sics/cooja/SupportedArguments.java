@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * Copyright (c) 2012, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,54 +23,47 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: IPDistributor.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.lang.reflect.Constructor;
-import java.util.Vector;
-import org.apache.log4j.Logger;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import javax.swing.MenuElement;
+
+import se.sics.cooja.plugins.Visualizer;
+import se.sics.cooja.plugins.skins.DGRMVisualizerSkin;
 
 /**
- * A IP distributor is used for determining IP addresses of newly created motes.
- * 
- * @see se.sics.cooja.Positioner
+ * With this annotation, Cooja components (e.g. mote plugins) can be activated
+ * or deactivated depending on the given argument (e.g. mote). This may for
+ * example be used by a mote plugin that only accepts emulated motes, and that
+ * consequently should be hidden in other non-emulated motes' plugin menues.
+ *
+ * See below code usage examples.
+ *
+ * @see GUI#createMotePluginsSubmenu(Mote)
+ * @see Visualizer#populateSkinMenu(MenuElement)
+ * @see DGRMVisualizerSkin
+ *
  * @author Fredrik Osterlind
  */
-public abstract class IPDistributor {
-  private static Logger logger = Logger.getLogger(IPDistributor.class);
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SupportedArguments {
 
   /**
-   * This method creates an instance of the given class with the given vector as
-   * constructor argument. Instead of calling the constructors directly this
-   * method may be used.
-   * 
-   * @param ipDistClass
-   *          Class
-   * @param newMotes
-   *          All motes that later should be assigned IP numbers
-   * @return IP distributor instance
+   * @return List of accepted mote classes.
    */
-  public static final IPDistributor generateIPDistributor(
-      Class<? extends IPDistributor> ipDistClass, Vector<Mote> newMotes) {
-    try {
-      // Generating IP distributor
-      Constructor constr = ipDistClass
-          .getConstructor(new Class[] { Vector.class });
-      return (IPDistributor) constr.newInstance(new Object[] { newMotes });
-    } catch (Exception e) {
-      logger.fatal("Exception when creating " + ipDistClass + ": " + e);
-      return null;
-    }
-  }
+  Class<? extends Mote>[] motes() default { Mote.class };
 
   /**
-   * Returns the next mote IP address.
-   * 
-   * @return IP Address
+   * @return List of accepted radio medium classes.
    */
-  public abstract String getNextIPAddress();
+  Class<? extends RadioMedium>[] radioMediums() default { RadioMedium.class };
 
+  /**
+   * @return List of required mote interfaces.
+   */
+  Class<? extends MoteInterface>[] moteInterfaces() default { MoteInterface.class };
 }
