@@ -24,27 +24,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: COOJAProject.java,v 1.1 2010/12/02 15:27:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
-
+import java.util.Collections;
 import org.apache.log4j.Logger;
 
 /**
  * COOJA Project.
  *
  * @author Fredrik Osterlind
+ * @author Moritz Strübe
  */
 public class COOJAProject {
 	private static Logger logger = Logger.getLogger(COOJAProject.class);
+	
+	
+	public static File[] sarchProjects(File folder){
+		return sarchProjects(folder, 3);
+	}
+	
+	public static File[] sarchProjects(File folder, int depth){
+		if(depth == 0){
+			return null;
+		}
+		depth--;
+		ArrayList<File> dirs = new ArrayList<File>();
+		
+		if(!folder.isDirectory()){
+			logger.warn("Project directorys: " + folder.getPath() + "is not a Folder" );
+			return null;
+		}
+		File[] files = folder.listFiles();
+		for(File subf : files){
+			if(subf.getName().charAt(0) == '.') continue;
+			if(subf.isDirectory()){
+				File[] newf = sarchProjects(subf, depth);
+				if(newf != null){
+					Collections.addAll(dirs, newf);
+				}
+			}
+			if(subf.getName().equals(GUI.PROJECT_CONFIG_FILENAME)){
+				try{
+					dirs.add(folder);
+				} catch(Exception e){
+					logger.error("Somthing odd happend", e);
+				}
+			}
+		}
+		return dirs.toArray(new File[0]);
+		
+	}
 
+	
 	public File dir = null;
 	public File configFile = null;
 	public ProjectConfig config = null;
+	
 
 	public COOJAProject(File dir) {
 		try {

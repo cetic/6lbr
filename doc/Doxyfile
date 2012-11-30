@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "Contiki 2.5"
+PROJECT_NAME           = "Contiki 2.6"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
@@ -179,7 +179,7 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
 PREDEFINED             = CC_FUNCTION_POINTER_ARGS \
-                         UIP_UDP \
+                         WITH_UIP6 UIP_CONF_IPV6 UIP_CONF_IPV6_RPL \
                          WITH_LOADER_ARCH \
                          DOXYGEN \
 						 "ASCCMD(name, flags, args)=void CMD_ASCII(name)"

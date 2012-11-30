@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectConfig.java,v 1.5 2010/12/02 15:28:06 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -238,7 +237,7 @@ public class ProjectConfig {
   public boolean appendConfigFile(File propertyFile)
       throws FileNotFoundException, IOException {
     if (!propertyFile.exists()) {
-      logger.warn("Trying to import non-existant project configuration");
+      logger.warn("Trying to import non-existant project configuration: " + propertyFile.toString());
       return true;
     }
 

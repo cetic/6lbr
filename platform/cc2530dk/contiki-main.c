@@ -1,15 +1,17 @@
 #include "contiki.h"
 #include "soc.h"
+#include "stack.h"
 #include "sys/clock.h"
 #include "sys/autostart.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
-#include "dev/uart0.h"
+#include "dev/io-arch.h"
 #include "dev/dma.h"
 #include "dev/cc2530-rf.h"
 #include "dev/watchdog.h"
 #include "dev/clock-isr.h"
+#include "dev/port2.h"
 #include "dev/lpm.h"
 #include "dev/button-sensor.h"
 #include "dev/adc-sensor.h"
@@ -40,12 +42,11 @@ PROCESS_NAME(viztool_process);
 #endif
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
-extern volatile __bit sleep_flag;
+extern volatile uint8_t sleep_flag;
 #endif
 /*---------------------------------------------------------------------------*/
 extern rimeaddr_t rimeaddr_node_addr;
-static __data int r;
-static __data int len;
+static CC_AT_DATA uint16_t len;
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -147,6 +148,8 @@ main(void) CC_NON_BANKED
   soc_init();
   rtimer_init();
 
+  stack_poison();
+
   /* Init LEDs here */
   leds_init();
   leds_off(LEDS_ALL);
@@ -155,24 +158,23 @@ main(void) CC_NON_BANKED
   /* initialize process manager. */
   process_init();
 
-  /* Init UART */
-  uart0_init();
-
 #if DMA_ON
   dma_init();
 #endif
 
+  io_arch_init();
+
 #if SLIP_ARCH_CONF_ENABLE
   slip_arch_init(0);
 #else
-  uart0_set_input(serial_line_input_byte);
+  io_arch_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
   fade(LEDS_RED);
 
   PUTSTRING("##########################################\n");
   putstring(CONTIKI_VERSION_STRING "\n");
-  putstring("TI SmartRF05 EB\n");
+  putstring(MODEL_STRING);
   switch(CHIPID) {
   case 0xA5:
     putstring("cc2530");
@@ -261,6 +263,7 @@ main(void) CC_NON_BANKED
   fade(LEDS_YELLOW);
 
   while(1) {
+    uint8_t r;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();

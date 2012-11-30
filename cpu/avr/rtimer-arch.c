@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.10 2010/02/28 21:29:19 dak664 Exp $
  */
 
 /**
@@ -51,7 +50,7 @@
 #include "sys/rtimer.h"
 #include "rtimer-arch.h"
 
-#if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega1284P__)
+#if defined(__AVR_ATmega1284P__)
 #define ETIMSK TIMSK3
 #define ETIFR TIFR3
 #define TICIE3 ICIE3
@@ -65,7 +64,7 @@
 #define OCF3C	OCF3B
 #endif
 
-#if defined(__AVR_AT90USB1287__) || defined(__AVR_ATmega128RFA1__) 
+#if defined(__AVR_ATmega1281__) || defined(__AVR_AT90USB1287__) || defined(__AVR_ATmega128RFA1__)
 #define ETIMSK TIMSK3
 #define ETIFR TIFR3
 #define TICIE3 ICIE3

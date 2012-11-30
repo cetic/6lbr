@@ -90,12 +90,15 @@
 /* Bit Masks for the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
+/* RSSI Offset */
+#define RSSI_OFFSET    73
 
 /* 192 ms, radio off -> on interval */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+
 /*---------------------------------------------------------------------------*/
 #if CC2530_RF_CONF_HEXDUMP
-#include "uart0.h"
+#include "dev/io-arch.h"
 static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #endif
 /*---------------------------------------------------------------------------*/
@@ -105,7 +108,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #define CC2530_RF_AUTOACK 1
 #endif
 /*---------------------------------------------------------------------------*/
-static uint8_t __data rf_flags;
+static uint8_t CC_AT_DATA rf_flags;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
@@ -168,7 +171,7 @@ init(void)
     return 0;
   }
 
-#ifdef CC2530_RF_LOW_POWER_RX
+#if CC2530_RF_LOW_POWER_RX
   /* Reduce RX power consumption current to 20mA at the cost of sensitivity */
   RXCTRL = 0x00;
   FSCTRL = 0x50;
@@ -362,11 +365,11 @@ read(void *buf, unsigned short bufsize)
 
 #if CC2530_RF_CONF_HEXDUMP
   /* If we reach here, chances are the FIFO is holding a valid frame */
-  uart0_writeb(magic[0]);
-  uart0_writeb(magic[1]);
-  uart0_writeb(magic[2]);
-  uart0_writeb(magic[3]);
-  uart0_writeb(len);
+  io_arch_writeb(magic[0]);
+  io_arch_writeb(magic[1]);
+  io_arch_writeb(magic[2]);
+  io_arch_writeb(magic[3]);
+  io_arch_writeb(len);
 #endif
 
   RF_RX_LED_ON();
@@ -378,19 +381,20 @@ read(void *buf, unsigned short bufsize)
   for(i = 0; i < len; ++i) {
     ((unsigned char*)(buf))[i] = RFD;
 #if CC2530_RF_CONF_HEXDUMP
-    uart0_writeb(((unsigned char*)(buf))[i]);
+    io_arch_writeb(((unsigned char*)(buf))[i]);
 #endif
     PUTHEX(((unsigned char*)(buf))[i]);
   }
   PUTSTRING("\n");
 
   /* Read the RSSI and CRC/Corr bytes */
-  rssi = ((int8_t) RFD) - 45;
+  rssi = ((int8_t) RFD) - RSSI_OFFSET;
   crc_corr = RFD;
 
 #if CC2530_RF_CONF_HEXDUMP
-  uart0_writeb(rssi);
-  uart0_writeb(crc_corr);
+  io_arch_writeb(rssi);
+  io_arch_writeb(crc_corr);
+  io_arch_flush();
 #endif
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
@@ -473,7 +477,7 @@ off(void)
   CC2530_CSP_ISRFOFF();
   CC2530_CSP_ISFLUSHRX();
 
-  rf_flags = 0;
+  rf_flags &= ~RX_ACTIVE;
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   return 1;

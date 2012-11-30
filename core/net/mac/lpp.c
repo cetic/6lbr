@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.40 2010/12/02 15:55:17 dak664 Exp $
  */
 
 /**
@@ -880,8 +879,8 @@ input_packet(void)
              neighbors, and are dequeued by the dutycycling function
              instead, after the appropriate time. */
           if(!rimeaddr_cmp(receiver, &rimeaddr_null)) {
-#if RDC_CONF_HARDWARE_ACK   
-       
+#if RDC_CONF_HARDWARE_ACK
+
             if(ret == RADIO_TX_OK) {
               remove_queued_packet(i, 1);
             } else {

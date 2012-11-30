@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.25 2010/11/10 13:05:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -340,6 +339,7 @@ public class LogScriptEngine {
     engine.put("global", hash);
     engine.put("sim", simulation);
     engine.put("gui", simulation.getGUI());
+    engine.put("msg", new String(""));
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);

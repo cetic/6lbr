@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-conf.h,v 1.1 2010/10/28 13:11:08 simonduq Exp $
  */
 
 #ifndef __PROJECT_H__
@@ -35,13 +34,13 @@
 /* Free some code and RAM space */
 #define UIP_CONF_TCP                    0
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU            12
+#define UIP_CONF_DS6_NBR_NBU            8
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU          12
+#define UIP_CONF_DS6_ROUTE_NBU          8
 
 /* The total number of queuebuf */
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM               140
+#define QUEUEBUF_CONF_NUM               128
 /* The number of queuebuf actually stored in RAM. If
    not set or equal to the total number of queuebuf,
    swapping is disabled, and CFS not linked. */

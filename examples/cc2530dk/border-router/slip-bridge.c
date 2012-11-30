@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.3 2010/06/08 19:53:49 nifi Exp $
  */
 
 /**
@@ -76,8 +75,6 @@ slip_input_callback(void)
      packet back if no route is found */
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
 }
-#include "debug.h"
-
 /*---------------------------------------------------------------------------*/
 static void
 init(void)

@@ -1,6 +1,7 @@
 /**
  * \file
- *         Driver for the cc2430 DMA controller. Can be assigned to any bank
+ *         Driver for the cc2530 DMA controller. Derived from the cc2430
+ *         equivalent
  *
  * \author
  *         Original: Martti Huttunen <martti@sensinode.com>
@@ -45,7 +46,7 @@ dma_init(void)
   DMA1CFGL = tmp_ptr;
 #endif
 
-  IEN1_DMAIE = 1;	/* Enable DMA interrupts */
+  DMAIE = 1;	/* Enable DMA interrupts */
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -61,9 +62,34 @@ dma_associate_process(struct process * p, uint8_t c)
 
   if(p) {
     dma_conf[c].inc_prio |= 8; /* Enable interrupt generation */
-    IEN1_DMAIE = 1; /* Make sure DMA interrupts are acknowledged */
+    DMAIE = 1; /* Make sure DMA interrupts are acknowledged */
   }
   dma_callback[c] = p;
 }
 /*---------------------------------------------------------------------------*/
+/*
+ * Reset a channel to idle state. As per cc253x datasheet section 8.1,
+ * we must reconfigure the channel to trigger source 0 between each
+ * reconfiguration.
+ */
+void
+dma_reset(uint8_t c)
+{
+  static __xdata uint8_t dummy;
+  if(c >= DMA_CHANNEL_COUNT) {
+    return;
+  }
+  DMA_ABORT(c);
+  dma_conf[c].src_h = (uint16_t) &dummy >> 8;
+  dma_conf[c].src_l = (uint16_t) &dummy;
+  dma_conf[c].dst_h = (uint16_t) &dummy >> 8;
+  dma_conf[c].dst_l = (uint16_t) &dummy;
+  dma_conf[c].len_h = 0;
+  dma_conf[c].len_l = 1;
+  dma_conf[c].wtt = DMA_BLOCK;
+  dma_conf[c].inc_prio = DMA_PRIO_GUARANTEED;
+  DMA_TRIGGER(c); // The operation order is important
+  DMA_ARM(c);
+  while(DMAARM & (1 << c));
+}
 #endif
