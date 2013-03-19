@@ -49,7 +49,7 @@
       <identifier>sky2</identifier>
       <description>6lbr-client</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/6lbr-demo/6lbr-demo.c</source>
-      <commands EXPORT="discard">make 6lbr-demo.sky TARGET=sky WITH_SHELL=1 WITH_WEBSERVER=0</commands>
+      <commands EXPORT="discard">make 6lbr-demo.sky TARGET=sky WITH_SHELL=1 WITH_WEBSERVER=0 WITH_DELAY_IP=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/6lbr-demo/6lbr-demo.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
