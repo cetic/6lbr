@@ -470,8 +470,8 @@ class Linux(Platform):
 
     def ping(self, target):
         result = system("ping6 -W 1 -c 1 %s > /dev/null" % target)
-        if result >> 8 == 2:
-            sleep(1)
+        #if result >> 8 == 2:
+        sleep(1)
         return result == 0
 
 if __name__ == '__main__':
