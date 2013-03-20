@@ -220,8 +220,8 @@ class VirtualTelosMote(MoteProxy):
         MoteProxy.tearDown(self)
         self.serialport.close()
         print("Killing Cooja")
-        self.socat.terminate()
-        self.cooja.terminate()
+        self.socat.kill()
+        self.cooja.kill()
         #self.nul_output.close()
 
 
