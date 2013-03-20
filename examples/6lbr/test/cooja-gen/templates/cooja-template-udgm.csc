@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/serial_socket</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/collect-view</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/powertracker</project>
-  <project EXPORT="discard">/home/sd/svn/contikiprojects/uni-luebeck.de/ewsn11_cooja_interference/frossi-scanner</project>
-  <project EXPORT="discard">/home/sd/svn/contikiprojects/uni-luebeck.de/ewsn11_cooja_interference/cooja_configuration</project>
-  <project EXPORT="discard">/home/sd/svn/midflex/tools/04-testbed-interface/coojatwist</project>
-  <project EXPORT="discard">/home/sd/svn/midflex/tools/04-testbed-interface/shell-download</project>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
-    <title>My simulation</title>
-    <randomseed>123456</randomseed>
+    <title>6lbr template</title>
+    <speedlimit>1.0</speedlimit>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
-      <transmitting_range>50.0</transmitting_range>
-      <interference_range>100.0</interference_range>
+      <transmitting_range>15.0</transmitting_range>
+      <interference_range>15.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
@@ -26,11 +22,11 @@
     </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
-      <identifier>sky1</identifier>
-      <description>Sky Mote Type #sky1</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/rpl-active-probing/100-debug-neighborinfo/udp-client.c</source>
-      <commands EXPORT="discard">make udp-client.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rpl-active-probing/100-debug-neighborinfo/udp-client.sky</firmware>
+      <identifier>templatesky1</identifier>
+      <description>template</description>
+      <source EXPORT="discard">[CONFIG_DIR]/template.c</source>
+      <commands EXPORT="discard">make template.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONFIG_DIR]/template.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -41,7 +37,7 @@
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
@@ -51,23 +47,23 @@
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>39.018613203955766</x>
-        <y>16.174165930468508</y>
-        <z>0.0</z>
+        <x>XPOS</x>
+        <y>YPOS</y>
+        <z>ZPOS</z>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>sky1</motetype_identifier>
+      <motetype_identifier>templatesky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>280</width>
-    <z>4</z>
+    <z>1</z>
     <height>160</height>
-    <location_x>400</location_x>
+    <location_x>465</location_x>
     <location_y>0</location_y>
   </plugin>
   <plugin>
@@ -77,10 +73,10 @@
       <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>0.9090909090909091 0.0 0.0 0.9090909090909091 158.5285334509493 158.29621279048317</viewport>
+      <viewport>8.931106604224322 0.0 0.0 8.931106604224322 -608.3383600318266 -676.3355045225483</viewport>
     </plugin_config>
-    <width>400</width>
-    <z>0</z>
+    <width>462</width>
+    <z>6</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -90,39 +86,44 @@
     <plugin_config>
       <filter />
     </plugin_config>
-    <width>1280</width>
-    <z>3</z>
-    <height>240</height>
-    <location_x>400</location_x>
-    <location_y>160</location_y>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.TimeLine
-    <plugin_config>
-      <mote>0</mote>
-      <showRadioRXTX />
-      <showRadioHW />
-      <showLEDs />
-      <split>-1</split>
-      <zoomfactor>500.0</zoomfactor>
-    </plugin_config>
-    <width>1680</width>
-    <z>2</z>
-    <height>166</height>
-    <location_x>0</location_x>
-    <location_y>835</location_y>
+    <width>1213</width>
+    <z>7</z>
+    <height>821</height>
+    <location_x>466</location_x>
+    <location_y>161</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Notes
     <plugin_config>
-      <notes>Enter notes here</notes>
+      <notes>6LBR Test Support
+
+This is an automatically generated COOJA simulation file
+
+more information: https://github.com/cetic/6lbr/wiki/6LBR-Test-Environment</notes>
       <decorations>true</decorations>
     </plugin_config>
-    <width>1000</width>
-    <z>1</z>
-    <height>160</height>
-    <location_x>680</location_x>
-    <location_y>0</location_y>
+    <width>932</width>
+    <z>2</z>
+    <height>162</height>
+    <location_x>745</location_x>
+    <location_y>-1</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(999999999999);&#xD;
+&#xD;
+while (true) {&#xD;
+  log.log(time + ":" + id + ":" + msg + "\n");&#xD;
+  YIELD();&#xD;
+}</script>
+      <active>false</active>
+    </plugin_config>
+    <width>462</width>
+    <z>3</z>
+    <height>335</height>
+    <location_x>3</location_x>
+    <location_y>646</location_y>
   </plugin>
 </simconf>
 
