@@ -18,4 +18,9 @@ def genrandom(xmin,xmax,ymin,ymax,count):
 
 	return(points)
 
-
+def genline(step, count):
+	points = []
+	for xcoord in range(count):
+		point = (xcoord*step, 0)
+		points.append(point)
+	return(points)
