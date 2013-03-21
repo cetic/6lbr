@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
+"""
 iid_6lbr='0212:7400:1466:5117'
 iid_mote='0212:7400:146e:f407'
 radio_dev='/dev/tty.usbserial-XBTOKIQP'
