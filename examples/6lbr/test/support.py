@@ -223,7 +223,7 @@ class VirtualTelosMote(MoteProxy):
         self.socat.kill()
         self.cooja.kill()
         #self.nul_output.close()
-
+        time.sleep(2)
 
     def wait_until(self, text, count):
         start_time = time.time()
