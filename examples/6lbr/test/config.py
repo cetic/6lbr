@@ -14,12 +14,12 @@ from support import *
 br=LocalNativeBR()
 mote=TelosMote()
 platform=MacOSX() #Linux()
-
+"""
 """ 
 This next configuration is an example of a COOJA-based test on Linux. A native 6lbr interacts with a simulated
 slip-radio mote through a local socket and a simulated mote on a hardcoded pseudo terminal 
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
-
+"""
 iid_6lbr='0212:7402:0001:0101'
 iid_mote='0212:7402:0002:0202'
 radio_sock='localhost'
@@ -33,14 +33,13 @@ br=LocalNativeBR()
 mote=VirtualTelosMote()
 platform=Linux() #MacOSX()
 
-"""
 
 """
 scenarios
 define 1 to run the scenario, 0 to skip
 """
 S0=1
-S1=0
+S1=1
 S2=0
 S3=0
 S4=0
@@ -52,6 +51,7 @@ S9=0
 S10=0
 S11=0
 S12=0
+test_repeat=4
 
 """
 modes

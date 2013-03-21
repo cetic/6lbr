@@ -8,6 +8,7 @@ from time import sleep
 import config
 from support import *
 from tcpdump import TcpDump
+import time
 
 def skipUnlessTrue(descriptor):
     if not hasattr(config, descriptor):
@@ -16,6 +17,14 @@ def skipUnlessTrue(descriptor):
         return unittest.skip("%s set to False in config.py, skipping" % descriptor)
     else:
         return lambda func: func
+
+def repeat(times):
+    def repeatHelper(f):
+        def callHelper(*args):
+            for i in range(0, times):
+                f(*args)
+        return callHelper
+    return repeatHelper
 
 class TestSupport:
     br=config.br
@@ -27,6 +36,7 @@ class TestSupport:
     ip_mote="aaaa::" + config.iid_mote
 
     def setUp(self):
+        print >> sys.stderr, "\n---\n"
         self.platform.setUp()
         self.br.setUp()
         self.mote.setUp()
@@ -93,11 +103,15 @@ class TestScenarios:
         """
         Check 6LBR start-up and connectivity
         """
+        print >> sys.stderr, "******** Test S00 ********"
+        timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
 
     @skipUnlessTrue("S1")
     def test_S1(self):
@@ -105,6 +119,8 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
+        print >> sys.stderr, "******** Test S01 ********"
+        timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S1')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -113,6 +129,8 @@ class TestScenarios:
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
 
     @skipUnlessTrue("S2")
     def test_S2(self):
@@ -120,6 +138,8 @@ class TestScenarios:
         Ping from the computer to the mote when the PC does not know the BR and the BR knows
         the mote.
         """
+        print >> sys.stderr, "******** Test S02 ********"
+        timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S2')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -128,12 +148,15 @@ class TestScenarios:
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
 
     @skipUnlessTrue("S3")
     def test_S3(self):
         """
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
         """
+        print >> sys.stderr, "******** Test S03 ********"
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S3')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -150,6 +173,7 @@ class TestScenarios:
         Starting from a stable RPL topology, restart the border router and observe how it attaches
         to the RPL DODAG.
         """
+        print >> sys.stderr, "******** Test S04 ********"
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S4_a')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -170,6 +194,7 @@ class TestScenarios:
         Wait for a DAD between the computer and the BR, then disconnect and reconnect the com-
         puter and observe the reaction of the BR to a computer's DAD.
         """
+        print >> sys.stderr, "******** Test S05 ********"
         pass
 
     @skipUnlessTrue("S6")
@@ -177,6 +202,7 @@ class TestScenarios:
         """
         Observe the NUDs between the computer and the BR.
         """
+        print >> sys.stderr, "******** Test S06 ********"
         pass
 
     @skipUnlessTrue("S7")
@@ -185,6 +211,7 @@ class TestScenarios:
         Test the Auconfiguration process of the BR in bridge mode and observe its ability to take a
         router prefix (by using the computer as a router), and deal with new RA once configured.
         """
+        print >> sys.stderr, "******** Test S07 ********"
         pass
 
     @skipUnlessTrue("S8")
@@ -192,6 +219,7 @@ class TestScenarios:
         """
         Observe the propagation of the RIO in the WSN side (when supported in the WPAN).
         """
+        print >> sys.stderr, "******** Test S08 ********"
         pass
 
     @skipUnlessTrue("S9")
@@ -199,6 +227,7 @@ class TestScenarios:
         """
         Test the using of the default router.
         """
+        print >> sys.stderr, "******** Test S09 ********"
         pass
 
     @skipUnlessTrue("S10")
@@ -206,6 +235,7 @@ class TestScenarios:
         """
         Ping from the sensor to the computer when the sensor does not know the CBR.
         """
+        print >> sys.stderr, "******** Test S10 ********"
         pass
 
     @skipUnlessTrue("S11")
@@ -213,6 +243,7 @@ class TestScenarios:
         """
         Ping from the sensor to the computer when the CBR does not know the computer.
         """
+        print >> sys.stderr, "******** Test S11 ********"
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -229,6 +260,7 @@ class TestScenarios:
         Ping from the sensor to an external domain (as the inet address of google.com) and
         observe all the sending process.
         """
+        print >> sys.stderr, "******** Test S12 ********"
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -332,5 +364,12 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "")
         self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf, self.support.ip_host), "")
 
+
+def main():
+    for i in range(1,config.test_repeat+1):
+        print >> sys.stderr, " ============"
+        print >> sys.stderr, " == RUN %d ==" % (i,)
+        unittest.main(exit=False)
+
 if __name__ == '__main__':
-    unittest.main()
+    main()
