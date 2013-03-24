@@ -63,6 +63,7 @@ for mote_count in config_simgen.mote_count:
 
 	sim.save_simfile()
 	simfiles.append(simfilepath)
+	motelist=[]
 
 print("Done. Generated %d simfiles:" % len(simfiles))
 for simfile in simfiles:
