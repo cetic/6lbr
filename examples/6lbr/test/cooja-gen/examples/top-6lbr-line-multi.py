@@ -6,9 +6,12 @@ import generators
 # USER CONFIG. MIGRATE ELSEWHERE
 SLIP_RADIO_ID = [1,]
 NODECOUNT = 5
+STEP = 30
+TXRANGE = 45
 # END OF USER CONFIG
 
 motelist = []
+
 
 if len(sys.argv) < 2:
 	sys.exit("Error, missing input files\nUse:\n\tpython3 %s template_path [output_folder]" % sys.argv[0])
@@ -32,8 +35,10 @@ type_node = lib_generation.sim_mote_type('client', '[CONTIKI_DIR]/examples/6lbr-
 
 sim.insert_sky_motetype(type_slipradio)
 sim.insert_sky_motetype(type_node)
+sim.udgm_set_range(TXRANGE)
+sim.udgm_set_interference_range(TXRANGE)
 
-coords = generators.genline(30, NODECOUNT)
+coords = generators.genline(STEP, NODECOUNT)
 
 for index,coord in enumerate(coords):
         index = index + 1
