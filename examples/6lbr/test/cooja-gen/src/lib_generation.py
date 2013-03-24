@@ -99,8 +99,6 @@ class sim:
 		motetype_indexes = all_indices("    <motetype>\r\n",self.simfile_lines)
 		motetype_close_indexes = all_indices("    </motetype>\r\n",self.simfile_lines)
 
-		print(motetype_indexes)
-
 		if len(motetype_indexes) == 1:
 			#in case of 1 motetype, check if it's the template version or a real mote
 			if self.simfile_lines[motetype_indexes[0]+2] == "      <identifier>templatesky1</identifier>\r\n":
@@ -172,7 +170,6 @@ class sim:
 			print("ERROR: radio model is not UDGM\r\n")
 
 	def set_timeout(self, timeout):
-		print(self.simfile_lines)
 		script_index = all_indices('      <script>\r\n' ,self.simfile_lines)[0]
 		self.simfile_lines.pop(script_index+1)
 		self.simfile_lines.insert(script_index+1, '        TIMEOUT(%d);\r\n' % timeout)
