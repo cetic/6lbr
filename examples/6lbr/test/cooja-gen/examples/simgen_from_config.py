@@ -21,15 +21,17 @@ def mote_type_from_shortname(shortname):
 			return mote_type
 	return None
 
-if len(sys.argv) < 2:
-	sys.exit("Error, missing input files\nUse:\n\tpython3 %s template_path [output_folder]" % sys.argv[0])
-
-if len(sys.argv) < 3: 
-	outputfolder = '..' + os.path.sep + 'output'
+if hasattr(config_simgen, 'outputfolder'):
+	outputfolder = config_simgen.outputfolder
 else:
-	outputfolder = sys.argv[2]
+	outputfolder = '..' + os.path.sep + 'output'
 
-template_path = sys.argv[1]
+if hasattr(config_simgen, 'template'):
+	template_path = config_simgen.template
+else:
+	template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgp.csc'
+
+
 lib_generation.mkdir(outputfolder)
 lib_generation.cleardir(outputfolder)
 

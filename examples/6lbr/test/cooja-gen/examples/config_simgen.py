@@ -6,6 +6,8 @@ step = 30
 mote_count = range(2,6)
 assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'}
 mote_types = []
+outputfolder = '../output'
+template = '../templates/cooja-template-udgm.csc'
 
 mote_type_slipradio = {	'shortname':'slipradio', 
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
