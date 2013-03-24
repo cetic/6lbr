@@ -1,0 +1,38 @@
+all: 6lbr-demo
+
+CONTIKI=../../../../../..
+
+WITH_UIP6=1
+UIP_CONF_IPV6=1
+CFLAGS+= -DUIP_CONF_IPV6_RPL
+
+WITH_SHELL=1
+ifneq ($(WITH_SHELL),0)
+CFLAGS += -DSHELL=1 -DCETIC_6LBR_TRACE_PING=1
+APPS += serial-shell
+PROJECT_SOURCEFILES += shell-6lbr.c 
+endif
+
+WITH_DELAY_IP=0
+ifneq ($(WITH_DELAY_IP), 0)
+CFLAGS += -DSLIP_RADIO=1
+endif
+
+WITH_UDPCLIENT=1
+ifneq ($(WITH_UDPCLIENT),0)
+CFLAGS += -DUDPCLIENT=1
+PROJECT_SOURCEFILES += udp-client.c 
+endif
+
+WITH_WEBSERVER=0
+ifneq ($(WITH_WEBSERVER),0)
+CFLAGS += -DWEBSERVER=1
+PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
+endif
+
+CETIC_6LBR_DISABLE_ACK=0
+CFLAGS +=-DCETIC_6LBR_DISABLE_ACK=$(CETIC_6LBR_DISABLE_ACK)
+
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+
+include $(CONTIKI)/Makefile.include
