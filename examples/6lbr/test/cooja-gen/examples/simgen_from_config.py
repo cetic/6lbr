@@ -31,6 +31,7 @@ else:
 
 template_path = sys.argv[1]
 lib_generation.mkdir(outputfolder)
+lib_generation.cleardir(outputfolder)
 
 for mote_count in config_simgen.mote_count:
 	motenames = assign_mote_types(config_simgen.assignment, mote_count)

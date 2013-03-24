@@ -301,4 +301,10 @@ def mkdir(adir):
 			# There was an error on creation, so make sure we know about it
 			raise
 
-
+def cleardir(adir):
+	for afile in os.listdir(adir):
+		file_path = os.path.join(adir, afile)
+		try:
+			os.unlink(file_path)
+		except Exception, e:
+			print e
