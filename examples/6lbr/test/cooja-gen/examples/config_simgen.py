@@ -4,7 +4,7 @@ tx_interference = 45
 topology = 'line'
 step = 30
 mote_count = range(2,6)
-assignment = {'all':'node_delay', '0':'slipradio', '-1':'node_delay'}
+assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'}
 mote_types = []
 
 mote_type_slipradio = {	'shortname':'slipradio', 
