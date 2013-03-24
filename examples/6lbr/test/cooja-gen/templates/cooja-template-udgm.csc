@@ -12,8 +12,8 @@
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
-      <transmitting_range>15.0</transmitting_range>
-      <interference_range>15.0</interference_range>
+      <transmitting_range>45.0</transmitting_range>
+      <interference_range>45.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
@@ -73,7 +73,8 @@
       <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>8.931106604224322 0.0 0.0 8.931106604224322 -608.3383600318266 -676.3355045225483</viewport>
+      <skin>se.sics.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
+      <viewport>1.3090909090909089 0.0 0.0 1.3090909090909089 146.45454545454544 173.0</viewport>
     </plugin_config>
     <width>462</width>
     <z>6</z>
@@ -111,7 +112,8 @@ more information: https://github.com/cetic/6lbr/wiki/6LBR-Test-Environment</note
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(999999999999);&#xD;
+      <script>
+TIMEOUT(999999999999);&#xD;
 &#xD;
 while (true) {&#xD;
   log.log(time + ":" + id + ":" + msg + "\n");&#xD;

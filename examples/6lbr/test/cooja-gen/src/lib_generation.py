@@ -5,6 +5,86 @@ import shutil
 import re
 import generators
 
+class sim_mote_type:
+	def __init__(self, shortname, fw_folder, maketarget, makeargs, description):
+		self.shortname = shortname
+		self.fw_folder = os.path.normpath(fw_folder)
+		self.maketarget = maketarget
+		self.makeargs = makeargs
+		self.description = description
+
+	def text_from_template(self):
+		text ="""    <motetype>
+      se.sics.cooja.mspmote.SkyMoteType
+      <identifier>SHORTNAME</identifier>
+      <description>DESCRIPTION</description>
+      <source EXPORT="discard">FIRMWAREPATH</source>
+      <commands EXPORT="discard">make FIRMWARE.sky TARGET=sky MAKEARGS</commands>
+      <firmware EXPORT="copy">FIRMWAREBIN</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
+    </motetype>\r\n"""
+		text = text.replace('FIRMWAREPATH', self.fw_folder + os.path.sep + self.maketarget + '.c')
+		text = text.replace('FIRMWAREBIN', self.fw_folder + os.path.sep + self.maketarget + '.sky')
+		text = text.replace('SHORTNAME', self.shortname)
+		text = text.replace('DESCRIPTION', self.description)
+		text = text.replace('FIRMWARE', self.maketarget)
+		text = text.replace('MAKEARGS', self.makeargs)
+		return text
+
+class sim_mote:
+	def __init__(self, mote_type, nodeid):
+		self.mote_type = mote_type
+		self.nodeid = nodeid
+	def set_coords(self, xpos, ypos, zpos=0):
+		self.xpos = xpos
+		self.ypos = ypos
+		self.zpos = zpos
+	def set_serial_socket(self, flag):
+		self.with_serial_socket = flag
+
+	def text_from_template(self):
+
+
+		text = """    <mote>
+      <breakpoints />
+      <interface_config>
+	se.sics.cooja.mspmote.interfaces.MspMoteID
+	<id>NODE_ID</id>
+      </interface_config>
+      <interface_config>
+	se.sics.cooja.interfaces.Position
+	<x>XPOS</x>
+	<y>YPOS</y>
+	<z>ZPOS</z>
+      </interface_config>
+      <motetype_identifier>MOTETYPE_ID</motetype_identifier>
+    </mote>\r\n"""
+
+		text = text.replace('XPOS','%03.13f' % self.xpos)
+		text = text.replace('YPOS','%03.13f' % self.ypos)
+		text = text.replace('ZPOS','%03.13f' % self.zpos)
+		text = text.replace('NODE_ID', str(self.nodeid))
+		text = text.replace('MOTETYPE_ID', self.mote_type.shortname)
+		return text
+
+# TODO
+#def motes_from_config(config_file_path):
+#	build and return a list of motes from an input configuration file
+
 class sim:
 	def __init__(self, simfilepath, templatepath):
 		self.templatepath = templatepath
@@ -12,19 +92,18 @@ class sim:
 		shutil.copyfile(self.templatepath, self.simfilepath)
 		self.simfile_lines = read_simfile(self.simfilepath)
 
-	def create_sky_motetype(self, firmware_name, shortname, description):
+	def insert_sky_motetype(self, mote_type):
 
-		#simfile_lines = read_simfile(simfilepath)
-		motetype_text = motetype_from_template(firmware_name, shortname, description)
+		motetype_text = mote_type.text_from_template()
 
-		motetype_indexes = all_indices("    <motetype>\n",self.simfile_lines)
-		motetype_close_indexes = all_indices("    </motetype>\n",self.simfile_lines)
+		motetype_indexes = all_indices("    <motetype>\r\n",self.simfile_lines)
+		motetype_close_indexes = all_indices("    </motetype>\r\n",self.simfile_lines)
 
 		print(motetype_indexes)
 
 		if len(motetype_indexes) == 1:
 			#in case of 1 motetype, check if it's the template version or a real mote
-			if self.simfile_lines[motetype_indexes[0]+2] == "      <identifier>templatesky1</identifier>\n":
+			if self.simfile_lines[motetype_indexes[0]+2] == "      <identifier>templatesky1</identifier>\r\n":
 				#template version, we first remove the template motetype lines
 				count = motetype_close_indexes[0] - motetype_indexes[0] + 1
 				remove_n_at(motetype_indexes[0], count, self.simfile_lines)
@@ -37,16 +116,16 @@ class sim:
 			#if there are more than one, we know they are not template motetypes. We append a new one
 			self.simfile_lines = insert_list_at(motetype_text.splitlines(1), self.simfile_lines, motetype_close_indexes[-1]+1)
 
-	def add_mote(self, motetype_name, short_id, xpos, ypos):
+	def add_mote(self, mote):
 
-		mote_text = mote_from_template(motetype_name, short_id, xpos, ypos)
-
-		mote_indexes = all_indices("    <mote>\n",self.simfile_lines)
-		mote_close_indexes = all_indices("    </mote>\n",self.simfile_lines)
+		mote_text = mote.text_from_template()
+		
+		mote_indexes = all_indices("    <mote>\r\n",self.simfile_lines)
+		mote_close_indexes = all_indices("    </mote>\r\n",self.simfile_lines)
 	
 		if len(mote_indexes) == 1:
 			#only 1 mote, check if it's the template
-			if self.simfile_lines[mote_indexes[0]+4] == "        <x>XPOS</x>\n":
+			if self.simfile_lines[mote_indexes[0]+4] == "        <x>XPOS</x>\r\n":
 				#template version, we first remove the template motetype lines
 				count = mote_close_indexes[0] - mote_indexes[0] + 1
 				remove_n_at(mote_indexes[0], count, self.simfile_lines)
@@ -59,53 +138,51 @@ class sim:
 			#if there are more than one, we know they are not template motetypes. We append a new one
 			self.simfile_lines = insert_list_at(mote_text.splitlines(1), self.simfile_lines, mote_close_indexes[-1]+1)
 
-	def add_motes(self, node_list):
-	
-	#nodelist.append(('sink1', coords[0], 1))
-		for node in node_list:
-			print("addmote: %s, %s, %f, %f" % (node['fw'],str(node['nodeid']), node['coords'][0], node['coords'][1]))
-			self.add_mote(node['fw'], str(node['nodeid']), node['coords'][0], node['coords'][1])
+	def add_motes(self, mote_list):
+		for mote in mote_list:
+			self.add_mote(mote)
 
 	def udgm_set_range(self, mote_range):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
+		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+2)
-			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%.1f</transmitting_range>\n" % mote_range)
+			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%.1f</transmitting_range>\r\n" % mote_range)
 		
 		else:
-			print("ERROR: radio model is not UDGM\n")
+			print("ERROR: radio model is not UDGM\r\n")
 
 	def udgm_set_interference_range(self, interference_range):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
+		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+3)
-			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%.1f</interference_range>\n" % interference_range)
+			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%.1f</interference_range>\r\n" % interference_range)
 		
 		else:
-			print("ERROR: radio model is not UDGM\n")
+			print("ERROR: radio model is not UDGM\r\n")
 
 	def udgm_set_rx_tx_ratios(self, rx, tx):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
+		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
-			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.1f</success_ratio_tx>\n" % tx)
-			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.1f</success_ratio_rx>\n" % rx)
+			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.1f</success_ratio_tx>\r\n" % tx)
+			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.1f</success_ratio_rx>\r\n" % rx)
 		
 		else:
-			print("ERROR: radio model is not UDGM\n")
+			print("ERROR: radio model is not UDGM\r\n")
 
 	def set_timeout(self, timeout):
-		script_index = all_indices('    <script>\n' ,self.simfile_lines)[0]
+		print(self.simfile_lines)
+		script_index = all_indices('      <script>\r\n' ,self.simfile_lines)[0]
 		self.simfile_lines.pop(script_index+1)
-		self.simfile_lines.insert(script_index+1, '        TIMEOUT(%d);\n' % timeout)
+		self.simfile_lines.insert(script_index+1, '        TIMEOUT(%d);\r\n' % timeout)
 
 	def set_dgrm_model(self, dgrm_file_path):
 		dgrm_file = open(dgrm_file_path, 'r')
-		radiomedium_open_index = self.simfile_lines.index('    <radiomedium>\n')
-		radiomedium_close_index = self.simfile_lines.index('    </radiomedium>\n')
+		radiomedium_open_index = self.simfile_lines.index('    <radiomedium>\r\n')
+		radiomedium_close_index = self.simfile_lines.index('    </radiomedium>\r\n')
 		remove_n_at(radiomedium_open_index+1, radiomedium_close_index - radiomedium_open_index -1, self.simfile_lines)
-		self.simfile_lines.insert(radiomedium_open_index+1, '      se.sics.cooja.radiomediums.DirectedGraphMedium\n')
+		self.simfile_lines.insert(radiomedium_open_index+1, '      se.sics.cooja.radiomediums.DirectedGraphMedium\r\n')
 
 		ptr = radiomedium_open_index+2
 
@@ -113,7 +190,7 @@ class sim:
 		#71 20 0.00 0 0 0 -10.0 0 0
 
 		total_errors = 0
-		re_dgrm_line = re.compile('([0-9]+) ([0-9]+) ([0-9,.]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9,.,-]+) ([0-9]+) ([0-9]+)\n')
+		re_dgrm_line = re.compile('([0-9]+) ([0-9]+) ([0-9,.]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9,.,-]+) ([0-9]+) ([0-9]+)\r\n')
 		for line in dgrm_file:
 			match_dgrm_line = re_dgrm_line.match(line)
 			if not match_dgrm_line:
@@ -136,7 +213,7 @@ class sim:
 				self.simfile_lines = insert_list_at(radio_edge.splitlines(1), self.simfile_lines, ptr)
 				#we don't increment ptr, just let the next insertions shift the existing edges down
 
-		print ("total_errors = %d\n",total_errors)
+		print ("total_errors = %d\r\n",total_errors)
 
 	def save_simfile(self):
 		simfile = open(self.simfilepath,'w')
@@ -168,78 +245,11 @@ def all_indices(value, qlist):
             break
     return indices
 
-def motetype_from_template(firmware_name, shortname, description):
-	motetype ="""    <motetype>
-      se.sics.cooja.mspmote.SkyMoteType
-      <identifier>SHORTNAME</identifier>
-      <description>DESCRIPTION</description>
-      <source EXPORT="discard">[CONFIG_DIR]/FIRMWARE.c</source>
-      <commands EXPORT="discard">make FIRMWARE.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONFIG_DIR]/FIRMWARE.sky</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
-    </motetype>\n"""
-
-	motetype = motetype.replace('SHORTNAME', shortname)
-	motetype = motetype.replace('DESCRIPTION', description)
-	motetype = motetype.replace('FIRMWARE', firmware_name)
-	return motetype
-
 def remove_n_at(index,count,qlist):
 	while count > 0:
 		qlist.pop(index)
 		count = count - 1
 	return qlist
-
-
-
-def mote_from_template(motetype_name, short_id, xpos, ypos):
-
-	if 'apptype' in motetype_name:
-		mote = """	<mote>
-      <interface_config>
-	se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
-	<id>SHORT_ID</id>
-      </interface_config>"""
-	else:
-		mote = """    <mote>
-      <breakpoints />
-      <interface_config>
-	se.sics.cooja.mspmote.interfaces.MspMoteID
-	<id>SHORT_ID</id>
-      </interface_config>"""
-
-	mote += """
-      <interface_config>
-	se.sics.cooja.interfaces.Position
-	<x>XPOS</x>
-	<y>YPOS</y>
-	<z>ZPOS</z>
-      </interface_config>
-      
-      <motetype_identifier>MOTETYPE_ID</motetype_identifier>
-    </mote>\n"""
-
-	mote = mote.replace('XPOS','%03.13f'%xpos)
-	mote = mote.replace('YPOS','%03.13f'%ypos)
-	mote = mote.replace('ZPOS','0')
-	mote = mote.replace('SHORT_ID', short_id)
-	mote = mote.replace('MOTETYPE_ID', motetype_name)
-
-	return mote
 
 def insert_list_at(src,dst,index):
 	cpt = 0
@@ -267,7 +277,7 @@ def dgrm_generate(src,dst,prr,rssi,delay):
 	  <signal>RSSI</signal>
 	  <delay>DELAY</delay>
 	</dest>
-      </edge>\n"""
+      </edge>\r\n"""
 
 	template = template.replace('SRC',src)
 	template = template.replace('DST',dst)
@@ -283,5 +293,15 @@ def extract_node_id_list(nodeidpath):
 		nodeids.append(line.rstrip())
 	return nodeids
 
+def mkdir(adir):
+	try:
+		os.makedirs(adir)
+	except OSError:
+		if os.path.exists(adir):
+			# We are safe
+			pass
+		else:
+			# There was an error on creation, so make sure we know about it
+			raise
 
 
