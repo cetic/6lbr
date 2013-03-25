@@ -6,12 +6,12 @@ import re
 import generators
 
 class sim_mote_type:
-	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial_pty, description):
+	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
 		self.shortname = shortname
 		self.fw_folder = os.path.normpath(fw_folder)
 		self.maketarget = maketarget
 		self.makeargs = makeargs
-		self.with_serial_pty = serial_pty
+		self.serial = serial
 		self.description = description
 
 	def text_from_template(self):
@@ -80,8 +80,8 @@ class sim_mote:
 		text = text.replace('MOTETYPE_ID', self.mote_type.shortname)
 		return text
 
-	def serial_pty_text(self):
-		if self.mote_type.with_serial_pty:
+	def serial_text(self):
+		if self.mote_type.serial == 'pty':
 			text = """  <plugin>
     de.fau.cooja.plugins.Serial2Pty
     <mote_arg>MOTEARG</mote_arg>
@@ -91,10 +91,21 @@ class sim_mote:
     <location_x>161</location_x>
     <location_y>532</location_y>
   </plugin>\r\n"""
-			text = text.replace('MOTEARG','%d' % (self.nodeid-1))
-			return text
+		elif self.mote_type.serial == 'socket':
+			text = """  <plugin>
+    SerialSocketServer
+    <mote_arg>1</mote_arg>
+    <width>459</width>
+    <z>4</z>
+    <height>119</height>
+    <location_x>5</location_x>
+    <location_y>525</location_y>
+  </plugin>\r\n"""
 		else:
-			return None
+			return ''
+
+		text = text.replace('MOTEARG','%d' % (self.nodeid-1))
+		return text
 
 class sim:
 	def __init__(self, simfilepath, templatepath):
@@ -148,10 +159,10 @@ class sim:
 			self.simfile_lines = insert_list_at(mote_text.splitlines(1), self.simfile_lines, mote_close_indexes[-1]+1)
 		
 		
-		if mote.mote_type.with_serial_pty:	
+		if mote.mote_type.serial != '':	
 			plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
-			serial_pty_text = mote.serial_pty_text()
-			self.simfile_lines = insert_list_at(serial_pty_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
+			serial_text = mote.serial_text()
+			self.simfile_lines = insert_list_at(serial_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
 
 	def add_motes(self, mote_list):
 		for mote in mote_list:
