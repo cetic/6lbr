@@ -8,7 +8,6 @@ from time import sleep
 import time
 import config
 import re
-import pty
 import os
 
 sys.path.append('../../../tools/sky')
