@@ -45,7 +45,7 @@ for mote_count in config_simgen.mote_count:
 								mote_type['fw_folder'],
 								mote_type['maketarget'],
 								mote_type['makeargs'],
-								mote_type['serial_socket'],
+								mote_type['serial_pty'],
 								mote_type['description'])
 		mote_types.append(mote_type_obj)
 		sim.insert_sky_motetype(mote_type_obj)

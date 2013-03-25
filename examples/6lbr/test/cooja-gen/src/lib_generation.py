@@ -6,12 +6,12 @@ import re
 import generators
 
 class sim_mote_type:
-	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial_socket, description):
+	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial_pty, description):
 		self.shortname = shortname
 		self.fw_folder = os.path.normpath(fw_folder)
 		self.maketarget = maketarget
 		self.makeargs = makeargs
-		self.with_serial_socket = serial_socket
+		self.with_serial_pty = serial_pty
 		self.description = description
 
 	def text_from_template(self):
@@ -80,16 +80,16 @@ class sim_mote:
 		text = text.replace('MOTETYPE_ID', self.mote_type.shortname)
 		return text
 
-	def serial_socket_text(self):
-		if self.mote_type.with_serial_socket:
+	def serial_pty_text(self):
+		if self.mote_type.with_serial_pty:
 			text = """  <plugin>
-    SerialSocketServer
+    de.fau.cooja.plugins.Serial2Pty
     <mote_arg>MOTEARG</mote_arg>
-    <width>462</width>
-    <z>5</z>
-    <height>123</height>
-    <location_x>2</location_x>
-    <location_y>402</location_y>
+    <width>250</width>
+    <z>0</z>
+    <height>100</height>
+    <location_x>161</location_x>
+    <location_y>532</location_y>
   </plugin>\r\n"""
 			text = text.replace('MOTEARG','%d' % (self.nodeid-1))
 			return text
@@ -148,10 +148,10 @@ class sim:
 			self.simfile_lines = insert_list_at(mote_text.splitlines(1), self.simfile_lines, mote_close_indexes[-1]+1)
 		
 		
-		if mote.mote_type.with_serial_socket:	
+		if mote.mote_type.with_serial_pty:	
 			plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
-			serial_socket_text = mote.serial_socket_text()
-			self.simfile_lines = insert_list_at(serial_socket_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
+			serial_pty_text = mote.serial_pty_text()
+			self.simfile_lines = insert_list_at(serial_pty_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
 
 	def add_motes(self, mote_list):
 		for mote in mote_list:

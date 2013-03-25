@@ -6,6 +6,7 @@
   <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
   <project EXPORT="discard">[APPS_DIR]/collect-view</project>
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
+  <project EXPORT="discard">[APPS_DIR]/serial2pty</project>
   <simulation>
     <title>6lbr template</title>
     <speedlimit>1.0</speedlimit>
