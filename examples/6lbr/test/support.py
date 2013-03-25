@@ -181,12 +181,6 @@ class LocalWsn(WsnProxy):
         self.motelist.append(mote)
 	
     def tearDown(self):
-        print("Killing Cooja")
-        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
-        self.cooja.wait()
-        time.sleep(1)
-        print >> sys.stderr, "Cooja Thread Killed"
-        time.sleep(1)
         for mote in self.motelist:
             mote.tearDown()
         self.motelist = []
@@ -206,9 +200,39 @@ class LocalWsn(WsnProxy):
     def ping(self, address, expect_reply=False, count=0):
         return self.motelist[-1].ping(address, expect_reply, count)
 
-    #temporary hack
-    def get_mote_ip(self):
-        return self.motelist[-1].ip
+class TestbedWsn(WsnProxy):
+    motelist = []
+    hypernode_ip = ''
+    def setUp(self, hypernode_ip):
+        self.hypernode_ip = hypernode_ip
+        # TODO: Open connection to Hypernode
+        # TODO: Import testbed configuration file
+        # TODO: Create a new TestbedMote for each mote on the testbed
+	
+    def tearDown(self):
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+        # TODO: Close connection to Hypernode
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        # TODO: Specify which node to reset in input parameter
+        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
+
+    def start_mote(self, channel):
+        # TODO: Call start_mote on the specified mote instance
+        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
+
+    def stop_mote(self):
+        # TODO: Specify which node to stop in input parameter
+        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
+
+    def ping(self, address, expect_reply=False, count=0):
+        # TODO: Specify which node to ping from in input parameter
+        # TODO: Call ping on the specified mote instance
 
 class MoteProxy:
     def setUp(self):
@@ -232,6 +256,8 @@ class MoteProxy:
 
     def is_mote_started(self):
         return False
+
+#TODO: Create TestbedMote
 
 class TelosMote(MoteProxy):
     def setUp(self):
