@@ -112,6 +112,8 @@ public class Serial2Pty extends VisPlugin implements MotePlugin {
       
       Serial2PtyRegistry.addSerialPort(ptyDeviceName, mote.getID());
 
+      logger.debug("serialpty;open;" + mote.getID() + ";" + ptyDeviceName);
+
       for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
           if (intf instanceof SerialPort) {
               serialPort = (SerialPort) intf;
