@@ -94,7 +94,7 @@ class sim_mote:
 		elif self.mote_type.serial == 'socket':
 			text = """  <plugin>
     SerialSocketServer
-    <mote_arg>1</mote_arg>
+    <mote_arg>MOTEARG</mote_arg>
     <width>459</width>
     <z>4</z>
     <height>119</height>
