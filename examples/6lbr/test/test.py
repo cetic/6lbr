@@ -39,7 +39,7 @@ class TestSupport:
         print >> sys.stderr, "\n---\n"
         self.platform.setUp()
         self.br.setUp()
-        self.wsn.setUp()
+        self.wsn.setUp() #TODO: pass simulation_path in arg here
         ip = self.wsn.get_mote_ip()
         if ip != '':
             self.ip_mote = ip

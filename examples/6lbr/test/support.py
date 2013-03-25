@@ -173,6 +173,43 @@ class CoojaWsn(WsnProxy):
     def get_mote_ip(self):
         return self.motelist[-1].ip
 
+class LocalWsn(WsnProxy):
+    motelist = []
+    def setUp(self):
+        mote = TelosMote()
+        mote.setUp()
+        self.motelist.append(mote)
+	
+    def tearDown(self):
+        print("Killing Cooja")
+        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
+        self.cooja.wait()
+        time.sleep(1)
+        print >> sys.stderr, "Cooja Thread Killed"
+        time.sleep(1)
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        return self.motelist[-1].reset_mote()
+
+    def start_mote(self, channel):
+        return self.motelist[-1].start_mote(channel)
+
+    def stop_mote(self):
+        return self.motelist[-1].stop_mote()
+
+    def ping(self, address, expect_reply=False, count=0):
+        return self.motelist[-1].ping(address, expect_reply, count)
+
+    #temporary hack
+    def get_mote_ip(self):
+        return self.motelist[-1].ip
+
 class MoteProxy:
     def setUp(self):
         pass
