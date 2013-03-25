@@ -10,6 +10,7 @@
   <simulation>
     <title>6lbr template</title>
     <speedlimit>1.0</speedlimit>
+    <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
