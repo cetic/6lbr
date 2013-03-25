@@ -77,7 +77,7 @@ public class Serial2Pty extends VisPlugin implements MotePlugin {
   private Observer serialObserver;
 
   public Serial2Pty(Mote moteToView, Simulation simulation, GUI gui) {
-      super("Serial 2 Pty (" + moteToView + ")", gui);
+      super("Serial 2 Pty (" + moteToView + ")", gui, false);
       mote = moteToView;
       String pluginPath = "";
 
@@ -193,27 +193,28 @@ public class Serial2Pty extends VisPlugin implements MotePlugin {
           }
       });
       pipeListener.start();
+      if (GUI.isVisualized()) {
+          // Add GUI labels
+          setLayout(new GridLayout(3, 2));
 
-      // Add GUI labels
-      setLayout(new GridLayout(3, 2));
 
-
-      add(new JLabel("moteID:"));
-      add(new JLabel(String.valueOf(mote.getID())));
+          add(new JLabel("moteID:"));
+          add(new JLabel(String.valueOf(mote.getID())));
       
-      add(new JLabel("Serial Device:"));
-      add(new JLabel(ptyDeviceName));
+          add(new JLabel("Serial Device:"));
+          add(new JLabel(ptyDeviceName));
 
-      add(new JLabel("Discovery Server:"));
-      add(new JLabel("Port " + String.valueOf(SerialPortDiscoveryServer.LISTEN_PORT)));
+          add(new JLabel("Discovery Server:"));
+          add(new JLabel("Port " + String.valueOf(SerialPortDiscoveryServer.LISTEN_PORT)));
 
-      //setSize(250, 75);
-      setSize(250, 100);
+          //setSize(250, 75);
+          setSize(250, 100);
 
-      try {
-        setSelected(true);
-      } catch (java.beans.PropertyVetoException e) {
-        // Could not select
+          try {
+            setSelected(true);
+          } catch (java.beans.PropertyVetoException e) {
+            // Could not select
+          }
       }
   }
 
