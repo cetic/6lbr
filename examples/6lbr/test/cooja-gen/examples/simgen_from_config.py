@@ -45,6 +45,7 @@ for mote_count in config_simgen.mote_count:
 								mote_type['fw_folder'],
 								mote_type['maketarget'],
 								mote_type['makeargs'],
+								mote_type['serial_socket'],
 								mote_type['description'])
 		mote_types.append(mote_type_obj)
 		sim.insert_sky_motetype(mote_type_obj)
@@ -65,9 +66,13 @@ for mote_count in config_simgen.mote_count:
 
 	sim.save_simfile()
 	simfiles.append(simfilepath)
+	print("****\n%s" % simfilepath)
+	for mote in motelist:
+		if mote.mote_type.with_serial_socket:
+			print("serialsocket on %d" % (60000 + mote.nodeid))
 	motelist=[]
 
-print("Done. Generated %d simfiles:" % len(simfiles))
-for simfile in simfiles:
-	print(simfile)
+print("Done. Generated %d simfiles" % len(simfiles))
+
+	
 
