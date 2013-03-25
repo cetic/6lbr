@@ -30,7 +30,7 @@ channel=26
 from support import *
 
 br=LocalNativeBR()
-mote=VirtualTelosMote()
+wsn=CoojaWsn()
 platform=Linux() #MacOSX()
 
 

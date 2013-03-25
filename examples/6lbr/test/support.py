@@ -95,6 +95,84 @@ class RemoteNativeBR(BRProxy):
         print >> sys.stderr, "Stopping 6LBR..."
         return False
 
+class WsnProxy:
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+	pass
+
+    def wait_until(self, text, count):
+        pass
+
+    def reset_mote(self):
+        pass
+
+    def start_mote(self, channel):
+        pass
+
+    def stop_mote(self):
+        pass
+
+    def ping(self, address, expect_reply=False, count=0):
+        pass
+
+    def get_mote_ip(self):
+        pass
+
+class CoojaWsn(WsnProxy):
+    motelist = []
+    def setUp(self, simulation_path='./cooja-gen/output/simfile-3-nodes.csc'):
+        print("Setting up Cooja, compiling node firmwares...")
+        nogui = '-nogui=%s' % simulation_path
+	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
+                                       nogui], stdout=subprocess.PIPE)
+        line = self.cooja.stdout.readline()
+        
+        while 'Simulation main loop started' not in line: # Wait for simulation to start 
+	    if 'serialpty;open;' in line:
+                elems = line.split(";")
+                newmote = VirtualTelosMote()
+                newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
+                self.motelist.append(newmote)
+            line = self.cooja.stdout.readline()
+        print("Cooja simulation started")
+
+        sleep(2)
+	
+        for mote in self.motelist:
+            mote.setUp()
+	
+    def tearDown(self):
+        print("Killing Cooja")
+        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
+        self.cooja.wait()
+        time.sleep(1)
+        print >> sys.stderr, "Cooja Thread Killed"
+        time.sleep(1)
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        return self.motelist[-1].reset_mote()
+
+    def start_mote(self, channel):
+        return self.motelist[-1].start_mote(channel)
+
+    def stop_mote(self):
+        return self.motelist[-1].stop_mote()
+
+    def ping(self, address, expect_reply=False, count=0):
+        return self.motelist[-1].ping(address, expect_reply, count)
+
+    #temporary hack
+    def get_mote_ip(self):
+        return self.motelist[-1].ip
+
 class MoteProxy:
     def setUp(self):
         pass
@@ -182,22 +260,13 @@ class TelosMote(MoteProxy):
             return True
 
 class VirtualTelosMote(MoteProxy):
+    mote_dev = ''
+    mote_id = 0
+    mote_ip = ''
     def setUp(self):
-        print("Setting up Cooja, compiling node firmwares...")
-        self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       '-nogui=./cooja-small-nogui.csc'], stdout=subprocess.PIPE)
-        line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start 
-	    if 'serialpty;open;' in line:
-                elems = line.split(";")
-                mote_dev = elems[-1].rstrip()
-            line = self.cooja.stdout.readline()
-        print("Cooja simulation started")
-        sleep(2)
-
-	print >> sys.stderr, mote_dev
-	self.serialport = serial.Serial(
-	port=mote_dev,
+        print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
+        self.serialport = serial.Serial(
+	port=self.mote_dev,
 	baudrate=config.mote_baudrate,
 	parity = serial.PARITY_NONE,
 	timeout = 1
@@ -208,14 +277,12 @@ class VirtualTelosMote(MoteProxy):
     
     def tearDown(self):
         MoteProxy.tearDown(self)
-        
-        print("Killing Cooja")
-	self.serialport.write("\r\nkillcooja\r\n")
-	self.cooja.wait()
-        time.sleep(1)
-	print >> sys.stderr, "Cooja Thread Killed"
-	time.sleep(1)
-        self.serialport.close()
+	self.serialport.close()
+
+    def setInfo(self, mote_dev, mote_id):
+        self.mote_dev = mote_dev
+        self.mote_id = mote_id
+        self.ip = 'aaaa::' + '0212:740' + str(mote_id) + ':' + '000' + str(mote_id) + ':0' + str(mote_id) + '0' + str(mote_id)
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -257,7 +324,6 @@ class VirtualTelosMote(MoteProxy):
             return self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
             return True
-    
 
 class InteractiveMote(MoteProxy):
     mote_started=False

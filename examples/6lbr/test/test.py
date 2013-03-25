@@ -28,7 +28,7 @@ def repeat(times):
 
 class TestSupport:
     br=config.br
-    mote=config.mote
+    wsn=config.wsn
     platform=config.platform
     tcpdump=TcpDump()
     ip_6lbr=None
@@ -39,10 +39,13 @@ class TestSupport:
         print >> sys.stderr, "\n---\n"
         self.platform.setUp()
         self.br.setUp()
-        self.mote.setUp()
+        self.wsn.setUp()
+        ip = self.wsn.get_mote_ip()
+        if ip != '':
+            self.ip_mote = ip
 
     def tearDown(self):
-        self.mote.tearDown()
+        self.wsn.tearDown()
         self.br.tearDown()
         self.platform.tearDown()
 
@@ -62,10 +65,10 @@ class TestSupport:
         return self.br.stop_6lbr()
 
     def start_mote(self):
-        return self.mote.start_mote(config.channel)
+        return self.wsn.start_mote(config.channel)
 
     def stop_mote(self):
-        return self.mote.stop_mote()
+        return self.wsn.stop_mote()
 
     def ping(self, target):
         return self.platform.ping(target)
@@ -89,10 +92,11 @@ class TestSupport:
         return self.ping( self.ip_mote )
 
     def wait_ping_mote(self, count):
+        print("Pinging mote %s" % self.ip_mote)
         return self.wait_ping( count, self.ip_mote )
 
     def ping_from_mote(self, address, expect_reply=False, count=0):
-        return self.mote.ping( address, expect_reply, count )
+        return self.wsn.ping( address, expect_reply, count )
 
 class TestScenarios:
     def log_file(self, log_name):
