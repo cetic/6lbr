@@ -118,6 +118,8 @@ TIMEOUT(999999999999);&#xD;
 &#xD;
 while (true) {&#xD;
   log.log(time + ":" + id + ":" + msg + "\n");&#xD;
+  if(msg.contains("killcooja"))&#xD;
+    log.testOK();&#xD;
   YIELD();&#xD;
 }</script>
       <active>false</active>

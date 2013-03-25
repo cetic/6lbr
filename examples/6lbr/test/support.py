@@ -187,43 +187,35 @@ class VirtualTelosMote(MoteProxy):
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        '-nogui=./cooja-small-nogui.csc'], stdout=subprocess.PIPE)
         line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start      
+        while 'Simulation main loop started' not in line: # Wait for simulation to start 
+	    if 'serialpty;open;' in line:
+                elems = line.split(";")
+                mote_dev = elems[-1].rstrip()
             line = self.cooja.stdout.readline()
         print("Cooja simulation started")
         sleep(2)
 
-        master, slave = pty.openpty()
-        self.socat = subprocess.Popen(['socat', '-d', '-d', 'TCP:localhost:60002', 'PTY'], shell=False, stdout=slave, stderr=slave, close_fds=True)
-        socat_output = os.fdopen(master)
-
-        line = socat_output.readline()
-        while 'N PTY is' not in line: # TODO: Generalize and make Mac-friendly
-            line = socat_output.readline()
-        print >> sys.stderr, line
-
-        re_socat_ok = re.compile(".+(/dev/pts/[0-9]+).+") # TODO: Generalize and make Mac-friendly
-        re_socat_res = re_socat_ok.match(line)
-        if re_socat_res:
-            mote_dev = re_socat_res.group(1).rstrip()
-            print >> sys.stderr, mote_dev
-            self.serialport = serial.Serial(
-                port=mote_dev,
-                baudrate=config.mote_baudrate,
-                parity = serial.PARITY_NONE,
-                timeout = 1
-            )
-            self.reset_mote()
-            self.serialport.flushInput()
-            self.serialport.flushOutput()
+	print >> sys.stderr, mote_dev
+	self.serialport = serial.Serial(
+	port=mote_dev,
+	baudrate=config.mote_baudrate,
+	parity = serial.PARITY_NONE,
+	timeout = 1
+	)
+	self.reset_mote()
+	self.serialport.flushInput()
+	self.serialport.flushOutput()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
-        self.serialport.close()
+        
         print("Killing Cooja")
-        self.socat.kill()
-        self.cooja.kill()
-        #self.nul_output.close()
-        time.sleep(2)
+	self.serialport.write("\r\nkillcooja\r\n")
+	self.cooja.wait()
+        time.sleep(1)
+	print >> sys.stderr, "Cooja Thread Killed"
+	time.sleep(1)
+        self.serialport.close()
 
     def wait_until(self, text, count):
         start_time = time.time()
