@@ -122,7 +122,7 @@ class WsnProxy:
 class CoojaWsn(WsnProxy):
     motelist = []
     def setUp(self, simulation_path='./coojagen/output/simfile-3-nodes.csc'):
-        print("Setting up Cooja, compiling node firmwares...")
+        print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE)

@@ -39,7 +39,15 @@ class TestSupport:
         print >> sys.stderr, "\n---\n"
         self.platform.setUp()
         self.br.setUp()
-        self.wsn.setUp() #TODO: pass simulation_path in arg here
+
+        try:
+            topologyfile = open('.NEXT_TOPOLOGY', 'r')
+            next_topology = topologyfile.readline().rstrip()
+            topologyfile.close()
+            self.wsn.setUp(next_topology)
+        except IOError:
+            self.wsn.setUp()
+
         ip = self.wsn.get_mote_ip()
         if ip != '':
             self.ip_mote = ip
