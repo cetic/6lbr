@@ -1,8 +1,7 @@
 import coojagen.src.lib_generation as simgen
 from os import system
 
-
-parser = simgen.config_parser()
+parser = simgen.ConfigParser()
 parser.parse_config('config_simgen.py')
 simfiles = parser.get_simfiles()
 

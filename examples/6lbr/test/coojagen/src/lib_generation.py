@@ -6,7 +6,7 @@ import re
 import generators
 import imp
 
-class sim_mote_type:
+class SimMoteType:
 	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
 		self.shortname = shortname
 		self.fw_folder = os.path.normpath(fw_folder)
@@ -47,7 +47,7 @@ class sim_mote_type:
 		text = text.replace('MAKEARGS', self.makeargs)
 		return text
 
-class sim_mote:
+class SimMote:
 	def __init__(self, mote_type, nodeid):
 		self.mote_type = mote_type
 		self.nodeid = nodeid
@@ -329,7 +329,7 @@ def cleardir(adir):
 		except Exception, e:
 			print e
 
-class config_parser():
+class ConfigParser():
 
 	def __init__(self):
 		self.mote_types = []
@@ -372,12 +372,12 @@ class config_parser():
 			sim = Sim(simfilepath, template_path)
 
 			for mote_type in config_simgen.mote_types:
-				mote_type_obj = sim_mote_type(	mote_type['shortname'],
-										mote_type['fw_folder'],
-										mote_type['maketarget'],
-										mote_type['makeargs'],
-										mote_type['serial'],
-										mote_type['description'])
+				mote_type_obj = SimMoteType(    mote_type['shortname'],
+								mote_type['fw_folder'],
+								mote_type['maketarget'],
+								mote_type['makeargs'],
+								mote_type['serial'],
+								mote_type['description'])
 				self.mote_types.append(mote_type_obj)
 				sim.insert_sky_motetype(mote_type_obj)
 
@@ -388,7 +388,7 @@ class config_parser():
 
 			for index,coord in enumerate(coords):
 				nodeid = index + 1
-				mote = sim_mote(self.mote_type_from_shortname(motenames[index]), nodeid)
+				mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
 				mote.set_coords(coord[0], coord[1], coord[2])
 				self.motelist.append(mote)
 
