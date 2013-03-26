@@ -348,7 +348,8 @@ class VirtualTelosMote(MoteProxy):
     def setInfo(self, mote_dev, mote_id):
         self.mote_dev = mote_dev
         self.mote_id = mote_id
-        self.ip = 'aaaa::' + '0212:740' + str(mote_id) + ':' + '000' + str(mote_id) + ':0' + str(mote_id) + '0' + str(mote_id)
+        hex_mote_id = "%02x" % int(mote_id)
+        self.ip = 'aaaa::' + '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
 
     def wait_until(self, text, count):
         start_time = time.time()
