@@ -4,6 +4,7 @@ import sys
 import shutil
 import re
 import generators
+import imp
 
 class sim_mote_type:
 	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
@@ -107,7 +108,7 @@ class sim_mote:
 		text = text.replace('MOTEARG','%d' % (self.nodeid-1))
 		return text
 
-class sim:
+class Sim():
 	def __init__(self, simfilepath, templatepath):
 		self.templatepath = templatepath
 		self.simfilepath = simfilepath
@@ -327,3 +328,80 @@ def cleardir(adir):
 			os.unlink(file_path)
 		except Exception, e:
 			print e
+
+class config_parser():
+
+	def __init__(self):
+		self.mote_types = []
+		self.motelist = []
+		self.simfiles = []
+
+	def assign_mote_types(self, assignment, mote_count):
+		motenames = [assignment['all'] for i in range(mote_count)]
+		for key, value in assignment.iteritems():
+			if key != 'all':
+				motenames[int(key)] = value
+		return motenames
+
+	def mote_type_from_shortname(self, shortname):
+		for mote_type in self.mote_types:
+			if mote_type.shortname == shortname:
+				return mote_type
+		return None
+
+	def parse_config(self, config_path):
+		config_simgen = imp.load_source('module.name', config_path)
+		if hasattr(config_simgen, 'outputfolder'):
+			outputfolder = config_simgen.outputfolder
+		else:
+			outputfolder = '..' + os.path.sep + 'output'
+
+		if hasattr(config_simgen, 'template'):
+			template_path = config_simgen.template
+		else:
+			template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
+
+
+		mkdir(outputfolder)
+		cleardir(outputfolder)
+		
+
+		for mote_count in config_simgen.mote_count:
+			motenames = self.assign_mote_types(config_simgen.assignment, mote_count)
+			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(mote_count) + '-nodes.csc'
+			sim = Sim(simfilepath, template_path)
+
+			for mote_type in config_simgen.mote_types:
+				mote_type_obj = sim_mote_type(	mote_type['shortname'],
+										mote_type['fw_folder'],
+										mote_type['maketarget'],
+										mote_type['makeargs'],
+										mote_type['serial'],
+										mote_type['description'])
+				self.mote_types.append(mote_type_obj)
+				sim.insert_sky_motetype(mote_type_obj)
+
+			sim.udgm_set_range(config_simgen.tx_range)
+			sim.udgm_set_interference_range(config_simgen.tx_interference)
+
+			coords = generators.genline(config_simgen.step, mote_count)
+
+			for index,coord in enumerate(coords):
+				nodeid = index + 1
+				mote = sim_mote(self.mote_type_from_shortname(motenames[index]), nodeid)
+				mote.set_coords(coord[0], coord[1], coord[2])
+				self.motelist.append(mote)
+
+			sim.add_motes(self.motelist)
+			sim.set_timeout(999999999) #stop time in ms
+
+			sim.save_simfile()
+			self.simfiles.append(simfilepath)
+			print("****\n%s" % simfilepath)
+
+			self.motelist=[]
+
+		print("Done. Generated %d simfiles" % len(self.simfiles))
+
+	def get_simfiles(self):
+		return self.simfiles

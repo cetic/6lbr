@@ -29,7 +29,7 @@ else:
 if hasattr(config_simgen, 'template'):
 	template_path = config_simgen.template
 else:
-	template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgp.csc'
+	template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
 
 
 lib_generation.mkdir(outputfolder)
