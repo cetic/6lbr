@@ -367,7 +367,6 @@ class ConfigParser():
 		
 
 		for mote_count in config_simgen.mote_count:
-			motenames = self.assign_mote_types(config_simgen.assignment, mote_count)
 			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(mote_count) + '-nodes.csc'
 			sim = Sim(simfilepath, template_path)
 
@@ -384,7 +383,8 @@ class ConfigParser():
 			sim.udgm_set_range(config_simgen.tx_range)
 			sim.udgm_set_interference_range(config_simgen.tx_interference)
 
-			coords = generators.genline(config_simgen.step, mote_count)
+			coords = generators.gen(config_simgen, mote_count)
+			motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
 
 			for index,coord in enumerate(coords):
 				nodeid = index + 1
@@ -402,6 +402,7 @@ class ConfigParser():
 			self.motelist=[]
 
 		print("Done. Generated %d simfiles" % len(self.simfiles))
+		return True
 
 	def get_simfiles(self):
 		return self.simfiles

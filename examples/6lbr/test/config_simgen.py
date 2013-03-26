@@ -1,9 +1,13 @@
 radio_model = 'udgm'
 tx_range = 45
 tx_interference = 45
-topology = 'line'
+topology = 'grid_ratio'
 step = 30
-mote_count = range(2,6)
+xcount = 2
+ycount = 5
+ratio = "1:3"
+mote_count = range(10,31,10)
+#mote_count = [10,]
 assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'}
 mote_types = []
 outputfolder = 'coojagen/output'

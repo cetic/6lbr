@@ -1,8 +1,10 @@
 import coojagen.src.lib_generation as simgen
 from os import system
+import sys
 
 parser = simgen.ConfigParser()
-parser.parse_config('config_simgen.py')
+if not parser.parse_config('config_simgen.py'):
+	sys.exit("topology generation error")
 simfiles = parser.get_simfiles()
 
 for simfile in simfiles:
