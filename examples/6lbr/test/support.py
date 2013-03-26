@@ -218,18 +218,22 @@ class TestbedWsn(WsnProxy):
         return self.motelist[-1].wait_until(text, count)
 
     def reset_mote(self):
+        pass
         # TODO: Specify which node to reset in input parameter
         # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
 
     def start_mote(self, channel):
+        pass
         # TODO: Call start_mote on the specified mote instance
         # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
 
     def stop_mote(self):
+        pass
         # TODO: Specify which node to stop in input parameter
         # TODO: Call stop_mote on the specified mote instance (testbed-reset)
 
     def ping(self, address, expect_reply=False, count=0):
+        pass
         # TODO: Specify which node to ping from in input parameter
         # TODO: Call ping on the specified mote instance
 
