@@ -8,7 +8,6 @@ from time import sleep
 import time
 import config
 import re
-import pty
 import os
 
 sys.path.append('../../../tools/sky')
@@ -95,6 +94,149 @@ class RemoteNativeBR(BRProxy):
         print >> sys.stderr, "Stopping 6LBR..."
         return False
 
+class WsnProxy:
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+	pass
+
+    def wait_until(self, text, count):
+        pass
+
+    def reset_mote(self):
+        pass
+
+    def start_mote(self, channel):
+        pass
+
+    def stop_mote(self):
+        pass
+
+    def ping(self, address, expect_reply=False, count=0):
+        pass
+
+    def get_mote_ip(self):
+        pass
+
+class CoojaWsn(WsnProxy):
+    motelist = []
+    def setUp(self, simulation_path='./coojagen/output/simfile-3-nodes.csc'):
+        print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
+        nogui = '-nogui=%s' % simulation_path
+	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
+                                       nogui], stdout=subprocess.PIPE)
+        line = self.cooja.stdout.readline()
+        
+        while 'Simulation main loop started' not in line: # Wait for simulation to start 
+	    if 'serialpty;open;' in line:
+                elems = line.split(";")
+                newmote = VirtualTelosMote()
+                newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
+                self.motelist.append(newmote)
+            line = self.cooja.stdout.readline()
+        print("Cooja simulation started")
+
+        sleep(2)
+	
+        for mote in self.motelist:
+            mote.setUp()
+	
+    def tearDown(self):
+        print("Killing Cooja")
+        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
+        self.cooja.wait()
+        time.sleep(1)
+        print >> sys.stderr, "Cooja Thread Killed"
+        time.sleep(1)
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        return self.motelist[-1].reset_mote()
+
+    def start_mote(self, channel):
+        return self.motelist[-1].start_mote(channel)
+
+    def stop_mote(self):
+        return self.motelist[-1].stop_mote()
+
+    def ping(self, address, expect_reply=False, count=0):
+        return self.motelist[-1].ping(address, expect_reply, count)
+
+    #temporary hack
+    def get_mote_ip(self):
+        return self.motelist[-1].ip
+
+class LocalWsn(WsnProxy):
+    motelist = []
+    def setUp(self):
+        mote = TelosMote()
+        mote.setUp()
+        self.motelist.append(mote)
+	
+    def tearDown(self):
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        return self.motelist[-1].reset_mote()
+
+    def start_mote(self, channel):
+        return self.motelist[-1].start_mote(channel)
+
+    def stop_mote(self):
+        return self.motelist[-1].stop_mote()
+
+    def ping(self, address, expect_reply=False, count=0):
+        return self.motelist[-1].ping(address, expect_reply, count)
+
+class TestbedWsn(WsnProxy):
+    motelist = []
+    hypernode_ip = ''
+    def setUp(self, hypernode_ip):
+        self.hypernode_ip = hypernode_ip
+        # TODO: Open connection to Hypernode
+        # TODO: Import testbed configuration file
+        # TODO: Create a new TestbedMote for each mote on the testbed
+	
+    def tearDown(self):
+        for mote in self.motelist:
+            mote.tearDown()
+        self.motelist = []
+        # TODO: Close connection to Hypernode
+
+    def wait_until(self, text, count):
+        return self.motelist[-1].wait_until(text, count)
+
+    def reset_mote(self):
+        pass
+        # TODO: Specify which node to reset in input parameter
+        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
+
+    def start_mote(self, channel):
+        pass
+        # TODO: Call start_mote on the specified mote instance
+        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
+
+    def stop_mote(self):
+        pass
+        # TODO: Specify which node to stop in input parameter
+        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
+
+    def ping(self, address, expect_reply=False, count=0):
+        pass
+        # TODO: Specify which node to ping from in input parameter
+        # TODO: Call ping on the specified mote instance
+
 class MoteProxy:
     def setUp(self):
         pass
@@ -117,6 +259,8 @@ class MoteProxy:
 
     def is_mote_started(self):
         return False
+
+#TODO: Create TestbedMote
 
 class TelosMote(MoteProxy):
     def setUp(self):
@@ -182,48 +326,30 @@ class TelosMote(MoteProxy):
             return True
 
 class VirtualTelosMote(MoteProxy):
+    mote_dev = ''
+    mote_id = 0
+    mote_ip = ''
     def setUp(self):
-        print("Setting up Cooja, compiling node firmwares...")
-        self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       '-nogui=./cooja-small-nogui.csc'], stdout=subprocess.PIPE)
-        line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start      
-            line = self.cooja.stdout.readline()
-        print("Cooja simulation started")
-        sleep(2)
-
-        master, slave = pty.openpty()
-        self.socat = subprocess.Popen(['socat', '-d', '-d', 'TCP:localhost:60002', 'PTY'], shell=False, stdout=slave, stderr=slave, close_fds=True)
-        socat_output = os.fdopen(master)
-
-        line = socat_output.readline()
-        while 'N PTY is' not in line: # TODO: Generalize and make Mac-friendly
-            line = socat_output.readline()
-        print >> sys.stderr, line
-
-        re_socat_ok = re.compile(".+(/dev/pts/[0-9]+).+") # TODO: Generalize and make Mac-friendly
-        re_socat_res = re_socat_ok.match(line)
-        if re_socat_res:
-            mote_dev = re_socat_res.group(1).rstrip()
-            print >> sys.stderr, mote_dev
-            self.serialport = serial.Serial(
-                port=mote_dev,
-                baudrate=config.mote_baudrate,
-                parity = serial.PARITY_NONE,
-                timeout = 1
-            )
-            self.reset_mote()
-            self.serialport.flushInput()
-            self.serialport.flushOutput()
+        print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
+        self.serialport = serial.Serial(
+	port=self.mote_dev,
+	baudrate=config.mote_baudrate,
+	parity = serial.PARITY_NONE,
+	timeout = 1
+	)
+	self.reset_mote()
+	self.serialport.flushInput()
+	self.serialport.flushOutput()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
-        self.serialport.close()
-        print("Killing Cooja")
-        self.socat.kill()
-        self.cooja.kill()
-        #self.nul_output.close()
-        time.sleep(2)
+	self.serialport.close()
+
+    def setInfo(self, mote_dev, mote_id):
+        self.mote_dev = mote_dev
+        self.mote_id = mote_id
+        hex_mote_id = "%02x" % int(mote_id)
+        self.ip = 'aaaa::' + '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -265,7 +391,6 @@ class VirtualTelosMote(MoteProxy):
             return self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
             return True
-    
 
 class InteractiveMote(MoteProxy):
     mote_started=False

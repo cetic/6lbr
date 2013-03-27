@@ -6,9 +6,11 @@
   <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
   <project EXPORT="discard">[APPS_DIR]/collect-view</project>
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
+  <project EXPORT="discard">[APPS_DIR]/serial2pty</project>
   <simulation>
     <title>6lbr template</title>
     <speedlimit>1.0</speedlimit>
+    <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
@@ -117,6 +119,8 @@ TIMEOUT(999999999999);&#xD;
 &#xD;
 while (true) {&#xD;
   log.log(time + ":" + id + ":" + msg + "\n");&#xD;
+  if(msg.contains("killcooja"))&#xD;
+    log.testOK();&#xD;
   YIELD();&#xD;
 }</script>
       <active>false</active>

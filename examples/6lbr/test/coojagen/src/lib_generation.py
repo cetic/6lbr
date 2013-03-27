@@ -4,14 +4,15 @@ import sys
 import shutil
 import re
 import generators
+import imp
 
-class sim_mote_type:
-	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial_socket, description):
+class SimMoteType:
+	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
 		self.shortname = shortname
 		self.fw_folder = os.path.normpath(fw_folder)
 		self.maketarget = maketarget
 		self.makeargs = makeargs
-		self.with_serial_socket = serial_socket
+		self.serial = serial
 		self.description = description
 
 	def text_from_template(self):
@@ -46,7 +47,7 @@ class sim_mote_type:
 		text = text.replace('MAKEARGS', self.makeargs)
 		return text
 
-class sim_mote:
+class SimMote:
 	def __init__(self, mote_type, nodeid):
 		self.mote_type = mote_type
 		self.nodeid = nodeid
@@ -80,28 +81,37 @@ class sim_mote:
 		text = text.replace('MOTETYPE_ID', self.mote_type.shortname)
 		return text
 
-	def serial_socket_text(self):
-		if self.mote_type.with_serial_socket:
+	def serial_text(self):
+		if self.mote_type.serial == 'pty':
+			text = """  <plugin>
+    de.fau.cooja.plugins.Serial2Pty
+    <mote_arg>MOTEARG</mote_arg>
+    <width>250</width>
+    <z>0</z>
+    <height>100</height>
+    <location_x>161</location_x>
+    <location_y>532</location_y>
+  </plugin>\r\n"""
+		elif self.mote_type.serial == 'socket':
 			text = """  <plugin>
     SerialSocketServer
     <mote_arg>MOTEARG</mote_arg>
-    <width>462</width>
-    <z>5</z>
-    <height>123</height>
-    <location_x>2</location_x>
-    <location_y>402</location_y>
+    <width>459</width>
+    <z>4</z>
+    <height>119</height>
+    <location_x>5</location_x>
+    <location_y>525</location_y>
   </plugin>\r\n"""
-			text = text.replace('MOTEARG','%d' % (self.nodeid-1))
-			return text
 		else:
-			return None
+			return ''
 
-class sim:
-	def __init__(self, simfilepath, templatepath):
+		text = text.replace('MOTEARG','%d' % (self.nodeid-1))
+		return text
+
+class Sim():
+	def __init__(self, templatepath):
 		self.templatepath = templatepath
-		self.simfilepath = simfilepath
-		shutil.copyfile(self.templatepath, self.simfilepath)
-		self.simfile_lines = read_simfile(self.simfilepath)
+		self.simfile_lines = read_simfile(self.templatepath)
 
 	def insert_sky_motetype(self, mote_type):
 
@@ -148,10 +158,10 @@ class sim:
 			self.simfile_lines = insert_list_at(mote_text.splitlines(1), self.simfile_lines, mote_close_indexes[-1]+1)
 		
 		
-		if mote.mote_type.with_serial_socket:	
+		if mote.mote_type.serial != '':	
 			plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
-			serial_socket_text = mote.serial_socket_text()
-			self.simfile_lines = insert_list_at(serial_socket_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
+			serial_text = mote.serial_text()
+			self.simfile_lines = insert_list_at(serial_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
 
 	def add_motes(self, mote_list):
 		for mote in mote_list:
@@ -229,14 +239,14 @@ class sim:
 
 		print ("total_errors = %d\r\n",total_errors)
 
-	def save_simfile(self):
-		simfile = open(self.simfilepath,'w')
+	def save_simfile(self, simfilepath):
+		simfile = open(simfilepath,'w')
 		for line in self.simfile_lines:
 			simfile.write(line)
 		simfile.close()
 
-def new_sim(simfilepath, templatepath = 'cooja-template.csc'):
-	return sim(simfilepath, templatepath)
+def new_sim(templatepath = 'cooja-template.csc'):
+	return Sim(templatepath)
 
 def create_twistreplay_from_template(simfilepath):
 	templatepath = 'twistreplay-template.csc'
@@ -316,3 +326,85 @@ def cleardir(adir):
 			os.unlink(file_path)
 		except Exception, e:
 			print e
+
+class ConfigParser():
+
+	def __init__(self):
+		self.mote_types = []
+		self.motelist = []
+		self.simfiles = []
+
+	def assign_mote_types(self, assignment, mote_count):
+		motenames = [assignment['all'] for i in range(mote_count)]
+		for key, value in assignment.iteritems():
+			if key != 'all':
+				motenames[int(key)] = value
+		return motenames
+
+	def mote_type_from_shortname(self, shortname):
+		for mote_type in self.mote_types:
+			if mote_type.shortname == shortname:
+				return mote_type
+		return None
+
+	def parse_config(self, config_path):
+		config_simgen = imp.load_source('module.name', config_path)
+		if hasattr(config_simgen, 'outputfolder'):
+			outputfolder = config_simgen.outputfolder
+		else:
+			outputfolder = '..' + os.path.sep + 'output'
+
+		if hasattr(config_simgen, 'template'):
+			template_path = config_simgen.template
+		else:
+			template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
+
+		mkdir(outputfolder)
+		cleardir(outputfolder)
+
+		previous_count = 0
+		for mote_count in config_simgen.mote_count:
+			sim = Sim(template_path)
+
+			for mote_type in config_simgen.mote_types:
+				mote_type_obj = SimMoteType(    mote_type['shortname'],
+								mote_type['fw_folder'],
+								mote_type['maketarget'],
+								mote_type['makeargs'],
+								mote_type['serial'],
+								mote_type['description'])
+				self.mote_types.append(mote_type_obj)
+				sim.insert_sky_motetype(mote_type_obj)
+
+			sim.udgm_set_range(config_simgen.tx_range)
+			sim.udgm_set_interference_range(config_simgen.tx_interference)
+
+			coords = generators.gen(config_simgen, mote_count)
+			if(previous_count == len(coords)):
+				continue
+
+			previous_count = len(coords)
+
+			motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
+			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(len(coords)) + '-nodes.csc'
+
+			for index,coord in enumerate(coords):
+				nodeid = index + 1
+				mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
+				mote.set_coords(coord[0], coord[1], coord[2])
+				self.motelist.append(mote)
+
+			sim.add_motes(self.motelist)
+			sim.set_timeout(999999999) #stop time in ms
+
+			sim.save_simfile(simfilepath)
+			self.simfiles.append(simfilepath)
+			print("****\n%s" % simfilepath)
+
+			self.motelist=[]
+
+		print("Done. Generated %d simfiles" % len(self.simfiles))
+		return True
+
+	def get_simfiles(self):
+		return self.simfiles
