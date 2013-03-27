@@ -109,11 +109,9 @@ class SimMote:
 		return text
 
 class Sim():
-	def __init__(self, simfilepath, templatepath):
+	def __init__(self, templatepath):
 		self.templatepath = templatepath
-		self.simfilepath = simfilepath
-		shutil.copyfile(self.templatepath, self.simfilepath)
-		self.simfile_lines = read_simfile(self.simfilepath)
+		self.simfile_lines = read_simfile(self.templatepath)
 
 	def insert_sky_motetype(self, mote_type):
 
@@ -241,14 +239,14 @@ class Sim():
 
 		print ("total_errors = %d\r\n",total_errors)
 
-	def save_simfile(self):
-		simfile = open(self.simfilepath,'w')
+	def save_simfile(self, simfilepath):
+		simfile = open(simfilepath,'w')
 		for line in self.simfile_lines:
 			simfile.write(line)
 		simfile.close()
 
-def new_sim(simfilepath, templatepath = 'cooja-template.csc'):
-	return sim(simfilepath, templatepath)
+def new_sim(templatepath = 'cooja-template.csc'):
+	return Sim(templatepath)
 
 def create_twistreplay_from_template(simfilepath):
 	templatepath = 'twistreplay-template.csc'
@@ -361,14 +359,12 @@ class ConfigParser():
 		else:
 			template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
 
-
 		mkdir(outputfolder)
 		cleardir(outputfolder)
-		
 
+		previous_count = 0
 		for mote_count in config_simgen.mote_count:
-			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(mote_count) + '-nodes.csc'
-			sim = Sim(simfilepath, template_path)
+			sim = Sim(template_path)
 
 			for mote_type in config_simgen.mote_types:
 				mote_type_obj = SimMoteType(    mote_type['shortname'],
@@ -384,7 +380,13 @@ class ConfigParser():
 			sim.udgm_set_interference_range(config_simgen.tx_interference)
 
 			coords = generators.gen(config_simgen, mote_count)
+			if(previous_count == len(coords)):
+				continue
+
+			previous_count = len(coords)
+
 			motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
+			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(len(coords)) + '-nodes.csc'
 
 			for index,coord in enumerate(coords):
 				nodeid = index + 1
@@ -395,7 +397,7 @@ class ConfigParser():
 			sim.add_motes(self.motelist)
 			sim.set_timeout(999999999) #stop time in ms
 
-			sim.save_simfile()
+			sim.save_simfile(simfilepath)
 			self.simfiles.append(simfilepath)
 			print("****\n%s" % simfilepath)
 
