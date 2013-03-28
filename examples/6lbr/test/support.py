@@ -543,11 +543,20 @@ class Linux(Platform):
     def setUp(self,confbr):
         self.devbr = confbr
 	result = system("brctl addbr %s" % self.devbr)
+        if result != 0:
+            return False
+	result = system("brctl setfd %s 0" % self.devbr)
+        if result != 0:
+            return False
+	result = system("ifconfig %s up" % self.devbr)
         return result == 0
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+	result = system("ifconfig %s down" % self.devbr)
+        if result != 0:
+            return False
         result = system("brctl delbr %s" % self.devbr)
         return result == 0
     
