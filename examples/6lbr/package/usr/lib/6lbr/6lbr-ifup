@@ -1,7 +1,9 @@
 #!/bin/sh
 
 . $CETIC_6LBR_CONF
-. $LIB_6LBR/6lbr-functions
+. `dirname $0`/6lbr-functions
+
+config_default
 
 MODE_6LBR=$1
 DEV=$2

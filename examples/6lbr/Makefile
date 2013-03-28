@@ -103,6 +103,7 @@ install:
 	install package/usr/bin/* /usr/bin
 	install -d /usr/lib/6lbr
 	install package/usr/lib/6lbr/6lbr /usr/lib/6lbr
+	install package/usr/lib/6lbr/6lbr-functions /usr/lib/6lbr
 	install package/usr/lib/6lbr/6lbr-ifdown /usr/lib/6lbr
 	install package/usr/lib/6lbr/6lbr-ifup /usr/lib/6lbr
 	install package/usr/lib/6lbr/6lbr_run.sh /usr/lib/6lbr
