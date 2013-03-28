@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 . $CETIC_6LBR_CONF
 . `dirname $0`/6lbr-functions

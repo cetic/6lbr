@@ -1,7 +1,7 @@
 ################################################################################
 # Validate parameters and set default values
 
-function config_default() {
+function config_default () {
 
 # NVM and mode
 

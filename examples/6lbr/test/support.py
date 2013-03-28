@@ -56,7 +56,8 @@ class LocalNativeBR(BRProxy):
         if hasattr(config, 'radio_sock'):
 	    print >>conf, "SOCK_RADIO=%s" % config.radio_sock
         print >>conf, "NVM=test.dat"
-        print >>conf, "LIB_6LBR=.."
+        print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
+        print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
