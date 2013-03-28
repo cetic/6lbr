@@ -49,6 +49,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
+        print >>conf, "CREATE_BRIDGE=0"
+        print >>conf, "DEV_BRIDGE=br0"
         if hasattr(config, 'radio_dev'):
             print >>conf, "DEV_RADIO=%s" % config.radio_dev
         if hasattr(config, 'radio_sock'):

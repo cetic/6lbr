@@ -107,11 +107,11 @@ class TestSupport:
     def ping_from_mote(self, address, expect_reply=False, count=0):
         return self.wsn.ping( address, expect_reply, count )
 
-    def initreport(self)
+    def initreport(self):
         if not os.path.exists(config.report_path):
             os.makedirs(config.report_path)
 
-    def savetest(self,testname)
+    def savetest(self,testname):
         destdir = os.path.join(os.path.dirname(config.report_path),'__name__')
         if os.path.exists(destdir):
             if os.path.isdir(desdir):
@@ -130,7 +130,7 @@ class TestScenarios:
         """
         Check 6LBR start-up and connectivity
         """
-	self.initreport()
+	self.support.initreport()
         print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
@@ -140,7 +140,7 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-	self.savereport(__name__)
+	self.support.savereport(__name__)
 
     @skipUnlessTrue("S1")
     def test_S1(self):
