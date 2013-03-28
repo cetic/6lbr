@@ -9,6 +9,7 @@ import config
 from support import *
 from tcpdump import TcpDump
 import time
+from shutil import rmtree
 
 def skipUnlessTrue(descriptor):
     if not hasattr(config, descriptor):
@@ -106,6 +107,20 @@ class TestSupport:
     def ping_from_mote(self, address, expect_reply=False, count=0):
         return self.wsn.ping( address, expect_reply, count )
 
+    def initreport(self)
+        if not os.path.exists(config.report_path):
+            os.makedirs(config.report_path)
+
+    def savetest(self,testname)
+        destdir = os.path.join(os.path.dirname(config.report_path),'__name__')
+        if os.path.exists(destdir):
+            if os.path.isdir(desdir):
+                shutil.rmtree(destdir)
+            else:
+                os.unlink(destdir)
+        os.rename(config.report_path,desdir)
+
+
 class TestScenarios:
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
@@ -115,6 +130,7 @@ class TestScenarios:
         """
         Check 6LBR start-up and connectivity
         """
+	self.initreport()
         print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
@@ -124,6 +140,7 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+	self.savereport(__name__)
 
     @skipUnlessTrue("S1")
     def test_S1(self):
@@ -379,9 +396,16 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
 
 def main():
     for i in range(1,config.test_repeat+1):
-        print >> sys.stderr, " ============"
-        print >> sys.stderr, " == RUN %d ==" % (i,)
+        print >> sys.stderr, " ============="
+        print >> sys.stderr, " == ITER %02d ==" % i
         unittest.main(exit=False)
+	destdir = os.path.join(os.path.dirname(os.path.dirname(config.report_path)),'iter-%02d'%i)
+        if os.path.exists(destdir):
+            if os.path.isdir(desdir):
+                shutil.rmtree(destdir)
+            else:
+                os.unlink(destdir)
+        os.rename(config.report_path,desdir)
 
 if __name__ == '__main__':
     main()
