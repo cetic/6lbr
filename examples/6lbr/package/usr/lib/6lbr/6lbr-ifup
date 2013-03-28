@@ -22,14 +22,12 @@ case $MODE_6LBR in
 
 			if [ "$BRIDGE" = "1" ]; then
 				if [ "$CREATE_BRIDGE" = "1" ]; then
-					ip link set $DEV_ETH down
 					brctl addbr $DEV_BRIDGE
 					brctl setfd $DEV_BRIDGE 0
 					brctl addif $DEV_BRIDGE $DEV_ETH
 					ip addr flush dev $DEV_ETH
 					ip link set $DEV_BRIDGE up
 				fi
-				ip link set $DEV down
 				ip addr flush dev $DEV
 				brctl addif $DEV_BRIDGE $DEV
 			fi

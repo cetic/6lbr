@@ -20,7 +20,6 @@ case $MODE_6LBR in
 				if [ "$CREATE_BRIDGE" = "1" ]; then
 					ip link set $DEV_BRIDGE down
 					brctl delbr $DEV_BRIDGE
-					ip link set $DEV_ETH up
 				else
 					brctl delif $DEV_BRIDGE $DEV
 				fi
