@@ -3,6 +3,7 @@
 import sys
 from os import system
 import subprocess
+from multiprocessing import Process
 import signal
 from time import sleep
 import time
@@ -533,6 +534,7 @@ class MacOSX(Platform):
 
 class Linux(Platform):
     radvd = None
+    sp_ping = None
     devbr = ''
 
     def setUp(self,confbr):
@@ -606,6 +608,20 @@ class Linux(Platform):
         #if result >> 8 == 2:
         sleep(1)
         return result == 0
+
+    def ping_run(self, target, interval, out):
+        proc = Process(target=ping_loop, args=(self,target,interval,out))
+	proc.start()
+        return proc != None
+
+    def ping_stop(self, thread):
+	thread.terminate()
+	thread.join()
+
+    def ping_loop(self, target, interval, out):
+        while True:
+            result = system("ping6 -W 1 -c 1 %s >> %s" % (target,out))
+            time.sleep(interval)
 
 if __name__ == '__main__':
     mote=TelosMote()
