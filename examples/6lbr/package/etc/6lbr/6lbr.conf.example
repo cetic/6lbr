@@ -26,12 +26,18 @@
 #DEV_TAP=tap0
 
 ################################################################################
-#Bridge creation
-# If activated, the CETIC 6LBR will create an Ethernet Bridge and connect DEV_TAP
-# and DEV_ETH to it, effectively connecting the CETIC 6LBR to the Ethernet network
+#Bridge configuration
+# If activated, the CETIC 6LBR will use an Ethernet Bridge and connect DEV_TAP
+# to it, effectively connecting the CETIC 6LBR to the Ethernet network
 
 #BRIDGE=1
+#CREATE_BRIDGE=0
 #DEV_BRIDGE=br0
+
+# The CETIC 6LBR can optionally create the Ethernet Bridge and attach also
+# DEV_ETH to it
+
+#CREATE_BRIDGE=1
 
 ################################################################################
 #SLIP Radio configuration
@@ -56,12 +62,19 @@
 #NVM=/etc/6lbr/nvm.dat
 
 ################################################################################
+#6LBR installation paths
+
+#LIB_6LBR=/usr/lib/6lbr
+#BIN_6LBR=$LIB_6LBR/bin
+#WWW_6LBR=$LIB_6LBR/www
+
+################################################################################
 #Startup/shutdown
 # At startup and shutdown, the CETIC 6LBR will invoke these scripts to set up
 # and tear down the interface
 
-#IFUP=/usr/lib/6lbr/6lbr-ifup
-#IFDOWN=/usr/lib/6lbr/6lbr-ifdown
+#IFUP=$LIB_6LBR/6lbr-ifup
+#IFDOWN=$LIB_6LBR/6lbr-ifdown
 
 ################################################################################
 #Extra parameters
