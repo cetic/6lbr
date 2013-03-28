@@ -81,6 +81,9 @@ public class Simulation extends Observable implements Runnable {
 
   private boolean isRunning = false;
 
+  private double speedup;
+  private double speedup_ewma = 1;
+
   private boolean stopSimulation = false;
 
   private Thread simulationThread = null;
@@ -205,6 +208,9 @@ public class Simulation extends Observable implements Runnable {
       long diffRealtime = System.currentTimeMillis() - speedLimitLastRealtime; /* ms */
       long expectedDiffRealtime = (long) (diffSimtime/speedLimit);
       long sleep = expectedDiffRealtime - diffRealtime;
+      speedup = (double)diffSimtime / (double)diffRealtime ;
+      speedup_ewma = (double)speedup*(double)0.01 + (double)speedup_ewma*(double)0.99;
+
       if (sleep >= 0) {
         /* Slow down simulation */
         try {
@@ -219,6 +225,9 @@ public class Simulation extends Observable implements Runnable {
 
       /* Update counters every second */
       if (diffRealtime > 1000) {
+        if (speedup_ewma < 0.9) {
+          logger.debug(String.format("speedup;%2.2f", speedup_ewma));
+        }
         speedLimitLastRealtime = System.currentTimeMillis();
         speedLimitLastSimtime = getSimulationTime();
       }
