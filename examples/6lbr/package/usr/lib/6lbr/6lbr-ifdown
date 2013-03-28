@@ -1,6 +1,7 @@
 #!/bin/sh
 
 . $CETIC_6LBR_CONF
+. $LIB_6LBR/6lbr-functions
 
 MODE_6LBR=$1
 DEV=$2
@@ -14,15 +15,24 @@ case $MODE_6LBR in
 	case $OS in
 		Linux)
 			if [ "$BRIDGE" = "1" ]; then
-				ifconfig $DEV_BRIDGE down
-				brctl delbr $DEV_BRIDGE
+				if [ "$CREATE_BRIDGE" = "1" ]; then
+					ip link set $DEV_BRIDGE down
+					brctl delbr $DEV_BRIDGE
+					ip link set $DEV_ETH up
+				else
+					brctl delif $DEV_BRIDGE $DEV
+				fi
 			fi
-			ifconfig $DEV down
+			ip link set $DEV down
 			netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
 			;;
 		Darwin)
 			if [ "$BRIDGE" = "1" ]; then
-				ifconfig $DEV_BRIDGE destroy
+				if [ "$CREATE_BRIDGE" = "1" ]; then
+					ifconfig $DEV_BRIDGE destroy
+				else
+					ifconfig $DEV_BRIDGE delm $DEV
+				fi
 			fi
 			;;
 		*)

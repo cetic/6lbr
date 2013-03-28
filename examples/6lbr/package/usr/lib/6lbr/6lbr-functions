@@ -1,0 +1,80 @@
+################################################################################
+# Validate parameters and set default values
+
+function config_default() {
+
+# NVM and mode
+
+if [ "$NVM" = "" ]; then
+	NVM=/etc/6lbr/nvm.dat
+fi
+
+if [ "$MODE" = "" ]; then
+	MODE="ROUTER"
+fi
+
+# Ethernet interface
+
+if [ "$RAW_ETH" == "" ]; then
+	RAW_ETH="0"
+fi
+
+if [ "$DEV_ETH" == "" ]; then
+	DEV_ETH="eth0"
+fi
+
+if [ "$RAW_ETH_FCS" == "" ]; then
+	RAW_ETH_FCS=0
+fi
+
+# TAP interface
+
+if [ "$DEV_TAP" == "" ]; then
+	DEV_TAP="tap0"
+fi
+
+# Bridge
+
+if [ "$DEV_BRIDGE" == "" ]; then
+	DEV_BRIDGE="br0"
+fi
+
+if [ "$BRIDGE" == "" ]; then
+	BRIDGE="1"
+fi
+
+if [ "$CREATE_BRIDGE" != "0" ]; then
+	CREATE_BRIDGE="1"
+fi
+
+# Radio configuration
+
+# No default values as platform are too different
+
+if [[ "$DEV_RADIO" != "" && "$SOCK_RADIO" != "" ]]; then
+	echo WARNING: $CFG declares both DEV_RADIO and SOCK_RADIO. Using SOCK_RADIO=$SOCK_RADIO
+fi
+
+# Global configuration and setup scripts
+
+if [ "$LIB_6LBR" == "" ]; then
+	LIB_6LBR=`dirname $0`/../lib/6lbr
+fi
+
+
+if [ "$BIN_6LBR" == "" ]; then
+	BIN_6LBR=$LIB_6LBR/bin
+fi
+
+if [ "$WWW_6LBR" == "" ]; then
+	WWW_6LBR=$LIB_6LBR/www
+fi
+
+if [ "$IFUP" == "" ]; then
+	IFUP=$LIB_6LBR/6lbr-ifup
+fi
+
+if [ "$IFDOWN" == "" ]; then
+	IFDOWN=$LIB_6LBR/6lbr-ifdown
+fi
+}
