@@ -533,10 +533,18 @@ class MacOSX(Platform):
 
 class Linux(Platform):
     radvd = None
+    devbr = ''
+
+    def setUp(self,confbr):
+        self.devbr = confbr
+	result = system("brctl addbr %s" % self.devbr)
+        return result == 0
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+        result = system("brctl delbr %s" % self.devbr)
+        return result == 0
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))

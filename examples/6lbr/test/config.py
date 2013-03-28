@@ -20,6 +20,7 @@ This next configuration is an example of a COOJA-based test on Linux. A native 6
 slip-radio mote through a local socket and a simulated mote on a hardcoded pseudo terminal 
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
+host_dev_bridge='br0'
 iid_6lbr='0212:7402:0001:0101'
 iid_mote='0212:7402:0002:0202'
 radio_sock='localhost'

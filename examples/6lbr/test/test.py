@@ -37,7 +37,7 @@ class TestSupport:
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
-        self.platform.setUp()
+        self.platform.setUp(config.host_dev_bridge)
         self.br.setUp()
 
         try:
