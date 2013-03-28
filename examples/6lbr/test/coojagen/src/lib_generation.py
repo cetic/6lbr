@@ -5,6 +5,7 @@ import shutil
 import re
 import generators
 import imp
+import time
 
 class SimMoteType:
 	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
@@ -382,6 +383,8 @@ class ConfigParser():
 		mkdir(outputfolder)
 		cleardir(outputfolder)
 
+		now = time.strftime("%Y%m%d%H%M%S")
+
 		previous_count = 0
 		for mote_count in config_simgen.mote_count:
 			sim = Sim(template_path)
@@ -406,7 +409,7 @@ class ConfigParser():
 			previous_count = len(coords)
 
 			motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
-			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'simfile-' + str(len(coords)) + '-nodes.csc'
+			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
 
 			for index,coord in enumerate(coords):
 				nodeid = index + 1
