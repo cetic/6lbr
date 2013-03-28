@@ -245,6 +245,26 @@ class Sim():
 			simfile.write(line)
 		simfile.close()
 
+	def add_mobility(self, mobility_path):
+		text="""  <plugin>
+    Mobility
+    <plugin_config>
+      <positions EXPORT="copy">POSITIONSFILE</positions>
+    </plugin_config>
+    <width>500</width>
+    <z>0</z>
+    <height>200</height>
+    <location_x>210</location_x>
+    <location_y>210</location_y>
+  </plugin>\r\n"""
+		text = text.replace('POSITIONSFILE', mobility_path)
+		plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
+		self.simfile_lines = insert_list_at(text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
+
+		simulation_indexes = all_indices("  <simulation>\r\n", self.simfile_lines)
+		text = '  <project EXPORT="discard">[APPS_DIR]/mobility</project>\r\n'
+		self.simfile_lines = insert_list_at(text, self.simfile_lines, simulation_indexes[-1])
+
 def new_sim(templatepath = 'cooja-template.csc'):
 	return Sim(templatepath)
 
@@ -396,6 +416,9 @@ class ConfigParser():
 
 			sim.add_motes(self.motelist)
 			sim.set_timeout(999999999) #stop time in ms
+
+			if hasattr(config_simgen, 'mobility'):
+				sim.add_mobility(config_simgen.mobility)
 
 			sim.save_simfile(simfilepath)
 			self.simfiles.append(simfilepath)
