@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 import coojagen.src.lib_generation as simgen
 import os
 from os import system
@@ -17,28 +19,30 @@ for simfile in simfiles:
     os.makedirs(report_path)
   #Open and run the next COOJA topology
   running_simfile = open('.NEXT_TOPOLOGY', 'w')
-  simname = running_simfile.name
+  simname = os.path.basename(simfile).replace('.csc','')
   running_simfile.write(simfile)
   running_simfile.close()
   #Run the test suite with the current topology
   system("./test.py")
   #Move the current coojasim working directory to its final location
-  destdir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(report_path))),'coojasim-%s' % simname)
+  srcdir = os.path.dirname(os.path.dirname(report_path))
+  destdir = os.path.join(os.path.dirname(srcdir),simname)
   if os.path.exists(destdir):
     if os.path.isdir(destdir):
       rmtree(destdir)
     else:
       os.unlink(destdir)
-  #os.rename(report_path,destdir)
+  os.rename(srcdir,destdir)
 
 #Move the current run working directory to its final location
-destdir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(report_path)))),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
+srcdir = os.path.dirname(os.path.dirname(os.path.dirname(report_path)))
+destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
 if os.path.exists(destdir):
   if os.path.isdir(destdir):
     rmtree(destdir)
   else:
     os.unlink(destdir)
-os.rename(report_path,destdir)
+os.rename(srcdir,destdir)
 
 
 system("rm .NEXT_TOPOLOGY")

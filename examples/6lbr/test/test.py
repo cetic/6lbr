@@ -112,13 +112,14 @@ class TestSupport:
             os.makedirs(config.report_path)
 
     def savetest(self,testname):
-        destdir = os.path.join(os.path.dirname(config.report_path),'__name__')
+        srcdir = config.report_path
+        destdir = os.path.join(os.path.dirname(srcdir),testname)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):
                 shutil.rmtree(destdir)
             else:
                 os.unlink(destdir)
-        os.rename(config.report_path,destdir)
+        os.rename(srcdir,destdir)
 
 
 class TestScenarios:
@@ -130,6 +131,7 @@ class TestScenarios:
         """
         Check 6LBR start-up and connectivity
         """
+        testname = sys._getframe().f_code.co_name
 	self.support.initreport()
         print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
@@ -140,7 +142,7 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-	self.support.savereport(__name__)
+	self.support.savereport(testname)
 
     @skipUnlessTrue("S1")
     def test_S1(self):
@@ -148,6 +150,8 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
         print >> sys.stderr, "******** Test S01 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S1')), "Could not start 6LBR")
@@ -160,6 +164,7 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+	self.support.savereport(testname)
 
     @skipUnlessTrue("S2")
     def test_S2(self):
@@ -399,13 +404,14 @@ def main():
         print >> sys.stderr, " ============="
         print >> sys.stderr, " == ITER %02d ==" % i
         unittest.main(exit=False)
-	destdir = os.path.join(os.path.dirname(os.path.dirname(config.report_path)),'iter-%02d'%i)
+	srcdir = os.path.dirname(config.report_path)
+	destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):
                 rmtree(destdir)
             else:
                 os.unlink(destdir)
-        os.rename(config.report_path,destdir)
+        os.rename(srcdir,destdir)
 
 if __name__ == '__main__':
     main()
