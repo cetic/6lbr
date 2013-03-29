@@ -25,19 +25,20 @@ for simfile in simfiles:
   #Move the current coojasim working directory to its final location
   destdir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(report_path))),'coojasim-%s' % simname)
   if os.path.exists(destdir):
-    if os.path.isdir(desdir):
-      shutil.rmtree(destdir)
+    if os.path.isdir(destdir):
+      rmtree(destdir)
     else:
       os.unlink(destdir)
-  os.rename(report_path,destdir)
+  #os.rename(report_path,destdir)
 
 #Move the current run working directory to its final location
 destdir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(report_path)))),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
 if os.path.exists(destdir):
-  if os.path.isdir(desdir):
-    shutil.rmtree(destdir)
+  if os.path.isdir(destdir):
+    rmtree(destdir)
   else:
     os.unlink(destdir)
-os.rename(report_path,desdir)
+os.rename(report_path,destdir)
+
 
 system("rm .NEXT_TOPOLOGY")

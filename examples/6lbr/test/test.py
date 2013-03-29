@@ -114,11 +114,11 @@ class TestSupport:
     def savetest(self,testname):
         destdir = os.path.join(os.path.dirname(config.report_path),'__name__')
         if os.path.exists(destdir):
-            if os.path.isdir(desdir):
+            if os.path.isdir(destdir):
                 shutil.rmtree(destdir)
             else:
                 os.unlink(destdir)
-        os.rename(config.report_path,desdir)
+        os.rename(config.report_path,destdir)
 
 
 class TestScenarios:
@@ -401,11 +401,11 @@ def main():
         unittest.main(exit=False)
 	destdir = os.path.join(os.path.dirname(os.path.dirname(config.report_path)),'iter-%02d'%i)
         if os.path.exists(destdir):
-            if os.path.isdir(desdir):
-                shutil.rmtree(destdir)
+            if os.path.isdir(destdir):
+                rmtree(destdir)
             else:
                 os.unlink(destdir)
-        os.rename(config.report_path,desdir)
+        os.rename(config.report_path,destdir)
 
 if __name__ == '__main__':
     main()
