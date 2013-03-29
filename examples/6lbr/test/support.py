@@ -604,15 +604,15 @@ class Linux(Platform):
         return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
-        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
+        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % self.devbr)
+        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % self.devbr)
         return True
 
     def support_rio(self):
         return True
 
     def accept_rio(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
+        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % self.devbr)
         return True
 
     def ping(self, target):
