@@ -21,7 +21,7 @@ slip-radio mote through a local socket and a simulated mote on a hardcoded pseud
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
 report_path='report/run-current/coojasim-current/iter-current/test_current'
-host_dev_bridge='br0'
+backbone_dev='br0'
 iid_6lbr='0212:7402:0001:0101'
 iid_mote='0212:7402:0002:0202'
 radio_sock='localhost'
@@ -31,6 +31,7 @@ channel=26
 
 from support import *
 
+backbone=VirtualMultiBB()
 br=LocalNativeBR()
 wsn=CoojaWsn()
 platform=Linux() #MacOSX()
