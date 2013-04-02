@@ -58,7 +58,7 @@ public class Mobility extends VisPlugin {
 
   private static final boolean QUIET = false;
 
-  private final boolean WRAP_MOVES = true; /* Wrap around loaded moves forever */
+  private final boolean WRAP_MOVES = false; /* Wrap around loaded moves forever */
   
   private Move[] entries; /* All mote moves */
   private Simulation simulation;
