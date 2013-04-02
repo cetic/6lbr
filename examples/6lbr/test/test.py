@@ -56,8 +56,8 @@ class TestSupport:
             self.ip_mote = ip
 
     def tearDown(self):
-        self.wsn.tearDown()
         self.br.tearDown()
+        self.wsn.tearDown()
         self.platform.tearDown()
 
     def set_mode(self, mode, ra_daemon=False, accept_ra=False):
