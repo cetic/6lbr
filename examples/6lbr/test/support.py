@@ -15,6 +15,27 @@ sys.path.append('../../../tools/sky')
 
 import serial
 
+class BackboneProxy:
+    itf=None
+    def setUp(self):
+        pass
+    def tearDown(self):
+        pass
+
+class VirtualMultiBB(BackboneProxy):
+    itf=None
+    def setUp(self, backbone_dev):
+        self.itf = backbone_dev
+    def tearDown(self):
+        pass
+
+class VirtualSingleBB(BackboneProxy):
+    itf=None
+    def setUp(self):
+        pass
+    def tearDown(self):
+        pass
+
 class BRProxy:
     itf=None
     def setUp(self):
@@ -49,12 +70,22 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
-        print >>conf, "CREATE_BRIDGE=0"
-        print >>conf, "DEV_BRIDGE=br0"
+
+        if isinstance(config.backbone, VirtualMultiBB):
+            print >>conf, "CREATE_BRIDGE=0"
+        else:
+            print >>conf, "CREATE_BRIDGE=1"
+
+        if hasattr(config, 'backbone_dev'):
+            print >>conf, "DEV_BRIDGE=%s" % config.backbone_dev
+        else:
+            print >>conf, "DEV_BRIDGE=br0"
+
         if hasattr(config, 'radio_dev'):
             print >>conf, "DEV_RADIO=%s" % config.radio_dev
         if hasattr(config, 'radio_sock'):
 	    print >>conf, "SOCK_RADIO=%s" % config.radio_sock
+
         print >>conf, "NVM=test.dat"
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
         print >>conf, "BIN_6LBR=../bin"
@@ -538,26 +569,26 @@ class MacOSX(Platform):
 class Linux(Platform):
     radvd = None
     sp_ping = None
-    devbr = ''
+    backbone = ''
 
-    def setUp(self,confbr):
-        self.devbr = confbr
-	result = system("brctl addbr %s" % self.devbr)
+    def setUp(self,backbone):
+        self.backbone = backbone
+	result = system("brctl addbr %s" % self.backbone.itf)
         if result != 0:
             return False
-	result = system("brctl setfd %s 0" % self.devbr)
+	result = system("brctl setfd %s 0" % self.backbone.itf)
         if result != 0:
             return False
-	result = system("ifconfig %s up" % self.devbr)
+	result = system("ifconfig %s up" % self.backbone.itf)
         return result == 0
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
-	result = system("ifconfig %s down" % self.devbr)
+	result = system("ifconfig %s down" % self.backbone.itf)
         if result != 0:
             return False
-        result = system("brctl delbr %s" % self.devbr)
+        result = system("brctl delbr %s" % self.backbone.itf)
         return result == 0
     
     def configure_if(self, itf, address):
@@ -604,15 +635,15 @@ class Linux(Platform):
         return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % self.devbr)
-        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % self.devbr)
+        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
+        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
         return True
 
     def support_rio(self):
         return True
 
     def accept_rio(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % self.devbr)
+        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
         return True
 
     def ping(self, target):
