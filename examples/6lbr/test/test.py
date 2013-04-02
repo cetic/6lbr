@@ -28,6 +28,7 @@ def repeat(times):
     return repeatHelper
 
 class TestSupport:
+    backbone=config.backbone
     br=config.br
     wsn=config.wsn
     platform=config.platform
@@ -38,7 +39,8 @@ class TestSupport:
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
-        self.platform.setUp(config.host_dev_bridge)
+        self.backbone.setUp(config.backbone_dev)
+        self.platform.setUp(self.backbone)
         self.br.setUp()
 
         try:
@@ -301,9 +303,9 @@ class TestScenarios:
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         if self.__class__.__name__ == 'SmartBridgeAuto':
-            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.br.itf, "cccc::1", 30, bg=True), "")
+            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, "cccc::1", 30, bg=True), "")
         else:
-            self.assertTrue(self.support.tcpdump.expect_ns(self.support.br.itf, [0xbbbb, 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
+            self.assertTrue(self.support.tcpdump.expect_ns(self.support.backbone.itf, [0xbbbb, 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
         self.assertTrue(self.support.ping_from_mote("cccc::1"), "")
         self.assertTrue(self.support.tcpdump.check_result(), "")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
@@ -325,10 +327,10 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
 
 @skipUnlessTrue("mode_SmartBridgeAuto")
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
@@ -345,8 +347,8 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def set_up_network(self):
         sleep(2)
         #self.support.platform.accept_ra(self.support.br.itf)
-        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, self.support.ip_host), "")
-        self.assertTrue( self.support.start_ra(self.support.br.itf), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.start_ra(self.support.backbone.itf), "")
 
     def tear_down_network(self):
         self.assertTrue( self.support.stop_ra(), "")
@@ -364,12 +366,12 @@ class Router(unittest.TestCase,TestScenarios):
         
     def set_up_network(self):
         sleep(10)
-        self.assertTrue(self.support.platform.accept_ra(self.support.br.itf), "Could not enable RA configuration support")
+        self.assertTrue(self.support.platform.accept_ra(self.support.backbone.itf), "Could not enable RA configuration support")
         if self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.accept_rio(self.support.br.itf), "Could not enable RIO support")
-        self.assertTrue(self.support.tcpdump.expect_ra(self.support.br.itf, 30), "")
-        self.assertTrue(self.support.platform.check_prefix(self.support.br.itf, 'bbbb:'), "Interface not configured")
-        self.support.ip_host=self.support.platform.get_address_with_prefix(self.support.br.itf, 'bbbb:')
+            self.assertTrue(self.support.platform.accept_rio(self.support.backbone.itf), "Could not enable RIO support")
+        self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+        self.assertTrue(self.support.platform.check_prefix(self.support.backbone.itf, 'bbbb:'), "Interface not configured")
+        self.support.ip_host=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "Could not add route")
 
@@ -391,12 +393,12 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
         self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "")
 
     def tear_down_network(self):
         self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
 
 
 def main():
