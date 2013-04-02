@@ -111,7 +111,7 @@ class TestSupport:
         if not os.path.exists(config.report_path):
             os.makedirs(config.report_path)
 
-    def savetest(self,testname):
+    def savereport(self,testname):
         srcdir = config.report_path
         destdir = os.path.join(os.path.dirname(srcdir),testname)
         if os.path.exists(destdir):
