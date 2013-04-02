@@ -386,48 +386,93 @@ class ConfigParser():
 		now = time.strftime("%Y%m%d%H%M%S")
 
 		previous_count = 0
-		for mote_count in config_simgen.mote_count:
-			sim = Sim(template_path)
+		if config_simgen.topology != 'preset':
+			for mote_count in config_simgen.mote_count:
+				sim = Sim(template_path)
 
-			for mote_type in config_simgen.mote_types:
-				mote_type_obj = SimMoteType(    mote_type['shortname'],
-								mote_type['fw_folder'],
-								mote_type['maketarget'],
-								mote_type['makeargs'],
-								mote_type['serial'],
-								mote_type['description'])
-				self.mote_types.append(mote_type_obj)
-				sim.insert_sky_motetype(mote_type_obj)
+				for mote_type in config_simgen.mote_types:
+					mote_type_obj = SimMoteType(    mote_type['shortname'],
+									mote_type['fw_folder'],
+									mote_type['maketarget'],
+									mote_type['makeargs'],
+									mote_type['serial'],
+									mote_type['description'])
+					self.mote_types.append(mote_type_obj)
+					sim.insert_sky_motetype(mote_type_obj)
 
-			sim.udgm_set_range(config_simgen.tx_range)
-			sim.udgm_set_interference_range(config_simgen.tx_interference)
+				sim.udgm_set_range(config_simgen.tx_range)
+				sim.udgm_set_interference_range(config_simgen.tx_interference)
 
-			coords = generators.gen(config_simgen, mote_count)
-			if(previous_count == len(coords)):
-				continue
+				coords = generators.gen(config_simgen, mote_count)
+				if(previous_count == len(coords)):
+					continue
 
-			previous_count = len(coords)
+				previous_count = len(coords)
 
-			motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
-			simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
+				motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
+				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
 
-			for index,coord in enumerate(coords):
-				nodeid = index + 1
-				mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
-				mote.set_coords(coord[0], coord[1], coord[2])
-				self.motelist.append(mote)
+				for index,coord in enumerate(coords):
+					nodeid = index + 1
+					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
+					mote.set_coords(coord[0], coord[1], coord[2])
+					self.motelist.append(mote)
 
-			sim.add_motes(self.motelist)
-			sim.set_timeout(999999999) #stop time in ms
+				sim.add_motes(self.motelist)
+				sim.set_timeout(999999999) #stop time in ms
 
-			if hasattr(config_simgen, 'mobility'):
-				sim.add_mobility(config_simgen.mobility)
+				if hasattr(config_simgen, 'mobility'):
+					sim.add_mobility(config_simgen.mobility)
 
-			sim.save_simfile(simfilepath)
-			self.simfiles.append(simfilepath)
-			print("****\n%s" % simfilepath)
+				sim.save_simfile(simfilepath)
+				self.simfiles.append(simfilepath)
+				print("****\n%s" % simfilepath)
 
-			self.motelist=[]
+				self.motelist=[]
+		else: #preset
+			simlist = generators.load_preset(config_simgen.preset_data_path)
+			for coords in simlist:
+				sim = Sim(template_path)
+
+				for mote_type in config_simgen.mote_types:
+					mote_type_obj = SimMoteType(    mote_type['shortname'],
+									mote_type['fw_folder'],
+									mote_type['maketarget'],
+									mote_type['makeargs'],
+									mote_type['serial'],
+									mote_type['description'])
+					self.mote_types.append(mote_type_obj)
+					sim.insert_sky_motetype(mote_type_obj)
+
+				sim.udgm_set_range(config_simgen.tx_range)
+				sim.udgm_set_interference_range(config_simgen.tx_interference)
+
+				motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
+				"""
+				if hasattr(config_simgen, 'label'):
+					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '_' + config_simgen.label + '-' + str(len(coords)) + '-' + now + '.csc'
+				else:
+					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
+				"""
+				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + os.path.splitext(os.path.basename(config_simgen.preset_data_path))[0] + '-' + str(len(coords)) + '-' + now + '.csc'
+				print(simfilepath)
+				for index,coord in enumerate(coords):
+					nodeid = index + 1
+					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
+					mote.set_coords(coord['x'], coord['y'], coord['z'])
+					self.motelist.append(mote)
+
+				sim.add_motes(self.motelist)
+				sim.set_timeout(999999999) #stop time in ms
+
+				if hasattr(config_simgen, 'mobility'):
+					sim.add_mobility(config_simgen.mobility)
+
+				sim.save_simfile(simfilepath)
+				self.simfiles.append(simfilepath)
+				print("****\n%s" % simfilepath)
+
+				self.motelist=[]
 
 		print("Done. Generated %d simfiles" % len(self.simfiles))
 		return True
