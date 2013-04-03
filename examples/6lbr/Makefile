@@ -152,4 +152,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag deb ipk tools
+.PHONY: all_native all_econotag deb ipk tools bin/*
