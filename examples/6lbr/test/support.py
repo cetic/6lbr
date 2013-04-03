@@ -566,6 +566,22 @@ class MacOSX(Platform):
             sleep(1)
         return result == 0
 
+    def ping_run(self, target, interval, out):
+        result = system("touch %s" % out)
+        proc = Process(target=self.ping_loop, args=(target,interval,out))
+	proc.start()
+        return proc
+
+    def ping_stop(self, thread):
+	thread.terminate()
+	thread.join()
+
+    def ping_loop(self, target, interval, out):
+        while True:
+            result = system("echo '***' >> %s" % out)
+            result = system("ping6 -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
+            time.sleep(interval)
+
 class Linux(Platform):
     radvd = None
     sp_ping = None
@@ -653,9 +669,10 @@ class Linux(Platform):
         return result == 0
 
     def ping_run(self, target, interval, out):
-        proc = Process(target=ping_loop, args=(self,target,interval,out))
+        result = system("touch %s" % out)
+        proc = Process(target=self.ping_loop, args=(target,interval,out))
 	proc.start()
-        return proc != None
+        return proc
 
     def ping_stop(self, thread):
 	thread.terminate()
@@ -663,7 +680,8 @@ class Linux(Platform):
 
     def ping_loop(self, target, interval, out):
         while True:
-            result = system("ping6 -W 1 -c 1 %s >> %s" % (target,out))
+            result = system("echo '***' >> %s" % out)
+            result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
 
 if __name__ == '__main__':
