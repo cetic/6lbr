@@ -82,3 +82,22 @@ def gen(config_simgen, mote_count):
 		if not hasattrs(config_simgen, ['step', 'ratio']):
 			return None
 		return gengrid_ratio(config_simgen.step, config_simgen.ratio, mote_count)
+
+def load_preset(preset_data_path):
+	points = []
+	preset_data_file = open(preset_data_path, 'r')
+	
+	for line in preset_data_file:
+		line = line.rstrip()
+		currpoints = []
+		positions = line.split(';')
+		for position in positions:
+			print(position)
+			xy = position.split(',')
+			x = xy[0]
+			y = xy[1]
+			currpoints.append({'x':int(x), 'y':int(y), 'z':0})
+		points.append(currpoints)
+
+	preset_data_file.close()
+	return(points)
