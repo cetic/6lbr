@@ -3,6 +3,7 @@
 import sys
 from os import system
 import subprocess
+from multiprocessing import Process
 import signal
 from time import sleep
 import time
@@ -13,6 +14,27 @@ import os
 sys.path.append('../../../tools/sky')
 
 import serial
+
+class BackboneProxy:
+    itf=None
+    def setUp(self):
+        pass
+    def tearDown(self):
+        pass
+
+class VirtualMultiBB(BackboneProxy):
+    itf=None
+    def setUp(self, backbone_dev):
+        self.itf = backbone_dev
+    def tearDown(self):
+        pass
+
+class VirtualSingleBB(BackboneProxy):
+    itf=None
+    def setUp(self):
+        pass
+    def tearDown(self):
+        pass
 
 class BRProxy:
     itf=None
@@ -48,12 +70,25 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
+
+        if isinstance(config.backbone, VirtualMultiBB):
+            print >>conf, "CREATE_BRIDGE=0"
+        else:
+            print >>conf, "CREATE_BRIDGE=1"
+
+        if hasattr(config, 'backbone_dev'):
+            print >>conf, "DEV_BRIDGE=%s" % config.backbone_dev
+        else:
+            print >>conf, "DEV_BRIDGE=br0"
+
         if hasattr(config, 'radio_dev'):
             print >>conf, "DEV_RADIO=%s" % config.radio_dev
         if hasattr(config, 'radio_sock'):
 	    print >>conf, "SOCK_RADIO=%s" % config.radio_sock
+
         print >>conf, "NVM=test.dat"
-        print >>conf, "LIB_6LBR=.."
+        print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
+        print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
@@ -533,10 +568,28 @@ class MacOSX(Platform):
 
 class Linux(Platform):
     radvd = None
+    sp_ping = None
+    backbone = ''
+
+    def setUp(self,backbone):
+        self.backbone = backbone
+	result = system("brctl addbr %s" % self.backbone.itf)
+        if result != 0:
+            return False
+	result = system("brctl setfd %s 0" % self.backbone.itf)
+        if result != 0:
+            return False
+	result = system("ifconfig %s up" % self.backbone.itf)
+        return result == 0
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+	result = system("ifconfig %s down" % self.backbone.itf)
+        if result != 0:
+            return False
+        result = system("brctl delbr %s" % self.backbone.itf)
+        return result == 0
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))
@@ -598,6 +651,20 @@ class Linux(Platform):
         #if result >> 8 == 2:
         sleep(1)
         return result == 0
+
+    def ping_run(self, target, interval, out):
+        proc = Process(target=ping_loop, args=(self,target,interval,out))
+	proc.start()
+        return proc != None
+
+    def ping_stop(self, thread):
+	thread.terminate()
+	thread.join()
+
+    def ping_loop(self, target, interval, out):
+        while True:
+            result = system("ping6 -W 1 -c 1 %s >> %s" % (target,out))
+            time.sleep(interval)
 
 if __name__ == '__main__':
     mote=TelosMote()
