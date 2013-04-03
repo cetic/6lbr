@@ -23,6 +23,8 @@ CONTIKI = ../..
 
 PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
 
+CLEAN+=bin/*
+
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE) -DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE) -DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)
@@ -65,17 +67,27 @@ endif
 
 NATIVE_CONF=WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) WITH_NODE_INFO=$(WITH_NODE_INFO)
 ECONOTAG_CONF=WITH_WEBSERVER=0 WITH_WEBSERVER_LITE=$(ECONOTAG_WEBSERVER_LITE) WITH_UDPSERVER=$(ECONOTAG_UDPSERVER) WITH_NODE_INFO=$(ECONOTAG_NODE_INFO)
+
+bin/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+
+bin/cetic_6lbr_transparent_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_transparent_bridge 
+
+bin/cetic_6lbr_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_router 
+
 all_native:
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_transparent_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_router 
 
 all_econotag:
 	mkdir -p bin_econotag
