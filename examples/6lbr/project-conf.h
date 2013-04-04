@@ -75,6 +75,9 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
+#undef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL			0
+
 /*------------------------------------------------------------------*/
 #endif
 
