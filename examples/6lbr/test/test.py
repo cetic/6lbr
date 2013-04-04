@@ -36,12 +36,16 @@ class TestSupport:
     ip_6lbr=None
     ip_host=None
     ip_mote="aaaa::" + config.iid_mote
+    slip_motes = []
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
-        self.backbone.setUp(config.backbone_dev)
+        self.backbone.setUp()
         self.platform.setUp(self.backbone)
-        self.br.setUp()
+        
+        for i, _br in enumerate(self.br):
+            print >> sys.stderr, "Setup br #%i" % i
+            _br.setUp()
 
         try:
             topologyfile = open('.NEXT_TOPOLOGY', 'r')
@@ -49,18 +53,35 @@ class TestSupport:
             topologyfile.close()
             self.wsn.setUp(next_topology)
         except IOError:
-            self.wsn.setUp()
+            self.wsn.setUp() #TODO: no default argument anymore here, so if IOError just bail out
+
+        try:
+            motelist_file = open(next_topology[:-4] + '.motes')
+            for line in motelist_file:
+                line = line.rstrip()
+                parts = line.split(';')
+                if parts[1] == 'slipradio':
+                    self.add_slip_mote(parts[0])
+        except IOError:
+            pass #TODO
+
+        for i, _br in enumerate(self.br):
+            self.assign_slip_mote(_br)
+            _br.set_slip_socket_port(self.get_slip_socket(_br))
+
 
         ip = self.wsn.get_mote_ip()
         if ip != '':
             self.ip_mote = ip
 
+
     def tearDown(self):
-        self.br.tearDown()
+        for _br in self.br:
+            _br.tearDown()
         self.wsn.tearDown()
         self.platform.tearDown()
 
-    def set_mode(self, mode, ra_daemon=False, accept_ra=False):
+    def set_mode(self, mode, ra_daemon=False, accept_ra=False): #TODO: deprecated, br.set_mode called directly in TestScenario
         return self.br.set_mode(mode, config.channel, ra_daemon, accept_ra)
 
     def start_ra(self, itf):
@@ -70,10 +91,16 @@ class TestSupport:
         return self.platform.stop_ra()
 
     def start_6lbr(self, log):
-        return self.br.start_6lbr(log)
+        ret = True
+        for _br in self.br:
+            ret = ret and _br.start_6lbr(log)
+        return ret
 
     def stop_6lbr(self):
-        return self.br.stop_6lbr()
+        ret = True
+        for _br in self.br:
+            ret = ret and _br.stop_6lbr()
+        return ret
 
     def start_mote(self):
         return self.wsn.start_mote(config.channel)
@@ -123,6 +150,19 @@ class TestSupport:
                 os.unlink(destdir)
         os.rename(srcdir,destdir)
 
+    def add_slip_mote(self, nodeid):
+        self.slip_motes.append({'nodeid':nodeid, 'br':None})
+
+    def assign_slip_mote(self, _br):
+        for slip_mote in self.slip_motes:
+            if slip_mote['br'] == None:
+                slip_mote['br'] = _br
+                return #TODO warn if no free slip-radio found?
+
+    def get_slip_socket(self, br):
+        for slip_mote in self.slip_motes: 
+            if slip_mote['br'] == br:
+                return 60000 + int(slip_mote['nodeid'])
 
 class TestScenarios:
     def log_file(self, log_name):
@@ -383,7 +423,8 @@ class Router(unittest.TestCase,TestScenarios):
         self.support=TestSupport()
         self.support.ip_6lbr='bbbb::100'
         self.support.setUp()
-        self.support.set_mode('ROUTER', ra_daemon=True)
+        for _br in self.support.br:
+            _br.set_mode('ROUTER', config.channel, ra_daemon=True, accept_ra=False)
 
     def tearDown(self):
         self.support.tearDown()

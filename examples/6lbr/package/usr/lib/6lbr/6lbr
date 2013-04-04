@@ -59,6 +59,9 @@ fi
 
 if [ "$SOCK_RADIO" != "" ]; then
 	RADIO="-a $SOCK_RADIO"
+	if [ "$SOCK_PORT" != "" ]; then
+		RADIO=$RADIO" -p "$SOCK_PORT
+	fi
 fi
 
 if [ "$BAUDRATE" != "" ]; then

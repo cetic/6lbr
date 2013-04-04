@@ -348,6 +348,13 @@ def cleardir(adir):
 		except Exception, e:
 			print e
 
+def export_mote_list(exportpath, motelist):
+	exportfile = open(exportpath, 'w')
+	for mote in motelist:
+		exportfile.write("%d;%s\r\n" %(mote.nodeid, mote.mote_type.shortname))
+	exportfile.close()
+
+
 class ConfigParser():
 
 	def __init__(self):
@@ -427,6 +434,7 @@ class ConfigParser():
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
 				print("****\n%s" % simfilepath)
+				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
 
 				self.motelist=[]
 		else: #preset
@@ -455,7 +463,7 @@ class ConfigParser():
 					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
 				"""
 				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + os.path.splitext(os.path.basename(config_simgen.preset_data_path))[0] + '-' + str(len(coords)) + '-' + now + '.csc'
-				print(simfilepath)
+
 				for index,coord in enumerate(coords):
 					nodeid = index + 1
 					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
@@ -471,6 +479,7 @@ class ConfigParser():
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
 				print("****\n%s" % simfilepath)
+				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
 
 				self.motelist=[]
 

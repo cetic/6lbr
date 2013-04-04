@@ -24,8 +24,8 @@ class BackboneProxy:
 
 class VirtualMultiBB(BackboneProxy):
     itf=None
-    def setUp(self, backbone_dev):
-        self.itf = backbone_dev
+    def setUp(self):
+        self.itf = config.backbone_dev
     def tearDown(self):
         pass
 
@@ -54,9 +54,12 @@ class BRProxy:
 
 class LocalNativeBR(BRProxy):
     process=None
-    
+    itf = ''
+
+    def __init__(self,iface="tap0"):
+        self.itf = iface
+
     def setUp(self):
-        self.itf="tap0"
         self.log=None
 
     def tearDown(self):
@@ -65,7 +68,9 @@ class LocalNativeBR(BRProxy):
 
     def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False):
         self.mode=mode
-        conf=open("test.conf", 'w')
+        if not os.path.exists("br/%s" % self.itf):
+            os.makedirs("br/%s" % self.itf)
+        conf = open("br/%s/test.conf" % self.itf, 'a')
         print >>conf, "MODE=%s" % mode
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
@@ -92,13 +97,20 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
-        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d test.dat" % (channel, accept_ra, ra_daemon), shell=True)
+        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d br/%s/test.dat" % (channel, accept_ra, ra_daemon,self.itf), shell=True)
+
+    def set_slip_socket_port(self, port):
+        if not os.path.exists("br/%s" % self.itf):
+            os.makedirs("br/%s" % self.itf)
+        conf = open("br/%s/test.conf" % self.itf, 'w')
+        print >>conf, "SOCK_PORT=%s" % str(port)
+        conf.close()
 
     def start_6lbr(self, log_file):
-        print >> sys.stderr, "Starting 6LBR..."
+        print >> sys.stderr, "Starting 6LBR %s..." % self.itf
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
         self.log=open(log_file, "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./test.conf"], stdout=self.log)
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
         sleep(1)
         return self.process != None
 
@@ -156,7 +168,7 @@ class WsnProxy:
 
 class CoojaWsn(WsnProxy):
     motelist = []
-    def setUp(self, simulation_path='./coojagen/output/simfile-3-nodes.csc'):
+    def setUp(self, simulation_path):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 

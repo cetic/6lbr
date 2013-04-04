@@ -32,7 +32,8 @@ channel=26
 from support import *
 
 backbone=VirtualMultiBB()
-br=LocalNativeBR()
+br=[LocalNativeBR('tap0'),
+    LocalNativeBR('tap1')]
 wsn=CoojaWsn()
 platform=Linux() #MacOSX()
 
