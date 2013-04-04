@@ -348,6 +348,13 @@ def cleardir(adir):
 		except Exception, e:
 			print e
 
+def export_mote_list(exportpath, motelist):
+	exportfile = open(exportpath, 'w')
+	for mote in motelist:
+		exportfile.write("%d;%s\r\n" %(mote.nodeid, mote.mote_type.shortname))
+	exportfile.close()
+
+
 class ConfigParser():
 
 	def __init__(self):
@@ -427,6 +434,7 @@ class ConfigParser():
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
 				print("****\n%s" % simfilepath)
+				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
 
 				self.motelist=[]
 		else: #preset
@@ -471,6 +479,7 @@ class ConfigParser():
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
 				print("****\n%s" % simfilepath)
+				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
 
 				self.motelist=[]
 
