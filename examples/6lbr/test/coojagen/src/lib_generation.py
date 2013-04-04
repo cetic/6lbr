@@ -463,7 +463,7 @@ class ConfigParser():
 					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
 				"""
 				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + os.path.splitext(os.path.basename(config_simgen.preset_data_path))[0] + '-' + str(len(coords)) + '-' + now + '.csc'
-				print(simfilepath)
+
 				for index,coord in enumerate(coords):
 					nodeid = index + 1
 					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
