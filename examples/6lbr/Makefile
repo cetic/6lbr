@@ -23,8 +23,6 @@ CONTIKI = ../..
 
 PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
 
-CLEAN+=bin/*
-
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE) -DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE) -DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)
