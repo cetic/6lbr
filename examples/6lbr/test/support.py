@@ -4,6 +4,7 @@ import sys
 from os import system
 import subprocess
 from multiprocessing import Process
+from copy import deepcopy
 import signal
 from time import sleep
 import time
@@ -12,29 +13,64 @@ import re
 import os
 import serial
 
-class BackboneProxy:
-    itf=None
+class Backbone:
+    def __init__(self):
+        self.itf=None
+        self.prefix=None
     def setUp(self):
         pass
     def tearDown(self):
         pass
+    def create_address(self, iid):
+        return self.prefix + '::' + iid
+    def isBridge(self):
+        pass
 
-class NativeBridgeBB(BackboneProxy):
-    itf=None
+class NativeBB(Backbone):
+    def __init__(self):
+        Backbone.__init__(self)
+        self.tapCount=0
+        self.tapStem='tap%d'
+    def allocate_tap(self):
+        tap = self.tapStem % self.tapCount
+        self.tapCount += 1
+        return tap
+
+class NativeBridgeBB(NativeBB):
     def setUp(self):
         self.itf = config.backbone_dev
-    def tearDown(self):
-        pass
+        result = system("brctl addbr %s" % self.itf)
+        if result != 0:
+            return False
+        result = system("brctl setfd %s 0" % self.itf)
+        if result != 0:
+            return False
+        result = system("ifconfig %s up" % self.itf)
+        return result == 0
 
-class NativeTapBB(BackboneProxy):
-    itf=None
+    def tearDown(self):
+        result = system("ifconfig %s down" % self.itf)
+        if result != 0:
+            return False
+        result = system("brctl delbr %s" % self.itf)
+        return result == 0
+
+    def isBridge(self):
+        return True
+
+class NativeTapBB(NativeBB):
     def setUp(self):
-        self.itf = config.tap_dev
+        self.itf = 'tap0'
     def tearDown(self):
         pass
+    def isBridge(self):
+        return False
 
 class BRProxy:
-    itf=None
+    def __init__(self):
+        self.itf=None
+        self.ip=None
+
     def setUp(self):
         pass
     def tearDown(self):
@@ -50,21 +86,28 @@ class BRProxy:
         pass
 
 class LocalNativeBR(BRProxy):
-    process=None
-    itf = ''
-
-    def __init__(self,iface="tap0"):
-        self.itf = iface
+    def __init__(self,backbone, wsn):
+        BRProxy.__init__(self)
+        self.process=None
+        self.backbone=backbone
+        self.wsn=wsn
+        self.itf = backbone.allocate_tap()
 
     def setUp(self):
         self.log=None
+        self.radio=self.wsn.allocate_radio_dev()
 
     def tearDown(self):
         if ( self.process ):
             self.stop_6lbr()
+        self.wsn.release_radio_dev(self.radio)
 
-    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
         self.mode=mode
+        if iid:
+            self.ip=self.backbone.create_address(iid)
+        else:
+            self.ip=self.backbone.create_address(self.radio['iid'])
         if not os.path.exists("br/%s" % self.itf):
             os.makedirs("br/%s" % self.itf)
         conf = open("br/%s/test.conf" % self.itf, 'a')
@@ -73,18 +116,17 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
 
-        if isinstance(config.backbone, NativeBridgeBB):
+        if self.backbone.isBridge():
             print >>conf, "BRIDGE=1"
             print >>conf, "CREATE_BRIDGE=0"
-            print >>conf, "DEV_BRIDGE=%s" % config.backbone.itf
-            print >>conf, "DEV_BRIDGE=br0"
+            print >>conf, "DEV_BRIDGE=%s" % self.backbone.itf
         else:
             print >>conf, "BRIDGE=0"
 
-        if isinstance(config.wsn, CoojaWsn):
-            print >>conf, "SOCK_RADIO=%s" % config.radio_sock
+        if 'socket' in self.radio:
+            print >>conf, "SOCK_RADIO=%s" % self.radio['socket']
         else:
-            print >>conf, "DEV_RADIO=%s" % config.radio_dev
+            print >>conf, "DEV_RADIO=%s" % self.radio['dev']
 
         print >>conf, "NVM=br/%s/test.dat" % self.itf
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
@@ -92,7 +134,10 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
-        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf), shell=True)
+        params="--new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf)
+        if iid:
+            params += " --eth-ip=%s" % self.ip
+        subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
     def set_slip_socket_port(self, port):
         if not os.path.exists("br/%s" % self.itf):
@@ -136,33 +181,28 @@ class RemoteNativeBR(BRProxy):
         print >> sys.stderr, "Stopping 6LBR..."
         return False
 
-class WsnProxy:
+class Wsn:
+    def __init__(self):
+        self.prefix=None
+
     def setUp(self):
         pass
 
     def tearDown(self):
-	pass
+	    pass
 
-    def wait_until(self, text, count):
+    def create_address(self, iid):
+        return self.prefix + '::' + iid
+
+    def get_test_mote(self):
         pass
 
-    def reset_mote(self):
-        pass
+class CoojaWsn(Wsn):
+    def __init__(self):
+        Wsn.__init__(self)
+        self.motelist = []
+        self.slip_motes=[]
 
-    def start_mote(self, channel):
-        pass
-
-    def stop_mote(self):
-        pass
-
-    def ping(self, address, expect_reply=False, count=0):
-        pass
-
-    def get_mote_ip(self):
-        pass
-
-class CoojaWsn(WsnProxy):
-    motelist = []
     def setUp(self, simulation_path):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
@@ -172,7 +212,7 @@ class CoojaWsn(WsnProxy):
         while 'Simulation main loop started' not in line: # Wait for simulation to start 
 	    if 'serialpty;open;' in line:
                 elems = line.split(";")
-                newmote = VirtualTelosMote()
+                newmote = VirtualTelosMote(self)
                 newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
                 self.motelist.append(newmote)
             line = self.cooja.stdout.readline()
@@ -182,7 +222,32 @@ class CoojaWsn(WsnProxy):
 	
         for mote in self.motelist:
             mote.setUp()
-	
+
+        try:
+            motelist_file = open(simulation_path[:-4] + '.motes')
+            for line in motelist_file:
+                line = line.rstrip()
+                parts = line.split(';')
+                if parts[1] == 'slipradio':
+                    self.add_slip_mote(parts[0])
+        except IOError:
+            pass #TODO
+
+    def add_slip_mote(self, nodeid):
+        hex_mote_id = "%02x" % int(nodid)
+        iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        self.slip_motes.append({'nodeid':nodeid, 'socket': 60000 + int(slip_mote['nodeid']), 'iid': iid})
+
+    def allocate_radio_dev(self):
+        for slip_mote in self.slip_motes:
+            if 'used' not in slip_mote:
+                slip_mote['used'] = 1
+                return slip_mote
+        raise Exception()
+
+    def release_radio_dev(self, slip_mote):
+        del slip_mote['used']
+
     def tearDown(self):
         print("Killing Cooja")
         self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
@@ -194,29 +259,18 @@ class CoojaWsn(WsnProxy):
             mote.tearDown()
         self.motelist = []
 
-    def wait_until(self, text, count):
-        return self.motelist[-1].wait_until(text, count)
+    def get_test_mote(self):
+        return self.motelist[-1]
 
-    def reset_mote(self):
-        return self.motelist[-1].reset_mote()
+class LocalWsn(Wsn):
+    def __init__(self):
+        Wsn.__init__(self)
+        self.motelist = []
+        self.radioDevList=deepcopy(config.slip_radio)
+        self.moteDevList=deepcopy(config.motes)
 
-    def start_mote(self, channel):
-        return self.motelist[-1].start_mote(channel)
-
-    def stop_mote(self):
-        return self.motelist[-1].stop_mote()
-
-    def ping(self, address, expect_reply=False, count=0):
-        return self.motelist[-1].ping(address, expect_reply, count)
-
-    #temporary hack
-    def get_mote_ip(self):
-        return self.motelist[-1].ip
-
-class LocalWsn(WsnProxy):
-    motelist = []
     def setUp(self, simulation_path):
-        mote = TelosMote()
+        mote = config.moteClass(self)
         mote.setUp()
         self.motelist.append(mote)
 	
@@ -225,27 +279,34 @@ class LocalWsn(WsnProxy):
             mote.tearDown()
         self.motelist = []
 
-    def wait_until(self, text, count):
-        return self.motelist[-1].wait_until(text, count)
+    def allocate_radio_dev(self):
+        for dev in self.radioDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
 
-    def reset_mote(self):
-        return self.motelist[-1].reset_mote()
+    def release_radio_dev(self, dev):
+        del dev['used']
 
-    def start_mote(self, channel):
-        return self.motelist[-1].start_mote(channel)
+    def allocate_mote_dev(self):
+        for dev in self.moteDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
 
-    def stop_mote(self):
-        return self.motelist[-1].stop_mote()
+    def release_mote_dev(self, dev):
+        del dev['used']
 
-    def ping(self, address, expect_reply=False, count=0):
-        return self.motelist[-1].ping(address, expect_reply, count)
+    def get_test_mote(self):
+        return self.motelist[-1]
 
-    def get_mote_ip(self):
-        return self.motelist[-1].ip
-
-class TestbedWsn(WsnProxy):
-    motelist = []
-    hypernode_ip = ''
+class TestbedWsn(Wsn):
+    def __init__(self):
+        Wsn.__init__(self)
+        self.motelist = []
+        self.hypernode_ip = ''
     def setUp(self, hypernode_ip):
         self.hypernode_ip = hypernode_ip
         # TODO: Open connection to Hypernode
@@ -258,31 +319,9 @@ class TestbedWsn(WsnProxy):
         self.motelist = []
         # TODO: Close connection to Hypernode
 
-    def wait_until(self, text, count):
-        return self.motelist[-1].wait_until(text, count)
-
-    def reset_mote(self):
-        pass
-        # TODO: Specify which node to reset in input parameter
-        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
-
-    def start_mote(self, channel):
-        pass
-        # TODO: Call start_mote on the specified mote instance
-        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
-
-    def stop_mote(self):
-        pass
-        # TODO: Specify which node to stop in input parameter
-        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
-
-    def ping(self, address, expect_reply=False, count=0):
-        pass
-        # TODO: Specify which node to ping from in input parameter
-        # TODO: Call ping on the specified mote instance
-
 class MoteProxy:
-    ip=None
+    def __init__(self):
+        self.ip=None
 
     def setUp(self):
         pass
@@ -306,12 +345,39 @@ class MoteProxy:
     def is_mote_started(self):
         return False
 
-#TODO: Create TestbedMote
+class TestbedMote(MoteProxy):
+    def __init__(self, wsn):
+        MoteProxy.__init__(self)
+        self.wsn=wsn
 
-class TelosMote(MoteProxy):
+    def wait_until(self, text, count):
+        pass
+    
+    def reset_mote(self):
+        pass
+        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
+
+    def start_mote(self, channel):
+        pass
+        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
+
+    def stop_mote(self):
+        pass
+        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
+
+    def ping(self, address, expect_reply=False, count=0):
+        pass
+        # TODO: Call ping on the specified mote instance
+
+class LocalTelosMote(MoteProxy):
+    def __init__(self, wsn):
+        MoteProxy.__init__(self)
+        self.wsn=wsn
+
     def setUp(self):
+        self.config=self.wsn.allocate_mote_dev()
         self.serialport = serial.Serial(
-            port=config.mote_dev,
+            port=self.config['dev'],
             baudrate=config.mote_baudrate,
             parity = serial.PARITY_NONE,
             timeout = 1
@@ -319,7 +385,7 @@ class TelosMote(MoteProxy):
         self.reset_mote()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        self.ip="aaaa::" + config.iid_mote
+        self.ip=self.wsn.create_address(self.config['iid'])
 
     def tearDown(self):
         MoteProxy.tearDown(self)
@@ -340,7 +406,7 @@ class TelosMote(MoteProxy):
         print >> sys.stderr, "Resetting mote..."
         if(self.serialport.isOpen()):
             self.serialport.close()
-        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
+        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % self.config['dev'])
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
@@ -358,7 +424,7 @@ class TelosMote(MoteProxy):
         print >> sys.stderr, "Stopping mote..."
         if(self.serialport.isOpen()):
             self.serialport.close()
-        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
+        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % self.config['dev'])
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
@@ -373,8 +439,12 @@ class TelosMote(MoteProxy):
             return True
 
 class VirtualTelosMote(MoteProxy):
-    mote_dev = ''
-    mote_id = 0
+    def __init__(self, wsn):
+        MoteProxy.__init__(self)
+        self.wsn=wsn
+        self.mote_dev = None
+        self.mote_id = None
+
     def setUp(self):
         print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
         self.serialport = serial.Serial(
@@ -395,7 +465,7 @@ class VirtualTelosMote(MoteProxy):
         self.mote_dev = mote_dev
         self.mote_id = mote_id
         hex_mote_id = "%02x" % int(mote_id)
-        self.ip = 'aaaa::' + '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        self.ip = self.wsn.create_address( '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id )
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -439,7 +509,10 @@ class VirtualTelosMote(MoteProxy):
             return True
 
 class InteractiveMote(MoteProxy):
-    mote_started=False
+    def __init__(self):
+        MoteProxy.__init__(self)
+        self.mote_started=False
+
     def setUp(self):
         self.ip="aaaa::" + config.iid_mote
 
@@ -463,7 +536,7 @@ class InteractiveMote(MoteProxy):
         return self.mote_started
     
 class Platform:
-    def setUp(self, backbone):
+    def setUp(self):
         pass
     
     def tearDown(self):
@@ -509,11 +582,8 @@ class Platform:
         pass
 
 class MacOSX(Platform):
-    rtadvd=None
-    backbone = ''
-
-    def setUp(self,backbone):
-        self.backbone = backbone
+    def __init__(self):
+        self.rtadvd=None
 
     def tearDown(self):
         if self.rtadvd:
@@ -597,33 +667,17 @@ class MacOSX(Platform):
     def ping_loop(self, target, interval, out):
         while True:
             result = system("echo '***' >> %s" % out)
-            result = system("ping6 -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
+            result = system("ping6 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
 
 class Linux(Platform):
-    radvd = None
-    sp_ping = None
-    backbone = ''
-
-    def setUp(self,backbone):
-        self.backbone = backbone
-	result = system("brctl addbr %s" % self.backbone.itf)
-        if result != 0:
-            return False
-	result = system("brctl setfd %s 0" % self.backbone.itf)
-        if result != 0:
-            return False
-	result = system("ifconfig %s up" % self.backbone.itf)
-        return result == 0
+    def __init__(self):
+        self.radvd = None
+        self.sp_ping = None
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
-	result = system("ifconfig %s down" % self.backbone.itf)
-        if result != 0:
-            return False
-        result = system("brctl delbr %s" % self.backbone.itf)
-        return result == 0
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))
@@ -702,7 +756,20 @@ class Linux(Platform):
             result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
 
+class Host:
+    def __init__(self, backbone):
+        self.backbone=backbone
+        self.iid=None
+        self.ip=None
+
+    def setUp(self):
+        if self.iid:
+            self.ip = self.backbone.create_address(self.iid)
+    
+    def tearDown(self):
+        pass
+
 if __name__ == '__main__':
-    mote=TelosMote()
+    mote=LocalTelosMote()
     mote.setUp()
     mote.start_mote()

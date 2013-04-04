@@ -28,23 +28,23 @@ def repeat(times):
     return repeatHelper
 
 class TestSupport:
-    backbone=config.backbone
-    br=config.br
-    wsn=config.wsn
-    platform=config.platform
-    tcpdump=TcpDump()
-    ip_6lbr=None
-    ip_host=None
-    ip_mote=None
-    slip_motes = []
+    def __init__(self):
+        self.backbone=config.backboneClass()
+        self.wsn=config.wsnClass()
+        self.platform=config.platform
+        self.tcpdump=TcpDump()
+        self.host=Host(self.backbone)
+        self.brList=[]
+        self.test_mote=None
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
         self.backbone.setUp()
-        self.platform.setUp(self.backbone)
+        self.platform.setUp()
+        self.host.setUp()
         
-        for i, _br in enumerate(self.br):
-            print >> sys.stderr, "Setup br #%i" % i
+        for i, _br in enumerate(self.brList):
+            print >> sys.stderr, "Setup 6LBR #%i" % i
             _br.setUp()
 
         try:
@@ -55,26 +55,13 @@ class TestSupport:
         except IOError:
             self.wsn.setUp("TODO") #TODO: no default argument anymore here
 
-        try:
-            motelist_file = open(next_topology[:-4] + '.motes')
-            for line in motelist_file:
-                line = line.rstrip()
-                parts = line.split(';')
-                if parts[1] == 'slipradio':
-                    self.add_slip_mote(parts[0])
-        except IOError:
-            pass #TODO
-
-        for i, _br in enumerate(self.br):
-            self.assign_slip_mote(_br)
-            _br.set_slip_socket_port(self.get_slip_socket(_br))
-        self.ip_mote = self.wsn.get_mote_ip()
-
+        self.test_mote = self.wsn.get_test_mote()
 
     def tearDown(self):
-        for _br in self.br:
+        for _br in self.brList:
             _br.tearDown()
         self.wsn.tearDown()
+        self.host.tearDown()
         self.platform.tearDown()
 
     def start_ra(self, itf):
@@ -83,23 +70,28 @@ class TestSupport:
     def stop_ra(self):
         return self.platform.stop_ra()
 
+    def add_6lbr(self):
+        _br = config.brClass(self.backbone, self.wsn)
+        self.brList.append(_br)
+        return _br
+
     def start_6lbr(self, log):
         ret = True
-        for _br in self.br:
+        for _br in self.brList:
             ret = ret and _br.start_6lbr(log)
         return ret
 
     def stop_6lbr(self):
         ret = True
-        for _br in self.br:
+        for _br in self.brList:
             ret = ret and _br.stop_6lbr()
         return ret
 
     def start_mote(self):
-        return self.wsn.start_mote(config.channel)
+        return self.test_mote.start_mote(config.channel)
 
     def stop_mote(self):
-        return self.wsn.stop_mote()
+        return self.test_mote.stop_mote()
 
     def ping(self, target):
         return self.platform.ping(target)
@@ -114,20 +106,20 @@ class TestSupport:
         return False
 
     def ping_6lbr(self):
-        return self.ping( self.ip_6lbr )
+        return self.ping( self.brList[0].ip )
 
     def wait_ping_6lbr(self, count):
-        return self.wait_ping( count, self.ip_6lbr )
+        return self.wait_ping( count, self.brList[0].ip )
 
     def ping_mote(self):
-        return self.ping( self.ip_mote )
+        return self.ping( self.test_mote.ip )
 
     def wait_ping_mote(self, count):
-        print("Pinging mote %s" % self.ip_mote)
-        return self.wait_ping( count, self.ip_mote )
+        print("Pinging mote %s" % self.test_mote.ip)
+        return self.wait_ping( count, self.test_mote.ip )
 
     def ping_from_mote(self, address, expect_reply=False, count=0):
-        return self.wsn.ping( address, expect_reply, count )
+        return self.test_mote.ping( address, expect_reply, count )
 
     def initreport(self):
         if not os.path.exists(config.report_path):
@@ -142,20 +134,6 @@ class TestSupport:
             else:
                 os.unlink(destdir)
         os.rename(srcdir,destdir)
-
-    def add_slip_mote(self, nodeid):
-        self.slip_motes.append({'nodeid':nodeid, 'br':None})
-
-    def assign_slip_mote(self, _br):
-        for slip_mote in self.slip_motes:
-            if slip_mote['br'] == None:
-                slip_mote['br'] = _br
-                return #TODO warn if no free slip-radio found?
-
-    def get_slip_socket(self, br):
-        for slip_mote in self.slip_motes: 
-            if slip_mote['br'] == br:
-                return 60000 + int(slip_mote['nodeid'])
 
 class TestScenarios:
     def log_file(self, log_name):
@@ -193,7 +171,7 @@ class TestScenarios:
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
-        ping_thread = self.support.platform.ping_run(self.support.ip_mote,0.5,config.report_path+'/ping.log')
+        ping_thread = self.support.platform.ping_run(self.support.test_mote.ip,0.5,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
@@ -342,7 +320,7 @@ class TestScenarios:
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
-        self.assertTrue(self.support.ping_from_mote(self.support.ip_host, True, 60), "Host is not responding")
+        self.assertTrue(self.support.ping_from_mote(self.support.host.ip, True, 60), "Host is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
@@ -373,11 +351,12 @@ class TestScenarios:
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
-        self.support.ip_host='aaaa::200'
+        self.support.backbone.prefix='aaaa'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('SMART-BRIDGE', config.channel, accept_ra=False)
+        self.br.set_mode('SMART-BRIDGE', config.channel, accept_ra=False)
 
     def tearDown(self):
         self.tear_down_network()
@@ -385,28 +364,29 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_SmartBridgeAuto")
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
-        self.support.ip_host='aaaa::200'
+        self.support.backbone.prefix='aaaa'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
+        self.br.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
 
     def tearDown(self):
         self.support.tearDown()
 
     def set_up_network(self):
         sleep(2)
-        #self.support.platform.accept_ra(self.support.br.itf)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
+        #self.support.platform.accept_ra(self.support.brList.itf)
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
         self.assertTrue( self.support.start_ra(self.support.backbone.itf), "")
 
     def tear_down_network(self):
@@ -416,10 +396,11 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
 class Router(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='bbbb::100'
+        self.support.backbone.prefix='bbbb'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('ROUTER', config.channel, ra_daemon=True, accept_ra=False)
+        self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=True, accept_ra=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -431,45 +412,47 @@ class Router(unittest.TestCase,TestScenarios):
             self.assertTrue(self.support.platform.accept_rio(self.support.backbone.itf), "Could not enable RIO support")
         self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
         self.assertTrue(self.support.platform.check_prefix(self.support.backbone.itf, 'bbbb:'), "Interface not configured")
-        self.support.ip_host=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
+        self.support.host.ip=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "Could not add route")
+            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.br.ip), "Could not add route")
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "Could not remove route")
+            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RouterNoRa")
 class RouterNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='bbbb::100'
-        self.support.ip_host='bbbb::200'
+        self.support.backbone.prefix='bbbb'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('ROUTER', config.channel, ra_daemon=False)
+        self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=False)
 
     def tearDown(self):
         self.support.tearDown()
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
-        self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.br.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.br.ip), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeManual")
 class TransparentBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
-        self.support.ip_host='aaaa::200'
+        self.support.backbone.prefix='aaaa'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
+        self.br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
 
     def tearDown(self):
         self.tear_down_network()
@@ -477,28 +460,29 @@ class TransparentBridgeManual(unittest.TestCase,TestScenarios):
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeAuto")
 class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
-        self.support.ip_host='aaaa::200'
+        self.support.backbone.prefix='aaaa'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=True)
+        self.br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=True)
 
     def tearDown(self):
         self.support.tearDown()
 
     def set_up_network(self):
         sleep(2)
-        #self.support.platform.accept_ra(self.support.br.itf)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
+        #self.support.platform.accept_ra(self.support.brList.itf)
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
         self.assertTrue( self.support.start_ra(self.support.backbone.itf), "")
 
     def tear_down_network(self):
@@ -508,10 +492,11 @@ class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
 class RplRoot(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='bbbb::100'
+        self.support.backbone.prefix='bbbb'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('RPL-ROOT', config.channel, ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.br.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -523,36 +508,84 @@ class RplRoot(unittest.TestCase,TestScenarios):
             self.assertTrue(self.support.platform.accept_rio(self.support.backbone.itf), "Could not enable RIO support")
         self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
         self.assertTrue(self.support.platform.check_prefix(self.support.backbone.itf, 'bbbb:'), "Interface not configured")
-        self.support.ip_host=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
+        self.support.host.ip=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "Could not add route")
+            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.br.ip), "Could not add route")
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "Could not remove route")
+            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RplRootNoRa")
 class RplRootNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='bbbb::100'
-        self.support.ip_host='bbbb::200'
+        self.support.backbone.prefix='bbbb'
+        self.support.wsn.prefix='aaaa'
+        self.br = self.support.add_6lbr()
+        self.support.host.iid='200'
         self.support.setUp()
-        for _br in self.support.br:
-            _br.set_mode('RPL-ROOT', config.channel, ra_daemon=False, addr_rewrite=False, filter_rpl=False)
+        self.br.set_mode('RPL-ROOT', config.channel, iid="100", ra_daemon=False, addr_rewrite=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()
 
     def set_up_network(self):
         sleep(2)
-        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.ip_host), "")
-        self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.br.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.ip_host), "")
+        self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.br.ip), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
+@skipUnlessTrue("mode_RplRootTransparentBridge")
+class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
+    def setUp(self):
+        self.support=TestSupport()
+        self.support.backbone.prefix='bbbb'
+        self.support.wsn.prefix='aaaa'
+        self.rpl_root = self.support.add_6lbr()
+        self.tb = self.support.add_6lbr()
+        self.support.setUp()
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, iid='100', accept_ra=False, filter_rpl=False)
+
+    def tearDown(self):
+        self.support.tearDown()
+
+    @skipUnlessTrue("S0")
+    def test_S0(self):
+        """
+        Check 6LBR start-up and connectivity
+        """
+        testname = sys._getframe().f_code.co_name
+        self.support.initreport()
+        print >> sys.stderr, "******** Test S00 bis ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+        print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        self.support.savereport(testname)
+   
+    def set_up_network(self):
+        sleep(10)
+        self.assertTrue(self.support.platform.accept_ra(self.support.backbone.itf), "Could not enable RA configuration support")
+        if self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.accept_rio(self.support.backbone.itf), "Could not enable RIO support")
+        self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+        self.assertTrue(self.support.platform.check_prefix(self.support.backbone.itf, 'bbbb:'), "Interface not configured")
+        self.support.host.ip=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
+        if not self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.br.ip), "Could not add route")
+
+    def tear_down_network(self):
+        if not self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 def main():
     for i in range(1,config.test_repeat+1):

@@ -2,20 +2,17 @@
 
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
-tap_dev='tap0'
-iid_6lbr='0212:7400:1466:5117'
-iid_mote='0212:7400:146e:f407'
-radio_dev='/dev/tty.usbserial-XBTOKIQP'
-mote_dev='/dev/tty.usbserial-XBTO3BTS'
+slip_radio=[ {'dev': '/dev/tty.usbserial-XBTOKIQP', 'iid': '0212:7400:1466:5117'}, {'dev': 'tty.usbserial-001414FAB', 'iid': '300'}]
+motes = [ {'dev': '/dev/tty.usbserial-XBTO3BTS', 'iid': '0212:7400:146e:f407'}]
 mote_baudrate=115200
 channel=24
 
 from support import *
 
-backbone=NativeTapBB()
-wsn=LocalWsn()
-br=[LocalNativeBR(tap_dev)]
-mote=TelosMote()
+backboneClass=NativeTapBB
+wsnClass=LocalWsn
+brClass=LocalNativeBR
+moteClass=LocalTelosMote
 platform=MacOSX()
 #platform=Linux()
 
@@ -26,21 +23,15 @@ TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
 """
 report_path='report/run-current/coojasim-current/iter-current/test_current'
-#backbone_dev='br0'
-backbone_dev='tap0'
-iid_6lbr='0212:7402:0001:0101'
-iid_mote='0212:7402:0002:0202'
-radio_sock='localhost'
-mote_dev='/dev/pts/3'
+backbone_dev='br0'
 mote_baudrate=115200
 channel=26
 
 from support import *
 
-backbone=VirtualMultiBB()
-br=[LocalNativeBR('tap0'),
-    LocalNativeBR('tap1')]
-wsn=CoojaWsn()
+backboneClass=VirtualMultiBB
+brClass=LocalNativeBR
+wsnClass=CoojaWsn
 platform=MacOSX()
 #platform=Linux()
 """
@@ -68,11 +59,12 @@ test_repeat=1
 modes
 define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
-mode_SmartBridgeManual=1
-mode_SmartBridgeAuto=1
-mode_Router=1
-mode_RouterNoRa=1
+mode_SmartBridgeManual=0
+mode_SmartBridgeAuto=0
+mode_Router=0
+mode_RouterNoRa=0
 mode_RplRoot=1
 mode_RplRootNoRa=1
 mode_TransparentBridgeManual=1
 mode_TransparentBridgeAuto=1
+mode_RplRootTransparentBridge=1
