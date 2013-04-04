@@ -85,6 +85,8 @@ while ((1)); do
 		$BIN_6LBR/cetic_6lbr_smart_bridge $PARAMS
 	elif [ "$MODE" = 'TRANSPARENT-BRIDGE' ]; then
 		$BIN_6LBR/cetic_6lbr_transparent_bridge $PARAMS
+	elif [ "$MODE" = 'RPL-ROOT' ]; then
+		$BIN_6LBR/cetic_6lbr_rpl_root $PARAMS
 	else
 		echo "Mode '$MODE' unknown, starting as router"
 		$BIN_6LBR/cetic_6lbr_router $PARAMS
