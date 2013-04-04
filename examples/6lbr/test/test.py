@@ -36,12 +36,16 @@ class TestSupport:
     ip_6lbr=None
     ip_host=None
     ip_mote=None
+    slip_motes = []
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
-        self.backbone.setUp(config.backbone_dev)
+        self.backbone.setUp()
         self.platform.setUp(self.backbone)
-        self.br.setUp()
+        
+        for i, _br in enumerate(self.br):
+            print >> sys.stderr, "Setup br #%i" % i
+            _br.setUp()
 
         try:
             topologyfile = open('.NEXT_TOPOLOGY', 'r')
@@ -49,17 +53,29 @@ class TestSupport:
             topologyfile.close()
             self.wsn.setUp(next_topology)
         except IOError:
-            self.wsn.setUp("TODO")
+            self.wsn.setUp("TODO") #TODO: no default argument anymore here
 
+        try:
+            motelist_file = open(next_topology[:-4] + '.motes')
+            for line in motelist_file:
+                line = line.rstrip()
+                parts = line.split(';')
+                if parts[1] == 'slipradio':
+                    self.add_slip_mote(parts[0])
+        except IOError:
+            pass #TODO
+
+        for i, _br in enumerate(self.br):
+            self.assign_slip_mote(_br)
+            _br.set_slip_socket_port(self.get_slip_socket(_br))
         self.ip_mote = self.wsn.get_mote_ip()
 
+
     def tearDown(self):
-        self.br.tearDown()
+        for _br in self.br:
+            _br.tearDown()
         self.wsn.tearDown()
         self.platform.tearDown()
-
-    def set_mode(self, mode, *args, **kwargs):
-        return self.br.set_mode(mode, config.channel, *args, **kwargs)
 
     def start_ra(self, itf):
         return self.platform.start_ra(itf)
@@ -68,10 +84,16 @@ class TestSupport:
         return self.platform.stop_ra()
 
     def start_6lbr(self, log):
-        return self.br.start_6lbr(log)
+        ret = True
+        for _br in self.br:
+            ret = ret and _br.start_6lbr(log)
+        return ret
 
     def stop_6lbr(self):
-        return self.br.stop_6lbr()
+        ret = True
+        for _br in self.br:
+            ret = ret and _br.stop_6lbr()
+        return ret
 
     def start_mote(self):
         return self.wsn.start_mote(config.channel)
@@ -121,6 +143,19 @@ class TestSupport:
                 os.unlink(destdir)
         os.rename(srcdir,destdir)
 
+    def add_slip_mote(self, nodeid):
+        self.slip_motes.append({'nodeid':nodeid, 'br':None})
+
+    def assign_slip_mote(self, _br):
+        for slip_mote in self.slip_motes:
+            if slip_mote['br'] == None:
+                slip_mote['br'] = _br
+                return #TODO warn if no free slip-radio found?
+
+    def get_slip_socket(self, br):
+        for slip_mote in self.slip_motes: 
+            if slip_mote['br'] == br:
+                return 60000 + int(slip_mote['nodeid'])
 
 class TestScenarios:
     def log_file(self, log_name):
@@ -155,15 +190,39 @@ class TestScenarios:
         print >> sys.stderr, "******** Test S01 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S1')), "Could not start 6LBR")
+        timenetset = time.time()
         self.set_up_network()
+        timenetsetdone = time.time()
+        ping_thread = self.support.platform.ping_run(self.support.ip_mote,0.5,config.report_path+'/ping.log')
+        timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        self.support.platform.ping_stop(ping_thread)
+        timenetunset = time.time()
         self.tear_down_network()
+        timenetunsetdone = time.time()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 	self.support.savereport(testname)
 
     @skipUnlessTrue("S2")
@@ -317,7 +376,8 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
-        self.support.set_mode('SMART-BRIDGE', accept_ra=False)
+        for _br in self.support.br:
+            _br.set_mode('SMART-BRIDGE', config.channel, accept_ra=False)
 
     def tearDown(self):
         self.tear_down_network()
@@ -337,7 +397,8 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
-        self.support.set_mode('SMART-BRIDGE', accept_ra=True)
+        for _br in self.support.br:
+            _br.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
 
     def tearDown(self):
         self.support.tearDown()
@@ -357,7 +418,8 @@ class Router(unittest.TestCase,TestScenarios):
         self.support=TestSupport()
         self.support.ip_6lbr='bbbb::100'
         self.support.setUp()
-        self.support.set_mode('ROUTER', ra_daemon=True)
+        for _br in self.support.br:
+            _br.set_mode('ROUTER', config.channel, ra_daemon=True, accept_ra=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -384,7 +446,8 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='bbbb::100'
         self.support.ip_host='bbbb::200'
         self.support.setUp()
-        self.support.set_mode('ROUTER', ra_daemon=False)
+        for _br in self.support.br:
+            _br.set_mode('ROUTER', config.channel, ra_daemon=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -405,7 +468,8 @@ class TransparentBridgeManual(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
-        self.support.set_mode('TRANSPARENT-BRIDGE', accept_ra=False)
+        for _br in self.support.br:
+            _br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
 
     def tearDown(self):
         self.tear_down_network()
@@ -425,7 +489,8 @@ class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
-        self.support.set_mode('TRANSPARENT-BRIDGE', accept_ra=True)
+        for _br in self.support.br:
+            _br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=True)
 
     def tearDown(self):
         self.support.tearDown()
@@ -445,7 +510,8 @@ class RplRoot(unittest.TestCase,TestScenarios):
         self.support=TestSupport()
         self.support.ip_6lbr='bbbb::100'
         self.support.setUp()
-        self.support.set_mode('RPL-ROOT', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        for _br in self.support.br:
+            _br.set_mode('RPL-ROOT', config.channel, ra_daemon=True, addr_rewrite=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -472,7 +538,8 @@ class RplRootNoRa(unittest.TestCase,TestScenarios):
         self.support.ip_6lbr='bbbb::100'
         self.support.ip_host='bbbb::200'
         self.support.setUp()
-        self.support.set_mode('RPL-ROOT', ra_daemon=False, addr_rewrite=False, filter_rpl=False)
+        for _br in self.support.br:
+            _br.set_mode('RPL-ROOT', config.channel, ra_daemon=False, addr_rewrite=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()

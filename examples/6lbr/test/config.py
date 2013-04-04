@@ -2,7 +2,7 @@
 
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
-backbone_dev='tap0'
+tap_dev='tap0'
 iid_6lbr='0212:7400:1466:5117'
 iid_mote='0212:7400:146e:f407'
 radio_dev='/dev/tty.usbserial-XBTOKIQP'
@@ -14,7 +14,7 @@ from support import *
 
 backbone=NativeTapBB()
 wsn=LocalWsn()
-br=LocalNativeBR()
+br=[LocalNativeBR(tap_dev)]
 mote=TelosMote()
 platform=MacOSX()
 #platform=Linux()
@@ -38,7 +38,8 @@ channel=26
 from support import *
 
 backbone=VirtualMultiBB()
-br=LocalNativeBR()
+br=[LocalNativeBR('tap0'),
+    LocalNativeBR('tap1')]
 wsn=CoojaWsn()
 platform=MacOSX()
 #platform=Linux()
@@ -67,11 +68,11 @@ test_repeat=1
 modes
 define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
-mode_SmartBridgeManual=0
-mode_SmartBridgeAuto=0
-mode_Router=0
-mode_RouterNoRa=0
+mode_SmartBridgeManual=1
+mode_SmartBridgeAuto=1
+mode_Router=1
+mode_RouterNoRa=1
 mode_RplRoot=1
-mode_RplRootNoRa=0
+mode_RplRootNoRa=1
 mode_TransparentBridgeManual=1
 mode_TransparentBridgeAuto=1

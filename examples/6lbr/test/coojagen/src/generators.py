@@ -92,7 +92,6 @@ def load_preset(preset_data_path):
 		currpoints = []
 		positions = line.split(';')
 		for position in positions:
-			print(position)
 			xy = position.split(',')
 			x = xy[0]
 			y = xy[1]

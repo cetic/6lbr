@@ -21,15 +21,15 @@ class BackboneProxy:
 
 class NativeBridgeBB(BackboneProxy):
     itf=None
-    def setUp(self, backbone_dev):
-        self.itf = backbone_dev
+    def setUp(self):
+        self.itf = config.backbone_dev
     def tearDown(self):
         pass
 
 class NativeTapBB(BackboneProxy):
     itf=None
-    def setUp(self, tap_dev):
-        self.itf = tap_dev
+    def setUp(self):
+        self.itf = config.tap_dev
     def tearDown(self):
         pass
 
@@ -51,9 +51,12 @@ class BRProxy:
 
 class LocalNativeBR(BRProxy):
     process=None
-    
+    itf = ''
+
+    def __init__(self,iface="tap0"):
+        self.itf = iface
+
     def setUp(self):
-        self.itf="tap0"
         self.log=None
 
     def tearDown(self):
@@ -62,7 +65,9 @@ class LocalNativeBR(BRProxy):
 
     def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
         self.mode=mode
-        conf=open("test.conf", 'w')
+        if not os.path.exists("br/%s" % self.itf):
+            os.makedirs("br/%s" % self.itf)
+        conf = open("br/%s/test.conf" % self.itf, 'a')
         print >>conf, "MODE=%s" % mode
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
@@ -81,19 +86,26 @@ class LocalNativeBR(BRProxy):
         else:
             print >>conf, "DEV_RADIO=%s" % config.radio_dev
 
-        print >>conf, "NVM=test.dat"
+        print >>conf, "NVM=br/%s/test.dat" % self.itf
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
-        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d test.dat" % (channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl), shell=True)
+        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf), shell=True)
+
+    def set_slip_socket_port(self, port):
+        if not os.path.exists("br/%s" % self.itf):
+            os.makedirs("br/%s" % self.itf)
+        conf = open("br/%s/test.conf" % self.itf, 'w')
+        print >>conf, "SOCK_PORT=%s" % str(port)
+        conf.close()
 
     def start_6lbr(self, log_file):
-        print >> sys.stderr, "Starting 6LBR..."
+        print >> sys.stderr, "Starting 6LBR %s..." % self.itf
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
         self.log=open(log_file, "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./test.conf"], stdout=self.log)
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
         sleep(1)
         return self.process != None
 
@@ -151,15 +163,13 @@ class WsnProxy:
 
 class CoojaWsn(WsnProxy):
     motelist = []
-    def setUp(self, simulation_path='./coojagen/output/simfile-3-nodes.csc'):
+    def setUp(self, simulation_path):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE)
         line = self.cooja.stdout.readline()
-        print line
         while 'Simulation main loop started' not in line: # Wait for simulation to start 
-            print line
 	    if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote()
@@ -574,6 +584,22 @@ class MacOSX(Platform):
             sleep(1)
         return result == 0
 
+    def ping_run(self, target, interval, out):
+        result = system("touch %s" % out)
+        proc = Process(target=self.ping_loop, args=(target,interval,out))
+	proc.start()
+        return proc
+
+    def ping_stop(self, thread):
+	thread.terminate()
+	thread.join()
+
+    def ping_loop(self, target, interval, out):
+        while True:
+            result = system("echo '***' >> %s" % out)
+            result = system("ping6 -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
+            time.sleep(interval)
+
 class Linux(Platform):
     radvd = None
     sp_ping = None
@@ -661,9 +687,10 @@ class Linux(Platform):
         return result == 0
 
     def ping_run(self, target, interval, out):
-        proc = Process(target=ping_loop, args=(self,target,interval,out))
+        result = system("touch %s" % out)
+        proc = Process(target=self.ping_loop, args=(target,interval,out))
 	proc.start()
-        return proc != None
+        return proc
 
     def ping_stop(self, thread):
 	thread.terminate()
@@ -671,7 +698,8 @@ class Linux(Platform):
 
     def ping_loop(self, target, interval, out):
         while True:
-            result = system("ping6 -W 1 -c 1 %s >> %s" % (target,out))
+            result = system("echo '***' >> %s" % out)
+            result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
 
 if __name__ == '__main__':
