@@ -16,7 +16,7 @@ extern const rimeaddr_t rimeaddr_null;
 #include "net/uip-debug.h"
 
 #if CONTIKI_TARGET_NATIVE
-extern slip_set_mac(rimeaddr_t * mac_addr);
+extern void slip_set_mac(rimeaddr_t * mac_addr);
 #endif
 
 static int eth_output(uip_lladdr_t * src, uip_lladdr_t * dest);
@@ -223,19 +223,18 @@ eth_input(void)
     PRINTF("\n");
     mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
 #if CETIC_6LBR_LEARN_RPL_MAC
-  if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
+    if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
 #if CONTIKI_TARGET_NATIVE
 	  slip_set_mac((rimeaddr_t *) &srcAddr);
-#else
+#endif
 	  //Set source address (must be done by hacking node address)
 	  rimeaddr_set_node_addr((rimeaddr_t *) &srcAddr);
-#endif
+    }
+    wireless_output(NULL, &destAddr);
   }
-  wireless_output(NULL, &destAddr);
 #else
   wireless_output(&srcAddr, &destAddr);
 #endif
-  }
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");
