@@ -548,8 +548,8 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
         self.rpl_root = self.support.add_6lbr()
         self.tb = self.support.add_6lbr()
         self.support.setUp()
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, ra_daemon=True, addr_rewrite=False, filter_rpl=False)
-        self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, iid='100', accept_ra=False, filter_rpl=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()
@@ -581,11 +581,11 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
         self.assertTrue(self.support.platform.check_prefix(self.support.backbone.itf, 'bbbb:'), "Interface not configured")
         self.support.host.ip=self.support.platform.get_address_with_prefix(self.support.backbone.itf, 'bbbb:')
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.br.ip), "Could not add route")
+            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.rpl_root.ip), "Could not add route")
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
+            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
 
 def main():
     for i in range(1,config.test_repeat+1):
