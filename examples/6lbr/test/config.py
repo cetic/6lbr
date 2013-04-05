@@ -1,5 +1,5 @@
 #!/usr/bin/python2.7
-
+"""
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
 slip_radio=[ {'dev': '/dev/tty.usbserial-XBTOKIQP', 'iid': '0212:7400:1466:5117'}, {'dev': 'tty.usbserial-003013FDB', 'iid': '205:c2a:8cee:1c6d'}]

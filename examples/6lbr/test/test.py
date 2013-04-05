@@ -231,7 +231,7 @@ class TestScenarios:
         """
         print >> sys.stderr, "******** Test S02 ********"
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S2')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
@@ -248,7 +248,7 @@ class TestScenarios:
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
         """
         print >> sys.stderr, "******** Test S03 ********"
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S3')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
@@ -265,14 +265,14 @@ class TestScenarios:
         to the RPL DODAG.
         """
         print >> sys.stderr, "******** Test S04 ********"
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S4_a')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S4_b')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
@@ -335,7 +335,7 @@ class TestScenarios:
         Ping from the sensor to the computer when the CBR does not know the computer.
         """
         print >> sys.stderr, "******** Test S11 ********"
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -352,7 +352,7 @@ class TestScenarios:
         observe all the sending process.
         """
         print >> sys.stderr, "******** Test S12 ********"
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -581,6 +581,7 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
    
     def set_up_network(self):
         sleep(10)
@@ -596,7 +597,7 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
     def tear_down_network(self):
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
-        self.support.savereportmode('mode_'+type(self).__name__)
+        
 
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
 class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
@@ -613,6 +614,7 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
         
     @skipUnlessTrue("S0")
     def test_S0(self):
@@ -623,7 +625,7 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
         self.support.initreport()
         print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_6lbr(40, self.br1), "6LBR-1 is not responding")
         self.assertTrue(self.support.wait_ping_6lbr(40, self.br2), "6LBR-2 is not responding")
