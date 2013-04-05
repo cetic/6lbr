@@ -6,10 +6,12 @@ from os import system
 import sys
 import time
 from config import report_path
+from config import simgen_config_path
 from shutil import rmtree
 
 parser = simgen.ConfigParser()
-if not parser.parse_config('config_simgen.py'):
+
+if not parser.parse_config(simgen_config_path):
 	sys.exit("topology generation error")
 simfiles = parser.get_simfiles()
 
