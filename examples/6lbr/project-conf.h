@@ -78,6 +78,8 @@
 #undef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL			0
 
+#define CETIC_6LBR_LEARN_RPL_MAC	1
+
 /*------------------------------------------------------------------*/
 #endif
 
