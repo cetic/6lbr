@@ -251,7 +251,7 @@ class CoojaWsn(Wsn):
 
     def tearDown(self):
         print("Killing Cooja")
-        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
+        self.get_test_mote().serialport.write("\r\nkillcooja\r\n")
         self.cooja.wait()
         time.sleep(1)
         print >> sys.stderr, "Cooja Thread Killed"
@@ -262,6 +262,15 @@ class CoojaWsn(Wsn):
 
     def get_test_mote(self):
         return self.motelist[-1]
+
+    def move_mote_xy(self, nodeid, xpos, ypos):
+        self.get_test_mote().serialport.write("\r\nmovemote,%d,%f,%f\r\n" %(nodeid, xpos, ypos))
+
+    def move_mote(self, nodeid, position):
+        try:
+            self.move_mote_xy(nodeid, config.interactive_mobility[position][0], config.interactive_mobility[position][1])
+        except IndexError:
+            print >> sys.stderr, "Attempt to access non-existant position. Verify the interactive_mobility array in config.py"
 
 class LocalWsn(Wsn):
     def __init__(self):
