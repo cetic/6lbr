@@ -133,11 +133,6 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       }
 
       return 1;
-    } else if(data[1] == 'M') {
-      PRINTF("Got MAC\n");
-      memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-      rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
-      return 1;
     }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);

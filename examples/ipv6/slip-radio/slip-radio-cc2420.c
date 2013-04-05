@@ -35,6 +35,14 @@
 #include "dev/cc2420.h"
 #include "cmd.h"
 #include <stdio.h>
+#include <string.h>
+#include "net/netstack.h"
+#include "net/packetbuf.h"
+#include "packetutils.h"
+#include "net/mac/frame802154.h"
+
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 int
 cmd_handler_cc2420(const uint8_t *data, int len)
@@ -44,7 +52,15 @@ cmd_handler_cc2420(const uint8_t *data, int len)
       printf("cc2420_cmd: setting channel: %d\n", data[2]);
       cc2420_set_channel(data[2]);
       return 1;
-    }
+    } else if(data[1] == 'M') {
+        PRINTF("cc2420_cmd: Got MAC\n");
+        memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
+        rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
+        uint16_t shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
+          rimeaddr_node_addr.u8[1];
+        cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, rimeaddr_node_addr.u8);
+        return 1;
+      }
   } else if(data[0] == '?') {
     if(data[1] == 'C') {
       uint8_t buf[4];
