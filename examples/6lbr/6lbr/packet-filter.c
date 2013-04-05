@@ -15,6 +15,10 @@ extern const rimeaddr_t rimeaddr_null;
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
+#if CONTIKI_TARGET_NATIVE
+extern void slip_set_mac(rimeaddr_t * mac_addr);
+#endif
+
 static int eth_output(uip_lladdr_t * src, uip_lladdr_t * dest);
 
 /*---------------------------------------------------------------------------*/
@@ -118,16 +122,26 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
   //--------------
   if(wireless_outputfunc != NULL) {
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-    //Set source address (must be done by hacking node address)
 	if ( src != NULL ) {
+#if CONTIKI_TARGET_NATIVE
+	  slip_set_mac((rimeaddr_t *)src);
+#else
+	  //Set source address (must be done by hacking node address)
 	  rimeaddr_set_node_addr((rimeaddr_t *) src);
+#endif
 	}
 #endif
     PRINTF("wireless_output: sending packet\n");
     ret = wireless_outputfunc(dest);
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-    //Restore node address
-    rimeaddr_set_node_addr((rimeaddr_t *) & wsn_mac_addr);
+	if ( src != NULL ) {
+#if CONTIKI_TARGET_NATIVE
+	  slip_set_mac((rimeaddr_t *)src);
+#else
+      //Restore node address
+      rimeaddr_set_node_addr((rimeaddr_t *) & wsn_mac_addr);
+#endif
+	}
 #endif
   } else {
     ret = 0;
@@ -208,8 +222,19 @@ eth_input(void)
     PRINTLLADDR(&destAddr);
     PRINTF("\n");
     mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
-    wireless_output(&srcAddr, &destAddr);
+#if CETIC_6LBR_LEARN_RPL_MAC
+    if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
+#if CONTIKI_TARGET_NATIVE
+	  slip_set_mac((rimeaddr_t *) &srcAddr);
+#endif
+	  //Set source address (must be done by hacking node address)
+	  rimeaddr_set_node_addr((rimeaddr_t *) &srcAddr);
+    }
+    wireless_output(NULL, &destAddr);
   }
+#else
+  wireless_output(&srcAddr, &destAddr);
+#endif
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");
