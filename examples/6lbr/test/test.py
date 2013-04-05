@@ -126,6 +126,8 @@ class TestSupport:
 
     def savereport(self,testname):
         srcdir = config.report_path
+        os.rename('COOJA.log',os.path.join(srcdir,'COOJA.log'))
+        os.rename('COOJA.testlog',os.path.join(srcdir,'COOJA.testlog'))
         destdir = os.path.join(os.path.dirname(srcdir),testname)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):
@@ -133,6 +135,21 @@ class TestSupport:
             else:
                 os.unlink(destdir)
         os.rename(srcdir,destdir)
+
+    def savereportmode(self,testname):
+        srcdir = os.path.dirname(config.report_path)
+        destdir = os.path.join(os.path.dirname(srcdir),testname)
+        if os.path.exists(destdir):
+            if os.path.isdir(destdir):
+                dirs = os.listdir(srcdir)
+                for node in dirs:
+                    os.rename(os.path.join(srcdir,node),os.path.join(destdir,node))
+                os.rmdir(srcdir)
+            else:
+                os.unlink(destdir)
+                os.rename(srcdir,destdir)
+        else:
+                os.rename(srcdir,destdir)
 
 class TestScenarios:
     def log_file(self, log_name):
@@ -147,7 +164,7 @@ class TestScenarios:
 	self.support.initreport()
         print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
         self.tear_down_network()
@@ -166,7 +183,7 @@ class TestScenarios:
 	self.support.initreport()
         print >> sys.stderr, "******** Test S01 ********"
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S1')), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -360,6 +377,7 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def tearDown(self):
         self.tear_down_network()
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -381,6 +399,7 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -403,6 +422,7 @@ class Router(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
         
     def set_up_network(self):
         sleep(10)
@@ -432,6 +452,7 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -456,6 +477,7 @@ class TransparentBridgeManual(unittest.TestCase,TestScenarios):
     def tearDown(self):
         self.tear_down_network()
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -477,6 +499,7 @@ class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -499,6 +522,7 @@ class RplRoot(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
         
     def set_up_network(self):
         sleep(10)
@@ -528,6 +552,7 @@ class RplRootNoRa(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -552,6 +577,7 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
 
     def tearDown(self):
         self.support.tearDown()
+        self.support.savereportmode('mode_'+type(self).__name__)
 
     @skipUnlessTrue("S0")
     def test_S0(self):
@@ -591,7 +617,7 @@ def main():
         print >> sys.stderr, " ============="
         print >> sys.stderr, " == ITER %02d ==" % i
         unittest.main(exit=False, verbosity=1)
-	srcdir = os.path.dirname(config.report_path)
+	srcdir = os.path.dirname(os.path.dirname(config.report_path))
 	destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):

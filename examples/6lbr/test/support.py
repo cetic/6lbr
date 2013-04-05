@@ -150,7 +150,7 @@ class LocalNativeBR(BRProxy):
     def start_6lbr(self, log_file):
         print >> sys.stderr, "Starting 6LBR %s..." % self.itf
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
-        self.log=open(log_file, "w")
+        self.log=open(log_file+'_%s.log'%self.itf, "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
         sleep(1)
         return self.process != None
@@ -684,10 +684,21 @@ class Linux(Platform):
     def __init__(self):
         self.radvd = None
         self.sp_ping = None
+        self.threads = {}
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+        for t in self.threads:
+            self.threads[t].terminate()
+            self.threads[t].join(10)
+        for t in self.threads:
+            try:
+                os.kill(t, signal.SIGKILL)
+            except OSError, err:
+                pass
+        self.threads.clear()
+        print >> sys.stderr, "platform teardown"
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))
@@ -755,11 +766,21 @@ class Linux(Platform):
         result = system("touch %s" % out)
         proc = Process(target=self.ping_loop, args=(target,interval,out))
 	proc.start()
-        return proc
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
 
-    def ping_stop(self, thread):
-	thread.terminate()
-	thread.join()
+    def ping_stop(self, tid):
+        if self.threads.has_key(tid):
+	    self.threads[tid].terminate()
+	    self.threads[tid].join(10)
+            del self.threads[tid]
+            return True
+        else:
+            return False
 
     def ping_loop(self, target, interval, out):
         while True:
