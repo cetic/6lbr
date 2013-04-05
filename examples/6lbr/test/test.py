@@ -573,9 +573,7 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
-class MultiBrSmartBridgeAuto(unittest.TestCase):
-    def log_file(self, log_name):
-        return "%s_%s.log" % (log_name, self.__class__.__name__)
+class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
