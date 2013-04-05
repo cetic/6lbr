@@ -105,10 +105,10 @@ class TestSupport:
         return False
 
     def ping_6lbr(self):
-        return self.ping( self.brList[0].ip )
+        return self.ping( self.brList[-1].ip )
 
     def wait_ping_6lbr(self, count):
-        return self.wait_ping( count, self.brList[0].ip )
+        return self.wait_ping( count, self.brList[-1].ip )
 
     def ping_mote(self):
         return self.ping( self.test_mote.ip )
@@ -544,32 +544,14 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
-        self.rpl_root = self.support.add_6lbr()
         self.tb = self.support.add_6lbr()
+        self.rpl_root = self.support.add_6lbr()
         self.support.setUp()
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
         self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
 
     def tearDown(self):
         self.support.tearDown()
-
-    @skipUnlessTrue("S0")
-    def test_S0(self):
-        """
-        Check 6LBR start-up and connectivity
-        """
-        testname = sys._getframe().f_code.co_name
-        self.support.initreport()
-        print >> sys.stderr, "******** Test S00 bis ********"
-        timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
-        self.set_up_network()
-        self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
-        self.tear_down_network()
-        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
-        timestop = time.time()
-        print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-        self.support.savereport(testname)
    
     def set_up_network(self):
         sleep(10)
