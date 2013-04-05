@@ -75,7 +75,7 @@ border_router_cmd_handler(const uint8_t * data, int len)
     } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Setting MAC address\n");
-      slip_set_mac(&data[2]);
+      slip_got_mac(&data[2]);
       return 1;
     } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */

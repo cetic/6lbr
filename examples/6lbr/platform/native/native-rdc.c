@@ -210,13 +210,28 @@ slip_request_mac(void)
 }
 
 void
-slip_set_mac(const uint8_t * data)
+slip_got_mac(const uint8_t * data)
 {
   printf("Got MAC\n");
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
   rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
   mac_set = 1;
+}
+
+void
+slip_set_mac(rimeaddr_t * mac_addr)
+{
+	uint8_t buffer[10];
+	int i;
+
+	PRINTF("Set MAC address\n");
+	buffer[0] = '!';
+	buffer[1] = 'M';
+    for(i = 0; i < 8; i++) {
+    	buffer[2 + i] = mac_addr->u8[i];
+    }
+    write_to_slip(buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
 void
