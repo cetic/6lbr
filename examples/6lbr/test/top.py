@@ -23,7 +23,7 @@ for simfile in simfiles:
   running_simfile.write(simfile)
   running_simfile.close()
   #Run the test suite with the current topology
-  system("./test.py")
+  system("python2.7 ./test.py")
   #Move the current coojasim working directory to its final location
   srcdir = os.path.dirname(os.path.dirname(report_path))
   destdir = os.path.join(os.path.dirname(srcdir),simname)

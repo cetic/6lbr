@@ -473,6 +473,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   add("<div id=\"left_home\">");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if UIP_CONF_IPV6_RPL
   add("<h2>Configuration</h2>");
   add("Lifetime : %d (%d x %d s)<br />",
       RPL_CONF_DEFAULT_LIFETIME * RPL_CONF_DEFAULT_LIFETIME_UNIT,
@@ -516,7 +517,9 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-
+#else
+  add("<h3>RPL is deactivated</h3>");
+#endif
   add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
@@ -1220,7 +1223,9 @@ httpd_simple_get_script(const char *name)
   } else if(strcmp(name, "config.html") == 0) {
     return generate_config;
   } else if(strcmp(name, "rpl-gr") == 0) {
+#if UIP_CONF_IPV6_RPL
     rpl_repair_root(RPL_DEFAULT_INSTANCE);
+#endif
     return generate_rpl;
   } else if(memcmp(name, "route_rm?", 9) == 0) {
     redirect = 1;

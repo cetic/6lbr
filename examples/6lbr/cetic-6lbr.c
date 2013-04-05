@@ -76,6 +76,7 @@ void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
+#if UIP_CONF_IPV6_RPL
   PRINTF("CETIC_BRIDGE : set_prefix\n");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     PRINTF("Ignoring RA\n");
@@ -89,6 +90,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
   }
+#endif
 }
 
 void

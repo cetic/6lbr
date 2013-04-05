@@ -5,6 +5,7 @@ CONTIKI_PROJECT = cetic-6lbr
 CETIC_6LBR_SMARTBRIDGE=0
 CETIC_6LBR_TRANSPARENTBRIDGE=0
 CETIC_6LBR_ROUTER=0
+CETIC_6LBR_ONE_ITF=0
 
 WITH_WEBSERVER=1
 WITH_WEBSERVER_LITE=0
@@ -25,7 +26,11 @@ PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-se
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE) -DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE) -DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)
+CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE) -DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE) -DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)  -DCETIC_6LBR_ONE_ITF=$(CETIC_6LBR_ONE_ITF)
+
+ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
+UIP_CONF_RPL=0
+endif
 
 ifneq ($(WITH_WEBSERVER_LITE),0)
 WITH_WEBSERVER=0
@@ -65,17 +70,31 @@ endif
 
 NATIVE_CONF=WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) WITH_NODE_INFO=$(WITH_NODE_INFO)
 ECONOTAG_CONF=WITH_WEBSERVER=0 WITH_WEBSERVER_LITE=$(ECONOTAG_WEBSERVER_LITE) WITH_UDPSERVER=$(ECONOTAG_UDPSERVER) WITH_NODE_INFO=$(ECONOTAG_NODE_INFO)
+
+bin/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+
+bin/cetic_6lbr_transparent_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_transparent_bridge 
+
+bin/cetic_6lbr_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_router 
+
+bin/cetic_6lbr_rpl_root:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_ONE_ITF=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
+
 all_native:
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_transparent_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_router 
 
 all_econotag:
 	mkdir -p bin_econotag
@@ -140,4 +159,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag deb ipk tools
+.PHONY: all_native all_econotag deb ipk tools bin/*
