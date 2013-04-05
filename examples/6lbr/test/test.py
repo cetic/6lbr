@@ -104,11 +104,15 @@ class TestSupport:
                 return True
         return False
 
-    def ping_6lbr(self):
-        return self.ping( self.brList[-1].ip )
+    def ping_6lbr(self, br=None):
+        if not br:
+           br=self.brList[-1]
+        return self.ping( br.ip )
 
-    def wait_ping_6lbr(self, count):
-        return self.wait_ping( count, self.brList[-1].ip )
+    def wait_ping_6lbr(self, count, br=None):
+        if not br:
+           br=self.brList[-1]
+        return self.wait_ping( count, br.ip )
 
     def ping_mote(self):
         return self.ping( self.test_mote.ip )
@@ -567,6 +571,52 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
     def tear_down_network(self):
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
+
+@skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
+class MultiBrSmartBridgeAuto(unittest.TestCase):
+    def log_file(self, log_name):
+        return "%s_%s.log" % (log_name, self.__class__.__name__)
+    def setUp(self):
+        self.support=TestSupport()
+        self.support.backbone.prefix='aaaa'
+        self.support.wsn.prefix='aaaa'
+        self.br1 = self.support.add_6lbr()
+        self.br2 = self.support.add_6lbr()
+        self.support.host.iid='200'
+        self.support.setUp()
+        self.br1.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
+        self.br2.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
+
+    def tearDown(self):
+        self.support.tearDown()
+        
+    @skipUnlessTrue("S0")
+    def test_S0(self):
+        """
+        Check 6LBR start-up and connectivity
+        """
+        testname = sys._getframe().f_code.co_name
+        self.support.initreport()
+        print >> sys.stderr, "******** Test S00 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.wait_ping_6lbr(40, self.br1), "6LBR-1 is not responding")
+        self.assertTrue(self.support.wait_ping_6lbr(40, self.br2), "6LBR-2 is not responding")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+        print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        self.support.savereport(testname)
+
+    def set_up_network(self):
+        sleep(2)
+        #self.support.platform.accept_ra(self.support.brList.itf)
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.assertTrue( self.support.start_ra(self.support.backbone.itf), "")
+
+    def tear_down_network(self):
+        self.assertTrue( self.support.stop_ra(), "")
 
 def main():
     for i in range(1,config.test_repeat+1):
