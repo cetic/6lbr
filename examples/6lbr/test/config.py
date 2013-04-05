@@ -26,6 +26,7 @@ report_path='report/run-current/coojasim-current/iter-current/test_current'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
+interactive_mobility = [[35,46],[-55,71]]
 
 from support import *
 

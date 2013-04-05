@@ -14,7 +14,7 @@ assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '-1':'node_delay'}
 mote_types = []
 outputfolder = 'coojagen/output'
 template = 'coojagen/templates/cooja-template-udgm.csc'
-mobility = '[APPS_DIR]/mobility/positions.dat'
+#mobility = '[APPS_DIR]/mobility/positions.dat'
 
 mote_type_slipradio = {	'shortname':'slipradio', 
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
