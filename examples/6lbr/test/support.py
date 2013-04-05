@@ -110,7 +110,7 @@ class LocalNativeBR(BRProxy):
             self.ip=self.backbone.create_address(self.radio['iid'])
         if not os.path.exists("br/%s" % self.itf):
             os.makedirs("br/%s" % self.itf)
-        conf = open("br/%s/test.conf" % self.itf, 'a')
+        conf = open("br/%s/test.conf" % self.itf, 'w')
         print >>conf, "MODE=%s" % mode
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
@@ -139,13 +139,6 @@ class LocalNativeBR(BRProxy):
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
-
-    def set_slip_socket_port(self, port):
-        if not os.path.exists("br/%s" % self.itf):
-            os.makedirs("br/%s" % self.itf)
-        conf = open("br/%s/test.conf" % self.itf, 'w')
-        print >>conf, "SOCK_PORT=%s" % str(port)
-        conf.close()
 
     def start_6lbr(self, log_file):
         print >> sys.stderr, "Starting 6LBR %s..." % self.itf

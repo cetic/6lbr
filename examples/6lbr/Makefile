@@ -95,6 +95,8 @@ all_native:
 	$(MAKE) TARGET=native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
 
 all_econotag:
 	mkdir -p bin_econotag
