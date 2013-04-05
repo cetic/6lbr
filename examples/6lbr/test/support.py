@@ -251,7 +251,7 @@ class CoojaWsn(Wsn):
 
     def tearDown(self):
         print("Killing Cooja")
-        self.motelist[-1].serialport.write("\r\nkillcooja\r\n")
+        self.get_test_mote().serialport.write("\r\nkillcooja\r\n")
         self.cooja.wait()
         time.sleep(1)
         print >> sys.stderr, "Cooja Thread Killed"
