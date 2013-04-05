@@ -39,22 +39,20 @@ class TestSupport:
 
     def setUp(self):
         print >> sys.stderr, "\n---\n"
-        self.backbone.setUp()
         self.platform.setUp()
+        self.backbone.setUp()
         self.host.setUp()
-        
-        for i, _br in enumerate(self.brList):
-            print >> sys.stderr, "Setup 6LBR #%i" % i
-            _br.setUp()
-
         try:
             topologyfile = open('.NEXT_TOPOLOGY', 'r')
             next_topology = topologyfile.readline().rstrip()
             topologyfile.close()
             self.wsn.setUp(next_topology)
         except IOError:
+            print "Could not open .NEXT_TOPOLOGY topology file"
             self.wsn.setUp("TODO") #TODO: no default argument anymore here
-
+        for i, _br in enumerate(self.brList):
+            print >> sys.stderr, "Setup 6LBR #%i" % i
+            _br.setUp()
         self.test_mote = self.wsn.get_test_mote()
 
     def tearDown(self):
@@ -62,6 +60,7 @@ class TestSupport:
             _br.tearDown()
         self.wsn.tearDown()
         self.host.tearDown()
+	self.backbone.tearDown()
         self.platform.tearDown()
 
     def start_ra(self, itf):
@@ -591,7 +590,7 @@ def main():
     for i in range(1,config.test_repeat+1):
         print >> sys.stderr, " ============="
         print >> sys.stderr, " == ITER %02d ==" % i
-        unittest.main(exit=False)
+        unittest.main(exit=False, verbosity=1)
 	srcdir = os.path.dirname(config.report_path)
 	destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
         if os.path.exists(destdir):

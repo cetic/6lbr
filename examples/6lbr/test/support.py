@@ -125,6 +125,7 @@ class LocalNativeBR(BRProxy):
 
         if 'socket' in self.radio:
             print >>conf, "SOCK_RADIO=%s" % self.radio['socket']
+            print >>conf, "SOCK_PORT=%s" % self.radio['port']
         else:
             print >>conf, "DEV_RADIO=%s" % self.radio['dev']
 
@@ -234,9 +235,9 @@ class CoojaWsn(Wsn):
             pass #TODO
 
     def add_slip_mote(self, nodeid):
-        hex_mote_id = "%02x" % int(nodid)
+        hex_mote_id = "%02x" % int(nodeid)
         iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
-        self.slip_motes.append({'nodeid':nodeid, 'socket': 60000 + int(slip_mote['nodeid']), 'iid': iid})
+        self.slip_motes.append({'nodeid':nodeid, 'socket': 'localhost', 'port': 60000 + int(nodeid), 'iid': iid})
 
     def allocate_radio_dev(self):
         for slip_mote in self.slip_motes:
@@ -735,6 +736,7 @@ class Linux(Platform):
         return True
 
     def ping(self, target):
+	print "ping %s" % target
         result = system("ping6 -W 1 -c 1 %s > /dev/null" % target)
         #if result >> 8 == 2:
         sleep(1)
