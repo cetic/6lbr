@@ -376,6 +376,7 @@ class ConfigParser():
 		return None
 
 	def parse_config(self, config_path):
+		print("LOADING CONFIG %s" % config_path)
 		config_simgen = imp.load_source('module.name', config_path)
 		if hasattr(config_simgen, 'outputfolder'):
 			outputfolder = config_simgen.outputfolder

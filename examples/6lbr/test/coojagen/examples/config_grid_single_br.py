@@ -1,20 +1,24 @@
+"""
+Single Border Router, Grid Radio 1:3 Topology, Static
+
+A grid topology of ratio 1:3 with a variable number of nodes. The mote_count variable is a list of mote counts.
+There will be 1 topology generated per mote_count.
+All motes are of type 'node' except the first which is the 6LBR's slip-radio and the last
+which is the mote which we send commands to, 'node_delay'
+"""
+
+outputfolder = 'coojagen/output'
+template = 'coojagen/templates/cooja-template-udgm.csc'
 radio_model = 'udgm'
 tx_range = 45
 tx_interference = 45
-#topology = 'grid_ratio'
-topology = 'preset'
-preset_data_path = 'coojagen/templates/preset-2dags-20nodes'
-#step = 30
-#xcount = 2
-#ycount = 5
-#ratio = "1:3"
-#mote_count = range(10,31,10)
-#mote_count = [10,]
-assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '-1':'node_delay'}
+topology = 'grid_ratio'
+ratio = "1:3"
+step = 30
+mote_count = range(10,31,10)
+assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'} 
+
 mote_types = []
-outputfolder = 'coojagen/output'
-template = 'coojagen/templates/cooja-template-udgm.csc'
-#mobility = '[APPS_DIR]/mobility/positions.dat'
 
 mote_type_slipradio = {	'shortname':'slipradio', 
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
