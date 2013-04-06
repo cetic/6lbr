@@ -829,7 +829,7 @@ class Linux(Platform):
     def pcap_stop(self, tid):
         if self.threads.has_key(tid):
             self.threads[tid].terminate()
-            self.threads[tid].join(10)
+            self.threads[tid].wait()
             del self.threads[tid]
             return True
         else:
