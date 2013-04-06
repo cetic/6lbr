@@ -38,7 +38,6 @@ class TestSupport:
         self.test_mote=None
 
     def setUp(self):
-        print >> sys.stderr, "\n---\n"
         self.platform.setUp()
         self.backbone.setUp()
         self.host.setUp()
@@ -163,7 +162,8 @@ class TestSupport:
 class TestScenarios:
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
-
+    def print_test_name(self):
+        print >> sys.stderr, "\n******** %s.%s ********" % (self.__class__.__name__, self._testMethodName)
     @skipUnlessTrue("S0")
     def test_S0(self):
         """
@@ -171,7 +171,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
@@ -190,7 +189,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S01 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -234,7 +232,6 @@ class TestScenarios:
         Ping from the computer to the mote when the PC does not know the BR and the BR knows
         the mote.
         """
-        print >> sys.stderr, "******** Test S02 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -252,7 +249,6 @@ class TestScenarios:
         """
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
         """
-        print >> sys.stderr, "******** Test S03 ********"
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -269,7 +265,6 @@ class TestScenarios:
         Starting from a stable RPL topology, restart the border router and observe how it attaches
         to the RPL DODAG.
         """
-        print >> sys.stderr, "******** Test S04 ********"
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -290,7 +285,6 @@ class TestScenarios:
         Wait for a DAD between the computer and the BR, then disconnect and reconnect the com-
         puter and observe the reaction of the BR to a computer's DAD.
         """
-        print >> sys.stderr, "******** Test S05 ********"
         pass
 
     @skipUnlessTrue("S6")
@@ -298,7 +292,6 @@ class TestScenarios:
         """
         Observe the NUDs between the computer and the BR.
         """
-        print >> sys.stderr, "******** Test S06 ********"
         pass
 
     @skipUnlessTrue("S7")
@@ -307,7 +300,6 @@ class TestScenarios:
         Test the Auconfiguration process of the BR in bridge mode and observe its ability to take a
         router prefix (by using the computer as a router), and deal with new RA once configured.
         """
-        print >> sys.stderr, "******** Test S07 ********"
         pass
 
     @skipUnlessTrue("S8")
@@ -315,7 +307,6 @@ class TestScenarios:
         """
         Observe the propagation of the RIO in the WSN side (when supported in the WPAN).
         """
-        print >> sys.stderr, "******** Test S08 ********"
         pass
 
     @skipUnlessTrue("S9")
@@ -323,7 +314,6 @@ class TestScenarios:
         """
         Test the using of the default router.
         """
-        print >> sys.stderr, "******** Test S09 ********"
         pass
 
     @skipUnlessTrue("S10")
@@ -331,7 +321,6 @@ class TestScenarios:
         """
         Ping from the sensor to the computer when the sensor does not know the CBR.
         """
-        print >> sys.stderr, "******** Test S10 ********"
         pass
 
     @skipUnlessTrue("S11")
@@ -339,7 +328,6 @@ class TestScenarios:
         """
         Ping from the sensor to the computer when the CBR does not know the computer.
         """
-        print >> sys.stderr, "******** Test S11 ********"
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -356,7 +344,6 @@ class TestScenarios:
         Ping from the sensor to an external domain (as the inet address of google.com) and
         observe all the sending process.
         """
-        print >> sys.stderr, "******** Test S12 ********"
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -380,7 +367,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1001 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -428,7 +414,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1002 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -478,7 +463,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1003 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -528,7 +512,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1011 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -577,7 +560,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1012 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -628,7 +610,6 @@ class TestScenarios:
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S1013 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -674,6 +655,7 @@ class TestScenarios:
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -697,6 +679,7 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_SmartBridgeAuto")
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -721,6 +704,7 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_Router")
 class Router(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
@@ -750,6 +734,7 @@ class Router(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_RouterNoRa")
 class RouterNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
@@ -774,6 +759,7 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_TransparentBridgeManual")
 class TransparentBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -797,6 +783,7 @@ class TransparentBridgeManual(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_TransparentBridgeAuto")
 class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -821,6 +808,7 @@ class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_RplRoot")
 class RplRoot(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
@@ -850,6 +838,7 @@ class RplRoot(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_RplRootNoRa")
 class RplRootNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
@@ -874,6 +863,7 @@ class RplRootNoRa(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_RplRootTransparentBridge")
 class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
@@ -906,6 +896,7 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
 class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
+	self.print_test_name()
         self.support=TestSupport()
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -927,7 +918,6 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
         """
         testname = sys._getframe().f_code.co_name
         self.support.initreport()
-        print >> sys.stderr, "******** Test S00 ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
@@ -947,7 +937,6 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
         """
         testname = sys._getframe().f_code.co_name
 	self.support.initreport()
-        print >> sys.stderr, "******** Test S01_move ********"
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S1_move')), "Could not start 6LBR")
         timenetset = time.time()
