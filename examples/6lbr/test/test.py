@@ -162,8 +162,21 @@ class TestSupport:
 class TestScenarios:
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
+
     def print_test_name(self):
-        print >> sys.stderr, "\n******** %s.%s ********" % (self.__class__.__name__, self._testMethodName)
+        print >> sys.stderr, "\n******** %s ********" % self.testname
+
+    def setUp(self):
+        self.testname=self.__class__.__name__ + '.' + self._testMethodName
+	self.print_test_name()
+        self.support=TestSupport()
+	self.modeSetUp()
+
+    def tearDown(self):
+        self.tear_down_network()
+        self.support.tearDown()
+        self.support.savereportmode('mode_'+self.__class__.__name__)
+
     @skipUnlessTrue("S0")
     def test_S0(self):
         """
@@ -581,21 +594,14 @@ class TestScenarios:
 	self.support.savereport(testname)
     
 @skipUnlessTrue("mode_SmartBridgeManual")
-class SmartBridgeManual(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class SmartBridgeManual(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('SMART-BRIDGE', config.channel, accept_ra=False)
-
-    def tearDown(self):
-        self.tear_down_network()
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -605,20 +611,14 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_SmartBridgeAuto")
-class SmartBridgeAuto(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class SmartBridgeAuto(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -630,19 +630,13 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.stop_ra(), "")
 
 @skipUnlessTrue("mode_Router")
-class Router(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class Router(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.setUp()
         self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=True, accept_ra=False)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
         
     def set_up_network(self):
         sleep(10)
@@ -660,20 +654,14 @@ class Router(unittest.TestCase,TestScenarios):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RouterNoRa")
-class RouterNoRa(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class RouterNoRa(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=False)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -685,21 +673,14 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeManual")
-class TransparentBridgeManual(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class TransparentBridgeManual(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
-
-    def tearDown(self):
-        self.tear_down_network()
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -709,20 +690,14 @@ class TransparentBridgeManual(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeAuto")
-class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class TransparentBridgeAuto(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=True)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -734,20 +709,14 @@ class TransparentBridgeAuto(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.stop_ra(), "")
 
 @skipUnlessTrue("mode_RplRoot")
-class RplRoot(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class RplRoot(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.setUp()
         self.br.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
 
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
-        
     def set_up_network(self):
         sleep(10)
         self.assertTrue(self.support.platform.accept_ra(self.support.backbone.itf), "Could not enable RA configuration support")
@@ -764,20 +733,14 @@ class RplRoot(unittest.TestCase,TestScenarios):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RplRootNoRa")
-class RplRootNoRa(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class RplRootNoRa(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
         self.br.set_mode('RPL-ROOT', config.channel, iid="100", ra_daemon=False, addr_rewrite=False, filter_rpl=False)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
 
     def set_up_network(self):
         sleep(2)
@@ -789,10 +752,8 @@ class RplRootNoRa(unittest.TestCase,TestScenarios):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_RplRootTransparentBridge")
-class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.tb = self.support.add_6lbr()
@@ -801,10 +762,6 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
         self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
         self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
 
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
-   
     def set_up_network(self):
         sleep(10)
         self.assertTrue(self.support.platform.accept_ra(self.support.backbone.itf), "Could not enable RA configuration support")
@@ -822,10 +779,8 @@ class RplRootTransparentBridge(unittest.TestCase,TestScenarios):
         
 
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
-class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
-    def setUp(self):
-	self.print_test_name()
-        self.support=TestSupport()
+class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
+    def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
         self.br1 = self.support.add_6lbr()
@@ -834,10 +789,6 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
         self.support.setUp()
         self.br1.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
         self.br2.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
-
-    def tearDown(self):
-        self.support.tearDown()
-        self.support.savereportmode('mode_'+type(self).__name__)
         
     @skipUnlessTrue("S0")
     def test_S0(self):

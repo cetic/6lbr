@@ -759,9 +759,10 @@ class Linux(Platform):
         return self.radvd != None
 
     def stop_ra(self):
-        print >> sys.stderr, "Stop RA daemon..."
-        self.radvd.send_signal(signal.SIGINT)
-        self.radvd = None
+        if self.radvd:
+            print >> sys.stderr, "Stop RA daemon..."
+            self.radvd.send_signal(signal.SIGINT)
+            self.radvd = None
         return True
 
     def check_prefix(self, itf, prefix):
