@@ -740,7 +740,7 @@ def main():
         print >> sys.stderr, " ============="
         print >> sys.stderr, " == ITER %02d ==" % i
         unittest.main(exit=False, verbosity=1)
-	srcdir = os.path.dirname(os.path.dirname(config.report_path))
+	srcdir = os.path.dirname(config.report_path)
 	destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):

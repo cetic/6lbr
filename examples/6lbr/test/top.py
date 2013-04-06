@@ -27,7 +27,7 @@ for simfile in simfiles:
   #Run the test suite with the current topology
   system("python2.7 ./test.py")
   #Move the current coojasim working directory to its final location
-  srcdir = os.path.dirname(os.path.dirname(os.path.dirname(report_path)))
+  srcdir = os.path.dirname(os.path.dirname(report_path))
   shutil.copyfile(os.path.join('coojagen/output',simname+'.csc'),os.path.join(srcdir,simname+'.csc'))
   shutil.copyfile(os.path.join('coojagen/output',simname+'.motes'),os.path.join(srcdir,simname+'.motes'))
   destdir = os.path.join(os.path.dirname(srcdir),simname)
@@ -39,7 +39,7 @@ for simfile in simfiles:
   os.rename(srcdir,destdir)
 
 #Move the current run working directory to its final location
-srcdir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(report_path))))
+srcdir = os.path.dirname(os.path.dirname(os.path.dirname(report_path)))
 destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
 if os.path.exists(destdir):
   if os.path.isdir(destdir):
