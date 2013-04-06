@@ -607,6 +607,55 @@ class MultiBrSmartBridgeAuto(unittest.TestCase,TestScenarios):
         print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
         self.support.savereport(testname)
 
+    @skipUnlessTrue("S1_move")
+    def test_S1_move(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S01_move ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S1_move')), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        timenetsetdone = time.time()
+        ping_thread = self.support.platform.ping_run(self.support.test_mote.ip,0.5,config.report_path+'/ping.log')
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        print >> sys.stderr, "Moving mote..."
+	self.support.wsn.move_mote(self.support.test_mote.mote_id, -1)
+	sleep(5)
+        self.assertTrue(self.support.wait_ping_mote(240), "Mote is not responding")
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        self.support.platform.ping_stop(ping_thread)
+        timenetunset = time.time()
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
     def set_up_network(self):
         sleep(2)
         #self.support.platform.accept_ra(self.support.brList.itf)
