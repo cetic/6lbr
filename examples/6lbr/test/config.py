@@ -49,6 +49,9 @@ define 1 to run the scenario, 0 to skip
 """
 S0=0
 S1=0
+
+S1_move=1
+
 S2=0
 S3=0
 S4=0
