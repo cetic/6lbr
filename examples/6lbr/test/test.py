@@ -175,6 +175,7 @@ class TestScenarios:
 
     def tearDown(self):
 	self.support.savereport(self.testname)
+        self.support.platform.udpsrv_stop()
         self.tear_down_network()
         self.support.tearDown()
         #self.support.savereportmode('mode_'+self.__class__.__name__)
