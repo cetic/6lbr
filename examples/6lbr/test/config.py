@@ -26,9 +26,13 @@ backbone_dev='br0'
 mote_baudrate=115200
 channel=26
 
-#simgen_config_path='./coojagen/examples/config_line_single_br.py'
-#simgen_config_path='./coojagen/examples/config_grid_single_br.py'
-simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes.py'
+#Single BR Topologies
+#simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10
+#simgen_config_path='./coojagen/examples/config_grid_single_br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8
+
+#2-BR Topologies
+simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_disjoint.py' # Disjoint DAGs
+#simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes.py
 
 from support import *
 
