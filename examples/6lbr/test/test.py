@@ -147,6 +147,11 @@ class TestSupport:
             if os.path.isdir(destdir):
                 dirs = os.listdir(srcdir)
                 for node in dirs:
+                    if os.path.exists(os.path.join(destdir,node)):
+                        if os.path.isdir(os.path.join(destdir,node)):
+                            rmtree(os.path.join(destdir,node))
+                        else:
+                            os.unlink(os.path.join(destdir,node))
                     os.rename(os.path.join(srcdir,node),os.path.join(destdir,node))
                 os.rmdir(srcdir)
             else:
