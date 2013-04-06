@@ -123,7 +123,7 @@ timeout_handler(void)
   }
 
   if (client_conn == NULL) {
-    if (use_user_dest_addr || (dag != NULL && dag->prefix_info.length != 0) ) {
+    if (dag != NULL && dag->prefix_info.length != 0 ) {
         /* At least one prefix announced : building of the global address to reach using prefixes */
         memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
         PRINTF("UDP-CLIENT: address destination: ");
@@ -138,21 +138,20 @@ timeout_handler(void)
 		UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 		print_local_addresses();
     } else {
-      PRINTF("No dag or dest address configured yet\n");
+      PRINTF("No dag configured yet\n");
     }
-  } else {
+  }
+  if (client_conn != NULL) {
     if(memcmp(&client_conn->ripaddr, &newdest_addr, sizeof(uip_ipaddr_t)) != 0) {
-      if(dag->prefix_info.length != 0) {
-        PRINTF("UPD-CLIENT : new address, connection changed\n");
-        memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
-        client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
-        udp_bind(client_conn, UIP_HTONS(3001));
-        PRINTF("Created a connection with the server ");
-        PRINT6ADDR(&client_conn->ripaddr);
-        PRINTF(" local/remote port %u/%u\n",
-        UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-        print_local_addresses();
-      }
+      PRINTF("UPD-CLIENT : new address, connection changed\n");
+      memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
+      client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
+      udp_bind(client_conn, UIP_HTONS(3001));
+      PRINTF("Created a connection with the server ");
+      PRINT6ADDR(&client_conn->ripaddr);
+      PRINTF(" local/remote port %u/%u\n",
+      UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+      print_local_addresses();
     }
     PRINTF("Client sending to: ");
     PRINT6ADDR(&client_conn->ripaddr);
