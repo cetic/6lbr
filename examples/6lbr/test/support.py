@@ -709,12 +709,12 @@ class Linux(Platform):
     def start_ra(self, itf):
         print >> sys.stderr, "Start RA daemon..."
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        self.radvd = subprocess.Popen(args="radvd -m stderr -d 5 -n -C radvd.%s.conf" % itf, shell=True)
+        self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
         return self.radvd != None
 
     def stop_ra(self):
         print >> sys.stderr, "Stop RA daemon..."
-        self.radvd.send_signal(signal.SIGTERM)
+        self.radvd.send_signal(signal.SIGINT)
         self.radvd = None
         return True
 
