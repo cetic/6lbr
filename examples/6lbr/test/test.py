@@ -170,20 +170,20 @@ class TestScenarios:
         self.testname=self.__class__.__name__ + '.' + self._testMethodName
 	self.print_test_name()
         self.support=TestSupport()
+	self.support.initreport()
 	self.modeSetUp()
 
     def tearDown(self):
+	self.support.savereport(self.testname)
         self.tear_down_network()
         self.support.tearDown()
-        self.support.savereportmode('mode_'+self.__class__.__name__)
+        #self.support.savereportmode('mode_'+self.__class__.__name__)
 
     @skipUnlessTrue("S0")
     def test_S0(self):
         """
         Check 6LBR start-up and connectivity
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
@@ -192,7 +192,6 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
 	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-	self.support.savereport(testname)
 
     @skipUnlessTrue("S1")
     def test_S1(self):
@@ -200,8 +199,6 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -237,7 +234,6 @@ class TestScenarios:
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
 
     @skipUnlessTrue("S2")
     def test_S2(self):
@@ -373,7 +369,6 @@ class TestScenarios:
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     def S100x_base(self, testname, start_udp, udp_echo):
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -416,7 +411,6 @@ class TestScenarios:
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
 
     @skipUnlessTrue("S1001")
     def test_S1001(self):
@@ -451,8 +445,6 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -491,7 +483,6 @@ class TestScenarios:
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
 
     @skipUnlessTrue("S1012")
     def test_S1012(self):
@@ -499,8 +490,6 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -541,7 +530,6 @@ class TestScenarios:
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
 
     @skipUnlessTrue("S1013")
     def test_S1013(self):
@@ -549,8 +537,6 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -591,7 +577,6 @@ class TestScenarios:
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
     
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(TestScenarios, unittest.TestCase):
@@ -795,8 +780,6 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
         """
         Check 6LBR start-up and connectivity
         """
-        testname = sys._getframe().f_code.co_name
-        self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         self.set_up_network()
@@ -806,7 +789,6 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
         print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-        self.support.savereport(testname)
 
     @skipUnlessTrue("S1_move")
     def test_S1_move(self):
@@ -814,8 +796,6 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-	self.support.initreport()
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S1_move')), "Could not start 6LBR")
         timenetset = time.time()
@@ -855,7 +835,7 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
             timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
-	self.support.savereport(testname)
+
     def set_up_network(self):
         sleep(2)
         #self.support.platform.accept_ra(self.support.brList.itf)
