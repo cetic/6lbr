@@ -847,7 +847,7 @@ class Linux(Platform):
 
     def udpsrv_stop(self):
         print >> sys.stderr, "Stop UDP server..."
-        self.udpsrv.send_signal(signal.SIGKILL)
+        self.udpsrv.kill()
         self.udpsrv = None
         return True
 

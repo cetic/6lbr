@@ -391,6 +391,8 @@ class TestScenarios:
         timemotepingdone = time.time()
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
+        if start_udp:
+            self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
         self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
