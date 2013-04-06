@@ -48,7 +48,7 @@ scenarios
 define 1 to run the scenario, 0 to skip
 """
 S0=0
-S1=1
+S1=0
 S2=0
 S3=0
 S4=0
@@ -60,19 +60,27 @@ S9=0
 S10=0
 S11=0
 S12=0
+
+S1001=1
+S1002=1
+S1003=1
+S1011=0
+S1012=0
+S1013=0
+
 test_repeat=1
 
 """
 modes
 define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
-mode_SmartBridgeManual=1
+mode_SmartBridgeManual=0
 mode_SmartBridgeAuto=0
 mode_Router=1
-mode_RouterNoRa=1
+mode_RouterNoRa=0
 mode_RplRoot=0
 mode_RplRootNoRa=0
 mode_TransparentBridgeManual=0
 mode_TransparentBridgeAuto=0
 mode_RplRootTransparentBridge=0
-mode_MultiBrSmartBridgeAuto=1
+mode_MultiBrSmartBridgeAuto=0

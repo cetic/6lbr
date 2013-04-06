@@ -147,6 +147,11 @@ class TestSupport:
             if os.path.isdir(destdir):
                 dirs = os.listdir(srcdir)
                 for node in dirs:
+                    if os.path.exists(os.path.join(destdir,node)):
+                        if os.path.isdir(os.path.join(destdir,node)):
+                            rmtree(os.path.join(destdir,node))
+                        else:
+                            os.unlink(os.path.join(destdir,node))
                     os.rename(os.path.join(srcdir,node),os.path.join(destdir,node))
                 os.rmdir(srcdir)
             else:
@@ -367,6 +372,305 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
+    @skipUnlessTrue("S1001")
+    def test_S1001(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1001 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timenetsetdone = time.time()
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+
+    @skipUnlessTrue("S1002")
+    def test_S1002(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1002 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        self.assertTrue(self.support.platform.udpsrv_start(1234))
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timenetsetdone = time.time()
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.assertTrue(self.support.udpsrv_stop())
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+
+    @skipUnlessTrue("S1003")
+    def test_S1003(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1003 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        self.assertTrue(self.support.platform.udpsrv_start_echo(1234))
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timenetsetdone = time.time()
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.assertTrue(self.support.udpsrv_stop())
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+
+    @skipUnlessTrue("S1011")
+    def test_S1011(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1011 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        timenetsetdone = time.time()
+        time.sleep(900)
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+
+    @skipUnlessTrue("S1012")
+    def test_S1012(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1012 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        self.assertTrue(self.support.udpsrv_start(1234))
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        timenetsetdone = time.time()
+        time.sleep(900)
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.assertTrue(self.support.udpsrv_stop())
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+
+    @skipUnlessTrue("S1013")
+    def test_S1013(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        testname = sys._getframe().f_code.co_name
+	self.support.initreport()
+        print >> sys.stderr, "******** Test S1013 ********"
+        timestart = time.time()
+        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        timenetset = time.time()
+        self.set_up_network()
+        self.assertTrue(self.support.udpsrv_start_echo(1234))
+        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
+        timenetsetdone = time.time()
+        time.sleep(900)
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        timemoterun = time.time()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        timemotedetect = time.time()
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        timemoteping = time.time()
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        timemotepingdone = time.time()
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        timemotestopdone = time.time()
+        timenetunset = time.time()
+        self.support.platform.ping_stop(tping)
+        self.support.platform.pcap_stop(tcap)
+        self.assertTrue(self.support.udpsrv_stop())
+        self.tear_down_network()
+        timenetunsetdone = time.time()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        timestop = time.time()
+	print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
+        with open(config.report_path+'/time.log', "a") as timereport:
+            timereport.write("Start Test= %f\n" % (timestart,))
+            timereport.write("ms since start...\n")
+            timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
+            timereport.write("Network started = %f\n" % (1000*(timenetsetdone-timestart),))
+            timereport.write("Mote start = %f\n" % (1000*(timemoterun-timestart),))
+            timereport.write("Mote detected = %f\n" % (1000*(timemotedetect-timestart),))
+            timereport.write("Mote ping = %f\n" % (1000*(timemoteping-timestart),))
+            timereport.write("Mote reached = %f\n" % (1000*(timemotepingdone-timestart),))
+            timereport.write("Mote stopped = %f\n" % (1000*(timemotestopdone-timestart),))
+            timereport.write("Network stop = %f\n" % (1000*(timenetunset-timestart),))
+            timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
+            timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
+	self.support.savereport(testname)
+    
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):

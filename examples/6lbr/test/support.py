@@ -679,12 +679,22 @@ class MacOSX(Platform):
     def ping_run(self, target, interval, out):
         result = system("touch %s" % out)
         proc = Process(target=self.ping_loop, args=(target,interval,out))
-	proc.start()
-        return proc
+        proc.start()
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
 
-    def ping_stop(self, thread):
-	thread.terminate()
-	thread.join()
+    def ping_stop(self, tid):
+        if self.threads.has_key(tid):
+            self.threads[tid].terminate()
+            self.threads[tid].join(10)
+            del self.threads[tid]
+            return True
+        else:
+            return False
 
     def ping_loop(self, target, interval, out):
         while True:
@@ -695,15 +705,21 @@ class MacOSX(Platform):
 class Linux(Platform):
     def __init__(self):
         self.radvd = None
+        self.udpsrv = None
         self.sp_ping = None
         self.threads = {}
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+        if self.udpsrv:
+            self.udpsrv_stop()
         for t in self.threads:
             self.threads[t].terminate()
-            self.threads[t].join(10)
+            if isinstance(self.threads[t],Process):
+                self.threads[t].join(10)
+            if isinstance(self.threads[t],subprocess.Popen):
+                self.threads[t].wait()
         for t in self.threads:
             try:
                 os.kill(t, signal.SIGKILL)
@@ -768,7 +784,7 @@ class Linux(Platform):
         return True
 
     def ping(self, target):
-	print "ping %s" % target
+        print "ping %s" % target
         result = system("ping6 -W 1 -c 1 %s > /dev/null" % target)
         #if result >> 8 == 2:
         sleep(1)
@@ -777,7 +793,7 @@ class Linux(Platform):
     def ping_run(self, target, interval, out):
         result = system("touch %s" % out)
         proc = Process(target=self.ping_loop, args=(target,interval,out))
-	proc.start()
+        proc.start()
         while True:
             id = proc.pid
             if not self.threads.has_key(id):
@@ -787,8 +803,8 @@ class Linux(Platform):
 
     def ping_stop(self, tid):
         if self.threads.has_key(tid):
-	    self.threads[tid].terminate()
-	    self.threads[tid].join(10)
+            self.threads[tid].terminate()
+            self.threads[tid].join(10)
             del self.threads[tid]
             return True
         else:
@@ -799,6 +815,41 @@ class Linux(Platform):
             result = system("echo '***' >> %s" % out)
             result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
+
+    def pcap_start(self, itf, out):
+        result = system("touch %s" % out)
+        proc = subprocess.Popen(args="tcpdump -i %s -w %s > /dev/null 2>&1" % (itf, out), shell=True)
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
+
+    def pcap_stop(self, tid):
+        if self.threads.has_key(tid):
+            self.threads[tid].terminate()
+            self.threads[tid].join(10)
+            del self.threads[tid]
+            return True
+        else:
+            return False
+
+    def udpsrv_start_echo(self, port):
+        print >> sys.stderr, "Start UDP echo server..."
+        self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True)
+        return self.udpsrv != None
+
+    def udpsrv_start(self, port):
+        print >> sys.stderr, "Start UDP server..."
+        self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True)
+        return self.udpsrv != None
+
+    def udpsrv_stop(self):
+        print >> sys.stderr, "Stop UDP server..."
+        self.udpsrv.send_signal(signal.SIGTERM)
+        self.udpsrv = None
+        return True
 
 class Host:
     def __init__(self, backbone):
