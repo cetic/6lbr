@@ -218,12 +218,19 @@ class CoojaWsn(Wsn):
             mote.setUp()
 
         try:
-            motelist_file = open(simulation_path[:-4] + '.motes')
-            for line in motelist_file:
+            self.motelist_file = open(simulation_path[:-4] + '.motes')
+            for line in self.motelist_file:
                 line = line.rstrip()
                 parts = line.split(';')
+                nodeid = parts[0]
                 if parts[1] == 'slipradio':
-                    self.add_slip_mote(parts[0])
+                    self.add_slip_mote(nodeid)
+                if len(parts) > 2:
+                    #The node has some mobility data attached, parse it
+                    for xy in parts[2:]:
+                        xy = xy.rstrip().split(',')
+                        self.get_mote(nodeid).add_mobility_point(float(xy[0]), float(xy[1]))
+                        print >> sys.stderr, "Adding mobility, point %f,%f to node %s" % (float(xy[0]), float(xy[1]), nodeid)
         except IOError:
             pass #TODO
 
@@ -256,12 +263,17 @@ class CoojaWsn(Wsn):
     def get_test_mote(self):
         return self.motelist[-1]
 
+    def get_mote(self, nodeid):
+        for mote in self.motelist:
+            if mote.mote_id == int(nodeid):
+                return mote
+
     def move_mote_xy(self, nodeid, xpos, ypos):
         self.get_test_mote().serialport.write("\r\nmovemote,%d,%f,%f\r\n" %(nodeid, xpos, ypos))
 
     def move_mote(self, nodeid, position):
         try:
-            self.move_mote_xy(nodeid, config.interactive_mobility[position][0], config.interactive_mobility[position][1])
+            self.move_mote_xy(nodeid, self.get_mote(nodeid).get_mobility_point(position)[0], self.get_mote(nodeid).get_mobility_point(position)[1])
         except IndexError:
             print >> sys.stderr, "Attempt to access non-existant position. Verify the interactive_mobility array in config.py"
 
@@ -447,6 +459,7 @@ class VirtualTelosMote(MoteProxy):
         self.wsn=wsn
         self.mote_dev = None
         self.mote_id = None
+        self.mobility_data = []
 
     def setUp(self):
         print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
@@ -510,6 +523,12 @@ class VirtualTelosMote(MoteProxy):
             return self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
             return True
+
+    def add_mobility_point(self, x, y):
+        self.mobility_data.append([x,y])
+
+    def get_mobility_point(self, index):
+        return self.mobility_data[index]
 
 class InteractiveMote(MoteProxy):
     def __init__(self):

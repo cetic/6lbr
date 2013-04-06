@@ -25,7 +25,7 @@ report_path='report/run-current/coojasim-current/iter-current/mode_current/test_
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
-interactive_mobility = [[35,46],[-55,71]]
+
 #simgen_config_path='./coojagen/examples/config_line_single_br.py'
 #simgen_config_path='./coojagen/examples/config_grid_single_br.py'
 simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes.py'

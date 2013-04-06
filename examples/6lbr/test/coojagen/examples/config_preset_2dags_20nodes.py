@@ -11,6 +11,7 @@ tx_interference = 45
 topology = 'preset'
 preset_data_path = 'coojagen/templates/preset-2dags-20nodes'
 mote_types=[]
+interactive_mobility = {'-1':[[35,46],[-55,71]]}
 
 #assignment: all nodes except first 2 which are slip-radios and the last one which is an interactive mote (id: 23)
 assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '-1':'node_delay'}

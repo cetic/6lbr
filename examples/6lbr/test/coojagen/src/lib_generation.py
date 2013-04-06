@@ -52,10 +52,14 @@ class SimMote:
 	def __init__(self, mote_type, nodeid):
 		self.mote_type = mote_type
 		self.nodeid = nodeid
+		self.mobility_data = None
 	def set_coords(self, xpos, ypos, zpos=0):
 		self.xpos = xpos
 		self.ypos = ypos
 		self.zpos = zpos
+
+	def set_mobility_data(self, data):
+		self.mobility_data = data
 
 	def text_from_template(self):
 
@@ -351,7 +355,11 @@ def cleardir(adir):
 def export_mote_list(exportpath, motelist):
 	exportfile = open(exportpath, 'w')
 	for mote in motelist:
-		exportfile.write("%d;%s\r\n" %(mote.nodeid, mote.mote_type.shortname))
+		exportfile.write("%d;%s" %(mote.nodeid, mote.mote_type.shortname))
+		if mote.mobility_data != None:
+			for xy in mote.mobility_data:
+				exportfile.write(";%2.2f,%2.2f" % (xy[0], xy[1]))
+		exportfile.write("\r\n")
 	exportfile.close()
 
 
@@ -374,6 +382,10 @@ class ConfigParser():
 			if mote_type.shortname == shortname:
 				return mote_type
 		return None
+
+        def add_mobility_data(self, data):
+		for index in data:
+			self.motelist[int(index)].set_mobility_data(data[index])
 
 	def parse_config(self, config_path):
 		print("LOADING CONFIG %s" % config_path)
@@ -432,6 +444,9 @@ class ConfigParser():
 				if hasattr(config_simgen, 'mobility'):
 					sim.add_mobility(config_simgen.mobility)
 
+				if hasattr(config_simgen, 'interactive_mobility'):
+					self.add_mobility_data(config_simgen.interactive_mobility)
+
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
 				print("****\n%s" % simfilepath)
@@ -476,6 +491,9 @@ class ConfigParser():
 
 				if hasattr(config_simgen, 'mobility'):
 					sim.add_mobility(config_simgen.mobility)
+
+				if hasattr(config_simgen, 'interactive_mobility'):
+					self.add_mobility_data(config_simgen.interactive_mobility)
 
 				sim.save_simfile(simfilepath)
 				self.simfiles.append(simfilepath)
