@@ -52,6 +52,11 @@
 #include <limits.h>
 #include <string.h>
 
+#if CETIC_6LBR_SMARTBRIDGE
+extern void
+send_purge_na(uip_ipaddr_t *prefix);
+#endif
+
 #if RPL_CONF_STATS
 rpl_stats_t rpl_stats;
 #endif
@@ -151,10 +156,18 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   rep = uip_ds6_route_lookup(prefix);
   if(rep == NULL) {
+	PRINTF("RPL: Add route for prefix ");
+    PRINT6ADDR(prefix);
+    PRINTF(" to ");
+    PRINT6ADDR(next_hop);
+    PRINTF("\n");
     if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
       PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
+#if CETIC_6LBR_SMARTBRIDGE
+    send_purge_na(prefix);
+#endif
   } else {
     PRINTF("RPL: Updated the next hop for prefix ");
     PRINT6ADDR(prefix);
