@@ -836,19 +836,18 @@ class Linux(Platform):
         else:
             return False
 
-    def udpsrv_start_echo(self, port):
-        print >> sys.stderr, "Start UDP echo server..."
-        self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True)
-        return self.udpsrv != None
-
-    def udpsrv_start(self, port):
-        print >> sys.stderr, "Start UDP server..."
-        self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True)
+    def udpsrv_start(self, port, udp_echo):
+        if udp_echo:
+            print >> sys.stderr, "Start UDP echo server..."
+            self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True)
+        else:
+            print >> sys.stderr, "Start UDP server..."
+            self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True)
         return self.udpsrv != None
 
     def udpsrv_stop(self):
         print >> sys.stderr, "Stop UDP server..."
-        self.udpsrv.send_signal(signal.SIGTERM)
+        self.udpsrv.send_signal(signal.SIGKILL)
         self.udpsrv = None
         return True
 
