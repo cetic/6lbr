@@ -1,5 +1,5 @@
 #!/usr/bin/python2.7
-
+"""
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
 slip_radio=[ {'dev': '/dev/tty.usbserial-XBTOKIQP', 'iid': '0212:7400:1466:5117'}, {'dev': 'tty.usbserial-003013FDB', 'iid': '205:c2a:8cee:1c6d'}]
@@ -25,10 +25,15 @@ report_path='report/run-current/coojasim-current/iter-current/test_current'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
-interactive_mobility = [[35,46],[-55,71]]
-#simgen_config_path='./coojagen/examples/config_line_single_br.py'
-#simgen_config_path='./coojagen/examples/config_grid_single_br.py'
-simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes.py'
+
+#Single BR Topologies
+#simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10
+#simgen_config_path='./coojagen/examples/config_grid_single_br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8
+
+#2-BR Topologies
+simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_disjoint.py' # Disjoint DAGs
+#simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_overlap.py' # TODO: Overlapping DAGs
+#simgen_config_path='./coojagen/examples/config_grid_2br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8 with mote close to BR1
 
 from support import *
 
@@ -43,7 +48,10 @@ scenarios
 define 1 to run the scenario, 0 to skip
 """
 S0=0
-S1=1
+S1=0
+
+S1_move=1
+
 S2=0
 S3=0
 S4=0
@@ -55,19 +63,27 @@ S9=0
 S10=0
 S11=0
 S12=0
+
+S1001=1
+S1002=1
+S1003=1
+S1011=0
+S1012=0
+S1013=0
+
 test_repeat=1
 
 """
 modes
 define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
-mode_SmartBridgeManual=1
+mode_SmartBridgeManual=0
 mode_SmartBridgeAuto=0
 mode_Router=1
-mode_RouterNoRa=1
+mode_RouterNoRa=0
 mode_RplRoot=0
 mode_RplRootNoRa=0
 mode_TransparentBridgeManual=0
 mode_TransparentBridgeAuto=0
 mode_RplRootTransparentBridge=0
-mode_MultiBrSmartBridgeAuto=1
+mode_MultiBrSmartBridgeAuto=0

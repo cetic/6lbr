@@ -143,7 +143,7 @@ class LocalNativeBR(BRProxy):
     def start_6lbr(self, log_file):
         print >> sys.stderr, "Starting 6LBR %s..." % self.itf
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
-        self.log=open(log_file, "w")
+        self.log=open(log_file+'_%s.log'%self.itf, "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
         sleep(1)
         return self.process != None
@@ -218,12 +218,19 @@ class CoojaWsn(Wsn):
             mote.setUp()
 
         try:
-            motelist_file = open(simulation_path[:-4] + '.motes')
-            for line in motelist_file:
+            self.motelist_file = open(simulation_path[:-4] + '.motes')
+            for line in self.motelist_file:
                 line = line.rstrip()
                 parts = line.split(';')
+                nodeid = parts[0]
                 if parts[1] == 'slipradio':
-                    self.add_slip_mote(parts[0])
+                    self.add_slip_mote(nodeid)
+                if len(parts) > 2:
+                    #The node has some mobility data attached, parse it
+                    for xy in parts[2:]:
+                        xy = xy.rstrip().split(',')
+                        self.get_mote(nodeid).add_mobility_point(float(xy[0]), float(xy[1]))
+                        print >> sys.stderr, "Adding mobility, point %f,%f to node %s" % (float(xy[0]), float(xy[1]), nodeid)
         except IOError:
             pass #TODO
 
@@ -256,12 +263,17 @@ class CoojaWsn(Wsn):
     def get_test_mote(self):
         return self.motelist[-1]
 
+    def get_mote(self, nodeid):
+        for mote in self.motelist:
+            if mote.mote_id == int(nodeid):
+                return mote
+
     def move_mote_xy(self, nodeid, xpos, ypos):
         self.get_test_mote().serialport.write("\r\nmovemote,%d,%f,%f\r\n" %(nodeid, xpos, ypos))
 
     def move_mote(self, nodeid, position):
         try:
-            self.move_mote_xy(nodeid, config.interactive_mobility[position][0], config.interactive_mobility[position][1])
+            self.move_mote_xy(nodeid, self.get_mote(nodeid).get_mobility_point(position)[0], self.get_mote(nodeid).get_mobility_point(position)[1])
         except IndexError:
             print >> sys.stderr, "Attempt to access non-existant position. Verify the interactive_mobility array in config.py"
 
@@ -447,6 +459,7 @@ class VirtualTelosMote(MoteProxy):
         self.wsn=wsn
         self.mote_dev = None
         self.mote_id = None
+        self.mobility_data = []
 
     def setUp(self):
         print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
@@ -510,6 +523,12 @@ class VirtualTelosMote(MoteProxy):
             return self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
             return True
+
+    def add_mobility_point(self, x, y):
+        self.mobility_data.append([x,y])
+
+    def get_mobility_point(self, index):
+        return self.mobility_data[index]
 
 class InteractiveMote(MoteProxy):
     def __init__(self):
@@ -660,12 +679,22 @@ class MacOSX(Platform):
     def ping_run(self, target, interval, out):
         result = system("touch %s" % out)
         proc = Process(target=self.ping_loop, args=(target,interval,out))
-	proc.start()
-        return proc
+        proc.start()
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
 
-    def ping_stop(self, thread):
-	thread.terminate()
-	thread.join()
+    def ping_stop(self, tid):
+        if self.threads.has_key(tid):
+            self.threads[tid].terminate()
+            self.threads[tid].join(10)
+            del self.threads[tid]
+            return True
+        else:
+            return False
 
     def ping_loop(self, target, interval, out):
         while True:
@@ -676,11 +705,28 @@ class MacOSX(Platform):
 class Linux(Platform):
     def __init__(self):
         self.radvd = None
+        self.udpsrv = None
         self.sp_ping = None
+        self.threads = {}
 
     def tearDown(self):
         if self.radvd:
             self.stop_ra()
+        if self.udpsrv:
+            self.udpsrv_stop()
+        for t in self.threads:
+            self.threads[t].terminate()
+            if isinstance(self.threads[t],Process):
+                self.threads[t].join(10)
+            if isinstance(self.threads[t],subprocess.Popen):
+                self.threads[t].wait()
+        for t in self.threads:
+            try:
+                os.kill(t, signal.SIGKILL)
+            except OSError, err:
+                pass
+        self.threads.clear()
+        print >> sys.stderr, "platform teardown"
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))
@@ -709,13 +755,14 @@ class Linux(Platform):
     def start_ra(self, itf):
         print >> sys.stderr, "Start RA daemon..."
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        self.radvd = subprocess.Popen(args="radvd -m stderr -d 5 -n -C radvd.%s.conf" % itf, shell=True)
+        self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
         return self.radvd != None
 
     def stop_ra(self):
-        print >> sys.stderr, "Stop RA daemon..."
-        self.radvd.send_signal(signal.SIGTERM)
-        self.radvd = None
+        if self.radvd:
+            print >> sys.stderr, "Stop RA daemon..."
+            self.radvd.send_signal(signal.SIGINT)
+            self.radvd = None
         return True
 
     def check_prefix(self, itf, prefix):
@@ -738,7 +785,7 @@ class Linux(Platform):
         return True
 
     def ping(self, target):
-	print "ping %s" % target
+        print "ping %s" % target
         result = system("ping6 -W 1 -c 1 %s > /dev/null" % target)
         #if result >> 8 == 2:
         sleep(1)
@@ -747,18 +794,63 @@ class Linux(Platform):
     def ping_run(self, target, interval, out):
         result = system("touch %s" % out)
         proc = Process(target=self.ping_loop, args=(target,interval,out))
-	proc.start()
-        return proc
+        proc.start()
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
 
-    def ping_stop(self, thread):
-	thread.terminate()
-	thread.join()
+    def ping_stop(self, tid):
+        if self.threads.has_key(tid):
+            self.threads[tid].terminate()
+            self.threads[tid].join(10)
+            del self.threads[tid]
+            return True
+        else:
+            return False
 
     def ping_loop(self, target, interval, out):
         while True:
             result = system("echo '***' >> %s" % out)
             result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
+
+    def pcap_start(self, itf, out):
+        result = system("touch %s" % out)
+        proc = subprocess.Popen(args="tcpdump -i %s -w %s > /dev/null 2>&1" % (itf, out), shell=True)
+        while True:
+            id = proc.pid
+            if not self.threads.has_key(id):
+                break;
+        self.threads[id] = proc        
+        return id
+
+    def pcap_stop(self, tid):
+        if self.threads.has_key(tid):
+            self.threads[tid].terminate()
+            self.threads[tid].wait()
+            del self.threads[tid]
+            return True
+        else:
+            return False
+
+    def udpsrv_start_echo(self, port):
+        print >> sys.stderr, "Start UDP echo server..."
+        self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True)
+        return self.udpsrv != None
+
+    def udpsrv_start(self, port):
+        print >> sys.stderr, "Start UDP server..."
+        self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True)
+        return self.udpsrv != None
+
+    def udpsrv_stop(self):
+        print >> sys.stderr, "Stop UDP server..."
+        self.udpsrv.send_signal(signal.SIGTERM)
+        self.udpsrv = None
+        return True
 
 class Host:
     def __init__(self, backbone):
