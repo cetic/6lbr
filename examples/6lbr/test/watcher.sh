@@ -2,4 +2,4 @@
 
 #sudo watch -n 1 "brctl show;echo "===";ifconfig eth0;ifconfig br0;echo "===";ps aux|grep -e nc -e tcpdump -e udpserver -e java|grep -v watch|grep -v sh|grep -v grep;echo "===";tree report/"
 #sudo watch -n 1 "brctl show;echo "===";ifconfig br0;echo "===";ps aux|grep -e nc -e tcpdump -e udpserver -e java|grep -v grep;echo "===";tree -h report/"
-sudo watch -n 1 "brctl show;echo "===";ifconfig br0;echo "===";top -b -n 1|head -n 5;echo "===";ps aux|grep -e nc -e tcpdump -e udpserver -e java|grep -v grep;echo "===";tree -P time.log report/"
+sudo watch -n 1 "brctl show;echo "===";ifconfig br0;echo "===";route --inet6|grep br0;echo "===";top -b -n 1|head -n 5;echo "===";ps aux|grep -e nc -e tcpdump -e udpserver -e java|grep -v grep;echo "===";tree -P time.log report/"
