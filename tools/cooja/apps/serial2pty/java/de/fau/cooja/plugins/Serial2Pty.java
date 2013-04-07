@@ -142,7 +142,7 @@ public class Serial2Pty extends VisPlugin implements MotePlugin {
                           
                           if (_serialData.endsWith("\n") || _serialData.length() > 512) {
                               _serialData = _serialData.substring(0, _serialData.length() - 1);
-                              logger.debug("Forwarding from serial: " + _serialData);
+                              //logger.debug("Forwarding from serial: " + _serialData);
                               _serialData = "";
                           }
                       } catch (IOException e) {
@@ -174,7 +174,7 @@ public class Serial2Pty extends VisPlugin implements MotePlugin {
 			          int i = 0;
                       for (int byte_read = inPipeStream.read(); byte_read != -1;
                           byte_read = inPipeStream.read()) {
-                          logger.debug("Forwarding to serial: " + (char) byte_read);
+                          //logger.debug("Forwarding to serial: " + (char) byte_read);
                           //logger.debug((byte) byte_read);
                           serialPort.writeByte((byte) byte_read);
 			              if (++i >= 64) {
