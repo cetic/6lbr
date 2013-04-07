@@ -85,9 +85,14 @@ mode_SmartBridgeManual=0
 mode_SmartBridgeAuto=0
 mode_Router=1
 mode_RouterNoRa=0
+
+mode_RplRootTransparentBridge=0
+
+mode_MultiBrSmartBridgeAuto=0
+mode_RplRootMultiTransparentBridge=0
+
+#Debug modes, do not use
 mode_RplRoot=0
 mode_RplRootNoRa=0
 mode_TransparentBridgeManual=0
 mode_TransparentBridgeAuto=0
-mode_RplRootTransparentBridge=0
-mode_MultiBrSmartBridgeAuto=0
