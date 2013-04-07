@@ -191,6 +191,12 @@ class Wsn:
     def get_test_mote(self):
         pass
 
+    def send_cmd_all(self, cmd):
+        ret = True
+        for mote in motelist:
+            ret = ret and send_cmd(cmd)
+        return ret
+
 class CoojaWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
