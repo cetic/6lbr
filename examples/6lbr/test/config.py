@@ -33,6 +33,7 @@ udp_port=1234
 
 #2-BR Topologies
 simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_disjoint.py' # Disjoint DAGs
+#simgen_config_path='./coojagen/examples/config_preset_3slipradio_2dags_20nodes_disjoint.py' # Disjoint DAGs, 3 slip-radios
 #simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_overlap.py' # TODO: Overlapping DAGs
 #simgen_config_path='./coojagen/examples/config_grid_2br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8 with mote close to BR1
 
