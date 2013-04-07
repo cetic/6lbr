@@ -251,7 +251,9 @@ class CoojaWsn(Wsn):
 
     def tearDown(self):
         print("Killing Cooja")
+        self.get_test_mote().serialport.open()
         self.get_test_mote().serialport.write("\r\nkillcooja\r\n")
+        self.get_test_mote().serialport.close()
         self.cooja.wait()
         time.sleep(1)
         print >> sys.stderr, "Cooja Thread Killed"
@@ -269,7 +271,9 @@ class CoojaWsn(Wsn):
                 return mote
 
     def move_mote_xy(self, nodeid, xpos, ypos):
+        self.get_test_mote().serialport.open()
         self.get_test_mote().serialport.write("\r\nmovemote,%d,%f,%f\r\n" %(nodeid, xpos, ypos))
+        self.get_test_mote().serialport.close()
 
     def move_mote(self, nodeid, position):
         try:
@@ -469,13 +473,11 @@ class VirtualTelosMote(MoteProxy):
 	parity = serial.PARITY_NONE,
 	timeout = 1
 	)
-	self.reset_mote()
-	self.serialport.flushInput()
-	self.serialport.flushOutput()
+        self.serialport.close()
+        self.reset_mote()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
-	self.serialport.close()
 
     def setInfo(self, mote_dev, mote_id):
         self.mote_dev = mote_dev
@@ -495,34 +497,46 @@ class VirtualTelosMote(MoteProxy):
         return False
 
     def reset_mote(self):
+        self.serialport.open()
         print >> sys.stderr, "Resetting mote..."
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nreboot\r\n")
-        return self.wait_until("Starting '6LBR Demo'\n", 5)
+        ret = self.wait_until("Starting '6LBR Demo'\n", 5)
+        self.serialport.close()
+        return ret
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
+        self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nrfchannel %d\r\n" % channel)
         self.serialport.write("\r\nstart6lbr\r\n")
-        return self.wait_until("done\r\n", 5)
+        ret = self.wait_until("done\r\n", 5)
+        self.serialport.close()
+        return ret
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
+        self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nreboot\r\n")
-        return self.wait_until("Starting '6LBR Demo'\n", 5)
+        ret = self.wait_until("Starting '6LBR Demo'\n", 5)
+        self.serialport.close()
+        return ret
 
     def ping(self, address, expect_reply=False, count=0):
         print >> sys.stderr, "Ping %s..." % address
+        self.serialport.open()
         self.serialport.write("\r\nping %s\r\n" % address)
         if expect_reply:
-            return self.wait_until("Received an icmp6 echo reply\n", 10)
+            ret = self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
-            return True
+            ret = True
+        self.serialport.close()
+        return ret
 
     def add_mobility_point(self, x, y):
         self.mobility_data.append([x,y])
