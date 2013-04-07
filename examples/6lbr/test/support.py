@@ -264,6 +264,7 @@ class CoojaWsn(Wsn):
             self.get_test_mote().serialport.close()
             self.cooja.wait()
             time.sleep(1)
+            system("pkill -9 java")
             print >> sys.stderr, "Cooja Thread Killed"
         except serial.SerialException:
             print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
@@ -778,10 +779,16 @@ class Linux(Platform):
             result = system("route -A inet6 del %s/64 %s" % (dest, itf))
         return result == 0
 
-    def start_ra(self, itf):
-        print >> sys.stderr, "Start RA daemon..."
+    def start_ra(self, itf, variant=None):
+        if variant is None:
+            print >> sys.stderr, "Start RA daemon..."
+        else:
+            print >> sys.stderr, "Start RA daemon (variant=%s)..."%variant
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+        if variant is None:
+            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+        else:
+            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)])
         return self.radvd != None
 
     def stop_ra(self):
