@@ -201,7 +201,7 @@ class CoojaWsn(Wsn):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       nogui], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+                                       nogui], stdout=subprocess.PIPE)
         line = self.cooja.stdout.readline()
         while 'Simulation main loop started' not in line: # Wait for simulation to start 
 	    if 'serialpty;open;' in line:
@@ -258,6 +258,7 @@ class CoojaWsn(Wsn):
             self.get_test_mote().serialport.close()
             self.cooja.wait()
             time.sleep(1)
+            system("pkill -9 java")
             print >> sys.stderr, "Cooja Thread Killed"
         except serial.SerialException:
             print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
@@ -771,7 +772,7 @@ class Linux(Platform):
             result = system("route -A inet6 del %s/64 %s" % (dest, itf))
         return result == 0
 
-    def start_ra(self, itf, variant=""):
+    def start_ra(self, itf, variant=None):
         if variant is None:
             print >> sys.stderr, "Start RA daemon..."
         else:

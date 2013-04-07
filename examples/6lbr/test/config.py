@@ -87,7 +87,7 @@ S2011=1
 S2012=1
 S2013=1
 
-S101x_start_delay = 60
+S101x_start_delay = 20
 
 test_repeat=1
 

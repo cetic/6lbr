@@ -62,8 +62,8 @@ class TestSupport:
 	self.backbone.tearDown()
         self.platform.tearDown()
 
-    def start_ra(self, itf):
-        return self.platform.start_ra(itf)
+    def start_ra(self, itf, variant=None):
+        return self.platform.start_ra(itf,variant)
 
     def stop_ra(self):
         return self.platform.stop_ra()
@@ -441,7 +441,7 @@ class TestScenarios:
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         timemotedetectdone = time.time()
         timemoteping = time.time()
-        self.assertTrue(self.support.wait_ping_from_mote(self.support.host.ip,60), "Host is not responding")
+        self.assertTrue(self.support.wait_ping_from_mote(60,self.support.host.ip), "Host is not responding")
         timemotepingdone = time.time()
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
