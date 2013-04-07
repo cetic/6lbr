@@ -201,7 +201,7 @@ class CoojaWsn(Wsn):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       nogui], stdout=subprocess.PIPE)
+                                       nogui], stdout=subprocess.PIPE, preexec_fn=os.setsid)
         line = self.cooja.stdout.readline()
         while 'Simulation main loop started' not in line: # Wait for simulation to start 
 	    if 'serialpty;open;' in line:
@@ -755,10 +755,16 @@ class Linux(Platform):
             result = system("route -A inet6 del %s/64 %s" % (dest, itf))
         return result == 0
 
-    def start_ra(self, itf):
-        print >> sys.stderr, "Start RA daemon..."
+    def start_ra(self, itf, variant=""):
+        if variant is None:
+            print >> sys.stderr, "Start RA daemon..."
+        else:
+            print >> sys.stderr, "Start RA daemon (variant=%s)..."%variant
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+        if variant is None:
+            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+        else:
+            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)])
         return self.radvd != None
 
     def stop_ra(self):

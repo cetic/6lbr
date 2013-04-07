@@ -73,6 +73,20 @@ S1011=1
 S1012=1
 S1013=1
 
+S1101=1
+S1102=1
+S1103=1
+S1111=1
+S1112=1
+S1113=1
+
+S2001=1
+S2002=1
+S2003=1
+S2011=1
+S2012=1
+S2013=1
+
 S101x_start_delay = 60
 
 test_repeat=1
@@ -82,7 +96,7 @@ modes
 define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
 mode_SmartBridgeManual=0
-mode_SmartBridgeAuto=0
+mode_SmartBridgeAuto=1
 mode_Router=1
 mode_RouterNoRa=0
 mode_RplRoot=0
