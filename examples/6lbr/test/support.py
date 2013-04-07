@@ -819,7 +819,7 @@ class Linux(Platform):
 
     def pcap_start(self, itf, out):
         result = system("touch %s" % out)
-        proc = subprocess.Popen(args="tcpdump -i %s -w %s > /dev/null 2>&1" % (itf, out), shell=True)
+        proc = subprocess.Popen(args="tcpdump -i %s -w %s > /dev/null 2>&1" % (itf, out), shell=True, preexec_fn=os.setsid)
         while True:
             id = proc.pid
             if not self.threads.has_key(id):
@@ -829,27 +829,27 @@ class Linux(Platform):
 
     def pcap_stop(self, tid):
         if self.threads.has_key(tid):
-            self.threads[tid].terminate()
+            os.killpg(tid, signal.SIGTERM)
             self.threads[tid].wait()
             del self.threads[tid]
             return True
         else:
             return False
 
-    def udpsrv_start_echo(self, port):
-        print >> sys.stderr, "Start UDP echo server..."
-        self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True)
-        return self.udpsrv != None
-
-    def udpsrv_start(self, port):
-        print >> sys.stderr, "Start UDP server..."
-        self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True)
+    def udpsrv_start(self, port, udp_echo):
+        if udp_echo:
+            print >> sys.stderr, "Start UDP echo server..."
+            self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
+        else:
+            print >> sys.stderr, "Start UDP server..."
+            self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
         return self.udpsrv != None
 
     def udpsrv_stop(self):
-        print >> sys.stderr, "Stop UDP server..."
-        self.udpsrv.send_signal(signal.SIGTERM)
-        self.udpsrv = None
+        if self.udpsrv is not None:
+            print >> sys.stderr, "Stop UDP server (pid=%d)..."%self.udpsrv.pid
+            os.killpg(self.udpsrv.pid, signal.SIGKILL)
+            self.udpsrv = None
         return True
 
 class Host:
