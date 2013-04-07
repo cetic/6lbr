@@ -87,6 +87,10 @@ S2011=1
 S2012=1
 S2013=1
 
+S5001=1
+S5002=1
+S5003=1
+
 S101x_start_delay = 20
 
 test_repeat=1
@@ -100,7 +104,7 @@ mode_SmartBridgeAuto=1
 mode_Router=1
 mode_RouterNoRa=0
 
-mode_RplRootTransparentBridge=0
+mode_RplRootTransparentBridge=1
 
 mode_MultiBrSmartBridgeAuto=0
 mode_RplRootMultiTransparentBridge=0
