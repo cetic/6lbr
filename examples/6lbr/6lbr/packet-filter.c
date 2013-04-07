@@ -33,6 +33,8 @@ static inputfunc_t tcpip_inputfunc;
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ND6_NS_BUF            ((uip_nd6_ns *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 #define UIP_ND6_NA_BUF            ((uip_nd6_na *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_ICMP_PAYLOAD ((unsigned char *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 
 #define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == CETIC_6LBR_ETH_EXT_A && (a)->addr[4] ==CETIC_6LBR_ETH_EXT_B )
 #define IS_BROADCAST_ADDR(a) ((a)==NULL || rimeaddr_cmp((rimeaddr_t *)(a), &rimeaddr_null) != 0)
@@ -203,6 +205,12 @@ eth_input(void)
   if(transReturn != 0) {
     PRINTF("eth_input: IPTranslation returns %d\n\r", transReturn);
   }
+  //Filter mDNS (TODO !)
+  if (UIP_IP_BUF->proto == UIP_PROTO_UDP && UIP_UDP_BUF->destport == UIP_HTONS(5353)) {
+    printf("Dropping mDNS packet\n");
+    uip_len=0;
+    return;
+  }
   //Destination filtering
   //---------------------
   if(memcmp((uint8_t *) & eth_mac_addr, BUF->dest.addr, 6) == 0) {
@@ -224,11 +232,16 @@ eth_input(void)
     mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
 #if CETIC_6LBR_LEARN_RPL_MAC
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
+      uint8_t *buffer = UIP_ICMP_PAYLOAD;
+      uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
+      printf("Got DIO with rank %d\n", rank);
+      if ( rank == 256 ) {
 #if CONTIKI_TARGET_NATIVE
 	  slip_set_mac((rimeaddr_t *) &srcAddr);
 #endif
 	  //Set source address (must be done by hacking node address)
 	  rimeaddr_set_node_addr((rimeaddr_t *) &srcAddr);
+      }
     }
     wireless_output(NULL, &destAddr);
   }

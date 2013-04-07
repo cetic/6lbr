@@ -1,10 +1,6 @@
 """
-Single Border Router, Line Topology, Static
-
-A line topology with a variable number of nodes. The mote_count variable is a list of mote counts.
-There will be 1 topology generated per mote_count.
-All motes are of type 'node' except the first which is the 6LBR's slip-radio and the last
-which is the mote which we send commands to, 'node_delay'
+Load a preset topology: preset-2dags-20nodes, which is 2 totally disjoint DODAGs with 10 nodes in each.
+The first 2 nodes in the generated array are the ones meant to be use as slip-radio, so we assign them as such
 """
 
 outputfolder = 'coojagen/output'
@@ -12,13 +8,13 @@ template = 'coojagen/templates/cooja-template-udgm.csc'
 radio_model = 'udgm'
 tx_range = 45
 tx_interference = 45
-topology = 'line'
-step = 30
-mote_count = range(2,11,2) # = 5 topologies, 2,4,6,8,10
-assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'} 
+topology = 'preset'
+preset_data_path = 'coojagen/templates/preset-3slipradio-2dags-20nodes-disjoint'
+mote_types=[]
+interactive_mobility = {'-1':[[55,37],[-37,51]]}
 
-
-mote_types = []
+#assignment: all nodes except first 2 which are slip-radios and the last one which is an interactive mote (id: 23)
+assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '2':'slipradio', '-1':'node_delay'}
 
 mote_type_slipradio = {	'shortname':'slipradio', 
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
@@ -39,7 +35,7 @@ mote_type_6lbrdemo = {	'shortname':'node',
 			'maketarget':'6lbr-demo', 
 			'makeargs':'WITH_SHELL=1 WITH_WEBSERVER=0 WITH_DELAY_IP=0', 
 			'description':"6LBR Demo",
-			'serial':'pty' }
+			'serial':'' }
 
 mote_types.append(mote_type_slipradio)
 mote_types.append(mote_type_6lbrdemo_delay)
