@@ -39,7 +39,7 @@ mote_type_6lbrdemo = {	'shortname':'node',
 			'maketarget':'6lbr-demo', 
 			'makeargs':'WITH_SHELL=1 WITH_WEBSERVER=0 WITH_DELAY_IP=0', 
 			'description':"6LBR Demo",
-			'serial':'' }
+			'serial':'pty' }
 
 mote_types.append(mote_type_slipradio)
 mote_types.append(mote_type_6lbrdemo_delay)
