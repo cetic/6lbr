@@ -191,6 +191,12 @@ class Wsn:
     def get_test_mote(self):
         pass
 
+    def send_cmd_all(self, cmd):
+        ret = True
+        for mote in motelist:
+            ret = ret and send_cmd(cmd)
+        return ret
+
 class CoojaWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
@@ -369,6 +375,9 @@ class MoteProxy:
     def is_mote_started(self):
         return False
 
+    def send_cmd(self, cmd):
+        pass
+
 class TestbedMote(MoteProxy):
     def __init__(self, wsn):
         MoteProxy.__init__(self)
@@ -502,16 +511,11 @@ class VirtualTelosMote(MoteProxy):
         return False
 
     def reset_mote(self):
-        self.serialport.open()
         print >> sys.stderr, "Resetting mote..."
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
-        self.serialport.write("\r\nreboot\r\n")
-        ret = self.wait_until("Starting '6LBR Demo'\n", 5)
-        self.serialport.close()
-        return ret
+        return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def start_mote(self, channel):
+        #TODO check if send_cmd and the receiveing mote can handle this in 1 command: \r\nrfchannel %d\r\nstart6lbr\r\n
         print >> sys.stderr, "Starting mote..."
         self.serialport.open()
         self.serialport.flushInput()
@@ -524,23 +528,14 @@ class VirtualTelosMote(MoteProxy):
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
-        self.serialport.open()
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
-        self.serialport.write("\r\nreboot\r\n")
-        ret = self.wait_until("Starting '6LBR Demo'\n", 5)
-        self.serialport.close()
-        return ret
+        return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def ping(self, address, expect_reply=False, count=0):
         print >> sys.stderr, "Ping %s..." % address
-        self.serialport.open()
-        self.serialport.write("\r\nping %s\r\n" % address)
         if expect_reply:
-            ret = self.wait_until("Received an icmp6 echo reply\n", 10)
+            ret = self.send_cmd("ping %s" % address, "Received an icmp6 echo reply\n", 10)
         else:
-            ret = True
-        self.serialport.close()
+            ret = self.send_cmd("ping %s" % address)
         return ret
 
     def add_mobility_point(self, x, y):
@@ -548,6 +543,18 @@ class VirtualTelosMote(MoteProxy):
 
     def get_mobility_point(self, index):
         return self.mobility_data[index]
+
+    def send_cmd(self, cmd, expect=None, expect_time=0):
+        self.serialport.open()
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\n"+cmd+"\r\n")
+        if expect != None:
+            ret = self.wait_until(expect, expect_time)
+        else:
+            ret = True
+        self.serialport.close()
+        return ret
 
 class InteractiveMote(MoteProxy):
     def __init__(self):
