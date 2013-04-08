@@ -144,6 +144,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
   }
   uiplib_ipaddrconv(data, &remoteaddr);
 
+  printf("Sending ping...\n");
   send_ping(&remoteaddr);
   
   running = 1;
