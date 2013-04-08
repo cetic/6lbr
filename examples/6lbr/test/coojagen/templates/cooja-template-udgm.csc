@@ -7,6 +7,7 @@
   <project EXPORT="discard">[APPS_DIR]/collect-view</project>
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <project EXPORT="discard">[APPS_DIR]/serial2pty</project>
+  <project EXPORT="discard">[APPS_DIR]/radiologger-headless</project>
   <simulation>
     <title>6lbr template</title>
     <speedlimit>1.0</speedlimit>
@@ -144,6 +145,14 @@ while (true) {&#xD;
     <height>335</height>
     <location_x>3</location_x>
     <location_y>646</location_y>
+  </plugin>
+  <plugin>
+    be.cetic.cooja.plugins.RadioLoggerHeadless
+    <width>216</width>
+    <z>0</z>
+    <height>103</height>
+    <location_x>1501</location_x>
+    <location_y>594</location_y>
   </plugin>
 </simconf>
 
