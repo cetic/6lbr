@@ -431,7 +431,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    def S10xx_base(self, testname, start_udp, udp_echo, mote_start_delay = 0):
+    def S10xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -480,7 +480,7 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
             
-    def S20xx_base(self, testname, start_udp, udp_echo, mote_start_delay = 0):
+    def S20xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -591,8 +591,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, False, False)
+        self.S10xx_base(False, False)
 
     @skipUnlessTrue("S1002")
     def test_S1002(self):
@@ -600,8 +599,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, True, False)
+        self.S10xx_base(True, False)
 
     @skipUnlessTrue("S1003")
     def test_S1003(self):
@@ -609,8 +607,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, True, True)
+        self.S10xx_base(True, True)
 
     @skipUnlessTrue("S1011")
     def test_S1011(self):
@@ -618,8 +615,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, False, False, config.S101x_start_delay)
+        self.S10xx_base(False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1012")
     def test_S1012(self):
@@ -627,8 +623,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, True, False, config.S101x_start_delay)
+        self.S10xx_base(True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1013")
     def test_S1013(self):
@@ -636,9 +631,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S10xx_base(testname, True, True, config.S101x_start_delay)
-
+        self.S10xx_base(True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S2001")
     def test_S2001(self):
@@ -646,8 +639,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, False, False)
+        self.S20xx_base(False, False)
 
     @skipUnlessTrue("S2002")
     def test_S2002(self):
@@ -655,8 +647,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, True, False)
+        self.S20xx_base(True, False)
 
     @skipUnlessTrue("S2003")
     def test_S2003(self):
@@ -664,8 +655,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, True, True)
+        self.S20xx_base(True, True)
 
     @skipUnlessTrue("S2011")
     def test_S2011(self):
@@ -673,8 +663,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, False, False, config.S101x_start_delay)
+        self.S20xx_base(False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2012")
     def test_S2012(self):
@@ -682,8 +671,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, True, False, config.S101x_start_delay)
+        self.S20xx_base(True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2013")
     def test_S2013(self):
@@ -691,8 +679,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S20xx_base(testname, True, True, config.S101x_start_delay)
+        self.S20xx_base(True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S5001")
     def test_S5001(self):
@@ -700,8 +687,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S500x_base(testname, False, False)
+        self.S500x_base(False, False)
 
     @skipUnlessTrue("S5002")
     def test_S5002(self):
@@ -709,8 +695,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S500x_base(testname, True, False)
+        self.S500x_base(True, False)
 
     @skipUnlessTrue("S5003")
     def test_S5003(self):
@@ -718,8 +703,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S500x_base(testname, True, True)
+        self.S500x_base(True, True)
 
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(TestScenarios, unittest.TestCase):
@@ -757,7 +741,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
     def tear_down_network(self):
         self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
         
-    def S11xx_base(self, testname, start_udp, udp_echo, mote_start_delay = 0):
+    def S11xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -819,8 +803,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no glabl repair.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S11xx_base(testname, False, False, config.S101x_start_delay)
+        self.S11xx_base(False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1112")
     def test_S1112(self):
@@ -828,8 +811,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no glabl repair.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S11xx_base(testname, True, False, config.S101x_start_delay)
+        self.S11xx_base(True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1113")
     def test_S1113(self):
@@ -837,8 +819,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no glabl repair.
         """
-        testname = sys._getframe().f_code.co_name
-        self.S11xx_base(testname, True, True, config.S101x_start_delay)
+        self.S11xx_base(True, True, config.S101x_start_delay)
 
 @skipUnlessTrue("mode_Router")
 class Router(TestScenarios, unittest.TestCase):

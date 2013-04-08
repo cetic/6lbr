@@ -46,6 +46,8 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[];
 uip_ip6addr_t *dest_addr;
 uint8_t use_user_dest_addr = 0;
 uip_ip6addr_t user_dest_addr;
+uint16_t user_dest_port = 3000;
+uint8_t udp_client_run = 0;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
@@ -114,6 +116,7 @@ timeout_handler(void)
   rpl_dag_t *dag = rpl_get_any_dag();
   uip_ipaddr_t *globaladdr = NULL;
   uip_ipaddr_t newdest_addr;
+  uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
 
   if ( use_user_dest_addr ) {
 	uip_ipaddr_copy(&newdest_addr, &user_dest_addr);
@@ -129,7 +132,7 @@ timeout_handler(void)
         PRINTF("UDP-CLIENT: address destination: ");
         PRINT6ADDR(dest_addr);
         PRINTF("\n");
-        client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
+        client_conn = udp_new(dest_addr, UIP_HTONS(dest_port), NULL);
 
         udp_bind(client_conn, UIP_HTONS(3001));
 		PRINTF("Created a connection with the server ");
@@ -153,16 +156,18 @@ timeout_handler(void)
       UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
       print_local_addresses();
     }
-    PRINTF("Client sending to: ");
-    PRINT6ADDR(&client_conn->ripaddr);
-    i = sprintf(buf, "%d | ", ++seq_id);
-    add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
-    PRINTF(" (msg: %s)\n", buf);
-    #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
-    uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
-    #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
-    uip_udp_packet_send(client_conn, buf, strlen(buf));
-    #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+    if ( udp_client_run ) {
+      PRINTF("Client sending to: ");
+      PRINT6ADDR(&client_conn->ripaddr);
+      i = sprintf(buf, "%d | ", ++seq_id);
+      add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+      PRINTF(" (msg: %s)\n", buf);
+      #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
+      uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
+      #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+      uip_udp_packet_send(client_conn, buf, strlen(buf));
+      #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
