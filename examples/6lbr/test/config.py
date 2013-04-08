@@ -2,6 +2,9 @@
 """
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
+"""
+"""
+report_path='report/run-current/coojasim-current/iter-current/test_current'
 slip_radio=[ {'dev': '/dev/tty.usbserial-XBTOKIQP', 'iid': '0212:7400:1466:5117'}, {'dev': 'tty.usbserial-003013FDB', 'iid': '205:c2a:8cee:1c6d'}]
 motes = [ {'dev': '/dev/tty.usbserial-XBTO3BTS', 'iid': '0212:7400:146e:f407'}]
 mote_baudrate=115200
@@ -16,11 +19,13 @@ moteClass=LocalTelosMote
 platform=MacOSX()
 #platform=Linux()
 """
+
 """ 
 This next configuration is an example of a COOJA-based test on Linux. A native 6lbr interacts with a simulated
 slip-radio mote through a local socket and a simulated mote on a hardcoded pseudo terminal 
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
+
 report_path='report/run-current/coojasim-current/iter-current/test_current'
 backbone_dev='br0'
 mote_baudrate=115200

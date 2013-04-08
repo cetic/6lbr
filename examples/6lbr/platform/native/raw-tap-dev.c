@@ -263,7 +263,7 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
         ptr =
           (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
         memcpy(eth_mac_addr, ptr, 6);
-        (*eth_mac_addr)[5] = 7;
+        //(*eth_mac_addr)[5] = 7;
         found = 1;
         break;
       }
@@ -299,7 +299,9 @@ tun_init()
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
+#if !CETIC_6LBR_ONE_ITF
   slip_init();
+#endif
 
   if(use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
@@ -318,13 +320,17 @@ tun_init()
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev);
+#if !CETIC_6LBR_ONE_ITF
   if(use_raw_ethernet) {
-    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+#endif
+	fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
     PRINTF("Eth MAC address : ");
     PRINTETHADDR(&eth_mac_addr);
     PRINTF("\n");
     eth_mac_addr_ready = 1;
+#if !CETIC_6LBR_ONE_ITF
   }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
