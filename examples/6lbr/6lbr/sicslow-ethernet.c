@@ -76,6 +76,12 @@
 #define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
 #endif
 
+#if CETIC_6LBR_ONE_ITF
+#define UIP_CONF_SIMPLE_ADDR_TRANS	1
+#undef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	0
+#endif
+
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define ETHBUF(x) ((struct uip_eth_hdr *)x)
 
@@ -313,6 +319,19 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   }
 #endif
 
+#if UIP_CONF_SIMPLE_ADDR_TRANS
+
+  lowpan->addr[0] = ethernet[0];
+  lowpan->addr[1] = ethernet[1];
+  lowpan->addr[2] = ethernet[2];
+  lowpan->addr[3] = CETIC_6LBR_ETH_EXT_A;
+  lowpan->addr[4] = CETIC_6LBR_ETH_EXT_B;
+  lowpan->addr[5] = ethernet[3];
+  lowpan->addr[6] = ethernet[4];
+  lowpan->addr[7] = ethernet[5];
+
+#else //!UIP_CONF_SIMPLE_ADDR_TRANS
+
   uint8_t index;
 
   //Check if translate bit is set, hence we have to look up the prefix
@@ -343,6 +362,8 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   lowpan->addr[5] = ethernet[3];
   lowpan->addr[6] = ethernet[4];
   lowpan->addr[7] = ethernet[5];
+#endif //UIP_CONF_SIMPLE_ADDR_TRANS
+
   return 1;
 }
 
@@ -365,6 +386,17 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     return 1;
   }
 #endif
+
+#if UIP_CONF_SIMPLE_ADDR_TRANS
+
+    ethernet[0] = lowpan->addr[0];
+    ethernet[1] = lowpan->addr[1];
+    ethernet[2] = lowpan->addr[2];
+    ethernet[3] = lowpan->addr[5];
+    ethernet[4] = lowpan->addr[6];
+    ethernet[5] = lowpan->addr[7];
+
+#else //!UIP_CONF_SIMPLE_ADDR_TRANS
 
   uint8_t index = 0;
   uint8_t i;
@@ -442,6 +474,8 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
              ethernet[1], ethernet[2], ethernet[3], ethernet[4], ethernet[5]);
     }
   }
+
+#endif //UIP_CONF_SIMPLE_ADDR_TRANS
 
   return 1;
 }

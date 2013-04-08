@@ -68,8 +68,8 @@ class TestSupport:
     def stop_ra(self):
         return self.platform.stop_ra()
 
-    def add_6lbr(self):
-        _br = config.brClass(self.backbone, self.wsn)
+    def add_6lbr(self, radio=None):
+        _br = config.brClass(self.backbone, self.wsn, radio)
         self.brList.append(_br)
         return _br
 
@@ -165,8 +165,11 @@ class TestSupport:
 
     def savereport(self,testname):
         srcdir = config.report_path
-        os.rename('COOJA.log',os.path.join(srcdir,'COOJA.log'))
-        os.rename('COOJA.testlog',os.path.join(srcdir,'COOJA.testlog'))
+        try:
+            os.rename('COOJA.log',os.path.join(srcdir,'COOJA.log'))
+            os.rename('COOJA.testlog',os.path.join(srcdir,'COOJA.testlog'))
+        except OSError:
+            pass
         destdir = os.path.join(os.path.dirname(srcdir),testname)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):
@@ -974,7 +977,7 @@ class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.tb = self.support.add_6lbr()
-        self.rpl_root = self.support.add_6lbr()
+        self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null'})
         self.support.setUp()
         self.tb.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
         self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
@@ -1041,7 +1044,7 @@ class RplRootMultiTransparentBridge(TestScenarios, unittest.TestCase):
         self.support.wsn.prefix='aaaa'
         self.tb1 = self.support.add_6lbr()
         self.tb2 = self.support.add_6lbr()
-        self.rpl_root = self.support.add_6lbr()
+        self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null'})
         self.support.setUp()
         self.tb1.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
         self.tb2.set_mode('TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
