@@ -86,16 +86,20 @@ class BRProxy:
         pass
 
 class LocalNativeBR(BRProxy):
-    def __init__(self,backbone, wsn):
+    def __init__(self,backbone, wsn, radio):
         BRProxy.__init__(self)
         self.process=None
         self.backbone=backbone
         self.wsn=wsn
         self.itf = backbone.allocate_tap()
+        self.radio=radio
 
     def setUp(self):
         self.log=None
-        self.radio=self.wsn.allocate_radio_dev()
+        if not self.radio:
+            self.radio=self.wsn.allocate_radio_dev()
+        else:
+            self.radio['used']=1
 
     def tearDown(self):
         if ( self.process ):
@@ -123,11 +127,11 @@ class LocalNativeBR(BRProxy):
         else:
             print >>conf, "BRIDGE=0"
 
-        if 'socket' in self.radio:
+        if 'dev' in self.radio:
+            print >>conf, "DEV_RADIO=%s" % self.radio['dev']
+        else:
             print >>conf, "SOCK_RADIO=%s" % self.radio['socket']
             print >>conf, "SOCK_PORT=%s" % self.radio['port']
-        else:
-            print >>conf, "DEV_RADIO=%s" % self.radio['dev']
 
         print >>conf, "NVM=br/%s/test.dat" % self.itf
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
@@ -728,6 +732,18 @@ class MacOSX(Platform):
             result = system("echo '***' >> %s" % out)
             result = system("ping6 -c 1 %s 2>&1 >> %s" % (target,out))
             time.sleep(interval)
+
+    def pcap_start(self, itf, out):
+        pass
+
+    def pcap_stop(self, tid):
+        pass
+
+    def udpsrv_start(self, port, udp_echo):
+        pass
+
+    def udpsrv_stop(self):
+        pass
 
 class Linux(Platform):
     def __init__(self):
