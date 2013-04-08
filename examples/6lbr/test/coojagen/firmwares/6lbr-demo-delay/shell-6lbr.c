@@ -11,6 +11,8 @@ extern void start_apps(void);
 
 extern uint8_t use_user_dest_addr;
 extern uip_ip6addr_t user_dest_addr;
+extern uint16_t user_dest_port;
+extern uint8_t udp_client_run;
 
 PROCESS_NAME(tcpip_process);
 
@@ -30,10 +32,20 @@ SHELL_COMMAND(rfchannel_command,
 	      "rfchannel",
 	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
 	      &shell_rfchannel_process);
+PROCESS(shell_udp_host_process, "udp-dest");
+SHELL_COMMAND(udp_host_command,
+	      "udp-dest",
+	      "udp-dest <host>: set udp destination host",
+	      &shell_udp_host_process);
+PROCESS(shell_udp_port_process, "udp-port");
+SHELL_COMMAND(udp_port_command,
+	      "udp-port",
+	      "udp-port <port>: configure udp destination port",
+	      &shell_udp_port_process);
 PROCESS(shell_udp_process, "udp");
 SHELL_COMMAND(udp_command,
 	      "udp",
-	      "udp <host>: send udp traffic to host",
+	      "udp <start|stop>: configure udp client",
 	      &shell_udp_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_fast_reboot_process, ev, data)
@@ -79,17 +91,44 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_udp_process, ev, data)
+PROCESS_THREAD(shell_udp_host_process, ev, data)
 {
   PROCESS_BEGIN();
   if(data == NULL) {
     shell_output_str(&udp_command,
-		     "udp <host>: host as address", "");
+		     "udp-dest : wrong parameter", "");
     PROCESS_EXIT();
   }
   uiplib_ipaddrconv(data, &user_dest_addr);
   use_user_dest_addr = 1;
 
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_udp_port_process, ev, data)
+{
+	  uint16_t port;
+	  const char *newptr;
+	  PROCESS_BEGIN();
+
+	  port = shell_strtolong(data, &newptr);
+
+	  if(newptr != data) {
+	    user_dest_port = port;
+	  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_udp_process, ev, data)
+{
+  PROCESS_BEGIN();
+  if(data == NULL) {
+    shell_output_str(&udp_command,
+		     "udp-cfg : wrong parameter", "");
+    PROCESS_EXIT();
+  }
+  udp_client_run = strcmp("start", data) == 0;
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -99,6 +138,8 @@ shell_6lbr_init(void)
   shell_register_command(&fast_reboot_command);
   shell_register_command(&start6lbr_command);
   shell_register_command(&rfchannel_command);
+  shell_register_command(&udp_host_command);
+  shell_register_command(&udp_port_command);
   shell_register_command(&udp_command);
 }
 /*---------------------------------------------------------------------------*/
