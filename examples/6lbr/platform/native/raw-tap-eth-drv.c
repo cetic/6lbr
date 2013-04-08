@@ -90,6 +90,8 @@ PROCESS_THREAD(eth_drv_process, ev, data)
     eth_mac_addr_ready = 1;
   }
 #else
+  //TODO: Ethernet Bridge bullshit !
+  eth_mac_addr[5] += 1;
   mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) &wsn_mac_addr);
