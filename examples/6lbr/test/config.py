@@ -13,8 +13,8 @@ backboneClass=NativeTapBB
 wsnClass=LocalWsn
 brClass=LocalNativeBR
 moteClass=LocalTelosMote
-platform=MacOSX()
-#platform=Linux()
+#platform=MacOSX()
+platform=Linux()
 """
 """ 
 This next configuration is an example of a COOJA-based test on Linux. A native 6lbr interacts with a simulated
@@ -52,7 +52,7 @@ define 1 to run the scenario, 0 to skip
 S0=0
 S1=0
 
-S1_move=1
+S1_move=0
 
 S2=0
 S3=0
