@@ -41,7 +41,8 @@ PROCESS_THREAD(demo_6lbr_process, ev, data)
   serial_shell_init();
   shell_ping_init();
   shell_6lbr_init();
-#else
+#endif
+#if !WITH_DELAY_IP
   start_apps();
 #endif
 

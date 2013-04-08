@@ -25,7 +25,7 @@ report_path='report/run-current/coojasim-current/iter-current/test_current'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
-udp_port=1234
+udp_port=3000
 
 #Single BR Topologies
 #simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10

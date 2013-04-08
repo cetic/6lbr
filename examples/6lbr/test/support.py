@@ -193,8 +193,8 @@ class Wsn:
 
     def send_cmd_all(self, cmd):
         ret = True
-        for mote in motelist:
-            ret = ret and send_cmd(cmd)
+        for mote in self.motelist:
+            ret = ret and mote.send_cmd(cmd)
         return ret
 
 class CoojaWsn(Wsn):

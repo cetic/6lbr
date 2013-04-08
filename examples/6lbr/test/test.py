@@ -59,7 +59,7 @@ class TestSupport:
             _br.tearDown()
         self.wsn.tearDown()
         self.host.tearDown()
-	self.backbone.tearDown()
+        self.backbone.tearDown()
         self.platform.tearDown()
 
     def start_ra(self, itf, variant=None):
@@ -128,6 +128,36 @@ class TestSupport:
             if (self.ping_from_mote(target)):
                 return True
         return False
+
+    def start_udp_client(self, host = None, port = None):
+        if host is None:
+            host = self.host.ip
+        if port is None:
+            port = config.udp_port
+        print "Enable UDP traffic on test mote"
+        ok = self.test_mote.send_cmd("udp-dest %s" % host)
+        ok = ok and self.test_mote.send_cmd("udp-port %d" % port)
+        ok = ok and self.test_mote.send_cmd("udp start")
+        return ok
+
+    def stop_udp_client(self):
+        print "Disable UDP traffic on test mote"
+        return self.test_mote.send_cmd("udp stop")
+
+    def start_udp_clients(self, host = None, port = None):
+        if host is None:
+            host = self.host.ip
+        if port is None:
+            port = config.udp_port
+        print "Enable UDP traffic"
+        ok = self.wsn.send_cmd_all("udp-dest %s" % host)
+        ok = ok and self.wsn.send_cmd_all("udp-port %d" % port)
+        ok = ok and self.wsn.send_cmd_all("udp start")
+        return ok
+
+    def stop_udp_clients(self):
+        print "Disable UDP traffic"
+        return self.wsn.send_cmd_all("udp stop")
 
     def initreport(self):
         if not os.path.exists(config.report_path):
@@ -432,6 +462,7 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
+            self.assertTrue(self.support.start_udp_clients())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -481,6 +512,7 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
+            self.assertTrue(self.support.start_udp_clients())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -536,6 +568,7 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
+            self.assertTrue(self.support.start_udp_clients())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -584,6 +617,7 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
+            self.assertTrue(self.support.start_udp_clients())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -598,8 +632,8 @@ class TestScenarios:
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         timemotepingdone = time.time()
         print >> sys.stderr, "Moving mote..."
-	self.support.wsn.move_mote(self.support.test_mote.mote_id, -1)
-	sleep(5)
+        self.support.wsn.move_mote(self.support.test_mote.mote_id, -1)
+        sleep(5)
         timemovedmoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         timemovedmotepingdone = time.time()
@@ -710,7 +744,7 @@ class TestScenarios:
         """
         self.S20xx_base(False, False)
 
-    @skipUnlessTrue("2002")
+    @skipUnlessTrue("S2002")
     def test_S2002(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
