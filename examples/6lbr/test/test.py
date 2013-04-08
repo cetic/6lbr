@@ -610,8 +610,7 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))            
 
-    @skipUnlessTrue("S501x")
-    def S500x_base(self, start_udp, udp_echo, mote_start_delay = 0):
+    def S500x_base(self, start_udp, udp_all, udp_echo, mote_start_delay = 0):
         if not self.multi_br: return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
@@ -619,8 +618,14 @@ class TestScenarios:
         self.set_up_network()
         timenetsetdone = time.time()
         if start_udp:
+            moved_ping_timeout=60
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
-            self.assertTrue(self.support.start_udp_clients())
+            if udp_all:
+                self.assertTrue(self.support.start_udp_clients())
+            else:
+                self.assertTrue(self.support.start_udp_client())
+        else:
+            moved_ping_timeout=3000
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -638,7 +643,7 @@ class TestScenarios:
         self.support.wsn.move_mote(self.support.test_mote.mote_id, -1)
         sleep(5)
         timemovedmoteping = time.time()
-        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        self.assertTrue(self.support.wait_ping_mote(moved_ping_timeout), "Mote is not responding")
         timemovedmotepingdone = time.time()
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
@@ -787,13 +792,21 @@ class TestScenarios:
         """
         self.S20xx_base(True, True, config.S101x_start_delay)
 
+    @skipUnlessTrue("S5000")
+    def test_S5000(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.S500x_base(start_udp=False, udp_all=False, udp_echo=False)
+
     @skipUnlessTrue("S5001")
     def test_S5001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(False, False)
+        self.S500x_base(start_udp=True, udp_all=False, udp_echo=False)
 
     @skipUnlessTrue("S5002")
     def test_S5002(self):
@@ -801,7 +814,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, False)
+        self.S500x_base(start_udp=True, udp_all=True, udp_echo=False)
 
     @skipUnlessTrue("S5003")
     def test_S5003(self):
@@ -809,7 +822,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True)
+        self.S500x_base(start_udp=True, udp_all=True, udp_echo=True)
 
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(TestScenarios, unittest.TestCase):
