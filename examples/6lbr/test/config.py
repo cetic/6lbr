@@ -16,8 +16,8 @@ backboneClass=NativeTapBB
 wsnClass=LocalWsn
 brClass=LocalNativeBR
 moteClass=LocalTelosMote
-platform=MacOSX()
-#platform=Linux()
+#platform=MacOSX()
+platform=Linux()
 """
 
 """ 
@@ -57,7 +57,7 @@ define 1 to run the scenario, 0 to skip
 S0=0
 S1=0
 
-S1_move=1
+S1_move=0
 
 S2=0
 S3=0
@@ -71,32 +71,39 @@ S10=0
 S11=0
 S12=0
 
-S1001=1
-S1002=1
-S1003=1
-S1011=1
-S1012=1
-S1013=1
+S1000=0
+S1001=0
+S1002=0
+S1003=0
+S1010=0
+S1011=0
+S1012=0
+S1013=0
 
-S1101=1
-S1102=1
-S1103=1
-S1111=1
-S1112=1
-S1113=1
+S1100=1
+S1101=0
+S1102=0
+S1103=0
+S1110=1
+S1111=0
+S1112=0
+S1113=0
 
-S2001=1
-S2002=1
-S2003=1
-S2011=1
-S2012=1
-S2013=1
+S2000=0
+S2001=0
+S2002=0
+S2003=0
+S2010=0
+S2011=0
+S2012=0
+S2013=0
 
-S5001=1
-S5002=1
-S5003=1
+S5000=0
+S5001=0
+S5002=0
+S5003=0
 
-S101x_start_delay = 20
+S101x_start_delay = 60
 
 test_repeat=1
 
@@ -106,10 +113,10 @@ define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
 mode_SmartBridgeManual=0
 mode_SmartBridgeAuto=1
-mode_Router=1
+mode_Router=0
 mode_RouterNoRa=0
 
-mode_RplRootTransparentBridge=1
+mode_RplRootTransparentBridge=0
 
 mode_MultiBrSmartBridgeAuto=0
 mode_RplRootMultiTransparentBridge=0

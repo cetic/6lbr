@@ -888,10 +888,10 @@ class Linux(Platform):
     def udpsrv_start(self, port, udp_echo):
         if udp_echo:
             print >> sys.stderr, "Start UDP echo server..."
-            self.udpsrv = subprocess.Popen(args="./udpserver %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
+            self.udpsrv = subprocess.Popen(args="ncat -6 -u -l -k -e /bin/cat -p %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
         else:
             print >> sys.stderr, "Start UDP server..."
-            self.udpsrv = subprocess.Popen(args="nc -u -l -p %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
+            self.udpsrv = subprocess.Popen(args="ncat -6 -u -l -k -e /bin/false -p %s > /dev/null 2>&1" % port, shell=True, preexec_fn=os.setsid)
         return self.udpsrv != None
 
     def udpsrv_stop(self):
