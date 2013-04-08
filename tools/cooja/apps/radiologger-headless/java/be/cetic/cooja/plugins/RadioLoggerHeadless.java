@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,11 @@ import se.sics.cooja.plugins.analyzers.PcapExporter;
 import se.sics.cooja.util.StringUtils;
 
 /**
- * Radio logger listens to the simulation radio medium and lists all transmitted
- * data in a table.
+ * Radio Logger which exports a pcap file only.
+ * It was designed to support radio logging in COOJA's headless mode.
+ * Based on Fredrik Osterlind's RadioLogger.java
  *
- * @author Fredrik Osterlind
+ * @author Laurent Deru
  */
 @ClassDescription("Headless radio logger")
 @PluginType(PluginType.SIM_PLUGIN)
