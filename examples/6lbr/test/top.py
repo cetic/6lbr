@@ -31,9 +31,6 @@ for simgen_config_path in config.topologies:
     simfiles = parser.get_simfiles()
 
     for simfile in simfiles:
-        #Create the report work directories
-        if not os.path.exists(config.report_path):
-            os.makedirs(config.report_path)
         #Open and run the next COOJA topology
         running_simfile = open('.NEXT_TOPOLOGY', 'w')
         simname = os.path.basename(simfile).replace('.csc','')
@@ -41,6 +38,9 @@ for simgen_config_path in config.topologies:
         running_simfile.close()
         for start_delay in config.start_delays:
             for i in range(1,config.test_repeat+1):
+                #Create the report work directories
+                if not os.path.exists(config.report_path):
+                    os.makedirs(config.report_path)
                 print >> sys.stderr, " ======================"
                 print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
                 generate_config(config_simgen, start_delay)
@@ -51,7 +51,7 @@ for simgen_config_path in config.topologies:
 	        destdir = os.path.join(os.path.dirname(srcdir), 'iter-%03d-%02d'% (start_delay, i))
                 if os.path.exists(destdir):
                     if os.path.isdir(destdir):
-                        rmtree(destdir)
+                        shutil.rmtree(destdir)
                     else:
                         os.unlink(destdir)
                 os.rename(srcdir,destdir)
