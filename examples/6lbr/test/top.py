@@ -11,15 +11,11 @@ import shutil
 
 gen_config_name='gen_config.py'
 
-def generate_config(current_topo):
-    try:
-        os.unlink(gen_config_name)
-    except OSError:
-        pass
+def generate_config(current_topo, start_delay=0):
     gen_config = open( gen_config_name, 'w')
     print >> gen_config, "import config"
     print >> gen_config, "config.multi_br=%d" % current_topo.multi_br
-    #config.start_delay
+    print >> gen_config, "config.start_delay=%d" % start_delay
     #config.disjoint ?
     #config.stop_br
     gen_config.close()
@@ -43,9 +39,22 @@ for simgen_config_path in config.topologies:
         simname = os.path.basename(simfile).replace('.csc','')
         running_simfile.write(simfile)
         running_simfile.close()
-        generate_config(config_simgen)
-        #Run the test suite with the current topology
-        system("python2.7 ./test.py")
+        for start_delay in config.start_delays:
+            for i in range(1,config.test_repeat+1):
+                print >> sys.stderr, " ======================"
+                print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
+                generate_config(config_simgen, start_delay)
+                #Run the test suite with the current topology
+                system("python2.7 ./test.py")
+	        srcdir = os.path.dirname(config.report_path)
+                os.rename(gen_config_name, os.path.join(srcdir, gen_config_name))
+	        destdir = os.path.join(os.path.dirname(srcdir), 'iter-%03d-%02d'% (start_delay, i))
+                if os.path.exists(destdir):
+                    if os.path.isdir(destdir):
+                        rmtree(destdir)
+                    else:
+                        os.unlink(destdir)
+                os.rename(srcdir,destdir)
         #Move the current coojasim working directory to its final location
         srcdir = os.path.dirname(os.path.dirname(config.report_path))
         shutil.copyfile(os.path.join('coojagen/output',simname+'.csc'),os.path.join(srcdir,simname+'.csc'))
@@ -56,18 +65,17 @@ for simgen_config_path in config.topologies:
                 shutil.rmtree(destdir)
             else:
                 os.unlink(destdir)
-            os.rename(srcdir,destdir)
-
-    #Move the current run working directory to its final location
-    srcdir = os.path.dirname(os.path.dirname(os.path.dirname(config.report_path)))
-    destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
-    if os.path.exists(destdir):
-        if os.path.isdir(destdir):
-            shutil.rmtree(destdir)
-        else:
-            os.unlink(destdir)
         os.rename(srcdir,destdir)
 
-    os.unlink(".NEXT_TOPOLOGY")
-    os.unlink(gen_config_name)
+#Move the current run working directory to its final location
+srcdir = os.path.dirname(os.path.dirname(os.path.dirname(config.report_path)))
+destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
+if os.path.exists(destdir):
+    if os.path.isdir(destdir):
+        shutil.rmtree(destdir)
+    else:
+        os.unlink(destdir)
+os.rename(srcdir,destdir)
+os.unlink(".NEXT_TOPOLOGY")
+
 
