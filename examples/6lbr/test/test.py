@@ -10,6 +10,7 @@ from support import *
 from tcpdump import TcpDump
 import time
 from shutil import rmtree
+import urllib2
 
 def skipUnlessTrue(descriptor):
     if not hasattr(config, descriptor):
@@ -116,7 +117,9 @@ class TestSupport:
     def ping_mote(self):
         return self.ping( self.test_mote.ip )
 
-    def wait_ping_mote(self, count):
+    def wait_ping_mote(self, count, host = None):
+        if host is not None:
+            host = self.test_mote.ip
         print("Pinging mote %s" % self.test_mote.ip)
         return self.wait_ping( count, self.test_mote.ip )
 
@@ -209,10 +212,10 @@ class TestScenarios:
         self.testname=self.__class__.__name__ + '.' + self._testMethodName
         self.multi_br=False
         self.bridge_mode=False
-	self.print_test_name()
+        self.print_test_name()
         self.support=TestSupport()
-	self.support.initreport()
-	self.modeSetUp()
+        self.support.initreport()
+        self.modeSetUp()
 
     def tearDown(self):
 	self.support.savereport(self.testname)
@@ -457,7 +460,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    def S10xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
+    def S10xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -465,7 +468,10 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
-            self.assertTrue(self.support.start_udp_clients())
+            if wsn_udp:
+                self.assertTrue(self.support.start_udp_clients())
+            else:
+                self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -482,6 +488,10 @@ class TestScenarios:
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
         if start_udp:
+            if wsn_udp:
+                self.assertTrue(self.support.stop_udp_clients())
+            else:
+                self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
         self.support.platform.pcap_stop(tcap)
@@ -506,7 +516,7 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
-    def S11xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
+    def S11xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0, global_repair = False):
         if not self.bridge_mode: return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
@@ -515,12 +525,16 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
-            self.assertTrue(self.support.start_udp_clients())
+            if wsn_udp:
+                self.assertTrue(self.support.start_udp_clients())
+            else:
+                self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
             time.sleep(mote_start_delay)
-        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping1.log')
+        tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace("aaaa","9999"),1,config.report_path+'/ping2.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
@@ -531,14 +545,25 @@ class TestScenarios:
         timemotepingdone = time.time()
         self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
         self.assertTrue( self.support.start_ra(self.support.backbone.itf,"alt"), "Could not start RADVD")
+        self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+        self.support.host.setUp()
+        if global_repair:
+            print >> sys.stderr, "RPL Global Repair... (by %s)" % self.support.host.ip
+            httpresponse = urllib2.urlopen("http://%s/rpl-gr"%self.support.host.ip)
+            self.assertTrue(httpresponse.get_code() == 200, "Fail to trigger the RPL global repair")
         timemoteping2 = time.time()
-        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        self.assertTrue(self.support.wait_ping_mote(60,self.support.test_mote.ip.replace("aaaa","9999")), "Mote is not responding")
         timemoteping2done = time.time()        
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
         if start_udp:
+            if wsn_udp:
+                self.assertTrue(self.support.stop_udp_clients())
+            else:
+                self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
-        self.support.platform.ping_stop(tping)
+        self.support.platform.ping_stop(tping1)
+        self.support.platform.ping_stop(tping2)
         self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
@@ -563,7 +588,7 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
-    def S20xx_base(self, start_udp, udp_echo, mote_start_delay = 0):
+    def S20xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -571,7 +596,10 @@ class TestScenarios:
         timenetsetdone = time.time()
         if start_udp:
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
-            self.assertTrue(self.support.start_udp_clients())
+            if wsn_udp:
+                self.assertTrue(self.support.start_udp_clients())
+            else:
+                self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -587,6 +615,10 @@ class TestScenarios:
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
         if start_udp:
+            if wsn_udp:
+                self.assertTrue(self.support.stop_udp_clients())
+            else:
+                self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
@@ -610,7 +642,7 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))            
 
-    def S500x_base(self, start_udp, udp_all, udp_echo, mote_start_delay = 0):
+    def S500x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         if not self.multi_br: return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
@@ -618,14 +650,11 @@ class TestScenarios:
         self.set_up_network()
         timenetsetdone = time.time()
         if start_udp:
-            moved_ping_timeout=60
             self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
-            if udp_all:
+            if wsn_udp:
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        else:
-            moved_ping_timeout=3000
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
@@ -648,6 +677,10 @@ class TestScenarios:
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
         if start_udp:
+            if wsn_udp:
+                self.assertTrue(self.support.stop_udp_clients())
+            else:
+                self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
         self.support.platform.pcap_stop(tcap)
@@ -673,13 +706,21 @@ class TestScenarios:
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
+    @skipUnlessTrue("S1000")
+    def test_S1000(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.S10xx_base(False, False, False)
+
     @skipUnlessTrue("S1001")
     def test_S1001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(False, False)
+        self.S10xx_base(True, False, False)
 
     @skipUnlessTrue("S1002")
     def test_S1002(self):
@@ -687,7 +728,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, False)
+        self.S10xx_base(True, True, False)
 
     @skipUnlessTrue("S1003")
     def test_S1003(self):
@@ -695,7 +736,15 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True)
+        self.S10xx_base(True, True, True)
+
+    @skipUnlessTrue("S1010")
+    def test_S1010(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.S10xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1011")
     def test_S1011(self):
@@ -703,7 +752,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(False, False, config.S101x_start_delay)
+        self.S10xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1012")
     def test_S1012(self):
@@ -711,7 +760,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, False, config.S101x_start_delay)
+        self.S10xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1013")
     def test_S1013(self):
@@ -719,38 +768,87 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True, config.S101x_start_delay)
+        self.S10xx_base(True, True, True, config.S101x_start_delay)
+
+    @skipUnlessTrue("S1100")
+    def test_S1100(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote. The prefix change once the mote is reachable, with global repair.
+        """
+        self.S11xx_base(False, False, False, config.S101x_start_delay, True)
+
+    @skipUnlessTrue("S1101")
+    def test_S1101(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote. The prefix change once the mote is reachable, with global repair.
+        """
+        self.S11xx_base(True, False, False, config.S101x_start_delay, True)
+
+    @skipUnlessTrue("S1102")
+    def test_S1102(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote. The prefix change once the mote is reachable, with global repair.
+        """
+        self.S11xx_base(True, True, False, config.S101x_start_delay, True)
+
+    @skipUnlessTrue("S1103")
+    def test_S1103(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote. The prefix change once the mote is reachable, with global repair.
+        """
+        self.S11xx_base(True, True, True, config.S101x_start_delay, True)   
+        
+    @skipUnlessTrue("S1110")
+    def test_S1110(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote. The prefix change once the mote is reachable, no global repair.
+        """
+        self.S11xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1111")
     def test_S1111(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote. The prefix change once the mote is reachable, no glabl repair.
+        mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(False, False, config.S101x_start_delay)
+        self.S11xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1112")
     def test_S1112(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote. The prefix change once the mote is reachable, no glabl repair.
+        mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, False, config.S101x_start_delay)
+        self.S11xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1113")
     def test_S1113(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote. The prefix change once the mote is reachable, no glabl repair.
+        mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, True, config.S101x_start_delay)
+        self.S11xx_base(True, True, True, config.S101x_start_delay)
+
+    @skipUnlessTrue("S2000")
+    def test_S2000(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.S20xx_base(False, False, False)
+
     @skipUnlessTrue("S2001")
     def test_S2001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(False, False)
+        self.S20xx_base(True, False, False)
 
     @skipUnlessTrue("S2002")
     def test_S2002(self):
@@ -758,7 +856,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, False)
+        self.S20xx_base(True, True, False)
 
     @skipUnlessTrue("S2003")
     def test_S2003(self):
@@ -766,7 +864,15 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True)
+        self.S20xx_base(True, True, True)
+
+    @skipUnlessTrue("S2010")
+    def test_S2010(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.S20xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2011")
     def test_S2011(self):
@@ -774,7 +880,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(False, False, config.S101x_start_delay)
+        self.S20xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2012")
     def test_S2012(self):
@@ -782,7 +888,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, False, config.S101x_start_delay)
+        self.S20xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2013")
     def test_S2013(self):
@@ -790,7 +896,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True, config.S101x_start_delay)
+        self.S20xx_base(True, True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S5000")
     def test_S5000(self):
@@ -798,7 +904,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(start_udp=False, udp_all=False, udp_echo=False)
+        self.S500x_base(False, False, False)
 
     @skipUnlessTrue("S5001")
     def test_S5001(self):
@@ -806,7 +912,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(start_udp=True, udp_all=False, udp_echo=False)
+        self.S500x_base(True, False, False)
 
     @skipUnlessTrue("S5002")
     def test_S5002(self):
@@ -814,7 +920,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(start_udp=True, udp_all=True, udp_echo=False)
+        self.S500x_base(True, True, False)
 
     @skipUnlessTrue("S5003")
     def test_S5003(self):
@@ -822,7 +928,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(start_udp=True, udp_all=True, udp_echo=True)
+        self.S500x_base(True, True, True)
 
 @skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(TestScenarios, unittest.TestCase):

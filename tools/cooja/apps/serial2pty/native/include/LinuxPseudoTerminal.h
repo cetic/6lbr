@@ -7,7 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* Inaccessible static: logger */
 /*
  * Class:     de_fau_cooja_plugins_LinuxPseudoTerminal
  * Method:    setupMasterPt
