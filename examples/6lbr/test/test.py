@@ -545,11 +545,13 @@ class TestScenarios:
         timemotepingdone = time.time()
         self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
         self.assertTrue( self.support.start_ra(self.support.backbone.itf,"alt"), "Could not start RADVD")
-        self.assertTrue(self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+        self.assertTrue( self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+        self.assertTrue( self.support.platform.delete_address(self.support.backbone.itf,self.support.host.ip) )
         self.support.host.setUp()
         if global_repair:
             print >> sys.stderr, "RPL Global Repair... (by %s)" % self.support.host.ip
-            httpresponse = urllib2.urlopen("http://%s/rpl-gr"%self.support.host.ip)
+            os.environ['http_proxy']=''
+            httpresponse = urllib2.urlopen("http://[%s]/rpl-gr"%self.support.host.ip)
             self.assertTrue(httpresponse.get_code() == 200, "Fail to trigger the RPL global repair")
         timemoteping2 = time.time()
         self.assertTrue(self.support.wait_ping_mote(60,self.support.test_mote.ip.replace("aaaa","9999")), "Mote is not responding")
