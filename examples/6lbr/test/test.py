@@ -490,7 +490,7 @@ class TestScenarios:
                 self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
@@ -547,7 +547,7 @@ class TestScenarios:
                 self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
         tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping1.log')
         tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace("aaaa","9999"),1,config.report_path+'/ping2.log')
@@ -620,7 +620,7 @@ class TestScenarios:
                 self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -674,7 +674,7 @@ class TestScenarios:
                 self.assertTrue(self.support.start_udp_client())
         tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for the DAG" % mote_start_delay
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
@@ -730,7 +730,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(False, False, False)
+        self.S10xx_base(False, False, False, config.start_delay)
 
     @skipUnlessTrue("S1001")
     @skipUnlessFalse("multi_br")
@@ -739,7 +739,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, False, False)
+        self.S10xx_base(True, False, False, config.start_delay)
 
     @skipUnlessTrue("S1002")
     @skipUnlessFalse("multi_br")
@@ -748,7 +748,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True, False)
+        self.S10xx_base(True, True, False, config.start_delay)
 
     @skipUnlessTrue("S1003")
     @skipUnlessFalse("multi_br")
@@ -757,43 +757,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True, True)
-
-    @skipUnlessTrue("S1010")
-    @skipUnlessFalse("multi_br")
-    def test_S1010(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S10xx_base(False, False, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S1011")
-    @skipUnlessFalse("multi_br")
-    def test_S1011(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S10xx_base(True, False, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S1012")
-    @skipUnlessFalse("multi_br")
-    def test_S1012(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S10xx_base(True, True, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S1013")
-    @skipUnlessFalse("multi_br")
-    def test_S1013(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S10xx_base(True, True, True, config.S101x_start_delay)
+        self.S10xx_base(True, True, True, config.start_delay)
 
     @skipUnlessTrue("S1100")
     @skipUnlessFalse("multi_br")
@@ -802,7 +766,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(False, False, False, config.S101x_start_delay, True)
+        self.S11xx_base(False, False, False, config.start_delay, True)
 
     @skipUnlessTrue("S1101")
     @skipUnlessFalse("multi_br")
@@ -811,7 +775,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, False, False, config.S101x_start_delay, True)
+        self.S11xx_base(True, False, False, config.start_delay, True)
 
     @skipUnlessTrue("S1102")
     @skipUnlessFalse("multi_br")
@@ -820,7 +784,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, True, False, config.S101x_start_delay, True)
+        self.S11xx_base(True, True, False, config.start_delay, True)
 
     @skipUnlessTrue("S1103")
     @skipUnlessFalse("multi_br")
@@ -829,7 +793,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, True, True, config.S101x_start_delay, True)   
+        self.S11xx_base(True, True, True, config.start_delay, True)   
         
     @skipUnlessTrue("S1110")
     @skipUnlessFalse("multi_br")
@@ -838,7 +802,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(False, False, False, config.S101x_start_delay)
+        self.S11xx_base(False, False, False, config.start_delay)
 
     @skipUnlessTrue("S1111")
     @skipUnlessFalse("multi_br")
@@ -847,7 +811,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, False, False, config.S101x_start_delay)
+        self.S11xx_base(True, False, False, config.start_delay)
 
     @skipUnlessTrue("S1112")
     @skipUnlessFalse("multi_br")
@@ -856,7 +820,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, True, False, config.S101x_start_delay)
+        self.S11xx_base(True, True, False, config.start_delay)
 
     @skipUnlessTrue("S1113")
     @skipUnlessFalse("multi_br")
@@ -865,7 +829,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, True, True, config.S101x_start_delay)
+        self.S11xx_base(True, True, True, config.start_delay)
 
     @skipUnlessTrue("S2000")
     @skipUnlessFalse("multi_br")
@@ -874,7 +838,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(False, False, False)
+        self.S20xx_base(False, False, False, config.start_delay)
 
     @skipUnlessTrue("S2001")
     @skipUnlessFalse("multi_br")
@@ -883,7 +847,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, False, False)
+        self.S20xx_base(True, False, False, config.start_delay)
 
     @skipUnlessTrue("S2002")
     @skipUnlessFalse("multi_br")
@@ -892,7 +856,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True, False)
+        self.S20xx_base(True, True, False, config.start_delay)
 
     @skipUnlessTrue("S2003")
     @skipUnlessFalse("multi_br")
@@ -901,43 +865,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True, True)
-
-    @skipUnlessTrue("S2010")
-    @skipUnlessFalse("multi_br")
-    def test_S2010(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S20xx_base(False, False, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S2011")
-    @skipUnlessFalse("multi_br")
-    def test_S2011(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S20xx_base(True, False, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S2012")
-    @skipUnlessFalse("multi_br")
-    def test_S2012(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S20xx_base(True, True, False, config.S101x_start_delay)
-
-    @skipUnlessTrue("S2013")
-    @skipUnlessFalse("multi_br")
-    def test_S2013(self):
-        """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
-        """
-        self.S20xx_base(True, True, True, config.S101x_start_delay)
+        self.S20xx_base(True, True, True, config.start_delay)
 
     @skipUnlessTrue("S5000")
     @skipUnlessTrue("multi_br")
@@ -946,7 +874,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(False, False, False)
+        self.S500x_base(False, False, False, config.start_delay)
 
     @skipUnlessTrue("S5001")
     @skipUnlessTrue("multi_br")
@@ -955,7 +883,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, False, False)
+        self.S500x_base(True, False, False, config.start_delay)
 
     @skipUnlessTrue("S5002")
     @skipUnlessTrue("multi_br")
@@ -964,7 +892,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, False)
+        self.S500x_base(True, True, False, config.start_delay)
 
     @skipUnlessTrue("S5003")
     @skipUnlessTrue("multi_br")
@@ -973,7 +901,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, True)
+        self.S500x_base(True, True, True, config.start_delay)
 
 @skipUnlessTrue("mode_SmartBridgeManual")
 @skipUnlessFalse("multi_br")

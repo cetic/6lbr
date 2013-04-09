@@ -36,6 +36,11 @@ udp_port=3000
 topologies=['./coojagen/examples/config_preset_1dag_10nodes.py',
     './coojagen/examples/config_preset_2dags_20nodes_disjoint.py', # Disjoint DAGs
 ]
+
+start_delays=[0, 20]
+
+test_repeat=1
+
 #Single BR Topologies
 #simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10
 #simgen_config_path='./coojagen/examples/config_grid_single_br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8
@@ -104,10 +109,6 @@ S5000=0
 S5001=1
 S5002=0
 S5003=0
-
-S101x_start_delay = 60
-
-test_repeat=1
 
 """
 modes
