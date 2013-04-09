@@ -39,32 +39,42 @@ for simgen_config_path in config.topologies:
         simname = os.path.basename(simfile).replace('.csc','')
         running_simfile.write(simfile)
         running_simfile.close()
-        generate_config(config_simgen)
-        #Run the test suite with the current topology
-        system("python2.7 ./test.py")
+        for i in range(1,config.test_repeat+1):
+            print >> sys.stderr, " ============="
+            print >> sys.stderr, " == ITER %02d ==" % i
+            generate_config(config_simgen)
+            #Run the test suite with the current topology
+            system("python2.7 ./test.py")
+	    srcdir = os.path.dirname(config.report_path)
+	    destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
+            if os.path.exists(destdir):
+                if os.path.isdir(destdir):
+                    rmtree(destdir)
+                else:
+                    os.unlink(destdir)
+        os.rename(srcdir,destdir)
         #Move the current coojasim working directory to its final location
         srcdir = os.path.dirname(os.path.dirname(config.report_path))
         shutil.copyfile(os.path.join('coojagen/output',simname+'.csc'),os.path.join(srcdir,simname+'.csc'))
         shutil.copyfile(os.path.join('coojagen/output',simname+'.motes'),os.path.join(srcdir,simname+'.motes'))
+        os.rename(gen_config_name, os.path.join(srcdir, gen_config_name))
         destdir = os.path.join(os.path.dirname(srcdir),simname)
         if os.path.exists(destdir):
             if os.path.isdir(destdir):
                 shutil.rmtree(destdir)
             else:
                 os.unlink(destdir)
-            os.rename(srcdir,destdir)
-        os.rename(gen_config_name, os.path.join(srcdir, gen_config_name))
-
-    #Move the current run working directory to its final location
-    srcdir = os.path.dirname(os.path.dirname(os.path.dirname(config.report_path)))
-    destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
-    if os.path.exists(destdir):
-        if os.path.isdir(destdir):
-            shutil.rmtree(destdir)
-        else:
-            os.unlink(destdir)
         os.rename(srcdir,destdir)
 
-    os.unlink(".NEXT_TOPOLOGY")
+#Move the current run working directory to its final location
+srcdir = os.path.dirname(os.path.dirname(os.path.dirname(config.report_path)))
+destdir = os.path.join(os.path.dirname(srcdir),'run-%s' % time.strftime("%Y%m%d%H%M%S"))
+if os.path.exists(destdir):
+    if os.path.isdir(destdir):
+        shutil.rmtree(destdir)
+    else:
+        os.unlink(destdir)
+os.rename(srcdir,destdir)
+os.unlink(".NEXT_TOPOLOGY")
 
 

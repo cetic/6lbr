@@ -1238,18 +1238,7 @@ class RplRootMultiTransparentBridge(TestScenarios, unittest.TestCase):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
 
 def main():
-    for i in range(1,config.test_repeat+1):
-        print >> sys.stderr, " ============="
-        print >> sys.stderr, " == ITER %02d ==" % i
-        unittest.main(exit=False, verbosity=1)
-	srcdir = os.path.dirname(config.report_path)
-	destdir = os.path.join(os.path.dirname(srcdir),'iter-%02d'%i)
-        if os.path.exists(destdir):
-            if os.path.isdir(destdir):
-                rmtree(destdir)
-            else:
-                os.unlink(destdir)
-        os.rename(srcdir,destdir)
+    unittest.main(exit=False, verbosity=1)
 
 if __name__ == '__main__':
     main()
