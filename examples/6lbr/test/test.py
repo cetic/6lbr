@@ -128,7 +128,7 @@ class TestSupport:
 
     def wait_ping_from_mote(self, count, target):
         for n in range(count):
-            if (self.ping_from_mote(target)):
+            if (self.ping_from_mote(target, True)):
                 return True
         return False
 
