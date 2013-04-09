@@ -268,11 +268,10 @@ class CoojaWsn(Wsn):
             self.get_test_mote().serialport.close()
             self.cooja.wait()
             time.sleep(1)
-            system("pkill -9 java")
             print >> sys.stderr, "Cooja Thread Killed"
         except serial.SerialException:
             print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
-
+        system("pkill -9 java")
         time.sleep(1)
         for mote in self.motelist:
             mote.tearDown()
