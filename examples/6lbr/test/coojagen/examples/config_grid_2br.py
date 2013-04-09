@@ -17,6 +17,7 @@ ratio = "1:2"
 step = 30
 mote_count = range(8,32)
 assignment = {'all':'node', '0':'slipradio', '1':'node_delay', '-1':'slipradio'} 
+multi_br=1
 
 mote_types = []
 

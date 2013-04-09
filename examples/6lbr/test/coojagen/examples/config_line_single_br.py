@@ -16,7 +16,7 @@ topology = 'line'
 step = 30
 mote_count = range(2,11,2) # = 5 topologies, 2,4,6,8,10
 assignment = {'all':'node', '0':'slipradio', '-1':'node_delay'} 
-
+multi_br=0
 
 mote_types = []
 

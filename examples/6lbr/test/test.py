@@ -11,6 +11,12 @@ from tcpdump import TcpDump
 import time
 from shutil import rmtree
 import urllib2
+import os
+
+if os.path.exists('gen_config.py'):
+    import gen_config
+else:
+    print "No generated config file found"
 
 def skipUnlessTrue(descriptor):
     if not hasattr(config, descriptor):
@@ -20,6 +26,13 @@ def skipUnlessTrue(descriptor):
     else:
         return lambda func: func
 
+def skipUnlessFalse(descriptor):
+    if not hasattr(config, descriptor):
+        return unittest.skip("%s not defined in config.py, skipping" % descriptor)
+    if getattr(config, descriptor) != 0:
+        return unittest.skip("%s set to True in config.py, skipping" % descriptor)
+    else:
+        return lambda func: func
 def repeat(times):
     def repeatHelper(f):
         def callHelper(*args):
@@ -643,7 +656,6 @@ class TestScenarios:
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))            
 
     def S500x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
-        if not self.multi_br: return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
         timenetset = time.time()
@@ -672,7 +684,7 @@ class TestScenarios:
         self.support.wsn.move_mote(self.support.test_mote.mote_id, -1)
         sleep(5)
         timemovedmoteping = time.time()
-        self.assertTrue(self.support.wait_ping_mote(moved_ping_timeout), "Mote is not responding")
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         timemovedmotepingdone = time.time()
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
@@ -707,6 +719,7 @@ class TestScenarios:
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
     @skipUnlessTrue("S1000")
+    @skipUnlessFalse("multi_br")
     def test_S1000(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -715,6 +728,7 @@ class TestScenarios:
         self.S10xx_base(False, False, False)
 
     @skipUnlessTrue("S1001")
+    @skipUnlessFalse("multi_br")
     def test_S1001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -723,6 +737,7 @@ class TestScenarios:
         self.S10xx_base(True, False, False)
 
     @skipUnlessTrue("S1002")
+    @skipUnlessFalse("multi_br")
     def test_S1002(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -731,6 +746,7 @@ class TestScenarios:
         self.S10xx_base(True, True, False)
 
     @skipUnlessTrue("S1003")
+    @skipUnlessFalse("multi_br")
     def test_S1003(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -739,6 +755,7 @@ class TestScenarios:
         self.S10xx_base(True, True, True)
 
     @skipUnlessTrue("S1010")
+    @skipUnlessFalse("multi_br")
     def test_S1010(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -747,6 +764,7 @@ class TestScenarios:
         self.S10xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1011")
+    @skipUnlessFalse("multi_br")
     def test_S1011(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -755,6 +773,7 @@ class TestScenarios:
         self.S10xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1012")
+    @skipUnlessFalse("multi_br")
     def test_S1012(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -763,6 +782,7 @@ class TestScenarios:
         self.S10xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1013")
+    @skipUnlessFalse("multi_br")
     def test_S1013(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -771,6 +791,7 @@ class TestScenarios:
         self.S10xx_base(True, True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S1100")
+    @skipUnlessFalse("multi_br")
     def test_S1100(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -779,6 +800,7 @@ class TestScenarios:
         self.S11xx_base(False, False, False, config.S101x_start_delay, True)
 
     @skipUnlessTrue("S1101")
+    @skipUnlessFalse("multi_br")
     def test_S1101(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -787,6 +809,7 @@ class TestScenarios:
         self.S11xx_base(True, False, False, config.S101x_start_delay, True)
 
     @skipUnlessTrue("S1102")
+    @skipUnlessFalse("multi_br")
     def test_S1102(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -795,6 +818,7 @@ class TestScenarios:
         self.S11xx_base(True, True, False, config.S101x_start_delay, True)
 
     @skipUnlessTrue("S1103")
+    @skipUnlessFalse("multi_br")
     def test_S1103(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -803,6 +827,7 @@ class TestScenarios:
         self.S11xx_base(True, True, True, config.S101x_start_delay, True)   
         
     @skipUnlessTrue("S1110")
+    @skipUnlessFalse("multi_br")
     def test_S1110(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -811,6 +836,7 @@ class TestScenarios:
         self.S11xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1111")
+    @skipUnlessFalse("multi_br")
     def test_S1111(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -819,6 +845,7 @@ class TestScenarios:
         self.S11xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1112")
+    @skipUnlessFalse("multi_br")
     def test_S1112(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -827,6 +854,7 @@ class TestScenarios:
         self.S11xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S1113")
+    @skipUnlessFalse("multi_br")
     def test_S1113(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -835,6 +863,7 @@ class TestScenarios:
         self.S11xx_base(True, True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S2000")
+    @skipUnlessFalse("multi_br")
     def test_S2000(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -843,6 +872,7 @@ class TestScenarios:
         self.S20xx_base(False, False, False)
 
     @skipUnlessTrue("S2001")
+    @skipUnlessFalse("multi_br")
     def test_S2001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -851,6 +881,7 @@ class TestScenarios:
         self.S20xx_base(True, False, False)
 
     @skipUnlessTrue("S2002")
+    @skipUnlessFalse("multi_br")
     def test_S2002(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -859,6 +890,7 @@ class TestScenarios:
         self.S20xx_base(True, True, False)
 
     @skipUnlessTrue("S2003")
+    @skipUnlessFalse("multi_br")
     def test_S2003(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -867,6 +899,7 @@ class TestScenarios:
         self.S20xx_base(True, True, True)
 
     @skipUnlessTrue("S2010")
+    @skipUnlessFalse("multi_br")
     def test_S2010(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -875,6 +908,7 @@ class TestScenarios:
         self.S20xx_base(False, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2011")
+    @skipUnlessFalse("multi_br")
     def test_S2011(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -883,6 +917,7 @@ class TestScenarios:
         self.S20xx_base(True, False, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2012")
+    @skipUnlessFalse("multi_br")
     def test_S2012(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -891,6 +926,7 @@ class TestScenarios:
         self.S20xx_base(True, True, False, config.S101x_start_delay)
 
     @skipUnlessTrue("S2013")
+    @skipUnlessFalse("multi_br")
     def test_S2013(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -899,6 +935,7 @@ class TestScenarios:
         self.S20xx_base(True, True, True, config.S101x_start_delay)
 
     @skipUnlessTrue("S5000")
+    @skipUnlessTrue("multi_br")
     def test_S5000(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -907,6 +944,7 @@ class TestScenarios:
         self.S500x_base(False, False, False)
 
     @skipUnlessTrue("S5001")
+    @skipUnlessTrue("multi_br")
     def test_S5001(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -915,6 +953,7 @@ class TestScenarios:
         self.S500x_base(True, False, False)
 
     @skipUnlessTrue("S5002")
+    @skipUnlessTrue("multi_br")
     def test_S5002(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -923,6 +962,7 @@ class TestScenarios:
         self.S500x_base(True, True, False)
 
     @skipUnlessTrue("S5003")
+    @skipUnlessTrue("multi_br")
     def test_S5003(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -931,6 +971,7 @@ class TestScenarios:
         self.S500x_base(True, True, True)
 
 @skipUnlessTrue("mode_SmartBridgeManual")
+@skipUnlessFalse("multi_br")
 class SmartBridgeManual(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
@@ -949,6 +990,7 @@ class SmartBridgeManual(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_SmartBridgeAuto")
+@skipUnlessFalse("multi_br")
 class SmartBridgeAuto(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
@@ -969,6 +1011,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
 
 @skipUnlessTrue("mode_Router")
+@skipUnlessFalse("multi_br")
 class Router(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
@@ -993,6 +1036,7 @@ class Router(TestScenarios, unittest.TestCase):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RouterNoRa")
+@skipUnlessFalse("multi_br")
 class RouterNoRa(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
@@ -1012,6 +1056,7 @@ class RouterNoRa(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeManual")
+@skipUnlessFalse("multi_br")
 class TransparentBridgeManual(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
@@ -1029,6 +1074,7 @@ class TransparentBridgeManual(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_TransparentBridgeAuto")
+@skipUnlessFalse("multi_br")
 class TransparentBridgeAuto(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='aaaa'
@@ -1048,6 +1094,7 @@ class TransparentBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.stop_ra(), "")
 
 @skipUnlessTrue("mode_RplRoot")
+@skipUnlessFalse("multi_br")
 class RplRoot(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
@@ -1072,6 +1119,7 @@ class RplRoot(TestScenarios, unittest.TestCase):
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.br.ip), "Could not remove route")
 
 @skipUnlessTrue("mode_RplRootNoRa")
+@skipUnlessFalse("multi_br")
 class RplRootNoRa(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
@@ -1091,6 +1139,7 @@ class RplRootNoRa(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
 
 @skipUnlessTrue("mode_RplRootTransparentBridge")
+@skipUnlessFalse("multi_br")
 class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix='bbbb'
@@ -1116,11 +1165,10 @@ class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.rpl_root.ip), "Could not remove route")
         
-
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
+@skipUnlessTrue("multi_br")
 class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
-        self.multi_br=True
         self.bridge_mode=True
         self.support.backbone.prefix='aaaa'
         self.support.wsn.prefix='aaaa'
@@ -1156,9 +1204,9 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.stop_ra(), "")
 
 @skipUnlessTrue("mode_RplRootMultiTransparentBridge")
+@skipUnlessTrue("multi_br")
 class RplRootMultiTransparentBridge(TestScenarios, unittest.TestCase):
     def modeSetUp(self):
-        self.multi_br=True
         self.support.backbone.prefix='bbbb'
         self.support.wsn.prefix='aaaa'
         self.tb1 = self.support.add_6lbr()
