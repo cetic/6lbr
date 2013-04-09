@@ -634,6 +634,9 @@ class Platform:
     def ping(self, target):
         pass
 
+    def delete_address(self, itf, addr):
+        pass
+
 class MacOSX(Platform):
     def __init__(self):
         self.rtadvd=None
@@ -802,15 +805,22 @@ class Linux(Platform):
             print >> sys.stderr, "Start RA daemon (variant=%s)..."%variant
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
         if variant is None:
-            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf], shell=True, preexec_fn=os.setsid)
+            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.conf" % itf).split())
         else:
-            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)])
+            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)], shell=True, preexec_fn=os.setsid)
+            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.%s.conf" % (itf,variant)).split())
         return self.radvd != None
 
     def stop_ra(self):
         if self.radvd:
             print >> sys.stderr, "Stop RA daemon..."
-            self.radvd.send_signal(signal.SIGINT)
+            try:
+                #os.killpg(self.radvd.pid,signal.SIGTERM)
+                self.radvd.terminate()
+                self.radvd.wait()
+            except OSError:
+                pass
             self.radvd = None
         return True
 
@@ -900,6 +910,10 @@ class Linux(Platform):
             os.killpg(self.udpsrv.pid, signal.SIGKILL)
             self.udpsrv = None
         return True
+
+    def delete_address(self, itf, addr):
+        result = system("ip -6 addr del %s/64 dev %s" % (addr,itf))
+        return result == 0
 
 class Host:
     def __init__(self, backbone):
