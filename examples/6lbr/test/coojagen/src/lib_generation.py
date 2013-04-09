@@ -387,9 +387,11 @@ class ConfigParser():
 		for index in data:
 			self.motelist[int(index)].set_mobility_data(data[index])
 
-	def parse_config(self, config_path):
+	def parse_config_file(self, config_path):
 		print("LOADING CONFIG %s" % config_path)
 		config_simgen = imp.load_source('module.name', config_path)
+                self.parse_config(config_sim_gen)
+	def parse_config(self, config_simgen):
 		if hasattr(config_simgen, 'outputfolder'):
 			outputfolder = config_simgen.outputfolder
 		else:

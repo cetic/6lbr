@@ -32,13 +32,15 @@ mote_baudrate=115200
 channel=26
 udp_port=3000
 
+
+topologies=['./coojagen/examples/config_preset_1dag_10nodes.py',
+    './coojagen/examples/config_preset_2dags_20nodes_disjoint.py', # Disjoint DAGs
+]
 #Single BR Topologies
 #simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10
 #simgen_config_path='./coojagen/examples/config_grid_single_br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8
 
-#2-BR Topologies
-simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_disjoint.py' # Disjoint DAGs
-#simgen_config_path='./coojagen/examples/config_preset_3slipradio_2dags_20nodes_disjoint.py' # Disjoint DAGs, 3 slip-radios
+#2-BR Topologies#simgen_config_path='./coojagen/examples/config_preset_3slipradio_2dags_20nodes_disjoint.py' # Disjoint DAGs, 3 slip-radios
 #simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_overlap.py' # TODO: Overlapping DAGs
 #simgen_config_path='./coojagen/examples/config_grid_2br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8 with mote close to BR1
 
@@ -71,7 +73,7 @@ S10=0
 S11=0
 S12=0
 
-S1000=0
+S1000=1
 S1001=0
 S1002=0
 S1003=0
@@ -80,11 +82,11 @@ S1011=0
 S1012=0
 S1013=0
 
-S1100=1
+S1100=0
 S1101=0
 S1102=0
 S1103=0
-S1110=1
+S1110=0
 S1111=0
 S1112=0
 S1113=0
@@ -99,7 +101,7 @@ S2012=0
 S2013=0
 
 S5000=0
-S5001=0
+S5001=1
 S5002=0
 S5003=0
 
@@ -118,7 +120,7 @@ mode_RouterNoRa=0
 
 mode_RplRootTransparentBridge=0
 
-mode_MultiBrSmartBridgeAuto=0
+mode_MultiBrSmartBridgeAuto=1
 mode_RplRootMultiTransparentBridge=0
 
 #Debug modes, do not use
