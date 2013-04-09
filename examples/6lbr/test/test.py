@@ -171,6 +171,9 @@ class TestSupport:
         try:
             os.rename('COOJA.log',os.path.join(srcdir,'COOJA.log'))
             os.rename('COOJA.testlog',os.path.join(srcdir,'COOJA.testlog'))
+            for filename in os.listdir("."):
+                if filename.startswith("radiolog-"):
+                    os.rename(filename,os.path.join(srcdir,'radiolog.pcap'))            
         except OSError:
             pass
         destdir = os.path.join(os.path.dirname(srcdir),testname)
