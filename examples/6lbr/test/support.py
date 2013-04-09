@@ -805,16 +805,20 @@ class Linux(Platform):
             print >> sys.stderr, "Start RA daemon (variant=%s)..."%variant
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
         if variant is None:
-            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf])
+            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf], shell=True, preexec_fn=os.setsid)
+            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.conf" % itf).split())
         else:
-            self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)], shell=True, preexec_fn=os.setsid)
+            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)], shell=True, preexec_fn=os.setsid)
+            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.%s.conf" % (itf,variant)).split())
         return self.radvd != None
 
     def stop_ra(self):
         if self.radvd:
             print >> sys.stderr, "Stop RA daemon..."
             try:
-                os.killpg(self.radvd.pid,signal.SIGTERM)
+                #os.killpg(self.radvd.pid,signal.SIGTERM)
+                self.radvd.terminate()
+                self.radvd.wait()
             except OSError:
                 pass
             self.radvd = None
