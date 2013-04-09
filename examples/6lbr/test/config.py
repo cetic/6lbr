@@ -33,9 +33,9 @@ channel=26
 udp_port=3000
 
 
-topologies=['./coojagen/examples/config_preset_1dag_10nodes.py',
-    './coojagen/examples/config_preset_2dags_20nodes_disjoint.py', # Disjoint DAGs
-]
+topologies=['./coojagen/examples/config_preset_1dag_10nodes.py']#,
+#    './coojagen/examples/config_preset_2dags_20nodes_disjoint.py', # Disjoint DAGs
+#]
 #Single BR Topologies
 #simgen_config_path='./coojagen/examples/config_line_single_br.py' # Line: 2,4,6,8,10
 #simgen_config_path='./coojagen/examples/config_grid_single_br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8
@@ -82,14 +82,14 @@ S1011=0
 S1012=0
 S1013=0
 
-S1100=0
+S1100=1
 S1101=0
 S1102=0
-S1103=0
-S1110=0
+S1103=1
+S1110=1
 S1111=0
 S1112=0
-S1113=0
+S1113=1
 
 S2000=0
 S2001=0
@@ -101,7 +101,7 @@ S2012=0
 S2013=0
 
 S5000=0
-S5001=1
+S5001=0
 S5002=0
 S5003=0
 
@@ -120,7 +120,7 @@ mode_RouterNoRa=0
 
 mode_RplRootTransparentBridge=0
 
-mode_MultiBrSmartBridgeAuto=1
+mode_MultiBrSmartBridgeAuto=0
 mode_RplRootMultiTransparentBridge=0
 
 #Debug modes, do not use
