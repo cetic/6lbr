@@ -12,10 +12,6 @@ import shutil
 gen_config_name='gen_config.py'
 
 def generate_config(current_topo):
-    try:
-        os.unlink(gen_config_name)
-    except OSError:
-        pass
     gen_config = open( gen_config_name, 'w')
     print >> gen_config, "import config"
     print >> gen_config, "config.multi_br=%d" % current_topo.multi_br
@@ -57,6 +53,7 @@ for simgen_config_path in config.topologies:
             else:
                 os.unlink(destdir)
             os.rename(srcdir,destdir)
+        os.rename(gen_config_name, os.path.join(srcdir, gen_config_name))
 
     #Move the current run working directory to its final location
     srcdir = os.path.dirname(os.path.dirname(os.path.dirname(config.report_path)))
@@ -69,5 +66,5 @@ for simgen_config_path in config.topologies:
         os.rename(srcdir,destdir)
 
     os.unlink(".NEXT_TOPOLOGY")
-    os.unlink(gen_config_name)
+
 
