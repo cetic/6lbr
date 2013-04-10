@@ -50,7 +50,7 @@
 #define UIP_CONF_ROUTER             0
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 1
+#define UIP_CONF_DS6_ADDR_NBU 2
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
