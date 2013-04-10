@@ -32,6 +32,9 @@ mote_baudrate=115200
 channel=26
 udp_port=3000
 ping_payload=8 #Default is 54
+wsn_prefix='8888'
+wsn_second_prefix='9999'
+eth_prefix='bbbb'
 
 topologies=[
     './coojagen/examples/config_preset_1dag_10nodes.py',
@@ -81,7 +84,7 @@ S11=0
 S12=0
 
 S1000=0
-S1001=0
+S1001=1
 S1002=0
 S1003=0
 S1010=0
@@ -107,10 +110,10 @@ S2011=0
 S2012=0
 S2013=0
 
-S4000=1
+S4000=0
 S4001=1
-S4002=1
-S4003=1
+S4002=0
+S4003=0
 
 S5000=0
 S5001=0
@@ -119,8 +122,8 @@ S5003=0
 
 S5020=0
 S5021=1
-S5022=1
-S5023=1
+S5022=0
+S5023=0
 
 """
 modes
