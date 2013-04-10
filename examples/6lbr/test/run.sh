@@ -37,7 +37,8 @@ sudo brctl delbr br0
 sudo rm -f ${CALLDIR}/COOJA.*log
 sudo rm -f ${CALLDIR}/radiolog-*.pcap
 
-
-sudo ${CALLDIR}/top.py
-
+sudo ${CALLDIR}/top.py > >(tee ${CALLDIR}/console_out.log) 2> >(tee ${CALLDIR}/console_err.log >&2)
+reportdir=$(find ${CALLDIR}/report -maxdepth 1 -type d | sort | tail -n 1)
+sudo mv ${CALLDIR}/console_out.log $reportdir
+sudo mv ${CALLDIR}/console_err.log $reportdir
 sudo chown -R test:test report/
