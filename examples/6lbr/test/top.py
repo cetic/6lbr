@@ -10,21 +10,27 @@ import config
 import shutil
 
 gen_config_name='gen_config.py'
+gen_config_name_pyc='gen_config.pyc'
 
-def generate_config(current_topo, start_delay=0):
+def generate_config(name, current_topo, start_delay=0):
     gen_config = open( gen_config_name, 'w')
     print >> gen_config, "import config"
+    print >> gen_config, "config.topo='%s'" % name
     print >> gen_config, "config.multi_br=%d" % current_topo.multi_br
     print >> gen_config, "config.start_delay=%d" % start_delay
-    #config.disjoint ?
+    if current_topo.multi_br:
+        print >> gen_config, "config.disjoint_dag=%d" % current_topo.disjoint_dag
     #config.stop_br
     gen_config.close()
+    os.unlink(gen_config_name_pyc)
 
+mod = 0
 for simgen_config_path in config.topologies:
     parser = simgen.ConfigParser()
 
     print("LOADING CONFIG %s" % simgen_config_path)
-    config_simgen = imp.load_source('module.name', simgen_config_path)
+    config_simgen = imp.load_source('module.name_%d' % mod, simgen_config_path)
+    mod += 1
     if not parser.parse_config(config_simgen):
 	sys.exit("topology generation error")
 
@@ -43,7 +49,7 @@ for simgen_config_path in config.topologies:
             for i in range(1,config.test_repeat+1):
                 print >> sys.stderr, " ======================"
                 print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
-                generate_config(config_simgen, start_delay)
+                generate_config(simgen_config_path, config_simgen, start_delay)
                 #Run the test suite with the current topology
                 system("python2.7 ./test.py")
 	        srcdir = os.path.dirname(config.report_path)
@@ -51,7 +57,7 @@ for simgen_config_path in config.topologies:
 	        destdir = os.path.join(os.path.dirname(srcdir), 'iter-%03d-%02d'% (start_delay, i))
                 if os.path.exists(destdir):
                     if os.path.isdir(destdir):
-                        rmtree(destdir)
+                        shutil.rmtree(destdir)
                     else:
                         os.unlink(destdir)
                 os.rename(srcdir,destdir)

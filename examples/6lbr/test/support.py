@@ -145,7 +145,7 @@ class LocalNativeBR(BRProxy):
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
     def start_6lbr(self, log_file):
-        print >> sys.stderr, "Starting 6LBR %s..." % self.itf
+        print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.radio['nodeid'])
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
         self.log=open(log_file+'_%s.log'%self.itf, "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
@@ -153,11 +153,12 @@ class LocalNativeBR(BRProxy):
         return self.process != None
 
     def stop_6lbr(self):
-        print >> sys.stderr, "Stopping 6LBR..."
-        self.process.send_signal(signal.SIGTERM)
-        sleep(1)
-        self.log.close()
-        self.process = None
+        if self.process:
+            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.radio['nodeid'])
+            self.process.send_signal(signal.SIGTERM)
+            sleep(1)
+            self.log.close()
+            self.process = None
         return True
 
 class RemoteNativeBR(BRProxy):    
@@ -206,6 +207,7 @@ class CoojaWsn(Wsn):
         Wsn.__init__(self)
         self.motelist = []
         self.slip_motes=[]
+        self.test_motes=[]
 
     def setUp(self, simulation_path):
         print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
@@ -235,6 +237,8 @@ class CoojaWsn(Wsn):
                 nodeid = parts[0]
                 if parts[1] == 'slipradio':
                     self.add_slip_mote(nodeid)
+                if parts[1] == 'node_delay':
+                    self.add_test_mote(nodeid)
                 if len(parts) > 2:
                     #The node has some mobility data attached, parse it
                     for xy in parts[2:]:
@@ -249,6 +253,9 @@ class CoojaWsn(Wsn):
         iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
         self.slip_motes.append({'nodeid':nodeid, 'socket': 'localhost', 'port': 60000 + int(nodeid), 'iid': iid})
 
+    def add_test_mote(self, nodeid):
+        self.test_motes.append(nodeid)
+    
     def allocate_radio_dev(self):
         for slip_mote in self.slip_motes:
             if 'used' not in slip_mote:
@@ -278,7 +285,7 @@ class CoojaWsn(Wsn):
         self.motelist = []
 
     def get_test_mote(self):
-        return self.motelist[-1]
+        return self.get_mote(self.test_motes[-1])
 
     def get_mote(self, nodeid):
         for mote in self.motelist:

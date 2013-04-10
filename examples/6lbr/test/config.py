@@ -33,11 +33,13 @@ channel=26
 udp_port=3000
 
 
-topologies=['./coojagen/examples/config_preset_1dag_10nodes.py',
-    './coojagen/examples/config_preset_2dags_20nodes_disjoint.py', # Disjoint DAGs
+topologies=[
+    './coojagen/examples/config_preset_1dag_10nodes.py',
+    './coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
+    './coojagen/examples/config_grid_2br.py'
 ]
 
-start_delays=[0, 20]
+start_delays=[0, 60]
 
 test_repeat=1
 
@@ -78,7 +80,7 @@ S10=0
 S11=0
 S12=0
 
-S1000=1
+S1000=0
 S1001=0
 S1002=0
 S1003=0
@@ -105,10 +107,20 @@ S2011=0
 S2012=0
 S2013=0
 
+S4000=1
+S4001=1
+S4002=1
+S4003=1
+
 S5000=0
-S5001=1
+S5001=0
 S5002=0
 S5003=0
+
+S5020=0
+S5021=1
+S5022=1
+S5023=1
 
 """
 modes
@@ -116,10 +128,10 @@ define 1 to run each selected scenario in that mode, 0 to skip the mode
 """
 mode_SmartBridgeManual=0
 mode_SmartBridgeAuto=1
-mode_Router=0
+mode_Router=1
 mode_RouterNoRa=0
 
-mode_RplRootTransparentBridge=0
+mode_RplRootTransparentBridge=1
 
 mode_MultiBrSmartBridgeAuto=1
 mode_RplRootMultiTransparentBridge=0

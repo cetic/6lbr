@@ -13,6 +13,7 @@ preset_data_path = 'coojagen/templates/preset-2dags-20nodes-disjoint'
 mote_types=[]
 interactive_mobility = {'-1':[[35,46],[-55,71]]}
 multi_br=1
+disjoint_dag=1
 
 #assignment: all nodes except first 2 which are slip-radios and the last one which is an interactive mote (id: 23)
 assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '-1':'node_delay'}
