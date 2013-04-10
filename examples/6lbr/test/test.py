@@ -148,14 +148,14 @@ class TestSupport:
             host = self.host.ip
         if port is None:
             port = config.udp_port
-        print "Enable UDP traffic on test mote"
+        print >> sys.stderr, "Enable UDP traffic on test mote"
         ok = self.test_mote.send_cmd("udp-dest %s" % host)
         ok = ok and self.test_mote.send_cmd("udp-port %d" % port)
         ok = ok and self.test_mote.send_cmd("udp start")
         return ok
 
     def stop_udp_client(self):
-        print "Disable UDP traffic on test mote"
+        print >> sys.stderr, "Disable UDP traffic on test mote"
         return self.test_mote.send_cmd("udp stop")
 
     def start_udp_clients(self, host = None, port = None):
@@ -163,14 +163,14 @@ class TestSupport:
             host = self.host.ip
         if port is None:
             port = config.udp_port
-        print "Enable UDP traffic"
+        print >> sys.stderr, "Enable UDP traffic"
         ok = self.wsn.send_cmd_all("udp-dest %s" % host)
         ok = ok and self.wsn.send_cmd_all("udp-port %d" % port)
         ok = ok and self.wsn.send_cmd_all("udp start")
         return ok
 
     def stop_udp_clients(self):
-        print "Disable UDP traffic"
+        print >> sys.stderr, "Disable UDP traffic"
         return self.wsn.send_cmd_all("udp stop")
 
     def initreport(self):
