@@ -139,7 +139,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
-        params="--new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf)
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (net_config, channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf)
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
@@ -475,7 +476,7 @@ class LocalTelosMote(MoteProxy):
         return self.wait_until("Starting '6LBR Demo'\n", 8)
 
     def ping(self, address, expect_reply=False, count=0):
-        print >> sys.stderr, "Ping %s..." % address
+        print "Ping %s..." % address
         self.serialport.write("\r\nping %s\r\n" % address)
         if expect_reply:
             return self.wait_until("Received an icmp6 echo reply\n", 10)
@@ -542,7 +543,7 @@ class VirtualTelosMote(MoteProxy):
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def ping(self, address, expect_reply=False, count=0):
-        print >> sys.stderr, "Ping %s..." % address
+        print "Ping %s..." % address
         if expect_reply:
             ret = self.send_cmd("ping %s" % address, "Received an icmp6 echo reply\n", 10)
         else:
@@ -678,11 +679,11 @@ class MacOSX(Platform):
             result = system("route delete -inet6 -prefixlen 64 %s %s" % (dest, gw))
         return result == 0
 
-    def start_ra(self, itf):
-        print >> sys.stderr, "Start RA daemon..."
+    def start_ra(self, itf, prefix):
+        print >> sys.stderr, "Start RA daemon (%s)..." % prefix
         system("sysctl -w net.inet6.ip6.forwarding=1")
         system("sysctl -w net.inet6.ip6.accept_rtadv=0")
-        self.rtadvd = subprocess.Popen(args="rtadvd  -f -c rtadvd.%s.conf %s" % (itf, itf), shell=True)
+        self.rtadvd = subprocess.Popen(args="rtadvd  -f -c rtadvd.%s.s%.conf %s" % (itf, prefix, itf), shell=True)
         return self.rtadvd != None
 
     def stop_ra(self):
@@ -804,18 +805,11 @@ class Linux(Platform):
             result = system("route -A inet6 del %s/64 %s" % (dest, itf))
         return result == 0
 
-    def start_ra(self, itf, variant=None):
-        if variant is None:
-            print >> sys.stderr, "Start RA daemon..."
-        else:
-            print >> sys.stderr, "Start RA daemon (variant=%s)..."%variant
+    def start_ra(self, itf, prefix):
+        print >> sys.stderr, "Start RA daemon (%s)..." % prefix
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        if variant is None:
-            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.conf" % itf], shell=True, preexec_fn=os.setsid)
-            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.conf" % itf).split())
-        else:
-            #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,variant)], shell=True, preexec_fn=os.setsid)
-            self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.%s.conf" % (itf,variant)).split())
+        #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,prefix)], shell=True, preexec_fn=os.setsid)
+        self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.%s.conf" % (itf,prefix)).split())
         return self.radvd != None
 
     def stop_ra(self):

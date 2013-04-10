@@ -1,4 +1,5 @@
-#!/usr/bin/python2.7
+import sys
+
 """
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
 report_path='report/run-current/coojasim-current/iter-current/test_current'
@@ -32,14 +33,20 @@ mote_baudrate=115200
 channel=26
 udp_port=3000
 ping_payload=8 #Default is 54
+wsn_prefix='8888'
+wsn_second_prefix='9999'
+eth_prefix='bbbb'
 
 topologies=[
+    './coojagen/examples/config_line_single_br.py',
+    './coojagen/examples/config_grid_single_br.py',
     './coojagen/examples/config_preset_1dag_10nodes.py',
     './coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
+    #'./coojagen/examples/config_preset_2dags_20nodes_overlap.py',
     './coojagen/examples/config_grid_2br.py'
 ]
 
-start_delays=[0, 60]
+start_delays=[0, 60, 300, 900]
 
 test_repeat=1
 
@@ -80,44 +87,44 @@ S10=0
 S11=0
 S12=0
 
-S1000=0
-S1001=0
-S1002=0
-S1003=0
-S1010=0
-S1011=0
-S1012=0
-S1013=0
+S1000=1
+S1001=1
+S1002=1
+S1003=1
+S1010=1
+S1011=1
+S1012=1
+S1013=1
 
-S1100=0
+S1100=1
 S1101=1
-S1102=0
-S1103=0
-S1110=0
-S1111=0
-S1112=0
-S1113=0
+S1102=1
+S1103=1
+S1110=1
+S1111=1
+S1112=1
+S1113=1
 
-S2000=0
-S2001=0
-S2002=0
-S2003=0
-S2010=0
-S2011=0
-S2012=0
-S2013=0
+S2000=1
+S2001=1
+S2002=1
+S2003=1
+S2010=1
+S2011=1
+S2012=1
+S2013=1
 
 S4000=1
 S4001=1
 S4002=1
 S4003=1
 
-S5000=0
-S5001=0
-S5002=0
-S5003=0
+S5000=1
+S5001=1
+S5002=1
+S5003=1
 
-S5020=0
+S5020=1
 S5021=1
 S5022=1
 S5023=1
@@ -141,3 +148,9 @@ mode_RplRoot=0
 mode_RplRootNoRa=0
 mode_TransparentBridgeManual=0
 mode_TransparentBridgeAuto=0
+
+
+if os.path.exists('user_config.py'):
+    print >> sys.stderr, "Loading user configuration"
+    import user_config
+
