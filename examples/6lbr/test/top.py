@@ -22,7 +22,8 @@ def generate_config(name, current_topo, start_delay=0):
         print >> gen_config, "config.disjoint_dag=%d" % current_topo.disjoint_dag
     #config.stop_br
     gen_config.close()
-    os.unlink(gen_config_name_pyc)
+    if os.path.exists(gen_config_name_pyc):
+        os.unlink(gen_config_name_pyc)
 
 mod = 0
 for simgen_config_path in config.topologies:
