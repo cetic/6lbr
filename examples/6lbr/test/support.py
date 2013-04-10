@@ -210,7 +210,7 @@ class CoojaWsn(Wsn):
         self.test_motes=[]
 
     def setUp(self, simulation_path):
-        print("Setting up Cooja, compiling node firmwares... %s" % simulation_path)
+        print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path
 	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE)
@@ -222,7 +222,7 @@ class CoojaWsn(Wsn):
                 newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
                 self.motelist.append(newmote)
             line = self.cooja.stdout.readline()
-        print("Cooja simulation started")
+        print >> sys.stderr, "Cooja simulation started"
 
         sleep(2)
 	
@@ -267,7 +267,7 @@ class CoojaWsn(Wsn):
         del slip_mote['used']
 
     def tearDown(self):
-        print("Killing Cooja")
+        print >> sys.stderr, "Killing Cooja"
 
         try:
             self.get_test_mote().serialport.open()
@@ -491,7 +491,7 @@ class VirtualTelosMote(MoteProxy):
         self.mobility_data = []
 
     def setUp(self):
-        print("Mote setup %s %d" % (self.mote_dev, self.mote_id))
+        print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
         self.serialport = serial.Serial(
 	port=self.mote_dev,
 	baudrate=config.mote_baudrate,
