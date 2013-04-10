@@ -25,6 +25,8 @@ def generate_config(name, current_topo, start_delay=0):
     if os.path.exists(gen_config_name_pyc):
         os.unlink(gen_config_name_pyc)
 
+if not os.path.exists(config.report_path):
+    os.makedirs(config.report_path)
 mod = 0
 for simgen_config_path in config.topologies:
     parser = simgen.ConfigParser()
