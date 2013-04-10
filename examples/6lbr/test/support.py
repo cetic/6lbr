@@ -711,7 +711,7 @@ class MacOSX(Platform):
 
     def ping(self, target):
         print >> sys.stderr, "ping..."
-        result = system("ping6 -c 1 %s > /dev/null 2>/dev/null" % target)
+        result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (config.ping_payload, target))
         if result != 0:
             sleep(1)
         return result == 0
@@ -739,7 +739,7 @@ class MacOSX(Platform):
     def ping_loop(self, target, interval, out):
         while True:
             result = system("echo '***' >> %s" % out)
-            result = system("ping6 -c 1 %s 2>&1 >> %s" % (target,out))
+            result = system("ping6 -s %d -c 1 %s 2>&1 >> %s" % (config.ping_payload, target, out))
             time.sleep(interval)
 
     def pcap_start(self, itf, out):
@@ -851,7 +851,7 @@ class Linux(Platform):
 
     def ping(self, target):
         print "ping %s" % target
-        result = system("ping6 -W 1 -c 1 %s > /dev/null" % target)
+        result = system("ping6 -s %d -W 1 -c 1 %s > /dev/null" % (config.ping_payload, target))
         #if result >> 8 == 2:
         sleep(1)
         return result == 0
@@ -879,7 +879,7 @@ class Linux(Platform):
     def ping_loop(self, target, interval, out):
         while True:
             result = system("echo '***' >> %s" % out)
-            result = system("ping6 -D -W 1 -c 1 %s 2>&1 >> %s" % (target,out))
+            result = system("ping6 -D -s %d -W 1 -c 1 %s 2>&1 >> %s" % (config.ping_payload, target, out))
             time.sleep(interval)
 
     def pcap_start(self, itf, out):

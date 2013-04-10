@@ -31,7 +31,7 @@ backbone_dev='br0'
 mote_baudrate=115200
 channel=26
 udp_port=3000
-
+ping_payload=8 #Default is 54
 
 topologies=[
     './coojagen/examples/config_preset_1dag_10nodes.py',
@@ -90,7 +90,7 @@ S1012=0
 S1013=0
 
 S1100=0
-S1101=0
+S1101=1
 S1102=0
 S1103=0
 S1110=0
@@ -134,7 +134,7 @@ mode_RouterNoRa=0
 mode_RplRootTransparentBridge=1
 
 mode_MultiBrSmartBridgeAuto=1
-mode_RplRootMultiTransparentBridge=0
+mode_RplRootMultiTransparentBridge=1
 
 #Debug modes, do not use
 mode_RplRoot=0

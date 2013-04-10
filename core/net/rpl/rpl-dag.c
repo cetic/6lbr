@@ -1181,14 +1181,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
   }
-  
-  /* Prefix Information Option treated to add new prefix */
-  if(dio->prefix_info.length != 0) {
-    if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-      PRINTF("RPL : Prefix announced in DIO\n");
-      rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
-    }
-  }
 
   if(dag->rank == ROOT_RANK(instance)) {
     if(dio->rank != INFINITE_RANK) {
@@ -1253,6 +1245,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(rpl_process_parent_event(instance, p) == 0) {
     PRINTF("RPL: The candidate parent is rejected\n");
     return;
+  }
+
+  /* Prefix Information Option treated to add new prefix */
+  if(dio->prefix_info.length != 0) {
+    if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+      PRINTF("RPL : Prefix announced in DIO\n");
+      rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
+    }
   }
 
   /* We don't use route control, so we can have only one official parent. */

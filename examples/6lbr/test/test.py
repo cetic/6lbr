@@ -18,9 +18,6 @@ if os.path.exists('gen_config.py'):
 else:
     print "No generated config file found"
 
-print >> sys.stderr, "multi_br = %d" % config.multi_br
-print >> sys.stderr, "topo = %s" % config.topo
-
 def skipUnlessTrue(descriptor):
     if not hasattr(config, descriptor):
         return unittest.skip("%s not defined in config.py, skipping" % descriptor)
@@ -133,9 +130,7 @@ class TestSupport:
     def ping_mote(self):
         return self.ping( self.test_mote.ip )
 
-    def wait_ping_mote(self, count, host = None):
-        if host is not None:
-            host = self.test_mote.ip
+    def wait_ping_mote(self, count):
         print >> sys.stderr, "Pinging mote %s" % self.test_mote.ip
         return self.wait_ping( count, self.test_mote.ip )
 
@@ -551,8 +546,8 @@ class TestScenarios:
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
-        tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping1.log')
-        tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace("aaaa","9999"),1,config.report_path+'/ping2.log')
+        #tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping1.log')
+        #tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace("aaaa","9999"),1,config.report_path+'/ping2.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
@@ -562,17 +557,34 @@ class TestScenarios:
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         timemotepingdone = time.time()
         self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf,self.support.host.ip.replace("aaaa","9999")) )
+        if start_udp:
+            self.assertTrue(self.support.platform.udpsrv_stop())
+            if wsn_udp:
+                self.assertTrue(self.support.stop_udp_clients())
+            else:
+                self.assertTrue(self.support.stop_udp_client())
+        self.assertTrue( self.support.platform.delete_address(self.support.backbone.itf,self.support.host.ip) )
+        if start_udp:
+            self.assertTrue(self.support.platform.udpsrv_start(config.udp_port,udp_echo))
+            if wsn_udp:
+                self.assertTrue(self.support.start_udp_clients(self.support.host.ip.replace("aaaa","9999")))
+            else:
+                self.assertTrue(self.support.start_udp_client(self.support.host.ip.replace("aaaa","9999")))
         self.assertTrue( self.support.start_ra(self.support.backbone.itf,"alt"), "Could not start RADVD")
         self.assertTrue( self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
-        self.assertTrue( self.support.platform.delete_address(self.support.backbone.itf,self.support.host.ip) )
+        print >> sys.stderr, "Has RA"
         self.support.host.setUp()
+        self.support.test_mote.ip = self.support.test_mote.ip.replace("aaaa","9999")
+        self.support.brList[-1].ip=self.support.brList[-1].ip.replace("aaaa","9999")
         if global_repair:
+            self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding to new prefix")
             print >> sys.stderr, "RPL Global Repair... (by %s)" % self.support.host.ip
             os.environ['http_proxy']=''
-            httpresponse = urllib2.urlopen("http://[%s]/rpl-gr"%self.support.host.ip)
-            self.assertTrue(httpresponse.get_code() == 200, "Fail to trigger the RPL global repair")
+            httpresponse = urllib2.urlopen("http://[%s]/rpl-gr"%self.support.brList[-1].ip)
+            self.assertTrue(httpresponse.getcode() == 200, "Fail to trigger the RPL global repair")
         timemoteping2 = time.time()
-        self.assertTrue(self.support.wait_ping_mote(60,self.support.test_mote.ip.replace("aaaa","9999")), "Mote is not responding")
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         timemoteping2done = time.time()        
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         timemotestopdone = time.time()
@@ -582,8 +594,8 @@ class TestScenarios:
             else:
                 self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
-        self.support.platform.ping_stop(tping1)
-        self.support.platform.ping_stop(tping2)
+        #self.support.platform.ping_stop(tping1)
+        #self.support.platform.ping_stop(tping2)
         self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
