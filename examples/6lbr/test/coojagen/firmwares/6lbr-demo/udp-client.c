@@ -38,7 +38,11 @@
 #define DEBUG DEBUG_FULL
 #include "net/uip-debug.h"
 
-#define SEND_INTERVAL    15 * CLOCK_SECOND
+#ifndef CETIC_6LBR_UDP_PERIOD
+#define CETIC_6LBR_UDP_PERIOD 15
+#endif
+
+#define SEND_INTERVAL    (CETIC_6LBR_UDP_PERIOD * CLOCK_SECOND)
 #define MAX_PAYLOAD_LEN    40
 
 static struct uip_udp_conn *client_conn = NULL;
