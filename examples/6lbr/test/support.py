@@ -354,7 +354,7 @@ class TestbedWsn(Wsn):
         # TODO: Open connection to Hypernode
         # TODO: Import testbed configuration file
         # TODO: Create a new TestbedMote for each mote on the testbed
-	
+
     def tearDown(self):
         for mote in self.motelist:
             mote.tearDown()
@@ -808,8 +808,8 @@ class Linux(Platform):
     def start_ra(self, itf, prefix):
         print >> sys.stderr, "Start RA daemon (%s)..." % prefix
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd.%s.%s.conf" % (itf,prefix)], shell=True, preexec_fn=os.setsid)
-        self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd.%s.%s.conf" % (itf,prefix)).split())
+        #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd/radvd.%s.%s.conf" % (itf,prefix)], shell=True, preexec_fn=os.setsid)
+        self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd/radvd.%s.%s.conf" % (itf,prefix)).split())
         return self.radvd != None
 
     def stop_ra(self):
