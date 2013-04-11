@@ -31,6 +31,7 @@ report_path='report/run-current/coojasim-current/iter-current/test_current'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
+
 udp_port=3000
 ping_payload=8 #Default is 54
 wsn_prefix='8888'
