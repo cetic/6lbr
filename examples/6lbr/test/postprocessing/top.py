@@ -4,6 +4,8 @@ import os
 import sys
 import re
 from lib_postprocessing import *
+import code
+import readline
 
 """
 Test	Short description				Router	 Smart B    Transp B	Multi Router	Multi Smart B	Multi Trans B
@@ -28,6 +30,10 @@ for root, subFolders, files in os.walk("../report"):
 
 map(lambda x: x.check_dependencies(), results)
 
+vars = globals().copy()
+vars.update(locals())
+shell = code.InteractiveConsole(vars)
+shell.interact()
 
 
 
