@@ -1,2 +1,4 @@
 /test.conf
 .svn
+gen_config.py
+user_config.py
