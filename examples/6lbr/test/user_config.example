@@ -34,10 +34,6 @@ config.S1000=0
 config.S1001=1
 config.S1002=0
 config.S1003=0
-config.S1010=0
-config.S1011=0
-config.S1012=0
-config.S1013=0
 
 config.S1100=0
 config.S1101=1
@@ -52,10 +48,6 @@ config.S2000=0
 config.S2001=0
 config.S2002=0
 config.S2003=0
-config.S2010=0
-config.S2011=0
-config.S2012=0
-config.S2013=0
 
 config.S4000=0
 config.S4001=1
