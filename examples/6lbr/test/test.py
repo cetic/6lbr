@@ -534,6 +534,7 @@ class TestScenarios:
     def S11xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0, global_repair = False):
         if not self.bridge_mode:
             print >> sys.stderr, "Not in bridge mode, skipping test"
+            os.system("touch %s/SKIPPED" % config.report_path)
             return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")

@@ -42,3 +42,7 @@ reportdir=$(find ${CALLDIR}/report -maxdepth 1 -type d | sort | tail -n 1)
 sudo mv ${CALLDIR}/console_out.log $reportdir
 sudo mv ${CALLDIR}/console_err.log $reportdir
 sudo chown -R test:test report/
+
+find report/ -type f -name SKIPPED -exec dirname {} \; > testtoremove
+cat testtoremove | xargs -I{} rm -rf {}
+rm testtoremove
