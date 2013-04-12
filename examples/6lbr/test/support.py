@@ -532,6 +532,7 @@ class VirtualTelosMote(MoteProxy):
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
+        self.serialport.write("\r\nrtimestamp %f\r\n" % time.time())
         self.serialport.write("\r\nrfchannel %d\r\n" % channel)
         self.serialport.write("\r\nstart6lbr\r\n")
         ret = self.wait_until("done\r\n", 5)
