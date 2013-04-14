@@ -46,7 +46,7 @@ sudo rm -f ${CALLDIR}/radiolog-*.pcap
 
 echo "Freeing memory..."
 sudo sync
-sudo echo 3 > /proc/sys/vm/drop_caches
+sudo bash -c "echo 3 > /proc/sys/vm/drop_caches"
 
 echo "Run the tests..."
 sudo ${CALLDIR}/top.py > >(tee ${CALLDIR}/console_out.log) 2> >(tee ${CALLDIR}/console_err.log >&2)
