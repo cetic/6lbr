@@ -44,12 +44,10 @@ time_delta["mote-start"] = time_relative["Mote detect start"] - time_relative["M
 time_delta["mote-stop"] = time_relative["Mote stopped"] - time_relative["Mote reached"]
 time_delta["mote-detect"] = time_relative["Mote detected"] - time_relative["Mote detect start"]
 
-if time_relative.has_key("Mote ping"):
-    time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
-elif time_relative.has_key("Moved mote"):
-    time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
+time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
+
+if time_relative.has_key("Moved mote"):
     time_delta["pingm"] = time_relative["Move mote reached"] - time_relative["Move mote ping"]
-else:
-    time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
+elif time_relative.has_key("Moved ping2"):
     time_delta["ping2"] = time_relative["Mote reached2"] - time_relative["Mote ping2"]
     
