@@ -34,6 +34,7 @@ fields["icmpv6.opt.prefix"] = 9
 fields["icmpv6.nd.ns.target_address"] = 10
 fields["icmpv6.nd.na.target_address"] = 11
 fields["icmpv6.opt.linkaddr"] = 12
+fields["ipv6.hlim"] = 13
 
 tshark_base = "tshark -r %s -R '!dns' -C tshark-6lbr-raw-udp -Tfields -Eseparator=-"
 
@@ -55,6 +56,7 @@ for line in capdump.split('\n'):
     info["time"] = rawinfo[fields["frame.time_epoch"]]
     info["src"] = rawinfo[fields["ipv6.src"]]
     info["dst"] = rawinfo[fields["ipv6.dst"]]
+    info["hoplimit"] = rawinfo[fields["ipv6.hlim"]]
     
     if rawinfo[fields["icmpv6"]] == "icmpv6":
         if rawinfo[fields["icmpv6.type"]] == "133":
