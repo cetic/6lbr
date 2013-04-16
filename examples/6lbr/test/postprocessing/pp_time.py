@@ -53,8 +53,6 @@ def parse_times(infile):
     return time_delta
 
 if __name__ == "__main__":
-    import sys
-    import os
     if len(argv)<2:
         exit(1)
-    main(sys.argv[1])
+    parse_times(sys.argv[1])
