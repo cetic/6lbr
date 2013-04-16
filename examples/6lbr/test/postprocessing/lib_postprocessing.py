@@ -205,5 +205,6 @@ def extract_ping_info(result):
 def extract_time_info(result):
     result.set_time_info(pp_time.parse_times(result.get_file_timelog()))
 
-def plot1(results):
-    pp_plots.plot1(results)
+def plot_all(results):
+    #pp_plots.plot1(results)
+    pp_plots.scatterplot_SmartBridgeAuto(results)

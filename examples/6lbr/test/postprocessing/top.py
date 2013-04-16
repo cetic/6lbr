@@ -40,7 +40,7 @@ for result in results:
     if topo_csc != None:
         topo_csc = os.path.basename(topo_csc)
 
-    print(result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc)
+    #print(result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc)
 
     if 'ping1' in result.time_info:
         ping1 = result.time_info['ping1']
@@ -57,7 +57,7 @@ for result in results:
 
     resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, ping1, ping2, pingm, topo_csc, result.test_path))
 
-plot1(results)
+plot_all(results)
 
 resfile.close()
 
