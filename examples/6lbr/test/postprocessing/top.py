@@ -42,7 +42,20 @@ for result in results:
 
     print(result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc)
 
-    resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc))
+    if 'ping1' in result.time_info:
+        ping1 = result.time_info['ping1']
+    else:
+        ping1 = -1
+    if 'ping2' in result.time_info:
+        ping2 = result.time_info['ping2']
+    else:
+        ping2 = -1
+    if 'pingm' in result.time_info:
+        pingm = result.time_info['pingm']
+    else:
+        pingm = -1
+
+    resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, ping1, ping2, pingm, topo_csc, result.test_path))
 
 resfile.close()
 
