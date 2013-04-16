@@ -28,7 +28,23 @@ for root, subFolders, files in os.walk("../report"):
     if match_test_folder:
         results.append(Result(root, files))
 
-map(lambda x: x.check_dependencies(), results)
+map(lambda x: x.check_dependencies(False), results)
+results = prune_failed(results)
+
+resfile = open("allres.txt", 'w')
+
+for result in results:
+    extract_ping_info(result)
+    extract_time_info(result)
+    topo_csc = result.get_file_topo_config()
+    if topo_csc != None:
+        topo_csc = os.path.basename(topo_csc)
+
+    print(result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc)
+
+    resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, result.time_info['ping1'], topo_csc))
+
+resfile.close()
 
 vars = globals().copy()
 vars.update(locals())

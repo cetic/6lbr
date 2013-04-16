@@ -38,10 +38,10 @@ def parse_times(infile):
     time_delta["network-uptime"] = time_relative["Network stopped"] - time_relative["Network start"]
     time_delta["network-start"] = time_relative["Network started"] - time_relative["Network start"]
     time_delta["network-stop"] = time_relative["Network stopped"] - time_relative["Network stop"]
-    time_delta["mote-uptime"] = time_relative["Mote stopped"] - time_relative["Mote started"]
-    time_delta["mote-start"] = time_relative["Mote detect start"] - time_relative["Mote started"]
+    time_delta["mote-uptime"] = time_relative["Mote stopped"] - time_relative["Mote start"]
+    #time_delta["mote-start"] = time_relative["Mote detect start"] - time_relative["Mote start"]
     time_delta["mote-stop"] = time_relative["Mote stopped"] - time_relative["Mote reached"]
-    time_delta["mote-detect"] = time_relative["Mote detected"] - time_relative["Mote detect start"]
+    time_delta["mote-detect"] = time_relative["Mote detected"] - time_relative["Mote start"]
 
     time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
 

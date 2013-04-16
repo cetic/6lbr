@@ -2,6 +2,8 @@
 import re
 import os
 import sys
+import pp_time
+import pp_pings
 
 """
 Test	Short description				Router	 Smart B    Transp B	Multi Router	Multi Smart B	Multi Trans B
@@ -57,6 +59,12 @@ class Result:
     def get_folder_run(self):
         return os.path.dirname(os.path.dirname(os.path.dirname(self.test_path)))
 
+    def set_ping_info(self, info):
+        self.ping_info = info
+
+    def set_time_info(self, info):
+        self.time_info = info
+
     def get_files(self, level, groups):
         outfiles = {}
         if dep.has_key(level):
@@ -98,7 +106,12 @@ class Result:
             return self.file_index["coojasimmotes"]
 
     def get_file_topo_genconfig(self):
-        return self.file_index["genconfigpy"]
+        if "genconfigpy" in self.file_index:
+            return self.file_index["genconfigpy"]
+
+    def get_file_timelog(self):
+        if "timelog" in self.file_index:
+            return self.file_index['timelog']
 
     def get_ping_logs(self):
         pinglogs = {}
@@ -167,3 +180,25 @@ class Result:
                 error.append(k)
 
         return error == []
+
+
+def prune_failed(results):
+    res = []
+    for result in results:
+        if result.get_file_timelog()!=None and os.path.exists(result.get_file_timelog()):
+            res.append(result)
+
+    return res
+
+def extract_ping_info(result):
+    pingfiles = result.get_ping_logs()
+    ping_info = {}
+
+    for elem in pingfiles:
+        if pingfiles[elem] != None:
+            ping_info[elem] = pp_pings.parse_ping(pingfiles[elem])
+        result.set_ping_info(ping_info)
+
+def extract_time_info(result):
+    result.set_time_info(pp_time.parse_times(result.get_file_timelog()))
+
