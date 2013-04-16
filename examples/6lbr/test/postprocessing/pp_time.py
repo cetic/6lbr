@@ -45,9 +45,9 @@ def parse_times(infile):
 
     time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
 
-    if time_relative.has_key("Moved mote"):
-        time_delta["pingm"] = time_relative["Move mote reached"] - time_relative["Move mote ping"]
-    elif time_relative.has_key("Moved ping2"):
+    if time_relative.has_key("Moved mote ping"):
+        time_delta["pingm"] = time_relative["Moved mote reached"] - time_relative["Moved mote ping"]
+    elif time_relative.has_key("Mote ping2"):
         time_delta["ping2"] = time_relative["Mote reached2"] - time_relative["Mote ping2"]
 
     return time_delta
