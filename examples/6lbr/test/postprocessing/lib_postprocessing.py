@@ -73,25 +73,29 @@ class Result:
                             match = regx.match(realfile)
                             if match is not None:
                                 matched = True;
-                                outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = os.path.join(levelbasepath,realfile)
+                                outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","").replace("-","")] = os.path.join(levelbasepath,realfile)
                                 break
                         if not matched:
-                            outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = None
+                            outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","").replace("-","")] = None
             return outfiles                   
         else:
             return None
 
     def get_file_run_stdout(self):
-        return self.file_index["consoleoutlog"]
+        if "consoleoutlog" in self.file_index:
+            return self.file_index["consoleoutlog"]
 
     def get_file_run_stderr(self):
-        return self.file_index["consoleerrlog"]
+        if "consoleerrlog" in self.file_index:
+            return self.file_index["consoleerrlog"]
 
     def get_file_topo_config(self):
-        return self.file_index["coojasimcsc"]
+        if "coojasimcsc" in self.file_index:
+            return self.file_index["coojasimcsc"]
         
     def get_file_topo_motes(self):
-        return self.file_index["coojasimmotes"]
+        if "coojasimmotes" in self.file_index:
+            return self.file_index["coojasimmotes"]
 
     def get_file_topo_genconfig(self):
         return self.file_index["genconfigpy"]
