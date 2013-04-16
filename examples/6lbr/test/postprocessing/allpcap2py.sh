@@ -4,7 +4,8 @@ CALLDIR=$(dirname $(readlink -f $0))
 
 REPORTDIR=${CALLDIR}/../report
 PROFILE=${HOME}/.wireshark/profiles/tshark-6lbr-raw-udp/disabled_protos
-FILEMASK="br0.pcap"
+FILEMASKBR="br0.pcap"
+FILEMASKWSN="radiolog.pcap"
 
 which tshark > /dev/null 2>&1
 if [ $? -gt 0 ]
@@ -26,5 +27,6 @@ else
 	fi
 fi
 
-find ${REPORTDIR} -type f -name ${FILEMASK} -exec python ${CALLDIR}/pcap2py.py {} \;
+find ${REPORTDIR} -type f -name ${FILEMASKBR} -exec python ${CALLDIR}/pcap2py.py {} \;
+find ${REPORTDIR} -type f -name ${FILEMASKWSN} -exec python ${CALLDIR}/pcap2py.py {} \;
 
