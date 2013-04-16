@@ -35,8 +35,11 @@ fields["icmpv6.nd.ns.target_address"] = 10
 fields["icmpv6.nd.na.target_address"] = 11
 fields["icmpv6.opt.linkaddr"] = 12
 fields["ipv6.hlim"] = 13
+fields["6lowpan"] = 14
+fields["6lowpan.src"] = 15
+fields["6lowpan.dst"] = 16
 
-tshark_base = "tshark -r %s -R '!dns' -C tshark-6lbr-raw-udp -Tfields -Eseparator=-"
+tshark_base = "tshark -r %s -R '!dns' -C tshark-6lbr-raw-udp -Tfields -Eseparator='|'"
 
 tshark_export = ""
 for k in sorted(fields, key=fields.get):
@@ -50,7 +53,7 @@ capture = []
 for line in capdump.split('\n'):
     if not line:
         continue
-    rawinfo = line.split('-')
+    rawinfo = line.split('|')
     info = {}
     info["number"] = rawinfo[fields["frame.number"]]
     info["time"] = rawinfo[fields["frame.time_epoch"]]
