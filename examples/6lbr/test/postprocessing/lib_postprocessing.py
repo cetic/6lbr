@@ -96,6 +96,16 @@ class Result:
     def get_file_topo_genconfig(self):
         return self.file_index["genconfigpy"]
 
+    def get_ping_logs(self):
+        pinglogs = {}
+        if "pinglog" in self.file_index:
+            pinglogs["ping0"] = self.file_index["pinglog"]
+        if "ping1log" in self.file_index:
+            pinglogs["ping1"] = self.file_index["ping1log"]
+        if "ping2log" in self.file_index:
+            pinglogs["ping2"] = self.file_index["ping2log"]
+        return pinglogs
+
     def debug(self):
         print >> sys.stderr, "=======================\nDebugging %s object" % self.__class__.__name__
         print >> sys.stderr, "mode \t\t%s" % self.mode
