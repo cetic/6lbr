@@ -57,6 +57,8 @@ for result in results:
 
     resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, ping1, ping2, pingm, topo_csc, result.test_path))
 
+plot1(results)
+
 resfile.close()
 
 vars = globals().copy()

@@ -4,6 +4,7 @@ import os
 import sys
 import pp_time
 import pp_pings
+import pp_plots
 
 """
 Test	Short description				Router	 Smart B    Transp B	Multi Router	Multi Smart B	Multi Trans B
@@ -204,3 +205,5 @@ def extract_ping_info(result):
 def extract_time_info(result):
     result.set_time_info(pp_time.parse_times(result.get_file_timelog()))
 
+def plot1(results):
+    pp_plots.plot1(results)
