@@ -35,14 +35,18 @@ def scatterplot_SmartBridgeAuto(results):
                     if result.start_delay not in data[result.id+topo]:
                         data[result.id+topo][result.start_delay] = {'x':[], 'y':[]}
 
+                    if 'ping2' in result.ping_info and result.ping_info['ping2'] != None:
+                        pingnum = 'ping2'
+                    else:
+                        pingnum = 'ping1'
 
                     re_line_topo = re.compile(".*line-([0-9]+)-.*")
                     if topo == '-line':
                         data[result.id+topo][result.start_delay]['x'].append(int(re_line_topo.match(result.topology).group(1))-1)
-                        data[result.id+topo][result.start_delay]['y'].append(int(result.time_info['ping1']))
+                        data[result.id+topo][result.start_delay]['y'].append(int(result.time_info[pingnum]))
                     else:
-                        data[result.id+topo][result.start_delay]['x'].append(64 - int(result.ping_info['ping1']['ttl']))
-                        data[result.id+topo][result.start_delay]['y'].append(int(result.time_info['ping1']))
+                        data[result.id+topo][result.start_delay]['x'].append(64 - int(result.ping_info[pingnum]['ttl']))
+                        data[result.id+topo][result.start_delay]['y'].append(int(result.time_info[pingnum]))
     
     formatter = matplotlib.ticker.EngFormatter(places=3)
     formatter.ENG_PREFIXES[-6] = 'u'
