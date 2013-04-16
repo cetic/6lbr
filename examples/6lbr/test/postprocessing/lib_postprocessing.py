@@ -2,6 +2,8 @@
 import re
 import os
 import sys
+import pp_time
+import pp_pings
 
 """
 Test	Short description				Router	 Smart B    Transp B	Multi Router	Multi Smart B	Multi Trans B
@@ -57,6 +59,12 @@ class Result:
     def get_folder_run(self):
         return os.path.dirname(os.path.dirname(os.path.dirname(self.test_path)))
 
+    def set_ping_info(self, info):
+        self.ping_info = info
+
+    def set_time_info(self, info):
+        self.time_info = info
+
     def get_files(self, level, groups):
         outfiles = {}
         if dep.has_key(level):
@@ -64,37 +72,56 @@ class Result:
             levelfiles = os.listdir(levelbasepath)
             for group in groups:
                 if dep[level].has_key(group):
-                    for attendedfile in dep[level][group]:
+                    for expectedfile in dep[level][group]:
                         matched = False
                         for realfile in levelfiles:
                             if os.path.isdir(os.path.join(levelbasepath,realfile)):
                                 continue
-                            regx = re.compile(attendedfile.replace("~","\.").replace("?",".?").replace("*",".*"))
+                            regx = re.compile(expectedfile.replace("~","\.").replace("?",".?").replace("*",".*"))
                             match = regx.match(realfile)
                             if match is not None:
                                 matched = True;
-                                outfiles[attendedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = os.path.join(levelbasepath,realfile)
+                                outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","").replace("-","")] = os.path.join(levelbasepath,realfile)
                                 break
                         if not matched:
-                            outfiles[attendedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = None
+                            outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","").replace("-","")] = None
             return outfiles                   
         else:
             return None
 
     def get_file_run_stdout(self):
-        return self.file_index["consoleoutlog"]
+        if "consoleoutlog" in self.file_index:
+            return self.file_index["consoleoutlog"]
 
     def get_file_run_stderr(self):
-        return self.file_index["consoleerrlog"]
+        if "consoleerrlog" in self.file_index:
+            return self.file_index["consoleerrlog"]
 
     def get_file_topo_config(self):
-        return self.file_index["coojasimcsc"]
+        if "coojasimcsc" in self.file_index:
+            return self.file_index["coojasimcsc"]
         
     def get_file_topo_motes(self):
-        return self.file_index["coojasimmotes"]
+        if "coojasimmotes" in self.file_index:
+            return self.file_index["coojasimmotes"]
 
     def get_file_topo_genconfig(self):
-        return self.file_index["genconfigpy"]
+        if "genconfigpy" in self.file_index:
+            return self.file_index["genconfigpy"]
+
+    def get_file_timelog(self):
+        if "timelog" in self.file_index:
+            return self.file_index['timelog']
+
+    def get_ping_logs(self):
+        pinglogs = {}
+        if "pinglog" in self.file_index:
+            pinglogs["ping0"] = self.file_index["pinglog"]
+        if "ping1log" in self.file_index:
+            pinglogs["ping1"] = self.file_index["ping1log"]
+        if "ping2log" in self.file_index:
+            pinglogs["ping2"] = self.file_index["ping2log"]
+        return pinglogs
 
     def debug(self):
         print >> sys.stderr, "=======================\nDebugging %s object" % self.__class__.__name__
@@ -125,7 +152,7 @@ class Result:
                 matched_dep_groups.append(dep_name)
         return matched_dep_groups
 
-    def check_dependencies(self):
+    def check_dependencies(self, with_print=True):
         error = []
         #warning = []
         #for dep_group in self.match_dependencies_groups("test"):
@@ -148,8 +175,32 @@ class Result:
         for k,v in self.file_index.items():
             if v is None:
                 if len(error) == 0:
-                    print "---"
-                print >> sys.stderr, "error: missing '%s' for test '%s'" % (k,self.test_path)
+                    if(with_print):
+                        print "---"
+                if(with_print):
+                    print >> sys.stderr, "error: missing '%s' for test '%s'" % (k,self.test_path)
                 error.append(k)
 
         return error == []
+
+
+def prune_failed(results):
+    res = []
+    for result in results:
+        if result.get_file_timelog()!=None and os.path.exists(result.get_file_timelog()):
+            res.append(result)
+
+    return res
+
+def extract_ping_info(result):
+    pingfiles = result.get_ping_logs()
+    ping_info = {}
+
+    for elem in pingfiles:
+        if pingfiles[elem] != None:
+            ping_info[elem] = pp_pings.parse_ping(pingfiles[elem])
+        result.set_ping_info(ping_info)
+
+def extract_time_info(result):
+    result.set_time_info(pp_time.parse_times(result.get_file_timelog()))
+
