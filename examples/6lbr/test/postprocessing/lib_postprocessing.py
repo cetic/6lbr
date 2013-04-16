@@ -64,19 +64,19 @@ class Result:
             levelfiles = os.listdir(levelbasepath)
             for group in groups:
                 if dep[level].has_key(group):
-                    for attendedfile in dep[level][group]:
+                    for expectedfile in dep[level][group]:
                         matched = False
                         for realfile in levelfiles:
                             if os.path.isdir(os.path.join(levelbasepath,realfile)):
                                 continue
-                            regx = re.compile(attendedfile.replace("~","\.").replace("?",".?").replace("*",".*"))
+                            regx = re.compile(expectedfile.replace("~","\.").replace("?",".?").replace("*",".*"))
                             match = regx.match(realfile)
                             if match is not None:
                                 matched = True;
-                                outfiles[attendedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = os.path.join(levelbasepath,realfile)
+                                outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = os.path.join(levelbasepath,realfile)
                                 break
                         if not matched:
-                            outfiles[attendedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = None
+                            outfiles[expectedfile.replace("?","").replace("*","").replace("~","").replace("_","")] = None
             return outfiles                   
         else:
             return None
