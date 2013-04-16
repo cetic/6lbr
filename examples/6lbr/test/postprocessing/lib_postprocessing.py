@@ -152,7 +152,7 @@ class Result:
                 matched_dep_groups.append(dep_name)
         return matched_dep_groups
 
-    def check_dependencies(self):
+    def check_dependencies(self, with_print=True):
         error = []
         #warning = []
         #for dep_group in self.match_dependencies_groups("test"):
@@ -175,8 +175,10 @@ class Result:
         for k,v in self.file_index.items():
             if v is None:
                 if len(error) == 0:
-                    print "---"
-                print >> sys.stderr, "error: missing '%s' for test '%s'" % (k,self.test_path)
+                    if(with_print):
+                        print "---"
+                if(with_print):
+                    print >> sys.stderr, "error: missing '%s' for test '%s'" % (k,self.test_path)
                 error.append(k)
 
         return error == []
