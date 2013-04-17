@@ -207,4 +207,4 @@ def extract_time_info(result):
 
 def plot_all(results):
     #pp_plots.plot1(results)
-    pp_plots.scatterplot_SmartBridgeAuto(results)
+    pp_plots.plot_all(results)
