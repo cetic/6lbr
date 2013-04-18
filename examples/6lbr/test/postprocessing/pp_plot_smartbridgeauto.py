@@ -156,7 +156,7 @@ def scatterplot_SmartBridgeAuto(results):
                     if result.id not in data:
                         data[result.id] = {}
                     if result.start_delay not in data[result.id]:
-                        data[result.id][result.start_delay] = {'x':[], 'y':[]}
+                        data[result.id][result.start_delay] = {'x':[], 'y':[], 'xmean':[], 'ymean':[]}
 
                     if 'ping2' in result.ping_info and result.ping_info['ping2'] != None:
                         pingnum = 'ping2'
@@ -178,13 +178,22 @@ def scatterplot_SmartBridgeAuto(results):
     index100x = 1
     index110x = 1
     index111x = 1
-   
+    
+    figmean100x = plt.figure(figsize=(25,15))
+    figmean110x = plt.figure(figsize=(25,15))
+    figmean111x = plt.figure(figsize=(25,15))
+    figmean200x = plt.figure(figsize=(25,15))
+    indexmean100x = 0
+    indexmean110x = 0
+    indexmean111x = 0
+
     for testid in data:
         sortedid = sorted(data.keys())
         print sortedid
-        for start_delay in sorted(data[testid].keys()):
+        for start_delay in data[testid]:
             sorteddelay = sorted(data[testid].keys())
             print sorteddelay
+            data[testid][start_delay]['mean'] = mean(data[testid][start_delay]['y'])
             if 'S100' in testid:
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid) + 1
                 ax = fig100x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
@@ -211,12 +220,64 @@ def scatterplot_SmartBridgeAuto(results):
                 ax = fig200x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                
-#        if index100x>7:
-#            index100x = index100x - 7
-#        if index110x>7:
-#            index110x = index110x - 7
-#        if index111x>7:
-#            index111x = index111x - 7
+
+    style = 'ro-'
+    for testid in sorted(data.keys()):
+        if 'S100' in testid:
+            indexmean100x += 1
+            ax = figmean100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    temp[i] = mean(temp[i])
+                data[testid][start_delay]['ymean'] = temp 
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    style = 'bo-'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    style = 'go-'
+                else:
+                    style = 'ro-'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
+        elif 'S110' in testid:
+            indexmean110x += 1
+            ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    temp[i] = mean(temp[i])
+                data[testid][start_delay]['ymean'] = temp
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    style = 'bo-'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    style = 'go-'
+                else:
+                    style = 'ro-'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
+        if 'S111' in testid:
+            indexmean111x += 1
+            ax = figmean111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    temp[i] = mean(temp[i])
+                data[testid][start_delay]['ymean'] = temp
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    style = 'bo-'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    style = 'go-'
+                else:
+                    style = 'ro-'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
+                
             
             #plt.axes().yaxis.set_major_formatter(formatter)
 
@@ -224,4 +285,8 @@ def scatterplot_SmartBridgeAuto(results):
     fig110x.savefig('SmartBridgeAuto_110x.pdf', format='pdf')
     fig111x.savefig('SmartBridgeAuto_111x.pdf', format='pdf')
     fig200x.savefig('SmartBridgeAuto_200x.pdf', format='pdf')
+
+    figmean100x.savefig('SmartBridgeAuto_mean100x.pdf', format='pdf')
+    figmean110x.savefig('SmartBridgeAuto_mean110x.pdf', format='pdf')
+    figmean111x.savefig('SmartBridgeAuto_mean111x.pdf', format='pdf')
 
