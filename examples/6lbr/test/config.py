@@ -67,6 +67,11 @@ wsnClass=CoojaWsn
 #platform=MacOSX()
 platform=Linux()
 
+#S600x related configuration
+
+second_mote_ip='0212:7416:0016:1616'
+ping_repeat=100
+
 """
 scenarios
 define 1 to run the scenario, 0 to skip
@@ -121,6 +126,11 @@ S5020=1
 S5021=1
 S5022=1
 S5023=1
+
+S6000=1
+S6001=1
+S6002=1
+S6003=1
 
 """
 modes
