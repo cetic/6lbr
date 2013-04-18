@@ -18,6 +18,8 @@ Stop Test = 29759.605885
 
 import os
 import sys
+import ast
+import pylab
 
 
 def parse_times(infile):
@@ -32,7 +34,10 @@ def parse_times(infile):
         for line in f:
             if line.find(" = ") != -1:
                 rawinfo = line.split(" = ")
-                time_relative[rawinfo[0]] = float(rawinfo[1])
+                if "Ping stat" in rawinfo[0]:
+                    time_relative[rawinfo[0]] = ast.literal_eval(rawinfo[1])
+                else:
+                    time_relative[rawinfo[0]] = float(rawinfo[1])
 
     time_delta["test"] = time_relative["Stop Test"]
     time_delta["network-uptime"] = time_relative["Network stopped"] - time_relative["Network start"]
@@ -49,6 +54,13 @@ def parse_times(infile):
         time_delta["pingm"] = time_relative["Moved mote reached"] - time_relative["Moved mote ping"]
     elif time_relative.has_key("Mote ping2"):
         time_delta["ping2"] = time_relative["Mote reached2"] - time_relative["Mote ping2"]
+
+    if time_relative.has_key("Ping stat"):
+        #time_relative["Ping stat"] = ast.literal_eval(time_relative["Ping stat"])
+        time_delta["ping2-stat"] = time_relative["Ping stat"]
+        time_delta["ping2-mean"] = pylab.mean(time_relative["Ping stat"])
+        time_delta["ping2-std"] = pylab.std(time_relative["Ping stat"])
+        time_delta["ping2-var"] = pylab.var(time_relative["Ping stat"])
 
     return time_delta
 

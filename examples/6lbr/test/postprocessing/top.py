@@ -23,7 +23,10 @@ results = []
 
 #Generate a list of report dirs <mode>.test_Sxxxx
 #Path example: report/run-20130411002034/coojasim-preset-1dag-10nodes-12-20130411002000/iter-000-01/RplRootTransparentBridge.test_S1101
-for root, subFolders, files in os.walk("../report"):
+
+report_root = "../report"
+#report_root = "../report/run-20130417142318"
+for root, subFolders, files in os.walk(report_root):
     match_test_folder = re_test_folder.match(os.path.basename(root))
     if match_test_folder:
         results.append(Result(root, files))

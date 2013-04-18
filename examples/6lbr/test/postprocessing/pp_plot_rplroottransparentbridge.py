@@ -3,9 +3,9 @@ import re
 import math
 import inspect
 
-def scatterplot_SmartBridgeAuto_separate(results):
+def scatterplot_RplRootTransparentBridge_separate(results):
 
-    print "scatterplot_SmartBridgeAuto_separate"
+    print "scatterplot_RplRootTransparentBridge_separate"
     data = {}
     #dictionary data['Sxxxx']['delay'] = {'x':[], 'y',[]}
 
@@ -14,7 +14,7 @@ def scatterplot_SmartBridgeAuto_separate(results):
     nrow = 3
 
     for result in results:
-        if "SmartBridgeAuto" in result.mode:
+        if "RplRootTransparentBridge" in result.mode:
             if result.ping_info != None:
                 if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
                     if 'line' in result.topology:
@@ -83,9 +83,9 @@ def scatterplot_SmartBridgeAuto_separate(results):
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2))) + 1
                     ax = fig110xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
-                    #print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
+                    print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index110xline)
-                    index110xline+=1
+                    #index110xline+=1
                 if 'S111' in testid:
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-4 + 1
                     ax = fig111xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
@@ -97,7 +97,7 @@ def scatterplot_SmartBridgeAuto_separate(results):
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-8 + 1
                     ax = fig200xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
-                    print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                     
+                    print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                    
             if 'other' in testid:
                 if 'S100' in testid:
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1 + 1
@@ -124,23 +124,23 @@ def scatterplot_SmartBridgeAuto_separate(results):
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-8 + 1
                     ax = fig200xgrid.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
-                    print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                     
+                    print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                       
 
             #plt.axes().yaxis.set_major_formatter(formatter)
 
-    fig100xline.savefig('SmartBridgeAuto_100x_line.pdf', format='pdf')
-    fig110xline.savefig('SmartBridgeAuto_110x_line.pdf', format='pdf')
-    fig111xline.savefig('SmartBridgeAuto_111x_line.pdf', format='pdf')
-    fig200xline.savefig('SmartBridgeAuto_200x_line.pdf', format='pdf')
+    fig100xline.savefig('RplRootTransparentBridge_100x_line.pdf', format='pdf')
+    fig110xline.savefig('RplRootTransparentBridge_110x_line.pdf', format='pdf')
+    fig111xline.savefig('RplRootTransparentBridge_111x_line.pdf', format='pdf')
+    fig200xline.savefig('RplRootTransparentBridge_200x_line.pdf', format='pdf')
 
-    fig100xother.savefig('SmartBridgeAuto_100x_other.pdf', format='pdf')
-    fig110xother.savefig('SmartBridgeAuto_110x_other.pdf', format='pdf')
-    fig111xother.savefig('SmartBridgeAuto_111x_other.pdf', format='pdf')
-    fig200xother.savefig('SmartBridgeAuto_200x_other.pdf', format='pdf')
+    fig100xother.savefig('RplRootTransparentBridge_100x_other.pdf', format='pdf')
+    fig110xother.savefig('RplRootTransparentBridge_110x_other.pdf', format='pdf')
+    fig111xother.savefig('RplRootTransparentBridge_111x_other.pdf', format='pdf')
+    fig200xother.savefig('RplRootTransparentBridge_200x_other.pdf', format='pdf')
 
-def scatterplot_SmartBridgeAuto(results):
+def scatterplot_RplRootTransparentBridge(results):
 
-    print "scatterplot_SmartBridgeAuto"
+    print "scatterplot_RplRootTransparentBridge"
     data = {}
     #dictionary data['Sxxxx']['delay'] = {'x':[], 'y',[]}
 
@@ -149,7 +149,7 @@ def scatterplot_SmartBridgeAuto(results):
     nrow = 3
 
     for result in results:
-        if "SmartBridgeAuto" in result.mode:
+        if "RplRootTransparentBridge" in result.mode:
             if result.ping_info != None:
                 if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
 
@@ -203,14 +203,14 @@ def scatterplot_SmartBridgeAuto(results):
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-4 + 1
                 ax = fig111x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
-                print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
+                #print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 #print(index111x)
-                #index111x+=1
             if 'S200' in testid:
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-8 + 1
-                ax = fig200x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
+                ax = fig111x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
-                print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                
+                #print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
+                #print(index200x)                
 #        if index100x>7:
 #            index100x = index100x - 7
 #        if index110x>7:
@@ -220,8 +220,8 @@ def scatterplot_SmartBridgeAuto(results):
             
             #plt.axes().yaxis.set_major_formatter(formatter)
 
-    fig100x.savefig('SmartBridgeAuto_100x.pdf', format='pdf')
-    fig110x.savefig('SmartBridgeAuto_110x.pdf', format='pdf')
-    fig111x.savefig('SmartBridgeAuto_111x.pdf', format='pdf')
-    fig200x.savefig('SmartBridgeAuto_200x.pdf', format='pdf')
+    fig100x.savefig('RplRootTransparentBridge_100x.pdf', format='pdf')
+    fig110x.savefig('RplRootTransparentBridge_110x.pdf', format='pdf')
+    fig111x.savefig('RplRootTransparentBridge_111x.pdf', format='pdf')
+    fig111x.savefig('RplRootTransparentBridge_200x.pdf', format='pdf')
 
