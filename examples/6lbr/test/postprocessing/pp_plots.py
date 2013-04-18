@@ -23,6 +23,6 @@ def plot_all(results):
 
     pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto(results)
     pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_seperate(results)
-    pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto(results)
-
+    pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_500x(results)
+    pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_502x(results)
 
