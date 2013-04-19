@@ -14,7 +14,7 @@ def scatterplot_SmartBridgeAuto_separate(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "SmartBridgeAuto":
@@ -141,6 +141,8 @@ def scatterplot_SmartBridgeAuto_separate(results):
     fig111xother.savefig('SmartBridgeAuto_111x_other.pdf', format='pdf')
     fig200xother.savefig('SmartBridgeAuto_200x_other.pdf', format='pdf')
 
+
+
 def scatterplot_SmartBridgeAuto(results):
 
     print "scatterplot_SmartBridgeAuto"
@@ -152,7 +154,7 @@ def scatterplot_SmartBridgeAuto(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "SmartBridgeAuto":
@@ -162,7 +164,7 @@ def scatterplot_SmartBridgeAuto(results):
                     if result.id not in data:
                         data[result.id] = {}
                     if result.start_delay not in data[result.id]:
-                        data[result.id][result.start_delay] = {'x':[], 'y':[], 'xmean':[], 'ymean':[]}
+                        data[result.id][result.start_delay] = {'x':[], 'y':[]}
 
                     if 'ping2' in result.ping_info and result.ping_info['ping2'] != None:
                         pingnum = 'ping2'
@@ -227,73 +229,386 @@ def scatterplot_SmartBridgeAuto(results):
                 ax = fig200x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                
-
-    style = 'ro-'
-    for testid in sorted(data.keys()):
-        if 'S100' in testid:
-            indexmean100x += 1
-            ax = figmean100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
-            for start_delay in sorted(data[testid].keys()):
-                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
-                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
-                for k in range(len(data[testid][start_delay]['x'])):
-                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
-                for i in range(len(temp)):
-                    temp[i] = mean(temp[i])
-                data[testid][start_delay]['ymean'] = temp 
-                if sorted(data[testid].keys()).index(start_delay) == 0:
-                    style = 'bo-'
-                elif sorted(data[testid].keys()).index(start_delay) == 1:
-                    style = 'go-'
-                else:
-                    style = 'ro-'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
-        elif 'S110' in testid:
-            indexmean110x += 1
-            ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
-            for start_delay in sorted(data[testid].keys()):
-                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
-                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
-                for k in range(len(data[testid][start_delay]['x'])):
-                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
-                for i in range(len(temp)):
-                    temp[i] = mean(temp[i])
-                data[testid][start_delay]['ymean'] = temp
-                if sorted(data[testid].keys()).index(start_delay) == 0:
-                    style = 'bo-'
-                elif sorted(data[testid].keys()).index(start_delay) == 1:
-                    style = 'go-'
-                else:
-                    style = 'ro-'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
-        if 'S111' in testid:
-            indexmean111x += 1
-            ax = figmean111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
-            for start_delay in sorted(data[testid].keys()):
-                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
-                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
-                for k in range(len(data[testid][start_delay]['x'])):
-                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
-                for i in range(len(temp)):
-                    temp[i] = mean(temp[i])
-                data[testid][start_delay]['ymean'] = temp
-                if sorted(data[testid].keys()).index(start_delay) == 0:
-                    style = 'bo-'
-                elif sorted(data[testid].keys()).index(start_delay) == 1:
-                    style = 'go-'
-                else:
-                    style = 'ro-'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
                 
-            
-            #plt.axes().yaxis.set_major_formatter(formatter)
-
     fig100x.savefig('SmartBridgeAuto_100x.pdf', format='pdf')
     fig110x.savefig('SmartBridgeAuto_110x.pdf', format='pdf')
     fig111x.savefig('SmartBridgeAuto_111x.pdf', format='pdf')
     fig200x.savefig('SmartBridgeAuto_200x.pdf', format='pdf')
 
+
+
+def scatterplot_SmartBridgeAuto_mean(results):
+
+    print "scatterplot_SmartBridgeAuto_mean"
+    data = {}
+    #dictionary data['Sxxxx']['delay'] = {'x':[], 'y',[]}
+
+    results = sorted(results, key=lambda k: k.topology) 
+    ncol = 4
+    nrow = 3
+    
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (s)"
+
+    for result in results:
+        if result.mode == "SmartBridgeAuto":
+            if result.ping_info != None:
+                if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
+
+                    if result.id not in data:
+                        data[result.id] = {}
+                    if result.start_delay not in data[result.id]:
+                        data[result.id][result.start_delay] = {'x':[], 'y':[], 'xmean':[], 'ymean':[], 'ystd':[]}
+
+                    if 'ping2' in result.ping_info and result.ping_info['ping2'] != None:
+                        pingnum = 'ping2'
+                    else:
+                        pingnum = 'ping1'
+
+                    re_line_topo = re.compile(".*line-([0-9]+)-.*")
+                    if 'line' in result.topology:
+                        data[result.id][result.start_delay]['x'].append(int(re_line_topo.match(result.topology).group(1))-1)
+                        data[result.id][result.start_delay]['y'].append(int(result.time_info[pingnum])/1000)
+                    else:
+                        data[result.id][result.start_delay]['x'].append(64 - int(result.ping_info[pingnum]['ttl']))
+                        data[result.id][result.start_delay]['y'].append(int(result.time_info[pingnum])/1000)
+    
+    figmean100x = plt.figure(figsize=(25,15))
+    figmean110x = plt.figure(figsize=(25,15))
+    figmean111x = plt.figure(figsize=(25,15))
+    figmean200x = plt.figure(figsize=(25,15))
+
+    indexmean100x = 0
+    indexmean110x = 0
+    indexmean111x = 0
+    indexmean200x = 0
+    
+    plotcolor = 'r'
+    plotmarker = 'o'
+    plotline = '-'
+    for testid in sorted(data.keys()):
+        if 'S100' in testid:
+            indexmean100x += 1
+            ax = figmean100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    data[testid][start_delay]['ymean'].append(mean(temp[i]).tolist())
+                    data[testid][start_delay]['ystd'].append(std(temp[i]).tolist())
+
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
+        elif 'S110' in testid:
+            indexmean110x += 1
+            ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    data[testid][start_delay]['ymean'].append(mean(temp[i]).tolist())
+                    data[testid][start_delay]['ystd'].append(std(temp[i]).tolist())
+
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
+        if 'S111' in testid:
+            indexmean111x += 1
+            ax = figmean111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    data[testid][start_delay]['ymean'].append(mean(temp[i]).tolist())
+                    data[testid][start_delay]['ystd'].append(std(temp[i]).tolist())
+
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
+        if 'S200' in testid:
+            indexmean200x += 1
+            ax = figmean200x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
+            for start_delay in sorted(data[testid].keys()):
+                data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
+                temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
+                for k in range(len(data[testid][start_delay]['x'])):
+                    temp[data[testid][start_delay]['xmean'].index(data[testid][start_delay]['x'][k])].append(data[testid][start_delay]['y'][k])
+                for i in range(len(temp)):
+                    data[testid][start_delay]['ymean'].append(mean(temp[i]).tolist())
+                    data[testid][start_delay]['ystd'].append(std(temp[i]).tolist())
+
+                if sorted(data[testid].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(data[testid].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
+
     figmean100x.savefig('SmartBridgeAuto_mean100x.pdf', format='pdf')
     figmean110x.savefig('SmartBridgeAuto_mean110x.pdf', format='pdf')
     figmean111x.savefig('SmartBridgeAuto_mean111x.pdf', format='pdf')
+    figmean200x.savefig('SmartBridgeAuto_mean200x.pdf', format='pdf')
 
+    figmeandelay100x = plt.figure(figsize=(25,15))
+    figmeandelay110x = plt.figure(figsize=(25,15))
+    figmeandelay111x = plt.figure(figsize=(25,15))
+    figmeandelay200x = plt.figure(figsize=(25,15))
+    
+    figmeantraffic100x = plt.figure(figsize=(25,15))
+    figmeantraffic110x = plt.figure(figsize=(25,15))
+    figmeantraffic111x = plt.figure(figsize=(25,15))
+    figmeantraffic200x = plt.figure(figsize=(25,15))
+
+        
+    #Prepare all the data
+    alldata = {}
+    for testid in sorted(data.keys()):
+        if not alldata.has_key(testid[:-1]):
+            alldata[testid[:-1]] = {}
+        if not alldata[testid[:-1]].has_key('x'+testid[-1:]):
+            alldata[testid[:-1]]['x'+testid[-1:]] = {}
+        for start_delay in sorted(data[testid].keys()):
+            if not alldata[testid[:-1]]['x'+testid[-1:]].has_key(start_delay):
+                alldata[testid[:-1]]['x'+testid[-1:]][start_delay] = {}
+            alldata[testid[:-1]]['x'+testid[-1:]][start_delay]["x"] = data[testid][start_delay]['xmean']
+            alldata[testid[:-1]]['x'+testid[-1:]][start_delay]["ymean"] = data[testid][start_delay]['ymean']
+
+    datadelay = {}
+    datatraffic = {}
+    for testclass in sorted(alldata.keys()):
+        if not datadelay.has_key(testclass):
+            datadelay[testclass] = {}
+        if not datatraffic.has_key(testclass):
+            datatraffic[testclass] = {}
+        for traffic in sorted(alldata[testclass].keys()):
+            for start_delay in sorted(alldata[testclass][traffic].keys()):
+                if not datadelay[testclass].has_key(start_delay):
+                    datadelay[testclass][start_delay] = {}
+                if not datatraffic[testclass].has_key(traffic):
+                    datatraffic[testclass][traffic] = {} 
+                               
+                if not datadelay[testclass][start_delay].has_key("x") or not datadelay[testclass][start_delay].has_key("y"):
+                    tmp = mergevector(None,None,alldata[testclass][traffic][start_delay]["x"],alldata[testclass][traffic][start_delay]["ymean"])
+                else:
+                    tmp = mergevector(datadelay[testclass][start_delay]["x"],datadelay[testclass][start_delay]["y"],alldata[testclass][traffic][start_delay]["x"],alldata[testclass][traffic][start_delay]["ymean"])
+                datadelay[testclass][start_delay]["x"] = tmp["x"]
+                datadelay[testclass][start_delay]["y"] = tmp["y"]
+
+                if not datatraffic[testclass][traffic].has_key("x") or not datatraffic[testclass][traffic].has_key("y"):
+                    tmp = mergevector(None,None,alldata[testclass][traffic][start_delay]["x"],alldata[testclass][traffic][start_delay]["ymean"])
+                else:
+                    tmp = mergevector(datatraffic[testclass][traffic]["x"],datatraffic[testclass][traffic]["y"],alldata[testclass][traffic][start_delay]["x"],alldata[testclass][traffic][start_delay]["ymean"])
+                datatraffic[testclass][traffic]["x"] = tmp["x"]
+                datatraffic[testclass][traffic]["y"] = tmp["y"]
+
+    indexmean100x = 0
+    indexmean110x = 0
+    indexmean111x = 0
+    indexmean200x = 0
+    
+    for testclass in sorted(datadelay.keys()):
+        if 'S100' in testclass:
+            indexmean100x += 1
+            ax = figmeandelay100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for start_delay in sorted(datadelay[testclass].keys()):
+                if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+        if 'S110' in testclass:
+            indexmean110x += 1
+            ax = figmeandelay110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for start_delay in sorted(datadelay[testclass].keys()):
+                if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+        if 'S1111' in testclass:
+            indexmean111x += 1
+            ax = figmeandelay111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for start_delay in sorted(datadelay[testclass].keys()):
+                if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)
+        # if 'S200' in testclass:
+            # indexmean200x += 1
+            # ax = figmeandelay200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            # for start_delay in sorted(datadelay[testclass].keys()):
+                # if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
+                    # plotcolor = 'b'
+                # elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
+                    # plotcolor = 'g'
+                # else:
+                    # plotcolor = 'r'
+                # ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+
+    figmeandelay100x.savefig('SmartBridgeAuto_meandelay100x.pdf', format='pdf')
+    figmeandelay110x.savefig('SmartBridgeAuto_meandelay110x.pdf', format='pdf')
+    figmeandelay111x.savefig('SmartBridgeAuto_meandelay111x.pdf', format='pdf')
+    figmeandelay200x.savefig('SmartBridgeAuto_meandelay200x.pdf', format='pdf')
+
+    indexmean100x = 0
+    indexmean110x = 0
+    indexmean111x = 0
+    indexmean200x = 0
+    
+    for testclass in sorted(datatraffic.keys()):
+        if 'S100' in testclass:
+            indexmean100x += 1
+            ax = figmeantraffic100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for traffic in sorted(datatraffic[testclass].keys()):
+                if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
+                    plotcolor = 'b'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
+                    plotcolor = 'y'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
+                    plotcolor = 'g'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+        if 'S110' in testclass:
+            indexmean110x += 1
+            ax = figmeantraffic110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for traffic in sorted(datatraffic[testclass].keys()):
+                if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
+                    plotcolor = 'b'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
+                    plotcolor = 'g'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
+                    plotcolor = 'y'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+        if 'S1111' in testclass:
+            indexmean111x += 1
+            ax = figmeantraffic111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for traffic in sorted(datatraffic[testclass].keys()):
+                if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
+                    plotcolor = 'b'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
+                    plotcolor = 'g'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
+                    plotcolor = 'y'
+                else:
+                    plotcolor = 'r'
+                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+        # if 'S200' in testclass:
+            # indexmean200x += 1
+            # ax = figmeantraffic200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            # for traffic in sorted(datatraffic[testclass].keys()):
+                # if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
+                    # plotcolor = 'b'
+                # elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
+                    # plotcolor = 'g'
+                # else:
+                    # plotcolor = 'r'
+                # ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+
+    figmeantraffic100x.savefig('SmartBridgeAuto_meantraffic100x.pdf', format='pdf')
+    figmeantraffic110x.savefig('SmartBridgeAuto_meantraffic110x.pdf', format='pdf')
+    figmeantraffic111x.savefig('SmartBridgeAuto_meantraffic111x.pdf', format='pdf')
+    figmeantraffic200x.savefig('SmartBridgeAuto_meantraffic200x.pdf', format='pdf')
+
+
+        
+def mergevector( xbase, ybase, xnew, ynew ):
+    
+    if xbase is None or ybase is None:
+        x = array(xnew)
+        y = vstack((ynew,))
+        result = {'x':x, 'y':y}
+        return result       
+
+    if not any(xbase) or not any(ybase):
+        if not any(xnew) or not any(ynew):
+            x = []
+            y = []
+        else:
+            x = array(xnew)
+            y = vstack((ynew,))
+        result = {'x':x, 'y':y}
+        return result   
+
+    xbase = array(xbase)
+    ybase = array(ybase)
+    xnew = array(xnew)
+    ynew = array(ynew)
+
+    if all(xbase==xnew):
+        x = xbase
+        y = vstack((ybase,ynew))
+        result = {'x':x, 'y':y}
+        return result
+    else:
+        xrewrite = unique(sort(concatenate((xbase,xnew))))
+        
+        if len(shape(ybase)) > 1:
+            ybaserewrite = zeros((size(ybase,0),size(xrewrite)))
+        else:
+            ybaserewrite = zeros(shape(xrewrite))
+        ynewrewrite = zeros(shape(xrewrite))
+       
+        for pos in range(size(xrewrite)):
+            s = where(xbase==xrewrite[pos])[0]
+            if xrewrite[pos] in xbase:
+                if len(shape(ybase)) > 1:
+                    ybaserewrite[:,pos] = ybase[:,s[0]]
+                else:
+                    ybaserewrite[pos] = ybase[s[0]]
+
+            s = where(xnew==xrewrite[pos])[0]
+            if xrewrite[pos] in xnew:
+               ynewrewrite[pos] = ynew[s[0]]
+        
+        x = xrewrite
+        y = vstack((ybaserewrite,ynewrewrite))
+        result = {'x':x, 'y':y}
+        return result        
+        
+        
