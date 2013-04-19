@@ -58,7 +58,20 @@ for result in results:
     else:
         pingm = -1
 
-    resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, ping1, ping2, pingm, topo_csc, result.test_path))
+    if 'ping2-mean' in result.time_info:
+        ping2mean = result.time_info['ping2-mean']
+    else:
+        ping2mean = -1
+    if 'ping2-std' in result.time_info:
+        ping2std = result.time_info['ping2-std']
+    else:
+        ping2std = -1
+    if 'ping2-var' in result.time_info:
+        ping2var = result.time_info['ping2-var']
+    else:
+        ping2var = -1
+        
+    resfile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (result.mode, result.id, result.start_delay, result.iteration, result.ping_info, ping1, ping2, pingm, ping2mean, ping2std, ping2var, topo_csc, result.test_path))
 
 plot_all(results)
 
@@ -67,7 +80,9 @@ resfile.close()
 vars = globals().copy()
 vars.update(locals())
 shell = code.InteractiveConsole(vars)
-shell.interact()
+# shell.interact()
+
+
 
 
 

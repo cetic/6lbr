@@ -23,7 +23,7 @@ re_test_folder = re.compile("(.*).test_S([0-9]*)")
 #Due to various regex considerations, dots in filename must be expressed with a '~', it obviously means that no '~' are allowed in the original filename
 #'?' will identify one (and only one) variable character
 #'*' will identify a variable substring
-dep = { "test" : {'all' : ['COOJA~testlog', 'COOJA~log', 'br0~pcap', 'br0~pkl', 'time~log', 'radiolog~pcap', '6lbr_tap0~log'], 'S?0??' : ['ping~log'], 'S11??' : ['ping1~log', 'ping2~log'] , '*Multi*' : ['6lbr_tap1~log'] , 'RplRootMulti*' : ['6lbr_tap2~log']},
+dep = { "test" : {'all' : ['COOJA~testlog', 'COOJA~log', 'br0~pcap', 'br0~pkl', 'time~log', 'radiolog~pcap', '6lbr_tap0~log'], 'S10??' : ['ping~log'], 'S11??' : ['ping1~log', 'ping2~log'], 'S40??' : ['ping~log'], 'S5???' : ['ping~log'], '*Multi*' : ['6lbr_tap1~log'] , 'RplRootMulti*' : ['6lbr_tap2~log']},
         "iter" : {'all' : ['gen_config~py'] },
         "topo" : {'all' : ['coojasim-*~csc', 'coojasim-*~motes'] },
         "run" : {'all' : ['console_out~log', 'console_err~log'] },
@@ -117,11 +117,12 @@ class Result:
     def get_ping_logs(self):
         pinglogs = {}
         if "pinglog" in self.file_index:
-            pinglogs["ping0"] = self.file_index["pinglog"]
-        if "ping1log" in self.file_index:
+            pinglogs["ping1"] = self.file_index["pinglog"]
+        elif "ping1log" in self.file_index:
             pinglogs["ping1"] = self.file_index["ping1log"]
         if "ping2log" in self.file_index:
             pinglogs["ping2"] = self.file_index["ping2log"]
+
         return pinglogs
 
     def debug(self):
@@ -197,9 +198,14 @@ def extract_ping_info(result):
     pingfiles = result.get_ping_logs()
     ping_info = {}
 
+    donothing = True
     for elem in pingfiles:
         if pingfiles[elem] != None:
+            donothing = False
             ping_info[elem] = pp_pings.parse_ping(pingfiles[elem])
+        result.set_ping_info(ping_info)
+    if donothing:
+        ping_info['ping1'] = pp_pings.parse_pingmote([result.file_index['COOJAtestlog'], result.file_index['br0pkl']])
         result.set_ping_info(ping_info)
 
 def extract_time_info(result):
