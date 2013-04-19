@@ -12,9 +12,12 @@ def scatterplot_SmartBridgeAuto_separate(results):
     results = sorted(results, key=lambda k: k.topology) 
     ncol = 4
     nrow = 3
+    
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (ms)"
 
     for result in results:
-        if "SmartBridgeAuto" in result.mode:
+        if result.mode == "SmartBridgeAuto":
             if result.ping_info != None:
                 if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
                     if 'line' in result.topology:
@@ -67,62 +70,62 @@ def scatterplot_SmartBridgeAuto_separate(results):
 
     for testid in data:
         sortedid = sorted(data.keys())
-        print sortedid
+        # print sortedid
         for start_delay in data[testid]:
             sorteddelay = sorted(data[testid].keys())
-            print sorteddelay
+            # print sorteddelay
             if 'line' in testid:
                 if 'S100' in testid:
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2))) + 1
-                    ax = fig100xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    ax = fig100xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index100xline)
                     #index100xline+=1
                 if 'S110' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2))) + 1
-                    ax = fig110xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-4 + 1
+                    ax = fig110xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     #print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index110xline)
                     index110xline+=1
                 if 'S111' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-4 + 1
-                    ax = fig111xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-8 + 1
+                    ax = fig111xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index111xline)
                     #index111xline+=1
                 if 'S200' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-8 + 1
-                    ax = fig200xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-12 + 1
+                    ax = fig200xline.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                     
             if 'other' in testid:
                 if 'S100' in testid:
                     idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1 + 1
-                    ax = fig100xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    ax = fig100xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index100xother)
                     #index100xother+=1
                 if 'S110' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1 + 1
-                    ax = fig110xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-4 + 1
+                    ax = fig110xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index110xother)
                     #index110xother+=1
                 if 'S111' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-4 + 1
-                    ax = fig111xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-8 + 1
+                    ax = fig111xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                     #print(index111xother)
                     #index111xother+=1
                 if 'S200' in testid:
-                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-8 + 1
-                    ax = fig200xgrid.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])))
+                    idx = sorteddelay.index(start_delay)*ncol + int(math.ceil(float(sortedid.index(testid))/float(2)))-1-12 + 1
+                    ax = fig200xother.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
                     ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                     print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                     
 
@@ -147,9 +150,12 @@ def scatterplot_SmartBridgeAuto(results):
     results = sorted(results, key=lambda k: k.topology) 
     ncol = 4
     nrow = 3
+    
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (ms)"
 
     for result in results:
-        if "SmartBridgeAuto" in result.mode:
+        if result.mode == "SmartBridgeAuto":
             if result.ping_info != None:
                 if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
 
@@ -189,35 +195,36 @@ def scatterplot_SmartBridgeAuto(results):
 
     for testid in data:
         sortedid = sorted(data.keys())
-        print sortedid
+        # print sortedid
         for start_delay in data[testid]:
             sorteddelay = sorted(data[testid].keys())
-            print sorteddelay
+            # print sorteddelay
             data[testid][start_delay]['mean'] = mean(data[testid][start_delay]['y'])
             if 'S100' in testid:
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid) + 1
-                ax = fig100x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
+                ax = fig100x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 #print(index100x)
                 #index100x+=1
             if 'S110' in testid:
-                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid) + 1
-                ax = fig110x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
+                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-4 + 1
+                ax = fig110x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 #print(index110x)
                 #index110x+=1
             if 'S111' in testid:
-                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-4 + 1
-                ax = fig111x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
+                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-8 + 1
+                print idx
+                ax = fig111x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 #print(index111x)
                 #index111x+=1
             if 'S200' in testid:
-                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-8 + 1
-                ax = fig200x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80)) 
+                idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid)-12 + 1
+                ax = fig200x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))                
 
@@ -225,7 +232,7 @@ def scatterplot_SmartBridgeAuto(results):
     for testid in sorted(data.keys()):
         if 'S100' in testid:
             indexmean100x += 1
-            ax = figmean100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            ax = figmean100x.add_subplot(nrow,ncol,indexmean100x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
             for start_delay in sorted(data[testid].keys()):
                 data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
                 temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
@@ -243,7 +250,7 @@ def scatterplot_SmartBridgeAuto(results):
                 ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
         elif 'S110' in testid:
             indexmean110x += 1
-            ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
             for start_delay in sorted(data[testid].keys()):
                 data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
                 temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
@@ -261,7 +268,7 @@ def scatterplot_SmartBridgeAuto(results):
                 ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],style)
         if 'S111' in testid:
             indexmean111x += 1
-            ax = figmean111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80)) 
+            ax = figmean111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle) 
             for start_delay in sorted(data[testid].keys()):
                 data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
                 temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
