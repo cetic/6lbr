@@ -2,6 +2,9 @@ from pylab import *
 import re
 import math
 import inspect
+from pp_utils import *
+
+
 
 def scatterplot_SmartBridgeAuto_separate(results):
 
@@ -246,6 +249,7 @@ def scatterplot_SmartBridgeAuto_mean(results):
     results = sorted(results, key=lambda k: k.topology) 
     ncol = 4
     nrow = 3
+    lonelynesslevel = 1
     
     xtitle = "Hop Count"
     ytitle = "Reach Delay (s)"
@@ -283,6 +287,7 @@ def scatterplot_SmartBridgeAuto_mean(results):
     indexmean111x = 0
     indexmean200x = 0
     
+    print "  mean"
     plotcolor = 'r'
     plotmarker = 'o'
     plotline = '-'
@@ -301,14 +306,22 @@ def scatterplot_SmartBridgeAuto_mean(results):
 
                 if sorted(data[testid].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(data[testid].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                    plotmarker = '^'
+                pruned = prunevalues(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],data[testid][start_delay]['ystd'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],pruned['y'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'],pruned['y'], pruned['z'], fmt='-', color=plotcolor)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
                 # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
-        elif 'S110' in testid:
+        if 'S110' in testid:
             indexmean110x += 1
             ax = figmean110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
             for start_delay in sorted(data[testid].keys()):
@@ -322,12 +335,21 @@ def scatterplot_SmartBridgeAuto_mean(results):
 
                 if sorted(data[testid].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(data[testid].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                    plotmarker = '^'
+                    
+                pruned = prunevalues(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],data[testid][start_delay]['ystd'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],pruned['y'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'],pruned['y'], pruned['z'], fmt='-', color=plotcolor)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
                 # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
         if 'S111' in testid:
             indexmean111x += 1
@@ -343,16 +365,24 @@ def scatterplot_SmartBridgeAuto_mean(results):
 
                 if sorted(data[testid].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(data[testid].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                    plotmarker = '^'
+                pruned = prunevalues(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],data[testid][start_delay]['ystd'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],pruned['y'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'],pruned['y'], pruned['z'], fmt='-', color=plotcolor)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
                 # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
         if 'S200' in testid:
             indexmean200x += 1
-            ax = figmean200x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
+            ax = figmean200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, all delays" % (testid,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle) 
             for start_delay in sorted(data[testid].keys()):
                 data[testid][start_delay]['xmean'] = sorted(unique(data[testid][start_delay]['x']))
                 temp = [[] for i in range(len(data[testid][start_delay]['xmean']))]
@@ -364,12 +394,20 @@ def scatterplot_SmartBridgeAuto_mean(results):
 
                 if sorted(data[testid].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(data[testid].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
+                    plotmarker = '^'
+                pruned = prunevalues(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'],data[testid][start_delay]['ystd'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],pruned['y'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'],pruned['y'], pruned['z'], fmt='-', color=plotcolor)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(data[testid][start_delay]['xmean'],data[testid][start_delay]['ymean'], label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(data[testid][start_delay]['xmean'], data[testid][start_delay]['ymean'], data[testid][start_delay]['ystd'], fmt='-', color=plotcolor)
                 # print("plotting mean %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['xmean'])))                
 
     figmean100x.savefig('SmartBridgeAuto_mean100x.pdf', format='pdf')
@@ -434,6 +472,8 @@ def scatterplot_SmartBridgeAuto_mean(results):
     indexmean111x = 0
     indexmean200x = 0
     
+    print "  meandelay"
+    
     for testclass in sorted(datadelay.keys()):
         if 'S100' in testclass:
             indexmean100x += 1
@@ -445,44 +485,73 @@ def scatterplot_SmartBridgeAuto_mean(results):
                     plotcolor = 'g'
                 else:
                     plotcolor = 'r'
-                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+                pruned = prunevalues(datadelay[testclass][start_delay]['x'],datadelay[testclass][start_delay]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
         if 'S110' in testclass:
             indexmean110x += 1
             ax = figmeandelay110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
             for start_delay in sorted(datadelay[testclass].keys()):
                 if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+                    plotmarker = '^'
+                pruned = prunevalues(datadelay[testclass][start_delay]['x'],datadelay[testclass][start_delay]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
         if 'S1111' in testclass:
             indexmean111x += 1
             ax = figmeandelay111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
             for start_delay in sorted(datadelay[testclass].keys()):
                 if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
                 elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
                 else:
                     plotcolor = 'r'
-                ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)
-        # if 'S200' in testclass:
-            # indexmean200x += 1
-            # ax = figmeandelay200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
-            # for start_delay in sorted(datadelay[testclass].keys()):
-                # if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
-                    # plotcolor = 'b'
-                # elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
-                    # plotcolor = 'g'
-                # else:
-                    # plotcolor = 'r'
-                # ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %d"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
-                # ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
+                    plotmarker = '^'
+                pruned = prunevalues(datadelay[testclass][start_delay]['x'],datadelay[testclass][start_delay]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)
+        if 'S200' in testclass:
+            indexmean200x += 1
+            ax = figmeandelay200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed traffic by delay" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for start_delay in sorted(datadelay[testclass].keys()):
+                if sorted(datadelay[testclass].keys()).index(start_delay) == 0:
+                    plotcolor = 'b'
+                    plotmarker = 'x'
+                elif sorted(datadelay[testclass].keys()).index(start_delay) == 1:
+                    plotcolor = 'g'
+                    plotmarker = 'o'
+                else:
+                    plotcolor = 'r'
+                    plotmarker = '^'
+                pruned = prunevalues(datadelay[testclass][start_delay]['x'],datadelay[testclass][start_delay]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                ## ax.plot(datadelay[testclass][start_delay]['x'],mean(datadelay[testclass][start_delay]['y'],0), label="DAG delay %ds"%int(start_delay), linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ## ax.errorbar(datadelay[testclass][start_delay]['x'], mean(datadelay[testclass][start_delay]['y'],0), std(datadelay[testclass][start_delay]['y'],0), fmt='-', color=plotcolor)                
 
     figmeandelay100x.savefig('SmartBridgeAuto_meandelay100x.pdf', format='pdf')
     figmeandelay110x.savefig('SmartBridgeAuto_meandelay110x.pdf', format='pdf')
@@ -494,6 +563,9 @@ def scatterplot_SmartBridgeAuto_mean(results):
     indexmean111x = 0
     indexmean200x = 0
     
+    print "  meantraffic"
+    
+    plotlabel = ""
     for testclass in sorted(datatraffic.keys()):
         if 'S100' in testclass:
             indexmean100x += 1
@@ -501,114 +573,111 @@ def scatterplot_SmartBridgeAuto_mean(results):
             for traffic in sorted(datatraffic[testclass].keys()):
                 if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
                     plotcolor = 'b'
-                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
-                    plotcolor = 'y'
+                    plotmarker = 'x'
+                    plotlabel = 'No extra traffic'
                 elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
+                    plotlabel = 'Self UDP collect traffic'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
+                    plotcolor = 'y'
+                    plotmarker = 's'
+                    plotlabel = 'All-node UDP collect traffic'
                 else:
                     plotcolor = 'r'
-                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+                    plotmarker = '^'
+                    plotlabel = 'All-node UDP echo traffic'
+                pruned = prunevalues(datatraffic[testclass][traffic]['x'],datatraffic[testclass][traffic]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
         if 'S110' in testclass:
             indexmean110x += 1
             ax = figmeantraffic110x.add_subplot(nrow,ncol,indexmean110x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
             for traffic in sorted(datatraffic[testclass].keys()):
                 if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
+                    plotlabel = 'No extra traffic'
                 elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
+                    plotlabel = 'Self UDP collect traffic'
                 elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
                     plotcolor = 'y'
+                    plotmarker = 's'
+                    plotlabel = 'All-node UDP collect traffic'
                 else:
                     plotcolor = 'r'
-                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+                    plotmarker = '^'
+                    plotlabel = 'All-node UDP echo traffic'
+                pruned = prunevalues(datatraffic[testclass][traffic]['x'],datatraffic[testclass][traffic]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                # ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                # ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
         if 'S1111' in testclass:
             indexmean111x += 1
             ax = figmeantraffic111x.add_subplot(nrow,ncol,indexmean111x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
             for traffic in sorted(datatraffic[testclass].keys()):
                 if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
                     plotcolor = 'b'
+                    plotmarker = 'x'
+                    plotlabel = 'No extra traffic'
                 elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
                     plotcolor = 'g'
+                    plotmarker = 'o'
+                    plotlabel = 'Self UDP collect traffic'
                 elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
                     plotcolor = 'y'
+                    plotmarker = 's'
+                    plotlabel = 'All-node UDP collect traffic'
                 else:
                     plotcolor = 'r'
-                ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
-                ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
-        # if 'S200' in testclass:
-            # indexmean200x += 1
-            # ax = figmeantraffic200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
-            # for traffic in sorted(datatraffic[testclass].keys()):
-                # if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
-                    # plotcolor = 'b'
-                # elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
-                    # plotcolor = 'g'
-                # else:
-                    # plotcolor = 'r'
+                    plotmarker = '^'
+                    plotlabel = 'All-node UDP echo traffic'
+                pruned = prunevalues(datatraffic[testclass][traffic]['x'],datatraffic[testclass][traffic]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
                 # ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
                 # ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
+        if 'S200' in testclass:
+            indexmean200x += 1
+            ax = figmeantraffic200x.add_subplot(nrow,ncol,indexmean200x, title="Mean values %s, mixed delay by traffic" % (testclass,), xlim=(0,10), ylim=(0,65), xlabel=xtitle, ylabel=ytitle)
+            for traffic in sorted(datatraffic[testclass].keys()):
+                if sorted(datatraffic[testclass].keys()).index(traffic) == 0:
+                    plotcolor = 'b'
+                    plotmarker = 'x'
+                    plotlabel = 'No extra traffic'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 1:
+                    plotcolor = 'g'
+                    plotmarker = 'o'
+                    plotlabel = 'Self UDP collect traffic'
+                elif sorted(datatraffic[testclass].keys()).index(traffic) == 2:
+                    plotcolor = 'y'
+                    plotmarker = 's'
+                    plotlabel = 'All-node UDP collect traffic'
+                else:
+                    plotcolor = 'r'
+                    plotmarker = '^'
+                    plotlabel = 'All-node UDP echo traffic'
+                pruned = prunevalues(datatraffic[testclass][traffic]['x'],datatraffic[testclass][traffic]['y'], lonelyness=lonelynesslevel)
+                ax.plot(pruned['x'],mean(pruned['y'],0), label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ax.errorbar(pruned['x'], mean(pruned['y'],0), std(pruned['y'],0), fmt='-', color=plotcolor)                
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1])
+                ## ax.plot(datatraffic[testclass][traffic]['x'],mean(datatraffic[testclass][traffic]['y'],0), label="Traffic %s"%traffic, linestyle=plotline, marker=plotmarker, color=plotcolor)
+                ## ax.errorbar(datatraffic[testclass][traffic]['x'], mean(datatraffic[testclass][traffic]['y'],0), std(datatraffic[testclass][traffic]['y'],0), fmt='-', color=plotcolor)                
 
     figmeantraffic100x.savefig('SmartBridgeAuto_meantraffic100x.pdf', format='pdf')
     figmeantraffic110x.savefig('SmartBridgeAuto_meantraffic110x.pdf', format='pdf')
     figmeantraffic111x.savefig('SmartBridgeAuto_meantraffic111x.pdf', format='pdf')
     figmeantraffic200x.savefig('SmartBridgeAuto_meantraffic200x.pdf', format='pdf')
 
-
-        
-def mergevector( xbase, ybase, xnew, ynew ):
-    
-    if xbase is None or ybase is None:
-        x = array(xnew)
-        y = vstack((ynew,))
-        result = {'x':x, 'y':y}
-        return result       
-
-    if not any(xbase) or not any(ybase):
-        if not any(xnew) or not any(ynew):
-            x = []
-            y = []
-        else:
-            x = array(xnew)
-            y = vstack((ynew,))
-        result = {'x':x, 'y':y}
-        return result   
-
-    xbase = array(xbase)
-    ybase = array(ybase)
-    xnew = array(xnew)
-    ynew = array(ynew)
-
-    if all(xbase==xnew):
-        x = xbase
-        y = vstack((ybase,ynew))
-        result = {'x':x, 'y':y}
-        return result
-    else:
-        xrewrite = unique(sort(concatenate((xbase,xnew))))
-        
-        if len(shape(ybase)) > 1:
-            ybaserewrite = zeros((size(ybase,0),size(xrewrite)))
-        else:
-            ybaserewrite = zeros(shape(xrewrite))
-        ynewrewrite = zeros(shape(xrewrite))
-       
-        for pos in range(size(xrewrite)):
-            s = where(xbase==xrewrite[pos])[0]
-            if xrewrite[pos] in xbase:
-                if len(shape(ybase)) > 1:
-                    ybaserewrite[:,pos] = ybase[:,s[0]]
-                else:
-                    ybaserewrite[pos] = ybase[s[0]]
-
-            s = where(xnew==xrewrite[pos])[0]
-            if xrewrite[pos] in xnew:
-               ynewrewrite[pos] = ynew[s[0]]
-        
-        x = xrewrite
-        y = vstack((ybaserewrite,ynewrewrite))
-        result = {'x':x, 'y':y}
-        return result        
-        
-        

@@ -1,6 +1,9 @@
 from pylab import *
 import re
 import inspect
+from pp_utils import *
+
+
 
 formatter = matplotlib.ticker.EngFormatter(places=3)
 formatter.ENG_PREFIXES[-6] = 'u'
@@ -14,7 +17,7 @@ def scatterplot_RplRootMultiTransparentBridge_400x(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S400' in result.id:
@@ -31,7 +34,8 @@ def scatterplot_RplRootMultiTransparentBridge_400x(results):
 
     for testid in sorted(data.keys()):
         if 'S400' in testid:
-            ax = fig400x.add_subplot(nrow,ncol,index400x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+            # ax = fig400x.add_subplot(nrow,ncol,index400x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+            ax = fig400x.add_subplot(nrow,ncol,index400x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlabel=xtitle, ylabel=ytitle)
             ax.scatter(data[testid]['x'],data[testid]['y'])
             print("plotting %s len %d" % (testid, len(data[testid]['x'])))
             # print(index400x)
@@ -48,7 +52,7 @@ def scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S500' in result.id:
@@ -65,10 +69,11 @@ def scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results):
 
     for testid in sorted(data.keys()):
         if 'S500' in testid:
-            ax = fig500x.add_subplot(nrow,ncol,index500x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+            # ax = fig500x.add_subplot(nrow,ncol,index500x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+            ax = fig500x.add_subplot(nrow,ncol,index500x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlabel=xtitle, ylabel=ytitle)
             ax.scatter(data[testid]['x'],data[testid]['y'])
             print("plotting %s len %d" % (testid, len(data[testid]['x'])))
-            print(data[testid]['x'],data[testid]['y'])
+            # print(data[testid]['x'],data[testid]['y'])
             # print(index500x)
             index500x+=1
 
@@ -83,7 +88,7 @@ def scatterplot_RplRootMultiTransparentBridge_500x_by_delay(results):
     nrow = 3
 
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S500' in result.id:
@@ -101,10 +106,11 @@ def scatterplot_RplRootMultiTransparentBridge_500x_by_delay(results):
 
     for start_delay in sorted(data.keys()):
 
-        ax = fig500x.add_subplot(nrow,ncol,index500x, title="delay %s, %d points" % (start_delay,len(data[start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+        # ax = fig500x.add_subplot(nrow,ncol,index500x, title="delay %s, %d points" % (start_delay,len(data[start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+        ax = fig500x.add_subplot(nrow,ncol,index500x, title="delay %s, %d points" % (start_delay,len(data[start_delay]['x'])), xlabel=xtitle, ylabel=ytitle)
         ax.scatter(data[start_delay]['x'],data[start_delay]['y'])
         print("plotting 500x delay %s len %d" % (start_delay, len(data[start_delay]['x'])))
-        print(data[start_delay]['x'],data[start_delay]['y'])
+        # print(data[start_delay]['x'],data[start_delay]['y'])
         # print(index500x)
         index500x+=1
 
@@ -121,7 +127,7 @@ def scatterplot_RplRootMultiTransparentBridge_502x(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S502' in result.id:
@@ -144,7 +150,8 @@ def scatterplot_RplRootMultiTransparentBridge_502x(results):
             sorteddelay = sorted(data[testid].keys())
             if 'S502' in testid:
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid) + 1
-                ax = fig502x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+                # ax = fig502x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+                ax = fig502x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlabel=xtitle, ylabel=ytitle)
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 # print(index502x)
@@ -162,7 +169,7 @@ def scatterplot_RplRootMultiTransparentBridge_600x(results):
     nrow = 3
     
     xtitle = "Hop Count"
-    ytitle = "Reach Delay (ms)"
+    ytitle = "Reach Delay (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S502' in result.id:
@@ -185,7 +192,8 @@ def scatterplot_RplRootMultiTransparentBridge_600x(results):
             sorteddelay = sorted(data[testid].keys())
             if 'S600' in testid:
                 idx = sorteddelay.index(start_delay)*ncol + sortedid.index(testid) + 1
-                ax = fig600x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+                # ax = fig600x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+                ax = fig600x.add_subplot(nrow,ncol,idx, title="%s-%s, %d points" % (testid,start_delay,len(data[testid][start_delay]['x'])), xlabel=xtitle, ylabel=ytitle)
                 ax.scatter(data[testid][start_delay]['x'],data[testid][start_delay]['y'])
                 print("plotting %s %s len %d" % (testid, start_delay, len(data[testid][start_delay]['x'])))
                 # print(index600x)

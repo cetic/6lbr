@@ -38,7 +38,6 @@ def parse_times(infile):
                     time_relative[rawinfo[0]] = ast.literal_eval(rawinfo[1])
                 else:
                     time_relative[rawinfo[0]] = float(rawinfo[1])
-
     time_delta["test"] = time_relative["Stop Test"]
     time_delta["network-uptime"] = time_relative["Network stopped"] - time_relative["Network start"]
     time_delta["network-start"] = time_relative["Network started"] - time_relative["Network start"]
