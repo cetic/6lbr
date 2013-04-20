@@ -1,6 +1,9 @@
 from pylab import *
 import re
 import inspect
+from pp_utils import *
+
+
 
 formatter = matplotlib.ticker.EngFormatter(places=3)
 formatter.ENG_PREFIXES[-6] = 'u'
@@ -39,7 +42,7 @@ def scatterplot_RplRootMultiTransparentBridge_400x(results):
 
     fig400x.savefig('RplRootMultiTransparentBridge_400x.pdf', format='pdf')
 
-def scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results):(results):
+def scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results):
 
     print "scatterplot_RplRootMultiTransparentBridge_500x_by_traffic"
     data = {}

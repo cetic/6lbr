@@ -38,29 +38,31 @@ def parse_times(infile):
                     time_relative[rawinfo[0]] = ast.literal_eval(rawinfo[1])
                 else:
                     time_relative[rawinfo[0]] = float(rawinfo[1])
+    try:
+        time_delta["test"] = time_relative["Stop Test"]
+        time_delta["network-uptime"] = time_relative["Network stopped"] - time_relative["Network start"]
+        time_delta["network-start"] = time_relative["Network started"] - time_relative["Network start"]
+        time_delta["network-stop"] = time_relative["Network stopped"] - time_relative["Network stop"]
+        time_delta["mote-uptime"] = time_relative["Mote stopped"] - time_relative["Mote start"]
+        #time_delta["mote-start"] = time_relative["Mote detect start"] - time_relative["Mote start"]
+        time_delta["mote-stop"] = time_relative["Mote stopped"] - time_relative["Mote reached"]
+        time_delta["mote-detect"] = time_relative["Mote detected"] - time_relative["Mote start"]
 
-    time_delta["test"] = time_relative["Stop Test"]
-    time_delta["network-uptime"] = time_relative["Network stopped"] - time_relative["Network start"]
-    time_delta["network-start"] = time_relative["Network started"] - time_relative["Network start"]
-    time_delta["network-stop"] = time_relative["Network stopped"] - time_relative["Network stop"]
-    time_delta["mote-uptime"] = time_relative["Mote stopped"] - time_relative["Mote start"]
-    #time_delta["mote-start"] = time_relative["Mote detect start"] - time_relative["Mote start"]
-    time_delta["mote-stop"] = time_relative["Mote stopped"] - time_relative["Mote reached"]
-    time_delta["mote-detect"] = time_relative["Mote detected"] - time_relative["Mote start"]
+        time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
 
-    time_delta["ping1"] = time_relative["Mote reached"] - time_relative["Mote ping"]
+        if time_relative.has_key("Moved mote ping"):
+            time_delta["pingm"] = time_relative["Moved mote reached"] - time_relative["Moved mote ping"]
+        elif time_relative.has_key("Mote ping2"):
+            time_delta["ping2"] = time_relative["Mote reached2"] - time_relative["Mote ping2"]
 
-    if time_relative.has_key("Moved mote ping"):
-        time_delta["pingm"] = time_relative["Moved mote reached"] - time_relative["Moved mote ping"]
-    elif time_relative.has_key("Mote ping2"):
-        time_delta["ping2"] = time_relative["Mote reached2"] - time_relative["Mote ping2"]
-
-    if time_relative.has_key("Ping stat"):
-        #time_relative["Ping stat"] = ast.literal_eval(time_relative["Ping stat"])
-        time_delta["ping2-stat"] = time_relative["Ping stat"]
-        time_delta["ping2-mean"] = pylab.mean(time_relative["Ping stat"])
-        time_delta["ping2-std"] = pylab.std(time_relative["Ping stat"])
-        time_delta["ping2-var"] = pylab.var(time_relative["Ping stat"])
+        if time_relative.has_key("Ping stat"):
+            #time_relative["Ping stat"] = ast.literal_eval(time_relative["Ping stat"])
+            time_delta["ping2-stat"] = time_relative["Ping stat"]
+            time_delta["ping2-mean"] = pylab.mean(time_relative["Ping stat"])
+            time_delta["ping2-std"] = pylab.std(time_relative["Ping stat"])
+            time_delta["ping2-var"] = pylab.var(time_relative["Ping stat"])
+    except:
+        print infile
 
     return time_delta
 
