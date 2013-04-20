@@ -39,9 +39,9 @@ def scatterplot_RplRootMultiTransparentBridge_400x(results):
 
     fig400x.savefig('RplRootMultiTransparentBridge_400x.pdf', format='pdf')
 
-def scatterplot_RplRootMultiTransparentBridge_500x(results):
+def scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results):(results):
 
-    print "scatterplot_RplRootMultiTransparentBridge_500x"
+    print "scatterplot_RplRootMultiTransparentBridge_500x_by_traffic"
     data = {}
 
     ncol = 4
@@ -68,10 +68,48 @@ def scatterplot_RplRootMultiTransparentBridge_500x(results):
             ax = fig500x.add_subplot(nrow,ncol,index500x, title="%s, %d points" % (testid,len(data[testid]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
             ax.scatter(data[testid]['x'],data[testid]['y'])
             print("plotting %s len %d" % (testid, len(data[testid]['x'])))
+            print(data[testid]['x'],data[testid]['y'])
             # print(index500x)
             index500x+=1
 
-    fig500x.savefig('RplRootMultiTransparentBridge_500x.pdf', format='pdf')
+    fig500x.savefig('RplRootMultiTransparentBridge_500x_by_traffic.pdf', format='pdf')
+
+def scatterplot_RplRootMultiTransparentBridge_500x_by_delay(results):
+
+    print "scatterplot_RplRootMultiTransparentBridge_500x_by_delay"
+    data = {}
+
+    ncol = 4
+    nrow = 3
+
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (ms)"
+
+    for result in results:
+        if result.mode == "RplRootMultiTransparentBridge" and 'S500' in result.id:
+            if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
+                if 'pingm' in result.time_info and result.time_info['pingm'] > -1:
+                    if result.start_delay not in data:
+                        data[result.start_delay] = {'x':[], 'y':[]}
+
+                    if 'S500' in result.id:
+                        data[result.start_delay]['x'].append(64 - int(result.ping_info['ping1']['ttl']))
+                        data[result.start_delay]['y'].append(int(result.time_info['pingm'])/1000)
+
+    fig500x = plt.figure(figsize=(25,15)) #figsize=(,)
+    index500x = 1
+
+    for start_delay in sorted(data.keys()):
+
+        ax = fig500x.add_subplot(nrow,ncol,index500x, title="delay %s, %d points" % (start_delay,len(data[start_delay]['x'])), xlim=(0,10), ylim=(0,80), xlabel=xtitle, ylabel=ytitle)
+        ax.scatter(data[start_delay]['x'],data[start_delay]['y'])
+        print("plotting 500x delay %s len %d" % (start_delay, len(data[start_delay]['x'])))
+        print(data[start_delay]['x'],data[start_delay]['y'])
+        # print(index500x)
+        index500x+=1
+
+    fig500x.savefig('RplRootMultiTransparentBridge_500x_by_delay.pdf', format='pdf')
+
 
 
 def scatterplot_RplRootMultiTransparentBridge_502x(results):

@@ -41,7 +41,8 @@ def plot_all(results):
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_600x(results)
     
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_400x(results)
-    # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x(results)
+    # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results)
+    # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x_by_delay(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_502x(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_600x(results)
 
