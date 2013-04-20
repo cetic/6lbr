@@ -26,15 +26,15 @@ def plot1(results):
 def plot_all(results):
 
     # pp_plot_router.scatterplot_Router(results)
-    # pp_plot_router.scatterplot_Router_separate(results)
+    # # pp_plot_router.scatterplot_Router_separate(results)
     pp_plot_router.scatterplot_Router_mean(results)
     
     # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto(results)
-    # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_separate(results)
+    # # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_separate(results)
     pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_mean(results)
     
     # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge(results)
-    # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_separate(results)
+    # # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_separate(results)
     pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_mean(results)
     
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_400x(results)
