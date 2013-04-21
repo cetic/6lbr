@@ -27,24 +27,28 @@ def plot_all(results):
 
     # pp_plot_router.scatterplot_Router(results)
     # # pp_plot_router.scatterplot_Router_separate(results)
-    pp_plot_router.scatterplot_Router_mean(results)
+    # pp_plot_router.scatterplot_Router_mean(results)
     
     # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto(results)
     # # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_separate(results)
-    pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_mean(results)
+    # pp_plot_smartbridgeauto.scatterplot_SmartBridgeAuto_mean(results)
     
     # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge(results)
     # # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_separate(results)
-    pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_mean(results)
+    # pp_plot_rplroottransparentbridge.scatterplot_RplRootTransparentBridge_mean(results)
     
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_400x(results)
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_500x(results)
+    pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_500x_vs_delay(results)
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_502x(results)
+    pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_502x_vs_delay(results)
     # pp_plot_multibrsmartbridgeauto.scatterplot_MultiBrSmartBridgeAuto_600x(results)
     
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_400x(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x_by_traffic(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x_by_delay(results)
+    pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_500x_vs_delay(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_502x(results)
+    pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_502x_vs_delay(results)
     # pp_plot_rplrootmultitransparentbridge.scatterplot_RplRootMultiTransparentBridge_600x(results)
 

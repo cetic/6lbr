@@ -23,7 +23,8 @@ re_test_folder = re.compile("(.*).test_S([0-9]*)")
 #Due to various regex considerations, dots in filename must be expressed with a '~', it obviously means that no '~' are allowed in the original filename
 #'?' will identify one (and only one) variable character
 #'*' will identify a variable substring
-dep = { "test" : {'all' : ['COOJA~testlog', 'COOJA~log', 'br0~pcap', 'br0~pkl', 'time~log', 'radiolog~pcap', '6lbr_tap0~log'], 'S10??' : ['ping~log'], 'S11??' : ['ping1~log', 'ping2~log'], 'S40??' : ['ping~log'], 'S5???' : ['ping~log'], '*Multi*' : ['6lbr_tap1~log'] , 'RplRootMulti*' : ['6lbr_tap2~log']},
+# dep = { "test" : {'all' : ['COOJA~testlog', 'COOJA~log', 'br0~pcap', 'br0~pkl', 'time~log', 'radiolog~pcap', '6lbr_tap0~log'], 'S10??' : ['ping~log'], 'S11??' : ['ping1~log', 'ping2~log'], 'S40??' : ['ping~log'], 'S5???' : ['ping~log'], '*Multi*' : ['6lbr_tap1~log'] , 'RplRootMulti*' : ['6lbr_tap2~log']},
+dep = { "test" : {'all' : ['COOJA~testlog', 'COOJA~log', 'br0~pkl', 'time~log', '6lbr_tap0~log'], 'S10??' : ['ping~log'], 'S11??' : ['ping1~log', 'ping2~log'], 'S40??' : ['ping~log'], 'S5???' : ['ping~log'], '*Multi*' : ['6lbr_tap1~log'] , 'RplRootMulti*' : ['6lbr_tap2~log']},
         "iter" : {'all' : ['gen_config~py'] },
         "topo" : {'all' : ['coojasim-*~csc', 'coojasim-*~motes'] },
         "run" : {'all' : ['console_out~log', 'console_err~log'] },

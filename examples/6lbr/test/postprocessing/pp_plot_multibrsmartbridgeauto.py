@@ -79,6 +79,91 @@ def scatterplot_MultiBrSmartBridgeAuto_500x(results):
     fig500x.savefig('MultiBrSmartBridgeAuto_500x.pdf', format='pdf')
 
 
+
+def scatterplot_MultiBrSmartBridgeAuto_500x_vs_delay(results):
+
+    print "scatterplot_MultiBrSmartBridgeAuto_500x_vs_delay"
+    data = {}
+
+    ncol = 4
+    nrow = 3
+
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (s)"
+
+    for result in results:
+        if result.mode == "MultiBrSmartBridgeAuto" and 'S500' in result.id:
+            if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
+                if 'pingm' in result.time_info and result.time_info['pingm'] > -1:
+                    if result.id not in data:
+                        data[result.id] = {'xraw':[], 'yraw':[], 'x':[], 'y':[]}
+
+                    data[result.id]['xraw'].append(int(result.start_delay))
+                    data[result.id]['yraw'].append(int(result.time_info['pingm'])/1000)
+
+    fig500x = plt.figure(figsize=(25,15)) #figsize=(,)
+    index500x = 1
+
+    plotcolor = 'r'
+    plotmarker = 'o'
+    plotline = '-'
+    
+    for testid in sorted(data.keys()):
+        data[testid]['x'] = sorted(unique(data[testid]['xraw']))
+        temp = [[] for i in range(len(data[testid]['x']))]
+        for k in range(len(data[testid]['xraw'])):
+            temp[data[testid]['x'].index(data[testid]['xraw'][k])].append(data[testid]['yraw'][k])
+        data[testid]['y'] = temp
+           
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,1200), ylim=(0,100), xlabel=xtitle, ylabel=ytitle)
+    for testid in sorted(data.keys()):
+        if sorted(data.keys()).index(testid) == 0:
+            plotcolor = 'b'
+            plotmarker = 'x'
+            plotlabel = 'No extra traffic'
+        elif sorted(data.keys()).index(testid) == 1:
+            plotcolor = 'g'
+            plotmarker = 'o'
+            plotlabel = 'Self UDP collect traffic'
+        elif sorted(data.keys()).index(testid) == 2:
+            plotcolor = 'y'
+            plotmarker = 's'
+            plotlabel = 'All-node UDP collect traffic'
+        else:
+            plotcolor = 'r'
+            plotmarker = '^'
+            plotlabel = 'All-node UDP echo traffic'
+        tempmean = [[] for i in range(len(data[testid]['x']))]
+        tempstd = [[] for i in range(len(data[testid]['x']))]
+        for i in range(len(tempmean)):
+            tempmean[i] = mean(data[testid]['y'][i])
+            tempstd[i] = std(data[testid]['y'][i])
+        ax.plot(data[testid]['x'],tempmean, label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+        ax.errorbar(data[testid]['x'], tempmean, tempstd, fmt='-', color=plotcolor)                
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[::-1], labels[::-1])
+        print("plotting 500x RvsD %s" % testid)
+    index500x+=1
+
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,1200), ylim=(0,100), xlabel=xtitle, ylabel=ytitle)
+    plotcolor = 'b'
+    plotmarker = 'o'
+    plotline = '-'
+    temp = [[] for i in range(len(data[testid]['x']))]
+    tempmean = [[] for i in range(len(data[testid]['x']))]
+    tempstd = [[] for i in range(len(data[testid]['x']))]
+    for testid in sorted(data.keys()):
+        for i in range(len(data[testid]['y'])):
+            temp[i].extend(data[testid]['y'][i])
+    for i in range(len(tempmean)):
+        tempmean[i] = mean(temp[i])
+        tempstd[i] = std(temp[i])
+    ax.plot(data[testid]['x'],tempmean, label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+    ax.errorbar(data[testid]['x'], tempmean, tempstd, fmt='-', color=plotcolor)                
+
+    fig500x.savefig('MultiBrSmartBridgeAuto_500x_vs_delay.pdf', format='pdf')
+
+
 def scatterplot_MultiBrSmartBridgeAuto_502x(results):
 
     print "scatterplot_MultiBrSmartBridgeAuto_502x"
@@ -119,6 +204,90 @@ def scatterplot_MultiBrSmartBridgeAuto_502x(results):
                 # index502x+=1
 
     fig502x.savefig('MultiBrSmartBridgeAuto_502x.pdf', format='pdf')
+
+
+def scatterplot_MultiBrSmartBridgeAuto_502x_vs_delay(results):
+
+    print "scatterplot_MultiBrSmartBridgeAuto_502x_vs_delay"
+    data = {}
+
+    ncol = 4
+    nrow = 3
+
+    xtitle = "Hop Count"
+    ytitle = "Reach Delay (s)"
+
+    for result in results:
+        if result.mode == "MultiBrSmartBridgeAuto" and 'S502' in result.id:
+            if 'ping1' in result.ping_info and result.ping_info['ping1'] != None:
+                if 'pingm' in result.time_info and result.time_info['pingm'] > -1:
+                    if result.id not in data:
+                        data[result.id] = {'xraw':[], 'yraw':[], 'x':[], 'y':[]}
+
+                    data[result.id]['xraw'].append(int(result.start_delay))
+                    data[result.id]['yraw'].append(int(result.time_info['pingm'])/1000)
+
+    fig500x = plt.figure(figsize=(25,15)) #figsize=(,)
+    index500x = 1
+
+    plotcolor = 'r'
+    plotmarker = 'o'
+    plotline = '-'
+    
+    for testid in sorted(data.keys()):
+        data[testid]['x'] = sorted(unique(data[testid]['xraw']))
+        temp = [[] for i in range(len(data[testid]['x']))]
+        for k in range(len(data[testid]['xraw'])):
+            temp[data[testid]['x'].index(data[testid]['xraw'][k])].append(data[testid]['yraw'][k])
+        data[testid]['y'] = temp
+           
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,1200), ylim=(0,100), xlabel=xtitle, ylabel=ytitle)
+    for testid in sorted(data.keys()):
+        if sorted(data.keys()).index(testid) == 0:
+            plotcolor = 'b'
+            plotmarker = 'x'
+            plotlabel = 'No extra traffic'
+        elif sorted(data.keys()).index(testid) == 1:
+            plotcolor = 'g'
+            plotmarker = 'o'
+            plotlabel = 'Self UDP collect traffic'
+        elif sorted(data.keys()).index(testid) == 2:
+            plotcolor = 'y'
+            plotmarker = 's'
+            plotlabel = 'All-node UDP collect traffic'
+        else:
+            plotcolor = 'r'
+            plotmarker = '^'
+            plotlabel = 'All-node UDP echo traffic'
+        tempmean = [[] for i in range(len(data[testid]['x']))]
+        tempstd = [[] for i in range(len(data[testid]['x']))]
+        for i in range(len(tempmean)):
+            tempmean[i] = mean(data[testid]['y'][i])
+            tempstd[i] = std(data[testid]['y'][i])
+        ax.plot(data[testid]['x'],tempmean, label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+        ax.errorbar(data[testid]['x'], tempmean, tempstd, fmt='-', color=plotcolor)                
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[::-1], labels[::-1])
+        print("plotting 502x RvsD %s" % testid)
+    index500x+=1
+
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,1200), ylim=(0,100), xlabel=xtitle, ylabel=ytitle)
+    plotcolor = 'b'
+    plotmarker = 'o'
+    plotline = '-'
+    temp = [[] for i in range(len(data[testid]['x']))]
+    tempmean = [[] for i in range(len(data[testid]['x']))]
+    tempstd = [[] for i in range(len(data[testid]['x']))]
+    for testid in sorted(data.keys()):
+        for i in range(len(data[testid]['y'])):
+            temp[i].extend(data[testid]['y'][i])
+    for i in range(len(tempmean)):
+        tempmean[i] = mean(temp[i])
+        tempstd[i] = std(temp[i])
+    ax.plot(data[testid]['x'],tempmean, label=plotlabel, linestyle=plotline, marker=plotmarker, color=plotcolor)
+    ax.errorbar(data[testid]['x'], tempmean, tempstd, fmt='-', color=plotcolor)                
+
+    fig500x.savefig('MultiBrSmartBridgeAuto_502x_vs_delay.pdf', format='pdf')
 
     
 def scatterplot_MultiBrSmartBridgeAuto_600x(results):
