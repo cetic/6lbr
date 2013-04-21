@@ -124,8 +124,8 @@ def scatterplot_RplRootMultiTransparentBridge_500x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "Hop Count"
-    ytitle = "Reach Delay (s)"
+    xtitle = "DODAG Propagation Delay (s)"
+    ytitle = "Unreachability Duration (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S500' in result.id:
@@ -248,8 +248,8 @@ def scatterplot_RplRootMultiTransparentBridge_502x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "Hop Count"
-    ytitle = "Reach Delay (s)"
+    xtitle = "DODAG Propagation Delay (s)"
+    ytitle = "Unreachability Duration (s)"
 
     for result in results:
         if result.mode == "RplRootMultiTransparentBridge" and 'S502' in result.id:

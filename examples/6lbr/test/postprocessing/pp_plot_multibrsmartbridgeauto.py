@@ -88,8 +88,8 @@ def scatterplot_MultiBrSmartBridgeAuto_500x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "Hop Count"
-    ytitle = "Reach Delay (s)"
+    xtitle = "DODAG Propagation Delay (s)"
+    ytitle = "Unreachability Duration (s)"
 
     for result in results:
         if result.mode == "MultiBrSmartBridgeAuto" and 'S500' in result.id:
@@ -214,8 +214,8 @@ def scatterplot_MultiBrSmartBridgeAuto_502x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "Hop Count"
-    ytitle = "Reach Delay (s)"
+    xtitle = "DODAG Propagation Delay (s)"
+    ytitle = "Unreachability Duration (s)"
 
     for result in results:
         if result.mode == "MultiBrSmartBridgeAuto" and 'S502' in result.id:
