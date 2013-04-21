@@ -124,7 +124,7 @@ def scatterplot_RplRootMultiTransparentBridge_500x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "DODAG Propagation Delay (s)"
+    xtitle = "Time befor move (s)"
     ytitle = "Unreachability Duration (s)"
 
     for result in results:
@@ -151,7 +151,7 @@ def scatterplot_RplRootMultiTransparentBridge_500x_vs_delay(results):
             temp[data[testid]['x'].index(data[testid]['xraw'][k])].append(data[testid]['yraw'][k])
         data[testid]['y'] = temp
            
-    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Unreachability Duration vs. Move Time", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
     for testid in sorted(data.keys()):
         if sorted(data.keys()).index(testid) == 0:
             plotcolor = 'b'
@@ -181,7 +181,7 @@ def scatterplot_RplRootMultiTransparentBridge_500x_vs_delay(results):
         print("plotting 500x RvsD %s" % testid)
     index500x+=1
 
-    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Unreachability Duration vs. Move Time", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
     plotcolor = 'b'
     plotmarker = 'o'
     plotline = '-'
@@ -248,7 +248,7 @@ def scatterplot_RplRootMultiTransparentBridge_502x_vs_delay(results):
     ncol = 4
     nrow = 3
 
-    xtitle = "DODAG Propagation Delay (s)"
+    xtitle = "Time befor move (s)"
     ytitle = "Unreachability Duration (s)"
 
     for result in results:
@@ -275,7 +275,7 @@ def scatterplot_RplRootMultiTransparentBridge_502x_vs_delay(results):
             temp[data[testid]['x'].index(data[testid]['xraw'][k])].append(data[testid]['yraw'][k])
         data[testid]['y'] = temp
            
-    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Unreachability Duration vs. Move Time", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
     for testid in sorted(data.keys()):
         if sorted(data.keys()).index(testid) == 0:
             plotcolor = 'b'
@@ -305,7 +305,7 @@ def scatterplot_RplRootMultiTransparentBridge_502x_vs_delay(results):
         print("plotting 502x RvsD %s" % testid)
     index500x+=1
 
-    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Reach time vs delay", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
+    ax = fig500x.add_subplot(nrow,ncol,index500x, title="Unreachability Duration vs. Move Time", xlim=(0,2400), ylim=(0,800), xlabel=xtitle, ylabel=ytitle)
     plotcolor = 'b'
     plotmarker = 'o'
     plotline = '-'
