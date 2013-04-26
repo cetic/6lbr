@@ -1,0 +1,86 @@
+import config
+
+config.start_delays=[0]
+
+config.test_repeat=1
+
+config.topologies=[
+    #'./coojagen/examples/config_line_single_br.py',
+    #'./coojagen/examples/config_grid_single_br.py',
+    './coojagen/examples/config_preset_1dag_10nodes.py',
+    #'./coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
+    #'./coojagen/examples/config_preset_2dags_20nodes_overlap.py',
+    #'./coojagen/examples/config_grid_2br.py'
+]
+
+config.S0=0
+config.S1=0
+
+config.S1_move=0
+
+config.S2=0
+config.S3=0
+config.S4=0
+config.S5=0
+config.S6=0
+config.S7=0
+config.S8=0
+config.S9=0
+config.S10=0
+config.S11=0
+config.S12=0
+
+config.S1000=0
+config.S1001=1
+config.S1002=0
+config.S1003=0
+
+config.S1100=0
+config.S1101=1
+config.S1102=0
+config.S1103=0
+config.S1110=0
+config.S1111=0
+config.S1112=0
+config.S1113=0
+
+config.S2000=0
+config.S2001=0
+config.S2002=0
+config.S2003=0
+
+config.S4000=0
+config.S4001=1
+config.S4002=0
+config.S4003=0
+
+config.S5000=0
+config.S5001=0
+config.S5002=0
+config.S5003=0
+
+config.S5020=0
+config.S5021=1
+config.S5022=0
+config.S5023=0
+
+"""
+modes
+define 1 to run each selected scenario in that mode, 0 to skip the mode
+"""
+config.mode_SmartBridgeManual=0
+config.mode_SmartBridgeAuto=1
+config.mode_Router=0
+config.mode_RouterNoRa=0
+
+config.mode_RplRootTransparentBridge=0
+
+config.mode_MultiBrSmartBridgeAuto=0
+config.mode_RplRootMultiTransparentBridge=0
+
+#Debug modes, do not use
+config.mode_RplRoot=0
+config.mode_RplRootNoRa=0
+config.mode_TransparentBridgeManual=0
+config.mode_TransparentBridgeAuto=0
+

@@ -50,7 +50,7 @@
 #define UIP_CONF_ROUTER             0
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 1
+#define UIP_CONF_DS6_ADDR_NBU 2
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
@@ -74,6 +74,11 @@
 #define MACA_AUTOACK				0
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
+
+#undef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL			0
+
+#define CETIC_6LBR_LEARN_RPL_MAC	1
 
 /*------------------------------------------------------------------*/
 #endif
