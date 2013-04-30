@@ -9,7 +9,7 @@ radio_model = 'udgm'
 tx_range = 45
 tx_interference = 45
 topology = 'preset'
-preset_data_path = 'coojagen/templates/preset-1dag-10nodes'
+preset_data_path = 'coojagen/templates/preset_1dag_10nodes'
 mote_types=[]
 multi_br=0
 

@@ -15,9 +15,6 @@ while getopts ":c" opt; do
    cd ../radiologger-headless
    ant clean
    ant jar
-   cd ../mobility
-   ant clean
-   ant jar
    popd
   ;;
  esac

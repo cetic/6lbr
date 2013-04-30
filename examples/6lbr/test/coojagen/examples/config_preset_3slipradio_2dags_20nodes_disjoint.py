@@ -9,7 +9,7 @@ radio_model = 'udgm'
 tx_range = 45
 tx_interference = 45
 topology = 'preset'
-preset_data_path = 'coojagen/templates/preset-3slipradio-2dags-20nodes-disjoint'
+preset_data_path = 'coojagen/templates/preset_3slipradio_2dags_20nodes_disjoint'
 mote_types=[]
 interactive_mobility = {'-1':[[55,37],[-37,51]]}
 
