@@ -4,6 +4,7 @@
 #include "net/uip-nd6.h"
 #include "string.h"
 #include "sicslow-ethernet.h"
+#include "rpl-private.h"
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
@@ -221,8 +222,7 @@ eth_input(void)
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
       uint8_t *buffer = UIP_ICMP_PAYLOAD;
       uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
-      printf("Got DIO with rank %d\n", rank);
-      if ( rank == 256 ) {
+      if ( rank == RPL_MIN_HOPRANKINC ) {
     	platform_set_wsn_mac((rimeaddr_t *) &srcAddr);
       }
     }
