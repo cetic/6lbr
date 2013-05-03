@@ -32,3 +32,9 @@ platform_init(void)
   eth_mac_addr_ready = 1;
   set_channel(nvm_data.channel - 11);
 }
+
+void
+platform_set_wsn_mac(rimeaddr_t * mac_addr)
+{
+  rimeaddr_set_node_addr(mac_addr);
+}
