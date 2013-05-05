@@ -54,6 +54,10 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
+/* Do not change lines below */
+
+#define CETIC_6LBR_DODAG_ROOT		1
+
 /*------------------------------------------------------------------*/
 #endif
 
@@ -69,6 +73,10 @@
 #define UIP_CONF_DS6_ADDR_NBU 1
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
+
+/* Do not change lines below */
+
+#define CETIC_6LBR_DODAG_ROOT		0
 
 /*------------------------------------------------------------------*/
 #endif
@@ -94,6 +102,36 @@
 #define UIP_CONF_DS6_ADDR_NBU 3
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
+
+/* Do not change lines below */
+
+#define CETIC_6LBR_DODAG_ROOT		1
+
+/*------------------------------------------------------------------*/
+#endif
+
+#if CETIC_6LBR_6LR
+/*------------------------------------------------------------------*/
+/* ROUTER MODE                                                      */
+/*------------------------------------------------------------------*/
+
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER             1
+
+#undef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA		0
+
+#undef UIP_CONF_ND6_DEF_MAXDADNS
+#define UIP_CONF_ND6_DEF_MAXDADNS	1
+
+//Local link address is already reserved
+#define UIP_CONF_DS6_ADDR_NBU 3
+
+#define UIP_CONF_DS6_ROUTE_INFORMATION	0
+
+/* Do not change lines below */
+
+#define CETIC_6LBR_DODAG_ROOT		0
 
 /*------------------------------------------------------------------*/
 #endif
@@ -177,10 +215,12 @@
 #define CETIC_6LBR_ETH_EXT_B	0xFF
 
 //Sanity checks
-#if ( (CETIC_6LBR_SMARTBRIDGE && (CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ROUTER)) || ( CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_ROUTER ) )
+#if ( (CETIC_6LBR_SMARTBRIDGE && (CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ROUTER || CETIC_6LBR_6LR)) || \
+      (CETIC_6LBR_TRANSPARENTBRIDGE && (CETIC_6LBR_ROUTER || CETIC_6LBR_6LR)) || \
+      (CETIC_6LBR_ROUTER && CETIC_6LBR_6LR) )
 #error Only one mode can be selected at a time
 #endif
-#if !CETIC_6LBR_SMARTBRIDGE && !CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_ROUTER
+#if !CETIC_6LBR_SMARTBRIDGE && !CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_ROUTER && !CETIC_6LBR_6LR
 #error A mode must be selected
 #endif
 

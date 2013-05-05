@@ -5,6 +5,7 @@ CONTIKI_PROJECT = cetic-6lbr
 CETIC_6LBR_SMARTBRIDGE=0
 CETIC_6LBR_TRANSPARENTBRIDGE=0
 CETIC_6LBR_ROUTER=0
+CETIC_6LBR_6LR=0
 CETIC_6LBR_ONE_ITF=0
 CETIC_6LBR_LEARN_RPL_MAC=1
 
@@ -30,6 +31,7 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE)
 CFLAGS +=-DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE)
 CFLAGS +=-DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)
+CFLAGS +=-DCETIC_6LBR_6LR=$(CETIC_6LBR_6LR)
 CFLAGS +=-DCETIC_6LBR_ONE_ITF=$(CETIC_6LBR_ONE_ITF)
 CFLAGS +=-DCETIC_6LBR_LEARN_RPL_MAC=$(CETIC_6LBR_LEARN_RPL_MAC)
 
@@ -102,6 +104,10 @@ bin/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(NATIVE_CONF)
 	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router 
 
+bin/cetic_6lbr_6lr:
+	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(NATIVE_CONF)
+	mv cetic-6lbr.native bin/cetic_6lbr_6lr
+
 bin/cetic_6lbr_rpl_root:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_ONE_ITF=1 $(NATIVE_CONF)
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
@@ -118,6 +124,8 @@ all_native:
 	$(MAKE) TARGET=native bin/cetic_6lbr_router 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
 

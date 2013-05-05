@@ -257,6 +257,9 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if CETIC_6LBR_ROUTER
   add("ROUTER");
 #endif
+#if CETIC_6LBR_6LR
+  add("6LR");
+#endif
   add("<br />\n");
   i = clock_seconds() - cetic_6lbr_startup;
   add("Uptime : %dh %dm %ds<br />", i / 3600, (i / 60) % 60, i % 60);
@@ -761,7 +764,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("Default router : <input type=\"text\" name=\"eth_dft\" value=\"");
   ipaddr_add_u8(nvm_data.eth_dft_router);
   add("\" /><br />");
-#else
+#elif CETIC_6LBR_ROUTER
   add("Prefix : <input type=\"text\" name=\"wsn_pre\" value=\"");
   ipaddr_add_u8(nvm_data.wsn_net_prefix);
   add("\" /><br />");
@@ -834,7 +837,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
       (nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) != 0 ? "checked" : "");
   add("<input type=\"radio\" name=\"ndp_filter\" value=\"0\" %s>disabled ",
       (nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) == 0 ? "checked" : "");
-#else
+#elif CETIC_6LBR_ROUTER
   add("<br /><h3>Packet filtering</h3>");
   add("Address rewrite : ");
   add("<input type=\"radio\" name=\"rewrite\" value=\"1\" %s>enabled ",

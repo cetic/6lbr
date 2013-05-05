@@ -96,17 +96,14 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void
 cetic_6lbr_init(void)
 {
-#if UIP_CONF_IPV6_RPL
-  if((nvm_data.mode & CETIC_MODE_DODAG_ROOT) == 0)
-  {
-    uip_ipaddr_t loc_fipaddr;
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+  uip_ipaddr_t loc_fipaddr;
 
-    //DODAGID = link-local address used !
-    uip_create_linklocal_prefix(&loc_fipaddr);
-    uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-    cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
-    PRINTF("Configured as DODAG Root\n");
-  }
+  //DODAGID = link-local address used !
+  uip_create_linklocal_prefix(&loc_fipaddr);
+  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
+  cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+  PRINTF("Configured as DODAG Root\n");
 #endif
 
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
@@ -202,11 +199,8 @@ cetic_6lbr_init(void)
   PRINT6ADDR(&eth_ip_addr.u8);
   PRINTF("\n");
 
-#if UIP_CONF_IPV6_RPL
-  if((nvm_data.mode & CETIC_MODE_DODAG_ROOT) == 0)
-  {
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
-  }
 #endif
 
   //Ugly hack : in order to set WSN local address as the default address
@@ -236,6 +230,8 @@ cetic_6lbr_init(void)
 #else
   printf("Starting as NDP ROUTER\n");
 #endif
+#elif CETIC_6LBR_6LR
+  printf("Starting as 6LR\n");
 #else
   printf("Starting in UNKNOWN mode\n");
 #endif

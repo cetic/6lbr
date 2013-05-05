@@ -342,7 +342,7 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 
 /*---------------------------------------------------------------------------*/
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_6LR
 
 static uint8_t
 bridge_output(uip_lladdr_t * dest)
