@@ -24,6 +24,7 @@ typedef struct {
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_AUTOCONF         0x20
 #define CETIC_MODE_FILTER_NDP_MASK		0x40
+#define CETIC_MODE_DODAG_ROOT			0x80
 
 extern nvm_data_t nvm_data;
 

@@ -76,7 +76,7 @@ void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_SMARTBRIDGE
   PRINTF("CETIC_BRIDGE : set_prefix\n");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     PRINTF("Ignoring RA\n");
@@ -96,13 +96,17 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void
 cetic_6lbr_init(void)
 {
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
-  uip_ipaddr_t loc_fipaddr;
+#if UIP_CONF_IPV6_RPL
+  if((nvm_data.mode & CETIC_MODE_DODAG_ROOT) == 0)
+  {
+    uip_ipaddr_t loc_fipaddr;
 
-  //DODAGID = link-local address used !
-  uip_create_linklocal_prefix(&loc_fipaddr);
-  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-  cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+    //DODAGID = link-local address used !
+    uip_create_linklocal_prefix(&loc_fipaddr);
+    uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
+    cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+    PRINTF("Configured as DODAG Root\n");
+  }
 #endif
 
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
@@ -113,7 +117,7 @@ cetic_6lbr_init(void)
   PRINT6ADDR(&wsn_ip_local_addr);
   PRINTF("\n");
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE
 
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0)    //Manual configuration
   {
@@ -135,17 +139,12 @@ cetic_6lbr_init(void)
     memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
            sizeof(nvm_data.eth_dft_router));
     uip_ds6_defrt_add(&eth_dft_router, 0);
-#if CETIC_6LBR_SMARTBRIDGE
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
-#endif
-  }                             //End manual configuration
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-  printf("Starting as Transparent-BRIDGE\n");
-#else
-  printf("Starting as Smart-BRIDGE\n");
-#endif
-#else /* ROUTER */
 
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+  }                             //End manual configuration
+#endif
+
+#if CETIC_6LBR_ROUTER
   //WSN network configuration
   memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
          sizeof(nvm_data.wsn_net_prefix));
@@ -203,7 +202,12 @@ cetic_6lbr_init(void)
   PRINT6ADDR(&eth_ip_addr.u8);
   PRINTF("\n");
 
-  rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+#if UIP_CONF_IPV6_RPL
+  if((nvm_data.mode & CETIC_MODE_DODAG_ROOT) == 0)
+  {
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+  }
+#endif
 
   //Ugly hack : in order to set WSN local address as the default address
   //We must add it afterwards as uip_ds6_addr_add allocates addr from the end of the list
@@ -216,8 +220,24 @@ cetic_6lbr_init(void)
   uip_ds6_addr_add(&wsn_ip_local_addr, 0, ADDR_AUTOCONF);
 
   uip_ds6_route_info_add(&wsn_net_prefix, 64, 0, 600);
+#endif
 
-  printf("Starting as ROUTER\n");
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_LEARN_RPL_MAC
+  printf("Starting as RPL Transparent-BRIDGE\n");
+#else
+  printf("Starting as Full Transparent-BRIDGE\n");
+#endif
+#elif CETIC_6LBR_SMARTBRIDGE
+  printf("Starting as Smart-BRIDGE\n");
+#elif CETIC_6LBR_ROUTER
+#if UIP_CONF_IPV6_RPL
+  printf("Starting as RPL ROUTER\n");
+#else
+  printf("Starting as NDP ROUTER\n");
+#endif
+#else
+  printf("Starting in UNKNOWN mode\n");
 #endif
 }
 

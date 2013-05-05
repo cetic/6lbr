@@ -8,6 +8,7 @@
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "platform-init.h"
 
 #include "eth-drv.h"
 
@@ -227,10 +228,10 @@ eth_input(void)
       }
     }
     wireless_output(NULL, &destAddr);
-  }
 #else
-  wireless_output(&srcAddr, &destAddr);
+    wireless_output(&srcAddr, &destAddr);
 #endif
+  }
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");

@@ -68,17 +68,7 @@
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 1
 
-//Setup 802.15.4 interface in promiscuous mode
-#define NULLRDC_CONF_ADDRESS_FILTER	0
-#undef MACA_AUTOACK
-#define MACA_AUTOACK				0
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
-
-#undef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL			0
-
-#define CETIC_6LBR_LEARN_RPL_MAC	1
 
 /*------------------------------------------------------------------*/
 #endif
@@ -170,6 +160,13 @@
 #define WEBSERVER_CONF_CFS_CONNS	1
 
 /* Do not change lines below */
+
+#if !CETIC_6LBR_LEARN_RPL_MAC
+//Setup 802.15.4 interface in promiscuous mode
+#define NULLRDC_CONF_ADDRESS_FILTER	0
+#undef MACA_AUTOACK
+#define MACA_AUTOACK				0
+#endif
 
 #endif
 
