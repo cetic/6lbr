@@ -160,17 +160,26 @@
 
 #define WEBSERVER_CONF_CFS_URLCONV 1
 
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
+
 /* Do not change lines below */
 #define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
 
 #define SERIALIZE_ATTRIBUTES 1
 
+#define SELECT_CALLBACK 1
+
 #define CMD_CONF_OUTPUT border_router_cmd_output
 
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC border_router_rdc_driver
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER  framer_802154
 
-#define SELECT_CALLBACK 1
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     border_router_rdc_driver
+
+#undef NETSTACK_CONF_RADIO
+#define NETSTACK_CONF_RADIO   nullradio_driver
 
 #endif
 
@@ -197,9 +206,15 @@
 
 #define WEBSERVER_CONF_CFS_CONNS	1
 
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
+
 /* Do not change lines below */
 
-#if !CETIC_6LBR_LEARN_RPL_MAC
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nullrdc_driver
+
+#if CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_LEARN_RPL_MAC
 //Setup 802.15.4 interface in promiscuous mode
 #define NULLRDC_CONF_ADDRESS_FILTER	0
 #undef MACA_AUTOACK
