@@ -1,6 +1,6 @@
 # General environment variables
 SHELL=/bin/bash
-CONTIKIDIR=~/git/contiki
+CONTIKIDIR=../../..
 COOJADIR=${CONTIKIDIR}/tools/cooja
 
 # COOJA generation

@@ -84,6 +84,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+    eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
     PRINTF("Eth MAC address : ");
     PRINTETHADDR(&eth_mac_addr);
     PRINTF("\n");

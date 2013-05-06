@@ -96,13 +96,6 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet,
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
 
-//! Location of TRANSLATE (TR) bit in Ethernet address
-#define TRANSLATE_BIT_MASK (1<<2)
-//! Location of LOCAL (GL) bit in Ethernet address
-#define LOCAL_BIT_MASK     (1<<1)
-//! Location of MULTICAST (MU) bit in Ethernet address
-#define MULTICAST_BIT_MASK (1<<0)
-
 #define PREFIX_BUFFER_SIZE 32
 
 uint8_t prefixCounter = 0;

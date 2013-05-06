@@ -100,7 +100,7 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_ROUTER                 1
 #ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               1
+#define UIP_CONF_IPV6_RPL               0
 #endif /* UIP_CONF_IPV6_RPL */
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0

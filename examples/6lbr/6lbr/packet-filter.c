@@ -4,9 +4,11 @@
 #include "net/uip-nd6.h"
 #include "string.h"
 #include "sicslow-ethernet.h"
+#include "rpl-private.h"
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "platform-init.h"
 
 #include "eth-drv.h"
 
@@ -14,10 +16,6 @@ extern const rimeaddr_t rimeaddr_null;
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
-
-#if CONTIKI_TARGET_NATIVE
-extern void slip_set_mac(rimeaddr_t * mac_addr);
-#endif
 
 static int eth_output(uip_lladdr_t * src, uip_lladdr_t * dest);
 
@@ -125,24 +123,15 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
   if(wireless_outputfunc != NULL) {
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
-#if CONTIKI_TARGET_NATIVE
-	  slip_set_mac((rimeaddr_t *)src);
-#else
-	  //Set source address (must be done by hacking node address)
-	  rimeaddr_set_node_addr((rimeaddr_t *) src);
-#endif
+      platform_set_wsn_mac((rimeaddr_t *)src);
 	}
 #endif
     PRINTF("wireless_output: sending packet\n");
     ret = wireless_outputfunc(dest);
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
-#if CONTIKI_TARGET_NATIVE
-	  slip_set_mac((rimeaddr_t *)src);
-#else
       //Restore node address
-      rimeaddr_set_node_addr((rimeaddr_t *) & wsn_mac_addr);
-#endif
+	  platform_set_wsn_mac((rimeaddr_t *) & wsn_mac_addr);
 	}
 #endif
   } else {
@@ -234,20 +223,15 @@ eth_input(void)
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
       uint8_t *buffer = UIP_ICMP_PAYLOAD;
       uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
-      printf("Got DIO with rank %d\n", rank);
-      if ( rank == 256 ) {
-#if CONTIKI_TARGET_NATIVE
-	  slip_set_mac((rimeaddr_t *) &srcAddr);
-#endif
-	  //Set source address (must be done by hacking node address)
-	  rimeaddr_set_node_addr((rimeaddr_t *) &srcAddr);
+      if ( rank == RPL_MIN_HOPRANKINC ) {
+    	platform_set_wsn_mac((rimeaddr_t *) &srcAddr);
       }
     }
     wireless_output(NULL, &destAddr);
-  }
 #else
-  wireless_output(&srcAddr, &destAddr);
+    wireless_output(&srcAddr, &destAddr);
 #endif
+  }
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");
@@ -358,7 +342,7 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 
 /*---------------------------------------------------------------------------*/
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_6LR
 
 static uint8_t
 bridge_output(uip_lladdr_t * dest)

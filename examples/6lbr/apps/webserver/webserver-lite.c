@@ -207,6 +207,9 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if CETIC_6LBR_ROUTER
   add("ROUTER");
 #endif
+#if CETIC_6LBR_6LR
+  add("6LR");
+#endif
   add("<br>");
   i = clock_seconds() - cetic_6lbr_startup;
   add("Uptime : %dh %dm %ds<br>", i / 3600, (i / 60) % 60, i % 60);
@@ -452,7 +455,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
     ipaddr_add(&wsn_net_prefix);
     add("<br>");
   }
-#else
+#elif CETIC_6LBR_ROUTER
   add("Prefix : ");
   ipaddr_add(&wsn_net_prefix);
   add("<br>");
