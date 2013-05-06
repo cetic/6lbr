@@ -3,3 +3,7 @@
 gen_config.py
 user_config.py
 report/
+*.pcap
+*.pdf
+*~
+testtoremove
