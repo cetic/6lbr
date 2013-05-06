@@ -145,7 +145,7 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 void
 eth_input(void)
 {
-#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ONE_ITF
+#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
   uip_lladdr_t srcAddr;
 #endif
   uip_lladdr_t destAddr;
@@ -235,7 +235,9 @@ eth_input(void)
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");
-#if CETIC_6LBR_ONE_ITF
+#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+  //RPL uses source packet address to populate its neighbor table
+  //In this two modes RPL packets are incoming from Eth interface
   mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *) &srcAddr);
 #endif

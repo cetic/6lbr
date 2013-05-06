@@ -142,6 +142,7 @@ mode_Router=1
 mode_RouterNoRa=0
 
 mode_RplRootTransparentBridge=1
+mode_RplRoot6lr=1
 
 mode_NdpRouter=1
 
