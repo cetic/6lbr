@@ -78,6 +78,8 @@
 
 #define CETIC_6LBR_DODAG_ROOT		0
 
+#define UIP_CONF_ND6_MAX_RTR_SOLICITATIONS	0
+
 /*------------------------------------------------------------------*/
 #endif
 
