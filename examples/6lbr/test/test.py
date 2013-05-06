@@ -1191,7 +1191,7 @@ class SmartBridgeManual(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
 
 @skipUnlessTrue("mode_SmartBridgeAuto")
 @skipUnlessFalse("multi_br")
@@ -1212,7 +1212,7 @@ class SmartBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.start_ra(self.support.backbone), "Could not start RADVD")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
+        self.support.stop_ra()
 
 @skipUnlessTrue("mode_Router")
 @skipUnlessFalse("multi_br")
@@ -1237,7 +1237,7 @@ class Router(TestScenarios, unittest.TestCase):
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip), "Could not remove route")
+            self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip)
 
 @skipUnlessTrue("mode_NdpRouter")
 @skipUnlessFalse("multi_br")
@@ -1256,8 +1256,8 @@ class NdpRouter(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.add_route(config.wsn_prefix+"::", gw=self.br.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip)
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
 
 @skipUnlessTrue("mode_RouterNoRa")
 @skipUnlessFalse("multi_br")
@@ -1276,8 +1276,8 @@ class RouterNoRa(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.add_route(config.wsn_prefix+"::", gw=self.br.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip)
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
 
 @skipUnlessTrue("mode_TransparentBridgeManual")
 @skipUnlessFalse("multi_br")
@@ -1295,7 +1295,7 @@ class TransparentBridgeManual(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf, self.support.host.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
 
 @skipUnlessTrue("mode_TransparentBridgeAuto")
 @skipUnlessFalse("multi_br")
@@ -1315,7 +1315,7 @@ class TransparentBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.start_ra(self.support.backbone), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.stop_ra(), "")
+        self.support.stop_ra()
 
 @skipUnlessTrue("mode_RplRoot")
 @skipUnlessFalse("multi_br")
@@ -1340,7 +1340,7 @@ class RplRoot(TestScenarios, unittest.TestCase):
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip), "Could not remove route")
+            self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip)
 
 @skipUnlessTrue("mode_RplRootNoRa")
 @skipUnlessFalse("multi_br")
@@ -1359,8 +1359,8 @@ class RplRootNoRa(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.platform.add_route(config.wsn_prefix+"::", gw=self.br.ip), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip), "")
-        self.assertTrue( self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip), "")
+        self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.br.ip)
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
 
 @skipUnlessTrue("mode_RplRootTransparentBridge")
 @skipUnlessFalse("multi_br")
@@ -1387,7 +1387,7 @@ class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.rpl_root.ip), "Could not remove route")
+            self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.rpl_root.ip)
         
 @skipUnlessTrue("mode_MultiBrSmartBridgeAuto")
 @skipUnlessTrue("multi_br")
@@ -1425,7 +1425,7 @@ class MultiBrSmartBridgeAuto(TestScenarios, unittest.TestCase):
         self.assertTrue( self.support.start_ra(self.support.backbone), "")
 
     def tear_down_network(self):
-        self.assertTrue( self.support.stop_ra(), "")
+        self.support.stop_ra()
 
 @skipUnlessTrue("mode_RplRootMultiTransparentBridge")
 @skipUnlessTrue("multi_br")
@@ -1454,7 +1454,7 @@ class RplRootMultiTransparentBridge(TestScenarios, unittest.TestCase):
 
     def tear_down_network(self):
         if not self.support.platform.support_rio():
-            self.assertTrue(self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.rpl_root.ip), "Could not remove route")
+            self.support.platform.rm_route(config.wsn_prefix+"::", gw=self.rpl_root.ip)
 
 def main():
     if not os.path.exists(config.report_path):
