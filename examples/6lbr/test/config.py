@@ -143,6 +143,8 @@ mode_RouterNoRa=0
 
 mode_RplRootTransparentBridge=1
 
+mode_NdpRouter=1
+
 mode_MultiBrSmartBridgeAuto=1
 mode_RplRootMultiTransparentBridge=1
 
