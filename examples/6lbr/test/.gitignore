@@ -7,3 +7,9 @@ report/
 *.pdf
 *~
 testtoremove
+br
+coojagen/output
+run_pool
+*.dat
+postprocessing/allres.txt
+postprocessing/testfile.txt
