@@ -1325,7 +1325,7 @@ class RplRoot(TestScenarios, unittest.TestCase):
         self.support.wsn.prefix=config.wsn_prefix
         self.br = self.support.add_6lbr()
         self.support.setUp()
-        self.br.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.br.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
 
     def set_up_network(self):
         sleep(10)
@@ -1351,7 +1351,7 @@ class RplRootNoRa(TestScenarios, unittest.TestCase):
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
-        self.br.set_mode('RPL-ROOT', config.channel, iid="100", ra_daemon=False, addr_rewrite=False, filter_rpl=False)
+        self.br.set_mode('RPL-ROOT', config.channel, iid="100", ra_daemon=False, addr_rewrite=False)
 
     def set_up_network(self):
         sleep(2)
@@ -1371,8 +1371,8 @@ class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
         self.tb = self.support.add_6lbr()
         self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null', 'nodeid': '-'})
         self.support.setUp()
-        self.tb.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.tb.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
 
     def set_up_network(self):
         sleep(10)
@@ -1398,8 +1398,8 @@ class RplRootTransparentBridge(TestScenarios, unittest.TestCase):
         self.tb = self.support.add_6lbr()
         self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null', 'nodeid': '-'})
         self.support.setUp()
-        self.tb.set_mode('6LR', config.channel, accept_ra=False, filter_rpl=False)
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.tb.set_mode('6LR', config.channel, accept_ra=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
 
     def set_up_network(self):
         sleep(10)
@@ -1464,9 +1464,9 @@ class RplRootMultiTransparentBridge(TestScenarios, unittest.TestCase):
         self.tb2 = self.support.add_6lbr()
         self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null', 'nodeid': '-'})
         self.support.setUp()
-        self.tb1.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
-        self.tb2.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False, filter_rpl=False)
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, filter_rpl=False)
+        self.tb1.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
+        self.tb2.set_mode('RPL-TRANSPARENT-BRIDGE', config.channel, accept_ra=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
 
     def set_up_network(self):
         sleep(10)

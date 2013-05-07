@@ -502,12 +502,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #endif
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("<h3>Packet filtering</h3>");
-  add("RPL filtering : ");
-  if((nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
-    add("enabled<br>");
-  } else {
-    add("disabled<br>");
-  }
 #endif
 #if CETIC_6LBR_ROUTER
   add("<h3>Packet filtering</h3>");

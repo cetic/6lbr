@@ -46,9 +46,6 @@
 /* SMART BRIDGE MODE                                                */
 /*------------------------------------------------------------------*/
 
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER             0
-
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 2
 
@@ -56,7 +53,14 @@
 
 /* Do not change lines below */
 
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER             0
+
 #define CETIC_6LBR_DODAG_ROOT		1
+
+#define CETIC_6LBR_ETH_FILTER_RPL	1
+
+#define CETIC_6LBR_WSN_FILTER_RA	1
 
 /*------------------------------------------------------------------*/
 #endif
@@ -66,9 +70,6 @@
 /* TRANSPARENT BRIDGE MODE                                          */
 /*------------------------------------------------------------------*/
 
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER             0
-
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 1
 
@@ -76,9 +77,20 @@
 
 /* Do not change lines below */
 
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER             0
+
 #define CETIC_6LBR_DODAG_ROOT		0
 
 #define UIP_CONF_ND6_MAX_RTR_SOLICITATIONS	0
+
+#define CETIC_6LBR_ETH_FILTER_RPL	0
+
+#if CETIC_6LBR_LEARN_RPL_MAC
+#define CETIC_6LBR_WSN_FILTER_RA	1
+#else
+#define CETIC_6LBR_WSN_FILTER_RA	0
+#endif
 
 /*------------------------------------------------------------------*/
 #endif
@@ -87,9 +99,6 @@
 /*------------------------------------------------------------------*/
 /* ROUTER MODE                                                      */
 /*------------------------------------------------------------------*/
-
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER             1
 
 #undef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA		1
@@ -107,7 +116,22 @@
 
 /* Do not change lines below */
 
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER             1
+
 #define CETIC_6LBR_DODAG_ROOT		1
+
+#if CETIC_6LBR_ONE_ITF
+#define CETIC_6LBR_ETH_FILTER_RPL	0
+#else
+#define CETIC_6LBR_ETH_FILTER_RPL	1
+#endif
+
+#if UIP_CONF_IPV6_RPL
+#define CETIC_6LBR_WSN_FILTER_RA	1
+#else
+#define CETIC_6LBR_WSN_FILTER_RA	0
+#endif
 
 /*------------------------------------------------------------------*/
 #endif
@@ -116,12 +140,6 @@
 /*------------------------------------------------------------------*/
 /* ROUTER MODE                                                      */
 /*------------------------------------------------------------------*/
-
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER             1
-
-#undef UIP_CONF_ND6_SEND_RA
-#define UIP_CONF_ND6_SEND_RA		0
 
 #undef UIP_CONF_ND6_DEF_MAXDADNS
 #define UIP_CONF_ND6_DEF_MAXDADNS	1
@@ -133,7 +151,17 @@
 
 /* Do not change lines below */
 
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER             1
+
+#undef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA		0
+
 #define CETIC_6LBR_DODAG_ROOT		0
+
+#define CETIC_6LBR_ETH_FILTER_RPL	0
+
+#define CETIC_6LBR_WSN_FILTER_RA	1
 
 /*------------------------------------------------------------------*/
 #endif
