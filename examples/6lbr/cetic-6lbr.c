@@ -87,6 +87,9 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
     PRINTF("Setting DAG prefix : ");
     PRINT6ADDR(&prefix->u8);
     PRINTF("\n");
+    if(!uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len)) {
+      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    }
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
   }
