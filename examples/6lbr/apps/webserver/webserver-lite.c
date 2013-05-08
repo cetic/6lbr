@@ -202,10 +202,18 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("SMART BRIGDE");
 #endif
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-  add("TRANSPARENT BRIGDE");
+#if CETIC_6LBR_LEARN_RPL_MAC
+  add("RPL TRANSPARENT BRIGDE");
+#else
+  add("FULL TRANSPARENT BRIGDE");
+#endif
 #endif
 #if CETIC_6LBR_ROUTER
-  add("ROUTER");
+#if UIP_CONF_IPV6_RPL
+  add("RPL ROUTER");
+#else
+  add("NDP ROUTER");
+#endif
 #endif
 #if CETIC_6LBR_6LR
   add("6LR");
