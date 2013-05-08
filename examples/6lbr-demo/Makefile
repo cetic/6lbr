@@ -30,6 +30,7 @@ CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
 endif
 
+UDP_PERIOD=5
 ifneq ($(UDP_PERIOD),)
 CFLAGS += -DCETIC_6LBR_UDP_PERIOD=$(UDP_PERIOD)
 endif
