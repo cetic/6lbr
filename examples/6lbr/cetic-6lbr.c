@@ -162,16 +162,6 @@ cetic_6lbr_init(void)
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
          sizeof(nvm_data.eth_net_prefix));
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
-    PRINTF("RA with autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 1,
-                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
-                       30000, 30000);
-  } else {
-    PRINTF("RA without autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
-  }
-
   memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
          sizeof(nvm_data.eth_dft_router));
   uip_ds6_defrt_add(&eth_dft_router, 0);
@@ -213,7 +203,33 @@ cetic_6lbr_init(void)
 
   uip_ds6_addr_add(&wsn_ip_local_addr, 0, ADDR_AUTOCONF);
 
+  //Prefix and RA configuration
+#if UIP_CONF_IPV6_RPL
+  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
+    PRINTF("RA with autoconfig\n");
+    uip_ds6_prefix_add(&eth_net_prefix, 64, 1,
+                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
+                       30000, 30000);
+  } else {
+    PRINTF("RA without autoconfig\n");
+    uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
+  }
+#else
+  uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
+  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
+    PRINTF("RA with autoconfig\n");
+    uip_ds6_prefix_add(&wsn_net_prefix, 64, 1,
+                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
+                       30000, 30000);
+  } else {
+    PRINTF("RA without autoconfig\n");
+    uip_ds6_prefix_add(&wsn_net_prefix, 64, 0, 0, 0, 0);
+  }
+#endif
+
+#if UIP_CONF_IPV6_RPL
   uip_ds6_route_info_add(&wsn_net_prefix, 64, 0, 600);
+#endif
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE

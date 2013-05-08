@@ -106,7 +106,7 @@ class LocalNativeBR(BRProxy):
             self.stop_6lbr()
         self.wsn.release_radio_dev(self.radio)
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, addr_rewrite=True):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -140,7 +140,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
-        params="--new %s --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d --filter-rpl=%d br/%s/test.dat" % (net_config, channel, accept_ra, ra_daemon, addr_rewrite, filter_rpl, self.itf)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d br/%s/test.dat" % (net_config, channel, accept_ra, ra_daemon, addr_rewrite, self.itf)
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)

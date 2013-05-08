@@ -63,8 +63,7 @@ check_nvm(volatile nvm_data_t * nvm_data)
 
     nvm_data->mode =
       CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK |
-      CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK |
-      CETIC_MODE_FILTER_RPL_MASK | CETIC_MODE_FILTER_NDP_MASK;
+      CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK;
 
     nvm_data->channel = 26;
 

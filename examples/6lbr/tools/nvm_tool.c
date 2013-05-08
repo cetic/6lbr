@@ -221,8 +221,7 @@ create_empty_nvm(void)
   nvm_params->rpl_version_id = 240;
   nvm_params->mode =
     CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK |
-    CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK |
-    CETIC_MODE_FILTER_RPL_MASK | CETIC_MODE_FILTER_NDP_MASK;
+    CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK;
 
   nvm_params->channel = 26;
 }
@@ -321,12 +320,6 @@ print_nvm(void)
   printf("Local address rewrite : ");
   print_bool(nvm_params->mode, CETIC_MODE_REWRITE_ADDR_MASK);
   printf("\n");
-  printf("Filter out RPL : ");
-  print_bool(nvm_params->mode, CETIC_MODE_FILTER_RPL_MASK);
-  printf("\n");
-  printf("Filter out NDP : ");
-  print_bool(nvm_params->mode, CETIC_MODE_FILTER_NDP_MASK);
-  printf("\n");
   printf("\n");
   printf("RPL version_id : ");
   print_int(nvm_params->rpl_version_id);
@@ -352,8 +345,6 @@ print_nvm(void)
 #define eth_addr_autoconf_option 3005
 
 #define local_addr_rewrite_option 4000
-#define rpl_filter_option 4001
-#define ndp_filter_option 4002
 
 #define rpl_version_option 5000
 
@@ -380,8 +371,6 @@ static struct option long_options[] = {
   {"eth-ip-autoconf", required_argument, 0, eth_addr_autoconf_option},
 
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
-  {"filter-rpl", required_argument, 0, rpl_filter_option},
-  {"filter-ndp", required_argument, 0, ndp_filter_option},
 
   {"rpl-version", required_argument, 0, rpl_version_option},
 
@@ -432,8 +421,6 @@ help(char const *name)
   printf("\n");
 
   printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
-  printf("\t--filter-rpl <0|1>\t\t Filter out RPL messages\n");
-  printf("\t--filter-NDP <0|1>\t\t Filter out NDP RA/RS messages\n");
   printf("\n");
 
   printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
@@ -472,8 +459,6 @@ main(int argc, char *argv[])
   char *eth_addr_autoconf = NULL;
 
   char *local_addr_rewrite = NULL;
-  char *rpl_filter = NULL;
-  char *ndp_filter = NULL;
 
   char *rpl_version = NULL;
 
@@ -533,9 +518,6 @@ main(int argc, char *argv[])
 
     case local_addr_rewrite_option:
       local_addr_rewrite = optarg;
-      break;
-    case rpl_filter_option:
-      rpl_filter = optarg;
       break;
 
     case rpl_version_option:
@@ -624,14 +606,6 @@ main(int argc, char *argv[])
     if(local_addr_rewrite) {
       mode_update(CETIC_MODE_REWRITE_ADDR_MASK,
                   boolconv("addr-rewrite", local_addr_rewrite));
-    }
-    if(rpl_filter) {
-      mode_update(CETIC_MODE_FILTER_RPL_MASK,
-                  boolconv("filter-rpl", rpl_filter));
-    }
-    if(ndp_filter) {
-      mode_update(CETIC_MODE_FILTER_NDP_MASK,
-                  boolconv("filter-ndp", ndp_filter));
     }
 
     if(rpl_version) {

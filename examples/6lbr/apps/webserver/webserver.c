@@ -252,10 +252,18 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("SMART BRIGDE");
 #endif
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-  add("TRANSPARENT BRIGDE");
+#if CETIC_6LBR_LEARN_RPL_MAC
+  add("RPL TRANSPARENT BRIGDE");
+#else
+  add("FULL TRANSPARENT BRIGDE");
+#endif
 #endif
 #if CETIC_6LBR_ROUTER
-  add("ROUTER");
+#if UIP_CONF_IPV6_RPL
+  add("RPL ROUTER");
+#else
+  add("NDP ROUTER");
+#endif
 #endif
 #if CETIC_6LBR_6LR
   add("6LR");
@@ -272,12 +280,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
+#if UIP_CONF_IPV6_RPL
   add("Prefix : ");
   ipaddr_add(&cetic_dag->prefix_info.prefix);
   add("/%d", cetic_dag->prefix_info.length);
-#endif
   add("<br />");
+#endif
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br />");
@@ -825,18 +833,6 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("<br /><h3>Packet filtering</h3>");
-  add("RPL filtering : <br />");
-  add("<input type=\"radio\" name=\"rpl_filter\" value=\"1\" %s>enabled ",
-      (nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"rpl_filter\" value=\"0\" %s>disabled ",
-      (nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) == 0 ? "checked" : "");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-  add("<br />NDP filtering : <br />");
-  add("<input type=\"radio\" name=\"ndp_filter\" value=\"1\" %s>enabled ",
-      (nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"ndp_filter\" value=\"0\" %s>disabled ",
-      (nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) == 0 ? "checked" : "");
 #elif CETIC_6LBR_ROUTER
   add("<br /><h3>Packet filtering</h3>");
   add("Address rewrite : ");
@@ -986,12 +982,6 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #endif
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("<br /><h3>Packet filtering</h3>");
-  add("RPL filtering : ");
-  if((nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
-    add("enabled (<a href=\"/no-filter-rpl\">disable</a>)<br />");
-  } else {
-    add("disabled (<a href=\"/filter-rpl\">enable</a>)<br />");
-  }
 #endif
 #if CETIC_6LBR_ROUTER
   add("<br /><h3>Packet filtering</h3>");
@@ -1162,22 +1152,6 @@ update_config(const char *name)
       } else {
         do_update = 0;
       }
-    } else if(strcmp(param, "rpl_filter") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_FILTER_RPL_MASK;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_FILTER_RPL_MASK;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "ndp_filter") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_FILTER_NDP_MASK;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_FILTER_NDP_MASK;
-      } else {
-        do_update = 0;
-      }
     } else if(strcmp(param, "rewrite") == 0) {
       if(strcmp(value, "0") == 0) {
         nvm_data.mode &= ~CETIC_MODE_REWRITE_ADDR_MASK;
@@ -1253,16 +1227,6 @@ httpd_simple_get_script(const char *name)
     return generate_config;
   } else if(strcmp(name, "no-rewrite") == 0) {
     nvm_data.mode = (nvm_data.mode & ~CETIC_MODE_REWRITE_ADDR_MASK);
-    store_nvm_config();
-    return generate_config;
-  } else if(strcmp(name, "filter-rpl") == 0) {
-    nvm_data.mode =
-      (nvm_data.
-       mode & ~CETIC_MODE_FILTER_RPL_MASK) | CETIC_MODE_FILTER_RPL_MASK;
-    store_nvm_config();
-    return generate_config;
-  } else if(strcmp(name, "no-filter-rpl") == 0) {
-    nvm_data.mode = (nvm_data.mode & ~CETIC_MODE_FILTER_RPL_MASK);
     store_nvm_config();
     return generate_config;
   } else if(strcmp(name, "ra") == 0) {

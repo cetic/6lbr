@@ -202,10 +202,18 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("SMART BRIGDE");
 #endif
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-  add("TRANSPARENT BRIGDE");
+#if CETIC_6LBR_LEARN_RPL_MAC
+  add("RPL TRANSPARENT BRIGDE");
+#else
+  add("FULL TRANSPARENT BRIGDE");
+#endif
 #endif
 #if CETIC_6LBR_ROUTER
-  add("ROUTER");
+#if UIP_CONF_IPV6_RPL
+  add("RPL ROUTER");
+#else
+  add("NDP ROUTER");
+#endif
 #endif
 #if CETIC_6LBR_6LR
   add("6LR");
@@ -222,12 +230,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
+#if UIP_CONF_IPV6_RPL
   add("Prefix : ");
   ipaddr_add(&cetic_dag->prefix_info.prefix);
   add("/%d", cetic_dag->prefix_info.length);
-#endif
   add("<br>");
+#endif
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br>");
@@ -502,12 +510,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #endif
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("<h3>Packet filtering</h3>");
-  add("RPL filtering : ");
-  if((nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
-    add("enabled<br>");
-  } else {
-    add("disabled<br>");
-  }
 #endif
 #if CETIC_6LBR_ROUTER
   add("<h3>Packet filtering</h3>");

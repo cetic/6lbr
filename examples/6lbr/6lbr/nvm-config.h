@@ -18,12 +18,10 @@ typedef struct {
 #define CETIC_6LBR_NVM_VERSION	0
 
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
-#define CETIC_MODE_FILTER_RPL_MASK		0x02
 #define CETIC_MODE_WAIT_RA_MASK			0x04
 #define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_AUTOCONF         0x20
-#define CETIC_MODE_FILTER_NDP_MASK		0x40
 
 extern nvm_data_t nvm_data;
 

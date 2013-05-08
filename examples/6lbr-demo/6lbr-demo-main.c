@@ -14,8 +14,6 @@ PROCESS_NAME(web_sense_process);
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_client_process);
 
-AUTOSTART_PROCESSES(&demo_6lbr_process);
-
 /*---------------------------------------------------------------------------*/
 void
 start_apps(void)
