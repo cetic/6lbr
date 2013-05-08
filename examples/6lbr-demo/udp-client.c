@@ -117,20 +117,27 @@ timeout_handler(void)
   static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
   int i;
-  rpl_dag_t *dag = rpl_get_any_dag();
   uip_ipaddr_t *globaladdr = NULL;
   uip_ipaddr_t newdest_addr;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
+  int has_dest=0;
 
   if ( use_user_dest_addr ) {
 	uip_ipaddr_copy(&newdest_addr, &user_dest_addr);
+	has_dest=1;
   } else if((globaladdr = &uip_ds6_get_global(-1)->ipaddr) != NULL) {
+#if UIP_CONF_IPV6_RPL
+    rpl_dag_t *dag = rpl_get_any_dag();
     uip_ipaddr_copy(&newdest_addr, globaladdr);
     memcpy(&newdest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
+    has_dest=1;
+#else
+    uip_ipaddr_copy(&newdest_addr, uip_ds6_defrt_choose());
+#endif
   }
 
   if (client_conn == NULL) {
-    if (dag != NULL && dag->prefix_info.length != 0 ) {
+    if (has_dest) {
         /* At least one prefix announced : building of the global address to reach using prefixes */
         memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
         PRINTF("UDP-CLIENT: address destination: ");
@@ -145,7 +152,7 @@ timeout_handler(void)
 		UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 		print_local_addresses();
     } else {
-      PRINTF("No dag configured yet\n");
+      PRINTF("No address configured yet\n");
     }
   }
   if (client_conn != NULL) {
@@ -164,7 +171,10 @@ timeout_handler(void)
       PRINTF("Client sending to: ");
       PRINT6ADDR(&client_conn->ripaddr);
       i = sprintf(buf, "%d | ", ++seq_id);
+#if UIP_CONF_IPV6_RPL
+      rpl_dag_t *dag = rpl_get_any_dag();
       add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+#endif
       PRINTF(" (msg: %s)\n", buf);
       #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
       uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
