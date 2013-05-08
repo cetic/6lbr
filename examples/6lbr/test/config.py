@@ -41,6 +41,7 @@ eth_prefix='bbbb'
 topologies=[
     './coojagen/examples/config_line_single_br.py',
     './coojagen/examples/config_grid_single_br.py',
+    #'./coojagen/examples/config_preset_1dag_1node.py',
     './coojagen/examples/config_preset_1dag_10nodes.py',
     './coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
     #'./coojagen/examples/config_preset_2dags_20nodes_overlap.py',
@@ -144,7 +145,7 @@ mode_RouterNoRa=0
 mode_RplRootTransparentBridge=1
 mode_RplRoot6lr=1
 
-mode_NdpRouter=1
+mode_NdpRouter=0
 
 mode_MultiBrSmartBridgeAuto=1
 mode_RplRootMultiTransparentBridge=1

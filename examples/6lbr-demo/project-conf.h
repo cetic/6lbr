@@ -32,6 +32,11 @@
 #ifndef __PROJECT_RPL_WEB_CONF_H__
 #define __PROJECT_RPL_WEB_CONF_H__
 
+#if !UIP_CONF_IPV6_RPL
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER            0
+#endif
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
 

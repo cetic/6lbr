@@ -132,7 +132,11 @@ timeout_handler(void)
     memcpy(&newdest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
     has_dest=1;
 #else
-    uip_ipaddr_copy(&newdest_addr, uip_ds6_defrt_choose());
+    uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
+    if ( defrt != NULL ) {
+      uip_ipaddr_copy(&newdest_addr, defrt);
+      has_dest=1;
+    }
 #endif
   }
 

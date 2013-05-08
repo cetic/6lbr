@@ -7,6 +7,7 @@ config.test_repeat=1
 config.topologies=[
     #'./coojagen/examples/config_line_single_br.py',
     #'./coojagen/examples/config_grid_single_br.py',
+    #'./coojagen/examples/config_preset_1dag_1node.py',
     './coojagen/examples/config_preset_1dag_10nodes.py',
     #'./coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
     #'./coojagen/examples/config_preset_2dags_20nodes_overlap.py',
@@ -74,6 +75,9 @@ config.mode_Router=0
 config.mode_RouterNoRa=0
 
 config.mode_RplRootTransparentBridge=0
+config.mode_RplRoot6lr=0
+
+config.mode_NdpRouter=0
 
 config.mode_MultiBrSmartBridgeAuto=0
 config.mode_RplRootMultiTransparentBridge=0
