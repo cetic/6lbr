@@ -107,15 +107,15 @@ PROCESS_THREAD(shell_udp_host_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_udp_port_process, ev, data)
 {
-	  uint16_t port;
-	  const char *newptr;
-	  PROCESS_BEGIN();
+  uint16_t port;
+  const char *newptr;
+  PROCESS_BEGIN();
 
-	  port = shell_strtolong(data, &newptr);
+  port = shell_strtolong(data, &newptr);
 
-	  if(newptr != data) {
-	    user_dest_port = port;
-	  }
+  if(newptr != data) {
+    user_dest_port = port;
+  }
 
   PROCESS_END();
 }
