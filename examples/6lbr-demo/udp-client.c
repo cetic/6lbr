@@ -197,6 +197,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINTF("UDP client process started\n");
   dest_addr = malloc(sizeof(uip_ipaddr_t));
   memset(dest_addr, 0, sizeof(uip_ipaddr_t));
+#if UDP_CLIENT_AUTOSTART
+  udp_client_run=1;
+#endif
   etimer_set(&et, SEND_INTERVAL);
   while(1) {
     PROCESS_YIELD();
