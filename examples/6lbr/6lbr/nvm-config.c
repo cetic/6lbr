@@ -36,40 +36,42 @@ check_nvm(volatile nvm_data_t * nvm_data)
   uip_ipaddr_t loc_fipaddr;
 
   if(nvm_data->magic != CETIC_6LBR_NVM_MAGIC
-     || nvm_data->version > CETIC_6LBR_NVM_VERSION) {
+     || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
     //NVM is invalid or we are rollbacking from another version
     //Set all data to default values
     printf
       ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
     nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
-    nvm_data->version = CETIC_6LBR_NVM_VERSION;
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
 
-    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0);
+    CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX(&loc_fipaddr);
     memcpy(&nvm_data->eth_net_prefix, &loc_fipaddr.u8, 16);
 
-    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100);
+    CETIC_6LBR_NVM_DEFAULT_ETH_IP_ADDR(&loc_fipaddr);
     memcpy(&nvm_data->eth_ip_addr, &loc_fipaddr.u8, 16);
 
-    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0);
+    CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(&loc_fipaddr);
     memcpy(&nvm_data->wsn_net_prefix, &loc_fipaddr.u8, 16);
 
-    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100);
+    CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(&loc_fipaddr);
     memcpy(&nvm_data->wsn_ip_addr, &loc_fipaddr.u8, 16);
 
-    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
+    CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(&loc_fipaddr);
     memcpy(&nvm_data->eth_dft_router, &loc_fipaddr.u8, 16);
 
-    nvm_data->rpl_version_id = RPL_LOLLIPOP_INIT;
+    nvm_data->rpl_version_id = CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID;
 
-    nvm_data->mode =
-      CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK |
-      CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK;
+    nvm_data->mode = CETIC_6LBR_NVM_DEFAULT_MODE;
 
-    nvm_data->channel = 26;
+    nvm_data->channel = CETIC_6LBR_NVM_DEFAULT_CHANNEL;
 
     flash = 1;
   }
-  //Migration paths should be done here
+  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
+  {
+    //Migration 0 -> 1 path should be done here
+	flash = 1;
+  }
 
   if(flash) {
     nvm_data_write();

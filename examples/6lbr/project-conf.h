@@ -1,6 +1,8 @@
 #ifndef __PROJECT_6LBR_CONF_H__
 #define __PROJECT_6LBR_CONF_H__
 
+#include "conf-mapping.h"
+
 /*------------------------------------------------------------------*/
 /* Mode selection                                                   */
 /*------------------------------------------------------------------*/
@@ -35,9 +37,6 @@
 
 #undef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			3
-
-#define RPL_CONF_DEFAULT_LIFETIME_UNIT  0x0100
-#define RPL_CONF_DEFAULT_LIFETIME       0x1E
 
 #undef UIP_FALLBACK_INTERFACE
 
@@ -102,13 +101,6 @@
 
 #undef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA		1
-
-#undef UIP_CONF_ROUTER_LIFETIME
-#if UIP_CONF_IPV6_RPL
-#define UIP_CONF_ROUTER_LIFETIME	0
-#else
-#define UIP_CONF_ROUTER_LIFETIME	1800
-#endif
 
 #undef UIP_CONF_ND6_DEF_MAXDADNS
 #define UIP_CONF_ND6_DEF_MAXDADNS	1
