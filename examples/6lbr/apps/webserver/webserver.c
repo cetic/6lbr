@@ -734,6 +734,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> "off_text" <br />", \
       (nvm_data.nvm_name & (flag)) == 0 ? "checked" : "");
 
+#define INPUT_FLAG_CB(name, nvm_name, flag, text) \
+  add(text " : <br />" \
+	  "<input type=\"checkbox\" name=\""name"\" value=\"1\" %s><br />", \
+	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+
 #define INPUT_IPADDR(name, nvm_name, text) \
   add(text " : <input type=\"text\" name=\""name"\" value=\""); \
       ipaddr_add_u8(nvm_data.nvm_name); \
@@ -770,19 +775,21 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   add("<h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  INPUT_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network configuration", "autoconfiguration", "static");
+  INPUT_FLAG_CB("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network autoconfiguration");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
+  INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_IPADDR("eth_dft", eth_dft_router, "Default router");
 #elif CETIC_6LBR_ROUTER
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
+  INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  INPUT_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address", "autoconfiguration", "manual");
+  INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -791,27 +798,49 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h2>Eth Network</h2>");
   add("<h3>IP configuration</h3>");
   INPUT_IPADDR("eth_pre", eth_net_prefix, "Prefix");
+  INPUT_INT("eth_pre_len", eth_net_prefix_len, "Prefix length");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-  INPUT_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, "Address", "autoconfiguration", "manual");
+  INPUT_FLAG_CB("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, "Address autoconfiguration" );
   INPUT_IPADDR("eth_addr", eth_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_IPADDR("eth_dft", eth_dft_router, "Peer router");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+  add("<br /><h2>RA Daemon</h2>");
   INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, "RA Daemon", "active", "inactive");
-  //INPUT_INT("ra_lifetime", router_lifetime, "Router lifetime");
+  INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_INT( "ra_max_interval", ra_max_interval, "Max interval");
+  INPUT_INT( "ra_min_interval", ra_min_interval, "Min interval");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_INT( "ra_min_delay", ra_min_delay, "Min delay");
+  INPUT_FLAG_CB( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, "Prefix on-link");
+  INPUT_FLAG_CB( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, "Allow autoconfiguration");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_INT( "ra_prefix_vtime", ra_prefix_vtime, "Prefix valid time");
+  INPUT_INT( "ra_prefix_ptime", ra_prefix_ptime, "Prefix preferred time");
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+
+#if UIP_CONF_IPV6_RPL
+  add("<br /><h2>RPL Configuration</h2>");
+  INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
+  INPUT_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, "DIO interval doubling");
+  INPUT_INT( "rpl_dio_intmin", rpl_dio_intmin, "DIO min interval");
+  INPUT_INT( "rpl_dio_redundancy", rpl_dio_redundancy, "DIO redundancy");
+  INPUT_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, "Min rank increment");
+  INPUT_INT( "rpl_default_lifetime", rpl_default_lifetime, "Route lifetime");
+  INPUT_INT( "rpl_lifetime_unit", rpl_lifetime_unit, "Route lifetime unit");
 #endif
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("<br /><h3>Packet filtering</h3>");
-#elif CETIC_6LBR_ROUTER
-  add("<br /><h3>Packet filtering</h3>");
+  add("<br /><h2>Packet filtering</h2>");
   INPUT_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, "Address rewrite", "enabled", "disabled");
 #endif
   add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
@@ -1077,14 +1106,35 @@ update_config(const char *name)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
+    UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
     UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)
     UPDATE_IPADDR("eth_pre", eth_net_prefix, 1)
+    UPDATE_IPADDR("eth_pre_len", eth_net_prefix_len, 1)
     UPDATE_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, 1)
     UPDATE_IPADDR("eth_addr", eth_ip_addr, 1)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
     UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
+
+    UPDATE_FLAG( "ra_prefix_o", ra_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
+    UPDATE_FLAG( "ra_prefix_a", ra_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
+    UPDATE_INT( "ra_router_lifetime", ra_router_lifetime, 1)
+    UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
+    UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
+    UPDATE_INT( "ra_min_delay", ra_min_delay, 1)
+    UPDATE_INT( "ra_prefix_flags", ra_prefix_flags, 1)
+    UPDATE_INT( "ra_prefix_vtime", ra_prefix_vtime, 1)
+    UPDATE_INT( "ra_prefix_ptime", ra_prefix_ptime, 1)
+
+    UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
+    UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
+    UPDATE_INT( "rpl_dio_intmin", rpl_dio_intmin, 1)
+    UPDATE_INT( "rpl_dio_redundancy", rpl_dio_redundancy, 1)
+    UPDATE_INT( "rpl_default_lifetime", rpl_default_lifetime, 1)
+    UPDATE_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, 1)
+    UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
+
     else {
       PRINTF("Unknown parameter '%s'\n", param);
       do_update=0;
