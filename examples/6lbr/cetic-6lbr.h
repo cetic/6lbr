@@ -20,6 +20,7 @@ extern uip_ipaddr_t wsn_ip_addr;
 extern uip_ipaddr_t wsn_ip_local_addr;  //Created from wsn_mac_addr
 
 extern uip_ip6addr_t wsn_net_prefix;
+extern uint8_t wsn_net_prefix_len;
 
 extern rpl_dag_t *cetic_dag;
 

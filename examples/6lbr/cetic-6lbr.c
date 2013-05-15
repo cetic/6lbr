@@ -34,6 +34,7 @@ int eth_mac_addr_ready = 0;
 //WSN
 uip_lladdr_t wsn_mac_addr;
 uip_ip6addr_t wsn_net_prefix;
+uint8_t wsn_net_prefix_len;
 uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 rpl_dag_t *cetic_dag;
@@ -92,6 +93,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
     }
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
+    wsn_net_prefix_len = len;
   }
 #endif
 }
@@ -105,7 +107,7 @@ cetic_6lbr_init(void)
   //DODAGID = link-local address used !
   uip_create_linklocal_prefix(&loc_fipaddr);
   uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-  cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &loc_fipaddr);
   PRINTF("Configured as DODAG Root\n");
 #endif
 
@@ -138,9 +140,11 @@ cetic_6lbr_init(void)
     PRINTF("\n");
     memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
            sizeof(nvm_data.eth_dft_router));
-    uip_ds6_defrt_add(&eth_dft_router, 0);
+    if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
+      uip_ds6_defrt_add(&eth_dft_router, 0);
+    }
 
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
   }                             //End manual configuration
 #endif
 
@@ -148,6 +152,7 @@ cetic_6lbr_init(void)
   //WSN network configuration
   memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
          sizeof(nvm_data.wsn_net_prefix));
+  wsn_net_prefix_len = nvm_data.wsn_net_prefix_len;
   if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)    //Address auto configuration
   {
     uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
@@ -167,7 +172,9 @@ cetic_6lbr_init(void)
          sizeof(nvm_data.eth_net_prefix));
   memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
          sizeof(nvm_data.eth_dft_router));
-  uip_ds6_defrt_add(&eth_dft_router, 0);
+  if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
+    uip_ds6_defrt_add(&eth_dft_router, 0);
+  }
 
   eth_mac64_addr.addr[0] = eth_mac_addr[0];
   eth_mac64_addr.addr[1] = eth_mac_addr[1];
@@ -193,7 +200,7 @@ cetic_6lbr_init(void)
   PRINTF("\n");
 
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
 #endif
 
   //Ugly hack : in order to set WSN local address as the default address
@@ -208,30 +215,20 @@ cetic_6lbr_init(void)
 
   //Prefix and RA configuration
 #if UIP_CONF_IPV6_RPL
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
-    PRINTF("RA with autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 1,
-                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
-                       30000, 30000);
-  } else {
-    PRINTF("RA without autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
-  }
+  uint8_t publish = (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0;
+  uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, publish,
+                     nvm_data.ra_flags,
+                     nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
 #else
-  uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
-    PRINTF("RA with autoconfig\n");
-    uip_ds6_prefix_add(&wsn_net_prefix, 64, 1,
-                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
-                       30000, 30000);
-  } else {
-    PRINTF("RA without autoconfig\n");
-    uip_ds6_prefix_add(&wsn_net_prefix, 64, 0, 0, 0, 0);
-  }
+  uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, 0, 0, 0, 0);
+  uint8_t publish = (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0;
+  uip_ds6_prefix_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, publish,
+		             nvm_data.ra_flags,
+		             nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
 #endif
 
 #if UIP_CONF_IPV6_RPL
-  uip_ds6_route_info_add(&wsn_net_prefix, 64, 0, 600);
+  uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, 0, 600);
 #endif
 #endif
 
