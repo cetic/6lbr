@@ -726,6 +726,23 @@ PT_THREAD(generate_network(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 #if WEBSERVER_EDITABLE_CONFIG
+
+#define INPUT_FLAG(name, nvm_name, flag, text, on_text, off_text) \
+  add(text " : <br />" \
+	  "<input type=\"radio\" name=\""name"\" value=\"1\" %s> "on_text" <br />", \
+	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+  add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> "off_text" <br />", \
+      (nvm_data.nvm_name & (flag)) == 0 ? "checked" : "");
+
+#define INPUT_IPADDR(name, nvm_name, text) \
+  add(text " : <input type=\"text\" name=\""name"\" value=\""); \
+      ipaddr_add_u8(nvm_data.nvm_name); \
+  add("\" /><br />");
+
+#define INPUT_INT(name, nvm_name, text) \
+  add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
+  add("<br />");
+
 static
 PT_THREAD(generate_config(struct httpd_state *s))
 {
@@ -747,85 +764,45 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<div id=\"left_home\"><form action=\"config\" method=\"get\">");
   add("<h2>WSN Network</h2>");
   add("<h3>WSN configuration</h3>");
-  add("Channel : <input type=\"text\" name=\"channel\" value=\"%d\" /><br />",
-      nvm_data.channel);
-  add("<br />");
+  INPUT_INT("channel", channel, "Channel");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   add("<h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add
-    ("Network configuration : <br />"
-     "<input type=\"radio\" name=\"wait_ra\" value=\"1\" %s>"
-     " autoconfiguration<br />",
-     (nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"wait_ra\" value=\"0\" %s>static<br />",
-      (nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ? "checked" : "");
+  INPUT_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network configuration", "autoconfiguration", "static");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("Prefix : <input type=\"text\" name=\"wsn_pre\" value=\"");
-  ipaddr_add_u8(nvm_data.wsn_net_prefix);
-  add("\" /><br />");
+  INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("Default router : <input type=\"text\" name=\"eth_dft\" value=\"");
-  ipaddr_add_u8(nvm_data.eth_dft_router);
-  add("\" /><br />");
+  INPUT_IPADDR("eth_dft", eth_dft_router, "Default router");
 #elif CETIC_6LBR_ROUTER
-  add("Prefix : <input type=\"text\" name=\"wsn_pre\" value=\"");
-  ipaddr_add_u8(nvm_data.wsn_net_prefix);
-  add("\" /><br />");
+  INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("Address : <br />");
-  add
-    ("<input type=\"radio\" name=\"wsn_auto\" value=\"1\" %s>"
-     "autoconfiguration<br />",
-     (nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"wsn_auto\" value=\"0\" %s>manual ",
-      (nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) == 0 ? "checked" : "");
-  add("<input type=\"text\" name=\"wsn_addr\" value=\"");
-  ipaddr_add_u8(nvm_data.wsn_ip_addr);
-  add("\" /><br />");
+  INPUT_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address", "autoconfiguration", "manual");
+  INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
 #if CETIC_6LBR_ROUTER
   add("<br /><h2>Eth Network</h2>");
   add("<h3>IP configuration</h3>");
-  add("Prefix : <input type=\"text\" name=\"eth_pre\" value=\"");
-  ipaddr_add_u8(nvm_data.eth_net_prefix);
-  add("\" /><br />");
+  INPUT_IPADDR("eth_pre", eth_net_prefix, "Prefix");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-  add("Address : <br />");
-  add
-    ("<input type=\"radio\" name=\"eth_auto\" value=\"1\" %s>"
-     "autoconfiguration<br />",
-     (nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"eth_auto\" value=\"0\" %s>manual ",
-      (nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) == 0 ? "checked" : "");
-  add("<input type=\"text\" name=\"eth_addr\" value=\"");
-  ipaddr_add_u8(nvm_data.eth_ip_addr);
-  add("\" /><br />");
+  INPUT_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, "Address", "autoconfiguration", "manual");
+  INPUT_IPADDR("eth_addr", eth_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("Peer router : <input type=\"text\" name=\"eth_dft\" value=\"");
-  ipaddr_add_u8(nvm_data.eth_dft_router);
-  add("\" /><br />");
+  INPUT_IPADDR("eth_dft", eth_dft_router, "Peer router");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("RA Daemon : ");
-  add
-    ("<input type=\"radio\" name=\"ra_daemon\" value=\"1\" %s>"
-     "active (Lifetime : %d)",
-     (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0 ? "checked" : "",
-     UIP_CONF_ROUTER_LIFETIME);
-  add("<input type=\"radio\" name=\"ra_daemon\" value=\"0\" %s>inactive",
-      (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) == 0 ? "checked" : "");
+  INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, "RA Daemon", "active", "inactive");
+  //INPUT_INT("ra_lifetime", router_lifetime, "Router lifetime");
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -835,11 +812,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h3>Packet filtering</h3>");
 #elif CETIC_6LBR_ROUTER
   add("<br /><h3>Packet filtering</h3>");
-  add("Address rewrite : ");
-  add("<input type=\"radio\" name=\"rewrite\" value=\"1\" %s>enabled ",
-      (nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0 ? "checked" : "");
-  add("<input type=\"radio\" name=\"rewrite\" value=\"0\" %s>disabled ",
-      (nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) == 0 ? "checked" : "");
+  INPUT_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, "Address rewrite", "enabled", "disabled");
 #endif
   add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
   SEND_STRING(&s->sout, buf);
@@ -1041,6 +1014,36 @@ PT_THREAD(generate_404(struct httpd_state *s))
 /*---------------------------------------------------------------------------*/
 
 #if WEBSERVER_EDITABLE_CONFIG
+
+#define UPDATE_FLAG(name, nvm_name, flag, reboot) \
+else if(strcmp(param, name) == 0) { \
+  if(strcmp(value, "0") == 0) { \
+    nvm_data.nvm_name &= ~(flag); \
+    reboot_needed |= (reboot); \
+  } else if(strcmp(value, "1") == 0) { \
+    nvm_data.nvm_name |= (flag); \
+    reboot_needed |= (reboot); \
+  } else { \
+    do_update = 0; \
+  } \
+}
+#define UPDATE_INT(name, nvm_name, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    nvm_data.nvm_name = atoi(value); \
+    reboot_needed |= (reboot); \
+  }
+
+#define UPDATE_IPADDR(name, nvm_name, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    if(uiplib_ipaddrconv(value, &loc_fipaddr)) { \
+      memcpy(&nvm_data.nvm_name, &loc_fipaddr.u8, \
+             sizeof(nvm_data.nvm_name)); \
+      reboot_needed |= (reboot); \
+    } else { \
+      do_update = 0; \
+    } \
+  }
+
 int
 update_config(const char *name)
 {
@@ -1069,97 +1072,22 @@ update_config(const char *name)
     }
 
     PRINTF("Got param: '%s' = '%s'\n", param, value);
-    if(strcmp(param, "wait_ra") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_WAIT_RA_MASK;
-        reboot_needed = 1;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_WAIT_RA_MASK;
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "channel") == 0) {
-      nvm_data.channel = atoi(value);
-      reboot_needed = 1;
-    } else if(strcmp(param, "wsn_pre") == 0) {
-      if(uiplib_ipaddrconv(value, &loc_fipaddr)) {
-        memcpy(&nvm_data.wsn_net_prefix, &loc_fipaddr.u8,
-               sizeof(nvm_data.wsn_net_prefix));
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "wsn_auto") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_WSN_AUTOCONF;
-        reboot_needed = 1;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_WSN_AUTOCONF;
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "wsn_addr") == 0) {
-      if(uiplib_ipaddrconv(value, &loc_fipaddr)) {
-        memcpy(&nvm_data.wsn_ip_addr, &loc_fipaddr.u8,
-               sizeof(nvm_data.wsn_ip_addr));
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "eth_pre") == 0) {
-      if(uiplib_ipaddrconv(value, &loc_fipaddr)) {
-        memcpy(&nvm_data.eth_net_prefix, &loc_fipaddr.u8,
-               sizeof(nvm_data.eth_net_prefix));
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "eth_auto") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_ETH_AUTOCONF;
-        reboot_needed = 1;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_ETH_AUTOCONF;
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "eth_addr") == 0) {
-      if(uiplib_ipaddrconv(value, &loc_fipaddr)) {
-        memcpy(&nvm_data.eth_ip_addr, &loc_fipaddr.u8,
-               sizeof(nvm_data.eth_ip_addr));
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "eth_dft") == 0) {
-      if(uiplib_ipaddrconv(value, &loc_fipaddr)) {
-        memcpy(&nvm_data.eth_dft_router, &loc_fipaddr.u8,
-               sizeof(nvm_data.eth_dft_router));
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "ra_daemon") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_ROUTER_SEND_CONFIG;
-        reboot_needed = 1;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_ROUTER_SEND_CONFIG;
-        reboot_needed = 1;
-      } else {
-        do_update = 0;
-      }
-    } else if(strcmp(param, "rewrite") == 0) {
-      if(strcmp(value, "0") == 0) {
-        nvm_data.mode &= ~CETIC_MODE_REWRITE_ADDR_MASK;
-      } else if(strcmp(value, "1") == 0) {
-        nvm_data.mode |= CETIC_MODE_REWRITE_ADDR_MASK;
-      } else {
-        do_update = 0;
-      }
+    if (0) {
+    }
+    UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
+    UPDATE_INT("channel", channel, 1)
+    UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
+    UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
+    UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)
+    UPDATE_IPADDR("eth_pre", eth_net_prefix, 1)
+    UPDATE_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, 1)
+    UPDATE_IPADDR("eth_addr", eth_ip_addr, 1)
+    UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
+    UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, 1)
+    UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
+    else {
+      PRINTF("Unknown parameter '%s'\n", param);
+      do_update=0;
     }
   }
   if(do_update) {
