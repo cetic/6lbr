@@ -734,9 +734,8 @@ PT_THREAD(generate_network(struct httpd_state *s))
       (nvm_data.nvm_name & (flag)) == 0 ? "checked" : "");
 
 #define INPUT_FLAG_CB(name, nvm_name, flag, text) \
-  add(text " : <br />" \
-	  "<input type=\"checkbox\" name=\""name"\" value=\"1\" %s><br />", \
-	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+  add("<input type=\"checkbox\" name=\""name"\" value=\"1\" %s> " text "<br />", \
+	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : "");
 
 #define INPUT_IPADDR(name, nvm_name, text) \
   add(text " : <input type=\"text\" name=\""name"\" value=\""); \
@@ -744,8 +743,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("\" /><br />");
 
 #define INPUT_INT(name, nvm_name, text) \
-  add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
-  add("<br />");
+  add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name);
 
 static
 PT_THREAD(generate_config(struct httpd_state *s))
