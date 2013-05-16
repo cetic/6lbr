@@ -725,7 +725,6 @@ PT_THREAD(generate_network(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
-#if WEBSERVER_EDITABLE_CONFIG
 
 #define INPUT_FLAG(name, nvm_name, flag, text, on_text, off_text) \
   add(text " : <br />" \
@@ -905,129 +904,6 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 
   PSOCK_END(&s->sout);
 }
-#else
-static
-PT_THREAD(generate_config(struct httpd_state *s))
-{
-  static int i;
-
-#if BUF_USES_STACK
-  char buf[BUF_SIZE];
-#endif
-#if WEBSERVER_CONF_LOADTIME
-  static clock_time_t numticks;
-
-  numticks = clock_time();
-#endif
-
-  PSOCK_BEGIN(&s->sout);
-
-  SEND_STRING(&s->sout, TOP);
-  SEND_STRING(&s->sout, BODY);
-  reset_buf();
-  add_div_home("Configuration");
-  add("<div id=\"left_home\">");
-  add("<h2>WSN Network</h2>");
-  add("<h3>WSN configuration</h3>");
-  add("Channel : %d<br />", nvm_data.channel);
-#if CONTIKI_TARGET_ECONOTAG
-  add("PanID : 0x%x<br />", *MACA_MACPANID);
-#endif
-  add("<br />");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-
-  add("<h3>IP configuration</h3>");
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("Network configuration : ");
-  if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) != 0) {
-    add(" autoconfiguration (<a href=\"no-ra\">static</a>)<br />");
-  } else {
-    add(" static (<a href=\"ra\">autoconfiguration</a>)<br />");
-    add("Prefix : ");
-    ipaddr_add(&wsn_net_prefix);
-    add("<br />");
-  }
-#else
-  add("Prefix : ");
-  ipaddr_add(&wsn_net_prefix);
-  add("<br />");
-#endif
-  add("Address : ");
-  if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) {
-    add("autoconfiguration");
-  } else {
-    ipaddr_add(&wsn_ip_addr);
-  }
-  add("<br />");
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("Default router : ");
-  ipaddr_add(&eth_dft_router);
-  add("<br />");
-#endif
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-
-#if CETIC_6LBR_ROUTER
-  add("<br /><h2>Eth Network</h2>");
-  add("<h3>IP configuration</h3>");
-  add("Prefix : ");
-  ipaddr_add(&eth_net_prefix);
-  add("<br />");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-
-  add("Address : ");
-  ipaddr_add(&eth_ip_addr);
-  add("<br />");
-  add("Peer router : ");
-  ipaddr_add(&eth_dft_router);
-  add("<br />");
-  add("RA Daemon : ");
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
-    add("active (Lifetime : %d)", UIP_CONF_ROUTER_LIFETIME);
-  } else {
-    add("inactive");
-  }
-  add("<br />");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-#endif
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("<br /><h3>Packet filtering</h3>");
-#endif
-#if CETIC_6LBR_ROUTER
-  add("<br /><h3>Packet filtering</h3>");
-  add("Address rewrite : ");
-  if((nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0) {
-    add("enabled (<a href=\"/no-rewrite\">disable</a>)<br />");
-  } else {
-    add("disabled (<a href=\"/rewrite\">enable</a>)<br />");
-  }
-#endif
-  add("<br />\n");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-
-  add_div_footer();
-#if WEBSERVER_CONF_FILESTATS
-  static uint16_t numtimes;
-
-  add("<br><i>This page sent %u times</i>", ++numtimes);
-#endif
-
-#if WEBSERVER_CONF_LOADTIME
-  numticks = clock_time() - numticks + 1;
-  add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
-      (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
-#endif
-  add("</div></div>");
-  SEND_STRING(&s->sout, buf);
-  SEND_STRING(&s->sout, BOTTOM);
-
-  PSOCK_END(&s->sout);
-}
-#endif
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(generate_404(struct httpd_state *s))
@@ -1052,8 +928,6 @@ PT_THREAD(generate_404(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
-
-#if WEBSERVER_EDITABLE_CONFIG
 
 #define UPDATE_FLAG(name, nvm_name, flag, reboot) \
 else if(strcmp(param, name) == 0) { \
@@ -1159,8 +1033,6 @@ update_config(const char *name)
   }
   return !reboot_needed;
 }
-#endif
-
 /*---------------------------------------------------------------------------*/
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)
@@ -1210,34 +1082,12 @@ httpd_simple_get_script(const char *name)
     redirect = 1;
     uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
     return generate_network;
-#if !WEBSERVER_EDITABLE_CONFIG
-  } else if(strcmp(name, "rewrite") == 0) {
-    nvm_data.mode =
-      (nvm_data.
-       mode & ~CETIC_MODE_REWRITE_ADDR_MASK) | CETIC_MODE_REWRITE_ADDR_MASK;
-    store_nvm_config();
-    return generate_config;
-  } else if(strcmp(name, "no-rewrite") == 0) {
-    nvm_data.mode = (nvm_data.mode & ~CETIC_MODE_REWRITE_ADDR_MASK);
-    store_nvm_config();
-    return generate_config;
-  } else if(strcmp(name, "ra") == 0) {
-    nvm_data.mode =
-      (nvm_data.mode & ~CETIC_MODE_WAIT_RA_MASK) | CETIC_MODE_WAIT_RA_MASK;
-    store_nvm_config();
-    return generate_config;
-  } else if(strcmp(name, "no-ra") == 0) {
-    nvm_data.mode = (nvm_data.mode & ~CETIC_MODE_WAIT_RA_MASK);
-    store_nvm_config();
-    return generate_config;
-#else
   } else if(memcmp(name, "config?", 7) == 0) {
     if(update_config(name + 7)) {
       return generate_config;
     } else {
       return generate_reboot;
     }
-#endif
   } else {
     return generate_404;
   }
