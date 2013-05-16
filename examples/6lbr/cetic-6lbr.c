@@ -228,7 +228,9 @@ cetic_6lbr_init(void)
 #endif
 
 #if UIP_CONF_IPV6_RPL
-  uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, 0, 600);
+  if ((nvm_data.ra_rio_flags & CETIC_6LBR_MODE_SEND_RIO) != 0 ) {
+    uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
+  }
 #endif
 #endif
 

@@ -814,17 +814,25 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+  add("<br /><h3>RA</h3>");
   INPUT_INT( "ra_max_interval", ra_max_interval, "Max interval");
   INPUT_INT( "ra_min_interval", ra_min_interval, "Min interval");
+  INPUT_INT( "ra_min_delay", ra_min_delay, "Min delay");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  INPUT_INT( "ra_min_delay", ra_min_delay, "Min delay");
+  add("<br /><h3>RA Prefix</h3>");
   INPUT_FLAG_CB( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, "Prefix on-link");
   INPUT_FLAG_CB( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, "Allow autoconfiguration");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_INT( "ra_prefix_vtime", ra_prefix_vtime, "Prefix valid time");
   INPUT_INT( "ra_prefix_ptime", ra_prefix_ptime, "Prefix preferred time");
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<br /><h3>RA Route Information</h3>");
+  INPUT_FLAG_CB( "ra_rio_en", ra_rio_flags, CETIC_6LBR_MODE_SEND_RIO, "Include RIO");
+  INPUT_INT( "ra_rio_lifetime", ra_rio_lifetime, "Route lifetime");
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -1117,15 +1125,18 @@ update_config(const char *name)
     UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
 
-    UPDATE_FLAG( "ra_prefix_o", ra_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
-    UPDATE_FLAG( "ra_prefix_a", ra_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
     UPDATE_INT( "ra_router_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
     UPDATE_INT( "ra_min_delay", ra_min_delay, 1)
-    UPDATE_INT( "ra_prefix_flags", ra_prefix_flags, 1)
+
+    UPDATE_FLAG( "ra_prefix_o", ra_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
+    UPDATE_FLAG( "ra_prefix_a", ra_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
     UPDATE_INT( "ra_prefix_vtime", ra_prefix_vtime, 1)
     UPDATE_INT( "ra_prefix_ptime", ra_prefix_ptime, 1)
+
+    UPDATE_FLAG( "ra_rio_en", ra_rio_flags, CETIC_6LBR_MODE_SEND_RIO, 1)
+    UPDATE_INT( "ra_rio_lifetime", ra_rio_lifetime, 1)
 
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)

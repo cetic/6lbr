@@ -26,16 +26,22 @@ typedef struct {
   uint8_t eth_net_prefix_len;
 
   //RA Configuration
-  uint8_t  ra_flags;
+  uint16_t ra_flags;
   uint16_t ra_router_lifetime;
   //uint32_t ra_reachable_time;
   //uint32_t ra_retrans_timer;
   uint16_t ra_max_interval;
   uint16_t ra_min_interval;
   uint16_t ra_min_delay;
-  uint8_t ra_prefix_flags;
+
+  //RA PIO Configuration
+  uint16_t ra_prefix_flags;
   uint32_t ra_prefix_vtime;
   uint32_t ra_prefix_ptime;
+
+  //RA RIO Configuration
+  uint16_t ra_rio_flags;
+  uint16_t ra_rio_lifetime;
 
   //RPL Configuration
   uint8_t rpl_instance_id;
@@ -58,12 +64,19 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_1
 
-//Mode flags
+//Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
 #define CETIC_MODE_WAIT_RA_MASK			0x04
 #define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_AUTOCONF         0x20
+
+//RA Mode flags
+
+//RA PIO mode flags
+
+//RA RIO mode flags
+#define CETIC_6LBR_MODE_SEND_RIO		0x0100
 
 /*---------------------------------------------------------------------------*/
 
@@ -91,9 +104,13 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL		600
 #define CETIC_6LBR_NVM_DEFAULT_RA_MIN_INTERVAL		(CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL/3)
 #define CETIC_6LBR_NVM_DEFAULT_RA_MIN_DELAY			3
+
 #define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_FLAGS		(UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS)
 #define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_VTIME		86400
 #define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_PTIME		14400
+
+#define CETIC_6LBR_NVM_DEFAULT_RA_RIO_FLAGS			0
+#define CETIC_6LBR_NVM_DEFAULT_RA_RIO_LIFETIME		(3 * CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL)
 
 //RPL Configuration
 #define CETIC_6LBR_NVM_DEFAULT_RPL_INSTANCE_ID			0x1e
