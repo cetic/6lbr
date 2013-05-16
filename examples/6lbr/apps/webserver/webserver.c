@@ -70,7 +70,7 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-#define BUF_SIZE 256
+#define BUF_SIZE (2*256)
 static const char *TOP =
   "<html><head><title>6LBR</title><link rel=\"stylesheet\" type=\"text/css\" href=\"6lbr_layout.css\" />";
 static const char *BODY =
@@ -844,10 +844,14 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
   INPUT_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, "DIO interval doubling");
   INPUT_INT( "rpl_dio_intmin", rpl_dio_intmin, "DIO min interval");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   INPUT_INT( "rpl_dio_redundancy", rpl_dio_redundancy, "DIO redundancy");
   INPUT_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, "Min rank increment");
   INPUT_INT( "rpl_default_lifetime", rpl_default_lifetime, "Route lifetime");
   INPUT_INT( "rpl_lifetime_unit", rpl_lifetime_unit, "Route lifetime unit");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #endif
 
   add("<br /><h2>Packet filtering</h2>");
