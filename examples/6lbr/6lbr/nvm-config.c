@@ -69,6 +69,7 @@ check_nvm(volatile nvm_data_t * nvm_data)
   }
   if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
   {
+    PRINTF("Migrate NVM version 0 towards 1\n");
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
     nvm_data->wsn_net_prefix_len = CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN;
@@ -109,26 +110,6 @@ load_nvm_config(void)
 
   PRINTF("NVM Magic : %x\n", nvm_data.magic);
   PRINTF("NVM Version : %x\n", nvm_data.version);
-
-  PRINTF("WSN Prefix :");
-  PRINT6ADDR(&nvm_data.wsn_net_prefix);
-  PRINTF("\n");
-
-  PRINTF("WSN IP address :");
-  PRINT6ADDR(&nvm_data.wsn_ip_addr);
-  PRINTF("\n");
-
-  PRINTF("Eth Prefix :");
-  PRINT6ADDR(&nvm_data.eth_net_prefix);
-  PRINTF("\n");
-
-  PRINTF("Eth IP address :");
-  PRINT6ADDR(&nvm_data.eth_ip_addr);
-  PRINTF("\n");
-
-  PRINTF("Mode : %x\n", nvm_data.mode);
-
-  PRINTF("Channel : %d\n", nvm_data.channel);
 
   check_nvm(&nvm_data);
 }
