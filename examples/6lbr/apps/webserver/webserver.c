@@ -940,6 +940,7 @@ else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name |= (flag); \
     reboot_needed |= (reboot); \
   } else { \
+	printf("Invalid value for %s : '%s'\n", name, param); \
     do_update = 0; \
   } \
 }
@@ -956,6 +957,7 @@ else if(strcmp(param, name) == 0) { \
              sizeof(nvm_data.nvm_name)); \
       reboot_needed |= (reboot); \
     } else { \
+      printf("Invalid value for %s : '%s'\n", name, param); \
       do_update = 0; \
     } \
   }
@@ -1026,7 +1028,7 @@ update_config(const char *name)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     else {
-      PRINTF("Unknown parameter '%s'\n", param);
+      printf("Unknown parameter '%s'\n", param);
       do_update=0;
     }
   }
