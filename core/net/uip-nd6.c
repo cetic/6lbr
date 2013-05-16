@@ -489,7 +489,8 @@ uip_nd6_na_input(void)
   }
 #if CETIC_6LBR_SMARTBRIDGE
   /* Address Advertisement */
-  if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
+  if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
+    if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
       printf("Address Advertisement NA\n");
       route = uip_ds6_route_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
       if (route != NULL ) {
@@ -497,6 +498,7 @@ uip_nd6_na_input(void)
           uip_ds6_route_rm(route);
       }
       goto discard;
+    }
   }
 #endif
   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
@@ -595,7 +597,10 @@ discard:
 void
 send_purge_na(uip_ipaddr_t *prefix)
 {
-      printf("Sending purge NA\n");
+      if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
+    	  return;
+      }
+	  printf("Sending purge NA\n");
 	  uip_ext_len = 0;
 	  UIP_IP_BUF->vtc = 0x60;
 	  UIP_IP_BUF->tcflow = 0;

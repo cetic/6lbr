@@ -70,6 +70,7 @@ typedef struct {
 #define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_AUTOCONF         0x20
+#define CETIC_MODE_SMART_MULTI_BR		0x80
 
 //RA Mode flags
 

@@ -775,6 +775,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   add("<h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE
+  INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
+#endif
   INPUT_FLAG_CB("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network autoconfiguration");
   SEND_STRING(&s->sout, buf);
   reset_buf();
