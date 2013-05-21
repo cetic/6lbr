@@ -368,7 +368,7 @@ print_ipaddr(const uint8_t addr[16])
 }
 
 void
-print_int(uint8_t value)
+print_int(uint32_t value)
 {
   printf("%d", value);
 }
@@ -417,8 +417,6 @@ print_nvm(void)
   printf("\n");
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
   printf("\n");
-  PRINT_INT("RPL version ID : ", rpl_version_id);
-  printf("\n");
 
   PRINT_BOOL("RA daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG);
   PRINT_INT("RA router lifetime", ra_router_lifetime);
@@ -437,6 +435,7 @@ print_nvm(void)
 
   //RPL Configuration
   PRINT_INT("RPL instance ID", rpl_instance_id);
+  PRINT_INT("RPL version ID : ", rpl_version_id);
   PRINT_INT("RPL DIO interval doubling", rpl_dio_intdoubl);
   PRINT_INT("RPL DIO minimum interval", rpl_dio_intmin);
   PRINT_INT("RPL DIO redundancy", rpl_dio_redundancy);
@@ -524,10 +523,6 @@ static struct option long_options[] = {
 
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
 
-  {"rpl-version", required_argument, 0, rpl_version_id_option},
-
-  {"fit", no_argument, 0, fit_option},
-
   //{"", required_argument, 0, ra_flags_option},
   {"ra-daemon-en", required_argument, 0, ra_daemon_en_option},
   {"ra-router-lifetime", required_argument, 0, ra_router_lifetime_option},
@@ -546,6 +541,7 @@ static struct option long_options[] = {
 
   //RPL Configuration
   {"rpl-instance-id", required_argument, 0, rpl_instance_id_option},
+  {"rpl-version", required_argument, 0, rpl_version_id_option},
   {"rpl-dio-int-doubling", required_argument, 0, rpl_dio_intdoubl_option},
   {"rpl-dio-int-min", required_argument, 0, rpl_dio_intmin_option},
   {"rpl-dio-redundancy", required_argument, 0, rpl_dio_redundancy_option},
@@ -553,6 +549,8 @@ static struct option long_options[] = {
   //TODO: uint16_t rpl_max_rankinc;
   {"rpl-min-rank-inc", required_argument, 0, rpl_min_hoprankinc_option},
   {"rpl-lifetime-unit", required_argument, 0, rpl_lifetime_unit_option},
+
+  {"fit", no_argument, 0, fit_option},
 
 };
 
@@ -606,9 +604,6 @@ help(char const *name)
   printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
   printf("\n");
 
-  printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
-  printf("\n");
-
   printf("\t--ra-daemon-en <0|1>\t\t Activate RA daemon\n");
   printf("\t--ra-router-lifetime <seconds> \t Advertised router lifetime in RA\n");
   printf("\t--ra-max-interval <seconds> \t Max interval between two unsolicited RA\n");
@@ -626,6 +621,7 @@ help(char const *name)
 
   //RPL Configuration
   printf("\t--rpl-instance-id <id> \t\t RPL instance ID to create\n");
+  printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
   printf("\t--rpl-dio-int-doubling <number>  RPL DIO interval doubling\n");
   printf("\t--rpl-dio-int-min \t\t RPL DIO minimum interval between unsolicited DIO\n");
   printf("\t--rpl-dio-redundancy <number> \t RPL DIO redundancy number\n");
