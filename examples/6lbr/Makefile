@@ -129,17 +129,44 @@ all_native:
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
 
+bin_econotag/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
+
+bin_econotag/cetic_6lbr_rpl_transparent_bridge:
+	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_rpl_transparent_bridge 
+
+bin_econotag/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_full_transparent_bridge 
+
+bin_econotag/cetic_6lbr_router:
+	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router 
+
+bin_econotag/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_ndp_router 
+
+bin_econotag/cetic_6lbr_6lr:
+	$(MAKE) TARGET=econotag CETIC_6LBR_6LR=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_6lr
+
 all_econotag:
 	mkdir -p bin_econotag
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 $(ECONOTAG_CONF)
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_transparent_bridge 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_rpl_transparent_bridge 
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_router 
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_6lr 
 
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
@@ -192,4 +219,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag deb ipk tools bin/*
+.PHONY: all_native all_econotag deb ipk tools bin/* bin_econotag/*
