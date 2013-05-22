@@ -27,7 +27,7 @@ slip-radio mote through a local socket and a simulated mote on a hardcoded pseud
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
 
-report_path='report/run-current/coojasim-current/iter-current/test_current'
+report_path='report'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26

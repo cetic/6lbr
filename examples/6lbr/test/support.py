@@ -86,7 +86,7 @@ class BRProxy:
         pass
 
 class LocalNativeBR(BRProxy):
-    def __init__(self,backbone, wsn, radio):
+    def __init__(self, backbone, wsn, radio):
         BRProxy.__init__(self)
         self.process=None
         self.backbone=backbone
@@ -112,9 +112,12 @@ class LocalNativeBR(BRProxy):
             self.ip=self.backbone.create_address(iid)
         else:
             self.ip=self.backbone.create_address(self.radio['iid'])
-        if not os.path.exists("br/%s" % self.itf):
-            os.makedirs("br/%s" % self.itf)
-        conf = open("br/%s/test.conf" % self.itf, 'w')
+        self.cfg_path=os.path.join(config.test_report_path, "br", self.itf)
+        self.cfg_file=os.path.join(self.cfg_path, "test.conf")
+        self.nvm_file=os.path.join(self.cfg_path, "test.dat")
+        if not os.path.exists(self.cfg_path):
+            os.makedirs(self.cfg_path)
+        conf = open(self.cfg_file, 'w')
         print >>conf, "MODE=%s" % mode
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
@@ -133,29 +136,28 @@ class LocalNativeBR(BRProxy):
             print >>conf, "SOCK_RADIO=%s" % self.radio['socket']
             print >>conf, "SOCK_PORT=%s" % self.radio['port']
 
-        print >>conf, "NVM=br/%s/test.dat" % self.itf
+        print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
-        params="--new %s --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d br/%s/test.dat" % (net_config, channel, accept_ra, ra_daemon, addr_rewrite, self.itf)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d --addr-rewrite=%d %s" % (net_config, channel, accept_ra, ra_daemon, addr_rewrite, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
-    def start_6lbr(self, log_file):
-        print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.radio['nodeid'])
-        #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
-        self.log=open(log_file+'_%s.log'%self.itf, "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./br/%s/test.conf"%self.itf], stdout=self.log)
+    def start_6lbr(self, log_stem=""):
+        print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.radio['iid'])
+        self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
         sleep(1)
         return self.process != None
 
     def stop_6lbr(self):
         if self.process:
-            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.radio['nodeid'])
+            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.radio['iid'])
             self.process.send_signal(signal.SIGTERM)
             sleep(1)
             self.log.close()
@@ -210,10 +212,19 @@ class CoojaWsn(Wsn):
         self.slip_motes=[]
         self.test_motes=[]
 
-    def setUp(self, simulation_path):
+    def setUp(self):
+        try:
+            topologyfile = open('.NEXT_TOPOLOGY', 'r')
+            simulation_path = topologyfile.readline().rstrip()
+            topologyfile.close()
+            self.wsn.setUp(next_topology)
+        except IOError:
+            print "Could not open .NEXT_TOPOLOGY topology file"
+            raise
+
         print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path
-	self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
+        self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE)
         line = self.cooja.stdout.readline()
         while 'Simulation main loop started' not in line: # Wait for simulation to start 
@@ -311,7 +322,7 @@ class LocalWsn(Wsn):
         self.radioDevList=deepcopy(config.slip_radio)
         self.moteDevList=deepcopy(config.motes)
 
-    def setUp(self, simulation_path):
+    def setUp(self):
         mote = config.moteClass(self)
         mote.setUp()
         self.motelist.append(mote)
@@ -348,12 +359,13 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        self.hypernode_ip = ''
-    def setUp(self, hypernode_ip):
-        self.hypernode_ip = hypernode_ip
+        self.hypernode_ip = None
+
+    def setUp(self):
         # TODO: Open connection to Hypernode
         # TODO: Import testbed configuration file
         # TODO: Create a new TestbedMote for each mote on the testbed
+        pass
 
     def tearDown(self):
         for mote in self.motelist:
@@ -442,7 +454,7 @@ class LocalTelosMote(MoteProxy):
         while elapsed < count :
             elapsed = time.time() - start_time
             lines = self.serialport.readlines()
-            #print >> sys.stderr, line
+            print >> sys.stderr, lines
             if text in lines:
                 return True
         return False
@@ -684,13 +696,14 @@ class MacOSX(Platform):
         print >> sys.stderr, "Start RA daemon (%s)..." % prefix
         system("sysctl -w net.inet6.ip6.forwarding=1")
         system("sysctl -w net.inet6.ip6.accept_rtadv=0")
-        self.rtadvd = subprocess.Popen(args="rtadvd  -f -c rtadvd.%s.s%.conf %s" % (itf, prefix, itf), shell=True)
+        self.rtadvd = subprocess.Popen(args="rtadvd  -f -c rtadvd/rtadvd.%s.%s.conf %s" % (itf, prefix, itf), shell=True)
         return self.rtadvd != None
 
     def stop_ra(self):
-        print >> sys.stderr, "Stop RA daemon..."
-        self.rtadvd.send_signal(signal.SIGTERM)
-        self.rtadvd = None
+        if self.rtadvd:
+            print >> sys.stderr, "Stop RA daemon..."
+            self.rtadvd.send_signal(signal.SIGTERM)
+            self.rtadvd = None
         return True
 
     def check_prefix(self, itf, prefix):
