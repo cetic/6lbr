@@ -161,18 +161,25 @@ class TestSupport:
         self.test_report_path=os.path.join(config.report_path, self.test_name)
         #Trick to propagate test report path to support instances
         config.test_report_path=self.test_report_path
-        if not os.path.exists(self.test_report_path):
-            os.makedirs(self.test_report_path)
+        if os.path.exists(self.test_report_path):
+            shutil.rmtree(self.test_report_path, True)
+        os.makedirs(self.test_report_path)
 
     def savereport(self):
         try:
             shutil.move('COOJA.log',self.test_report_path)
-            shutil.move('COOJA.testlog',self.test_report_path)
-            for filename in os.listdir("."):
-                if filename.startswith("radiolog-"):
-                    shutil.move(filename,self.test_report_path)            
-        except OSError:
+        except IOError:
             pass
+        try:
+           shutil.move('COOJA.testlog',self.test_report_path)
+        except IOError:
+            pass
+        for filename in os.listdir("."):
+                if filename.startswith("radiolog-"):
+                    try:
+                        shutil.move(filename,self.test_report_path)
+                    except IOError:
+                        pass
 
 class TestScenarios:
     def log_file(self, log_name):
