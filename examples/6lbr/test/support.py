@@ -466,7 +466,7 @@ class LocalTelosMote(MoteProxy):
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        return self.wait_until("Starting '6LBR Demo'\n", 8)
+        return self.wait_until("Starting '6LBR Demo'\n", 15)
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
@@ -474,7 +474,7 @@ class LocalTelosMote(MoteProxy):
         self.serialport.flushOutput()
         self.serialport.write("\r\nrfchannel %d\r\n" % channel)
         self.serialport.write("\r\nstart6lbr\r\n")
-        return self.wait_until("done\r\n", 5)
+        return self.wait_until("done\r\n", 15)
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
@@ -484,7 +484,7 @@ class LocalTelosMote(MoteProxy):
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        return self.wait_until("Starting '6LBR Demo'\n", 8)
+        return self.wait_until("Starting '6LBR Demo'\n", 15)
 
     def ping(self, address, expect_reply=False, count=0):
         print "Ping %s..." % address
