@@ -56,6 +56,7 @@ class TestSupport:
         self.host.tearDown()
         self.backbone.tearDown()
         self.platform.tearDown()
+        self.savereport()
 
     def start_ra(self, backbone):
         return self.platform.start_ra(backbone.itf,backbone.prefix)
