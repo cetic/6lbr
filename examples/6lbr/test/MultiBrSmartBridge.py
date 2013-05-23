@@ -4,6 +4,7 @@ from non_regression import NonRegressionScenarios
 import unittest
 import config
 from time import sleep
+from base import skipUnlessTrue, skipUnlessFalse
 
 class MultiBrSmartBridgeAuto(NonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
