@@ -12,7 +12,7 @@ class NdpRouter(NonRegressionScenarios, unittest.TestCase):
         self.br = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
-        self.br.set_mode('NDP-ROUTER', config.channel, iid='100', ra_daemon=True)
+        self.br.set_mode('NDP-ROUTER', config.channel, iid='100', ra_daemon=True, ra_router_lifetime=1800)
 
     def set_up_network(self):
         sleep(2)
