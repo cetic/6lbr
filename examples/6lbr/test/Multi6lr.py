@@ -5,7 +5,7 @@ import unittest
 import config
 from time import sleep
 
-class RplRootMultiTransparentBridge(NonRegressionScenarios, unittest.TestCase):
+class Multi6lr(NonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix=config.eth_prefix
         self.support.wsn.prefix=config.wsn_prefix
