@@ -12,7 +12,9 @@ COOJAGEN=./coojagen
 launch-6lbr-router-1-cooja:
 	../package/usr/bin/6lbr conf-templates/cooja-1-router.conf
 
-cooja-small: preset_1dag_10nodes.csc build-cooja config-cooja
+cooja-small: preset_1dag_10nodes.csc build-cooja config-cooja launch-cooja
+
+launch-cooja:
 	java -jar ${COOJADIR}/dist/cooja.jar -quickstart=`cat ${COOJAGEN}/output/LASTFILE`
 
 %.csc: ${COOJAGEN}/examples/config_%.py ${COOJAGEN}/templates/%
