@@ -1,5 +1,6 @@
 import base
 from base import skipUnlessTrue, skipUnlessFalse
+from time import sleep
 
 class NonRegressionScenarios(base.TestScenarios):
     @skipUnlessTrue("S0")
@@ -103,6 +104,7 @@ class NonRegressionScenarios(base.TestScenarios):
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+        sleep(1)
         self.assertTrue(self.support.start_6lbr('_2'), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
