@@ -1,11 +1,11 @@
 #!/usr/bin/python2.7
 
-from non_regression import NonRegressionScenarios
+from multi_br import MultiBrNonRegressionScenarios
 import unittest
 import config
 from time import sleep
 
-class Multi6lr(NonRegressionScenarios, unittest.TestCase):
+class Multi6lr(MultiBrNonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix=config.eth_prefix
         self.support.wsn.prefix=config.wsn_prefix

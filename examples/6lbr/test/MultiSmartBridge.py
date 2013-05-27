@@ -1,12 +1,12 @@
 #!/usr/bin/python2.7
 
-from non_regression import NonRegressionScenarios
+from multi_br import MultiBrNonRegressionScenarios
 import unittest
 import config
 from time import sleep
 from base import skipUnlessTrue, skipUnlessFalse
 
-class MultiBrSmartBridgeAuto(NonRegressionScenarios, unittest.TestCase):
+class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
         self.support.backbone.prefix=config.wsn_prefix

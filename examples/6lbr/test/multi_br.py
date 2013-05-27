@@ -1,5 +1,7 @@
 import base
 from base import skipUnlessTrue, skipUnlessFalse
+import sys
+from time import sleep
 
 class MultiBrNonRegressionScenarios(base.TestScenarios):
     @skipUnlessTrue("S1")
