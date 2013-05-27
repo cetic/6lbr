@@ -31,9 +31,9 @@ class TestSupport:
     def __init__(self, test_name):
         self.test_name=test_name
         self.initreport()
-        self.backbone=config.backboneClass()
+        self.platform=config.platformClass()
+        self.backbone=config.backboneClass(self.platform)
         self.wsn=config.wsnClass()
-        self.platform=config.platform
         self.tcpdump=TcpDump()
         self.host=Host(self.backbone)
         self.brList=[]

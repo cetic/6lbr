@@ -14,9 +14,11 @@ import os
 import serial
 
 class Backbone:
-    def __init__(self):
+    def __init__(self, platform):
         self.itf=None
         self.prefix=None
+        self.tcap=None
+        self.platform=platform
     def setUp(self):
         pass
     def tearDown(self):
@@ -25,10 +27,18 @@ class Backbone:
         return self.prefix + '::' + iid
     def isBridge(self):
         pass
+    def isBrCreated(self):
+        pass
+    def if_up(self):
+        self.tcap = self.platform.pcap_start(self.itf,os.path.join(config.test_report_path,'%s.pcap'%self.itf))
+    def if_down(self):
+        if self.tcap:
+            self.platform.pcap_stop(self.tcap)
+            self.tcap=None
 
 class NativeBB(Backbone):
-    def __init__(self):
-        Backbone.__init__(self)
+    def __init__(self, platform):
+        Backbone.__init__(self, platform)
         self.tapCount=0
         self.tapStem='tap%d'
     def allocate_tap(self):
@@ -46,9 +56,11 @@ class NativeBridgeBB(NativeBB):
         if result != 0:
             return False
         result = system("ifconfig %s up" % self.itf)
+        self.if_up()
         return result == 0
 
     def tearDown(self):
+        self.if_down()
         result = system("ifconfig %s down" % self.itf)
         if result != 0:
             return False
@@ -57,6 +69,8 @@ class NativeBridgeBB(NativeBB):
 
     def isBridge(self):
         return True
+    def isBrCreated(self):
+        return False
 
 class NativeTapBB(NativeBB):
     def setUp(self):
@@ -65,6 +79,8 @@ class NativeTapBB(NativeBB):
         pass
     def isBridge(self):
         return False
+    def isBrCreated(self):
+        return True
 
 class BRProxy:
     def __init__(self):
@@ -153,12 +169,18 @@ class LocalNativeBR(BRProxy):
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
         sleep(1)
+        if self.backbone.isBrCreated():
+            self.backbone.if_up()
         return self.process != None
 
     def stop_6lbr(self):
         if self.process:
+            if self.backbone.isBrCreated():
+                #Give some time to write packets to file
+                sleep(1)
+                self.backbone.if_down()
             print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.radio['iid'])
-            self.process.send_signal(signal.SIGTERM)
+            self.process.terminate()
             sleep(1)
             self.log.close()
             self.process = None
@@ -757,10 +779,13 @@ class MacOSX(Platform):
             time.sleep(interval)
 
     def pcap_start(self, itf, out):
-        pass
+        result = system("touch %s" % out)
+        proc = subprocess.Popen(args="tcpdump -i %s -w %s > /dev/null 2>&1" % (itf, out), shell=True, preexec_fn=os.setsid)
+        return proc
 
-    def pcap_stop(self, tid):
-        pass
+    def pcap_stop(self, proc):
+        if proc:
+            proc.terminate()
 
     def udpsrv_start(self, port, udp_echo):
         pass

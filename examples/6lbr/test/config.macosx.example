@@ -1,3 +1,5 @@
+from support import *
+
 report_path='report'
 topology_file='coojagen/output/LASTFILE'
 slip_radio=[ {'dev': '/dev/tty.usbserial-XBTOKIQP', 'iid': '0212:7400:1466:5117'}, {'dev': 'tty.usbserial-003013FDB', 'iid': '205:c2a:8cee:1c6d'}]
@@ -9,13 +11,11 @@ wsn_prefix='8888'
 wsn_second_prefix='9999'
 eth_prefix='bbbb'
 
-from support import *
-
 backboneClass=NativeTapBB
 wsnClass=LocalWsn
 brClass=LocalNativeBR
 moteClass=LocalTelosMote
-platform=MacOSX()
+platformClass=MacOSX
 
 """
 scenarios
@@ -24,9 +24,6 @@ define 1 to run the scenario, 0 to skip
 
 S0=0
 S1=0
-
-S1_move=0
-
 S2=0
 S3=0
 S4=0
