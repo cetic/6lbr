@@ -49,23 +49,13 @@ class NativeBB(Backbone):
 class NativeBridgeBB(NativeBB):
     def setUp(self):
         self.itf = config.backbone_dev
-        result = system("brctl addbr %s" % self.itf)
-        if result != 0:
-            return False
-        result = system("brctl setfd %s 0" % self.itf)
-        if result != 0:
-            return False
-        result = system("ifconfig %s up" % self.itf)
+        result = self.platform.configure_bridge(self.itf)
         self.if_up()
-        return result == 0
+        return result
 
     def tearDown(self):
         self.if_down()
-        result = system("ifconfig %s down" % self.itf)
-        if result != 0:
-            return False
-        result = system("brctl delbr %s" % self.itf)
-        return result == 0
+        return self.platform.unconfigure_bridge(self.itf)
 
     def isBridge(self):
         return True
@@ -642,6 +632,12 @@ class Platform:
     def unconfigure_if(self, itf, address):
         pass
 
+    def configure_bridge(self, itf):
+        pass
+    
+    def unconfigure_bridge(self, itf):
+        pass
+    
     def add_route(self, dest, gw=None, itf=None):
         pass
 
@@ -829,6 +825,23 @@ class Linux(Platform):
         else:
             return True
 
+    def configure_bridge(self, itf):
+        result = system("brctl addbr %s" % itf)
+        if result != 0:
+            return False
+        result = system("brctl setfd %s 0" % itf)
+        if result != 0:
+            return False
+        result = system("ifconfig %s up" % itf)
+        return result == 0
+    
+    def unconfigure_bridge(self, itf):
+        result = system("ifconfig %s down" % itf)
+        if result != 0:
+            return False
+        result = system("brctl delbr %s" % itf)
+        return result == 0
+    
     def add_route(self, dest, gw=None, itf=None):
         if gw:
             result = system("route -A inet6 add %s/64 gw %s" % (dest, gw))
