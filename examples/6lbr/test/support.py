@@ -238,8 +238,8 @@ class CoojaWsn(Wsn):
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE)
         line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start 
-	    if 'serialpty;open;' in line:
+        while 'Simulation main loop started' not in line: # Wait for simulation to start
+            if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote(self)
                 newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
@@ -271,6 +271,24 @@ class CoojaWsn(Wsn):
         except IOError:
             pass #TODO
 
+    def tearDown(self):
+        if self.cooja:
+            print >> sys.stderr, "Killing Cooja"
+            try:
+                self.get_test_mote().serialport.open()
+                self.get_test_mote().serialport.write("\r\nkillcooja\r\n")
+                self.get_test_mote().serialport.close()
+                for mote in self.motelist:
+                    mote.tearDown()
+                    self.cooja.stdout.flush()
+                    self.cooja.wait()
+                    time.sleep(1)
+                print >> sys.stderr, "Cooja Thread Killed"
+            except serial.SerialException:
+                print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
+        self.cooja=None
+        self.motelist = []
+
     def add_slip_mote(self, nodeid):
         hex_mote_id = "%02x" % int(nodeid)
         iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
@@ -288,24 +306,6 @@ class CoojaWsn(Wsn):
 
     def release_radio_dev(self, slip_mote):
         del slip_mote['used']
-
-    def tearDown(self):
-        print >> sys.stderr, "Killing Cooja"
-
-        try:
-            self.get_test_mote().serialport.open()
-            self.get_test_mote().serialport.write("\r\nkillcooja\r\n")
-            self.get_test_mote().serialport.close()
-            self.cooja.wait()
-            time.sleep(1)
-            print >> sys.stderr, "Cooja Thread Killed"
-        except serial.SerialException:
-            print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
-        system("pkill -9 java")
-        time.sleep(1)
-        for mote in self.motelist:
-            mote.tearDown()
-        self.motelist = []
 
     def get_test_mote(self):
         return self.get_mote(self.test_motes[-1])
@@ -517,16 +517,16 @@ class VirtualTelosMote(MoteProxy):
     def setUp(self):
         print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
         self.serialport = serial.Serial(
-	port=self.mote_dev,
-	baudrate=config.mote_baudrate,
-	parity = serial.PARITY_NONE,
-	timeout = 1
-	)
+            port=self.mote_dev,
+	        baudrate=config.mote_baudrate,
+	        parity = serial.PARITY_NONE,
+	        timeout = 1)
         self.serialport.close()
         self.reset_mote()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
+        self.serialport=None
 
     def setInfo(self, mote_dev, mote_id):
         self.mote_dev = mote_dev
