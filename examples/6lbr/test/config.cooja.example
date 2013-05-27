@@ -1,22 +1,19 @@
 from support import *
 
 report_path='report'
-
-slip_radio=[ {'dev': '/dev/ttyUSB0', 'iid': '0212:7400:1466:5117'}, {'dev': 'ttyUSB2', 'iid': '205:c2a:8cee:1c6d'}]
-motes = [ {'dev': '/dev/ttyUSB1', 'iid': '0212:7400:146e:f407'}]
-mote_baudrate=115200
-
+topology_file='coojagen/output/LASTFILE'
 channel=24
 backbone_dev='br0'
 wsn_prefix='8888'
 wsn_second_prefix='9999'
 eth_prefix='bbbb'
 
-backboneClass=NativeBridgeBB
-wsnClass=LocalWsn
+wsnClass=CoojaWsn
 brClass=LocalNativeBR
-moteClass=LocalTelosMote
 platformClass=Linux
+backboneClass=NativeBridgeBB
+platformClass=MacOSX
+backboneClass=NativeTapBB
 
 """
 scenarios
