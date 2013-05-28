@@ -21,7 +21,7 @@ case $MODE_6LBR in
 			ip link set $DEV address 02:a:b:c:d:e up
 
 			if [ "$BRIDGE" = "1" ]; then
-				if [ "$CREATE_BRIDGE" = "1" ]; then
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
 					brctl addbr $DEV_BRIDGE
 					brctl setfd $DEV_BRIDGE 0
 					brctl addif $DEV_BRIDGE $DEV_ETH

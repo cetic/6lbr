@@ -17,7 +17,7 @@ case $MODE_6LBR in
 	case $OS in
 		Linux)
 			if [ "$BRIDGE" = "1" ]; then
-				if [ "$CREATE_BRIDGE" = "1" ]; then
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
 					ip link set $DEV_BRIDGE down
 					brctl delbr $DEV_BRIDGE
 				else
