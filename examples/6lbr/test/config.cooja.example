@@ -1,0 +1,35 @@
+from support import *
+
+report_path='report'
+topology_file='coojagen/output/LASTFILE'
+channel=24
+backbone_dev='br0'
+wsn_prefix='8888'
+wsn_second_prefix='9999'
+eth_prefix='bbbb'
+
+wsnClass=CoojaWsn
+brClass=LocalNativeBR
+platformClass=Linux
+backboneClass=NativeBridgeBB
+platformClass=MacOSX
+backboneClass=NativeTapBB
+
+"""
+scenarios
+define 1 to run the scenario, 0 to skip
+"""
+
+S0=0
+S1=0
+S2=0
+S3=0
+S4=0
+S5=0
+S6=0
+S7=0
+S8=0
+S9=0
+S10=0
+S11=0
+S12=0

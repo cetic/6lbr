@@ -1,4 +1,5 @@
 import sys
+from support import *
 
 """
 # Example of a native 6lbr interacting with a real slip-radio (radio_dev) and a real 6lbr-demo client (mote_dev)
@@ -27,7 +28,7 @@ slip-radio mote through a local socket and a simulated mote on a hardcoded pseud
 TODO: make /dev/pts/# dynamic, launch cooja simulation & socat automatically
 """
 
-report_path='report/run-current/coojasim-current/iter-current/test_current'
+report_path='report'
 backbone_dev='br0'
 mote_baudrate=115200
 channel=26
@@ -60,13 +61,11 @@ test_repeat=1
 #simgen_config_path='./coojagen/examples/config_preset_2dags_20nodes_overlap.py' # TODO: Overlapping DAGs
 #simgen_config_path='./coojagen/examples/config_grid_2br.py' # Grid Ratio 1:2: 2x4, 3x6, 4x8 with mote close to BR1
 
-from support import *
-
 backboneClass=NativeBridgeBB
 brClass=LocalNativeBR
 wsnClass=CoojaWsn
-#platform=MacOSX()
-platform=Linux()
+#platformClass=MacOSX
+platformClass=Linux
 
 #S600x related configuration
 
