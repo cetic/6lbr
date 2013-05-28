@@ -13,6 +13,7 @@ class MultiBrNonRegressionScenarios(base.TestScenarios):
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.start_udp_client(), "Could not start udp traffic")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         print >> sys.stderr, "Moving mote..."

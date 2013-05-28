@@ -16,8 +16,8 @@ class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
         self.br2 = self.support.add_6lbr()
         self.support.host.iid='200'
         self.support.setUp()
-        self.br1.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
-        self.br2.set_mode('SMART-BRIDGE', config.channel, accept_ra=True)
+        self.br1.set_mode('SMART-BRIDGE', config.channel, accept_ra=True, smart_multi_br=True)
+        self.br2.set_mode('SMART-BRIDGE', config.channel, accept_ra=True, smart_multi_br=True)
         
     @skipUnlessTrue("S0")
     def test_S0(self):
