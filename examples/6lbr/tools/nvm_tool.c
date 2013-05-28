@@ -415,6 +415,7 @@ print_nvm(void)
   PRINT_BOOL("Eth IP address autoconf", mode, CETIC_MODE_ETH_AUTOCONF);
   printf("\n");
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
+  PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
   printf("\n");
 
   PRINT_BOOL("RA daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG);
@@ -467,6 +468,7 @@ print_nvm(void)
 #define eth_addr_autoconf_option 6
 
 #define local_addr_rewrite_option 4000
+#define smart_multi_br_option 4001
 
 #define rpl_version_id_option 5000
 
@@ -521,6 +523,7 @@ static struct option long_options[] = {
   {"eth-ip-autoconf", required_argument, 0, eth_addr_autoconf_option},
 
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
+  {"smart-multi-br", required_argument, 0, smart_multi_br_option},
 
   //{"", required_argument, 0, ra_flags_option},
   {"ra-daemon-en", required_argument, 0, ra_daemon_en_option},
@@ -601,6 +604,7 @@ help(char const *name)
   printf("\n");
 
   printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
+  printf("\t--smart-multi-br <0|1>\t\t Enable Smart Multi BR support\n");
   printf("\n");
 
   printf("\t--ra-daemon-en <0|1>\t\t Activate RA daemon\n");
@@ -686,6 +690,7 @@ main(int argc, char *argv[])
   char *eth_addr_autoconf = NULL;
 
   char *local_addr_rewrite = NULL;
+  char *smart_multi_br = NULL;
 
   char *rpl_version_id = NULL;
 
@@ -750,6 +755,7 @@ main(int argc, char *argv[])
     CASE_OPTION(eth_addr_autoconf)
 
     CASE_OPTION(local_addr_rewrite)
+    CASE_OPTION(smart_multi_br)
 
     CASE_OPTION(rpl_version_id)
 
@@ -836,6 +842,7 @@ main(int argc, char *argv[])
 	UPDATE_FLAG("eth-ip-autoconf", eth_addr_autoconf, mode, CETIC_MODE_ETH_AUTOCONF)
 
 	UPDATE_FLAG("addr-rewrite", local_addr_rewrite, mode, CETIC_MODE_REWRITE_ADDR_MASK)
+	UPDATE_FLAG("smart-multi-br", smart_multi_br, mode, CETIC_MODE_SMART_MULTI_BR)
 
     UPDATE_INT("rpl-version", rpl_version_id)
 
