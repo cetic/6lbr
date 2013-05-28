@@ -45,7 +45,8 @@ case $MODE_6LBR in
 			ifconfig $DEV inet6 up
 			
 			if [ "$BRIDGE" = "1" ]; then
-				if [ "$CREATE_BRIDGE" = "1" ]; then
+				#TODO: add condition of brctl output as done on line 24 for Linux
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]]; then
 					ifconfig $DEV_BRIDGE create
 					ifconfig $DEV_BRIDGE up addm $DEV_ETH
 				fi

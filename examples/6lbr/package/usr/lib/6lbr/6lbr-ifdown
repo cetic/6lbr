@@ -31,7 +31,7 @@ case $MODE_6LBR in
 			;;
 		Darwin)
 			if [ "$BRIDGE" = "1" ]; then
-				if [ "$CREATE_BRIDGE" = "1" ]; then
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
 					ifconfig $DEV_BRIDGE destroy
 				else
 					ifconfig $DEV_BRIDGE delm $DEV
