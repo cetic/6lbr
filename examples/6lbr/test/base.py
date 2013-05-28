@@ -192,6 +192,7 @@ class TestScenarios:
         self.test_name=self.__class__.__name__ + '.' + self._testMethodName
         self.multi_br=False
         self.bridge_mode=False
+        self.host_is_router=False
         self.print_test_name()
         self.support=TestSupport(self.test_name)
         self.modeSetUp()

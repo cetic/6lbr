@@ -9,6 +9,7 @@ from base import skipUnlessTrue, skipUnlessFalse
 class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
+        self.host_is_router=True
         self.support.backbone.prefix=config.wsn_prefix
         self.support.wsn.prefix=config.wsn_prefix
         self.br1 = self.support.add_6lbr()
