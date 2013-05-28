@@ -8,6 +8,7 @@ from time import sleep
 class SmartBridgeAuto(NonRegressionScenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
+        self.host_is_router=True
         self.support.backbone.prefix=config.wsn_prefix
         self.support.wsn.prefix=config.wsn_prefix
         self.br = self.support.add_6lbr()

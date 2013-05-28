@@ -82,7 +82,7 @@ class BRProxy:
     def tearDown(self):
         pass
 
-    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         pass
 
     def start_6lbr(self, log):
@@ -112,7 +112,7 @@ class LocalNativeBR(BRProxy):
             self.stop_6lbr()
         self.wsn.release_radio_dev(self.radio)
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -149,7 +149,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
-        params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon=%d --ra-router-lifetime=%d --addr-rewrite=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, self.nvm_file)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
@@ -497,6 +497,16 @@ class LocalTelosMote(MoteProxy):
         self.serialport.flushInput()
         self.serialport.flushOutput()
         return self.wait_until("Starting '6LBR Demo'\n", 15)
+
+    def send_cmd(self, cmd, expect=None, expect_time=0):
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\n"+cmd+"\r\n")
+        if expect != None:
+            ret = self.wait_until(expect, expect_time)
+        else:
+            ret = True
+        return ret
 
     def ping(self, address, expect_reply=False, count=0):
         print "Ping %s..." % address

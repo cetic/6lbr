@@ -50,13 +50,15 @@ class NonRegressionScenarios(base.TestScenarios):
         """
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         self.set_up_network()
+        self.support.platform.configure_if(self.support.backbone.itf, self.support.backbone.create_address('1'))
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
-        if self.bridge_mode:
-            self.assertTrue(self.support.tcpdump.expect_ns(self.support.backbone.itf, [int('0x'+self.support.backbone.prefix, base=16), 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
-        else:
-            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, "cccc::1", 30, bg=True), "")
+        #if not self.host_is_router:
+            #Host is the default router (thanks to the received RA)
+            #So ping packet is directly forwarded by 6LBR to host
+        #    self.assertTrue(self.support.tcpdump.expect_ns(self.support.backbone.itf, [int('0x'+self.support.backbone.prefix, base=16), 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
+        self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, "cccc::1", 30, bg=True), "")
         self.assertTrue(self.support.ping_from_mote("cccc::1"), "")
         self.assertTrue(self.support.tcpdump.check_result(), "Expected packet not received")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
