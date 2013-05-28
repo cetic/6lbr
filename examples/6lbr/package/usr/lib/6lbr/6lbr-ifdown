@@ -19,6 +19,8 @@ case $MODE_6LBR in
 			if [ "$BRIDGE" = "1" ]; then
 				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
 					ip link set $DEV_BRIDGE down
+					ip addr flush dev $DEV_BRIDGE
+					ip addr flush dev $DEV
 					brctl delbr $DEV_BRIDGE
 				else
 					brctl delif $DEV_BRIDGE $DEV
