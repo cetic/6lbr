@@ -14,6 +14,8 @@ launch-6lbr-router-1-cooja:
 
 cooja-small: preset_1dag_10nodes.csc build-cooja config-cooja launch-cooja
 
+cooja-2br-grid: grid_2br_3x6.csc build-cooja config-cooja launch-cooja
+
 launch-cooja:
 	java -jar ${COOJADIR}/dist/cooja.jar -quickstart=`cat ${COOJAGEN}/output/LASTFILE`
 
