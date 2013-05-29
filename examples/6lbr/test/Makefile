@@ -14,10 +14,12 @@ launch-6lbr-router-1-cooja:
 
 cooja-small: preset_1dag_10nodes.csc build-cooja config-cooja launch-cooja
 
+cooja-2br-grid: grid_2br_3x6.csc build-cooja config-cooja launch-cooja
+
 launch-cooja:
 	java -jar ${COOJADIR}/dist/cooja.jar -quickstart=`cat ${COOJAGEN}/output/LASTFILE`
 
-%.csc: ${COOJAGEN}/examples/config_%.py ${COOJAGEN}/templates/%
+%.csc: ${COOJAGEN}/examples/config_%.py
 	python2.7 gensimfile.py $<
 
 build-cooja: serial2pty radiologger-headless
