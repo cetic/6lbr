@@ -43,7 +43,7 @@ if [ "$BRIDGE" == "" ]; then
 	BRIDGE="1"
 fi
 
-if [ "$CREATE_BRIDGE" != "0" ]; then
+if [[ "$CREATE_BRIDGE" != "0" && "$CREATE_BRIDGE" != "LAZY" && "$CREATE_BRIDGE" != "MANUAL" && "$CREATE_BRIDGE" != "6LBR" ]]; then
 	CREATE_BRIDGE="1"
 fi
 
