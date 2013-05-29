@@ -12,6 +12,10 @@ COOJAGEN=./coojagen
 launch-6lbr-router-1-cooja:
 	../package/usr/bin/6lbr conf-templates/cooja-1-router.conf
 
+launch-6lbr-smartbridge-2BR-cooja:
+	../package/usr/bin/6lbr conf-templates/cooja-2-smartbridge-a.conf &
+	../package/usr/bin/6lbr conf-templates/cooja-2-smartbridge-b.conf &
+
 cooja-small: preset_1dag_10nodes.csc build-cooja config-cooja launch-cooja
 
 cooja-2br-grid: grid_2br_3x6.csc build-cooja config-cooja launch-cooja
