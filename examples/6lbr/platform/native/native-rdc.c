@@ -202,6 +202,13 @@ slip_print_stat()
 }
 /*---------------------------------------------------------------------------*/
 void
+slip_reboot(void)
+{
+  printf("Reset SLIP Radio\n");
+  write_to_slip((uint8_t *) "!R", 2);
+}
+
+void
 slip_request_mac(void)
 {
   printf("Fetching MAC address\n");
