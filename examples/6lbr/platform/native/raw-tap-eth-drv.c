@@ -58,11 +58,6 @@ eth_drv_init()
 
   /* tun init is also responsible for setting up the SLIP connection */
   tun_init();
-
-#if !CETIC_6LBR_ONE_ITF
-  //Set radio channel
-  slip_set_rf_channel(nvm_data.channel);
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -75,11 +70,14 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 
   eth_drv_init();
 #if !CETIC_6LBR_ONE_ITF
+  slip_reboot();
   while(!mac_set) {
     etimer_set(&et, CLOCK_SECOND);
     slip_request_mac();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+  //Set radio channel
+  slip_set_rf_channel(nvm_data.channel);
 
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address

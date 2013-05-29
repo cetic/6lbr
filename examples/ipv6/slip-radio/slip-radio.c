@@ -41,6 +41,7 @@
 #include <string.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "dev/watchdog.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -131,7 +132,10 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       if(packet_pos >= sizeof(packet_ids)) {
 	packet_pos = 0;
       }
-
+      return 1;
+    } else if(data[1] == 'R') {
+      PRINTF("Rebooting\n");
+      watchdog_reboot();
       return 1;
     }
   } else if(uip_buf[0] == '?') {
