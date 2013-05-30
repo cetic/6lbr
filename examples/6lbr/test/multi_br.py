@@ -35,9 +35,10 @@ class MultiBrNonRegressionScenarios(base.TestScenarios):
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.start_udp_client(), "Could not start udp traffic")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
-#         if mote_start_delay > 0:
-#             print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
-#             time.sleep(mote_start_delay)
+        mote_start_delay=60
+        if mote_start_delay > 0:
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
+            sleep(mote_start_delay)
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         print >> sys.stderr, "Killing BR..."
         self.assertTrue(self.support.brList[0].stop_6lbr(), "Could not stop 6LBR")
