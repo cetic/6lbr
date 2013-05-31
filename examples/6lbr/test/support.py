@@ -147,6 +147,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
+        print >>conf, "EXTRA_PARAMS=-v1"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, self.nvm_file)
@@ -698,9 +699,7 @@ class MacOSX(Platform):
 
     def unconfigure_if(self, itf, address):
         if itf:
-            #return system("ifconfig %s down" % itf) == 0
             system("ifconfig %s inet6 %s/64 delete" % (itf, address))
-            system("ifconfig %s down" % itf)
             return True
         else:
             return True
@@ -830,10 +829,10 @@ class Linux(Platform):
         return result == 0
 
     def unconfigure_if(self, itf, address):
-        if itf:
-            return system("ifconfig %s down" % itf) == 0
-        else:
-            return True
+        if itf and self.check_prefix(itf, address):
+            result = system("ip addr del %s/64 dev %s" % (address, itf)) == 0
+            return result
+        return True
 
     def configure_bridge(self, itf):
         result = system("brctl addbr %s" % itf)
