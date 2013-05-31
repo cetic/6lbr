@@ -38,6 +38,7 @@ class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
         self.assertTrue( self.support.start_ra(self.support.backbone), "Could not start RADVD")
 
     def tear_down_network(self):
+        self.support.platform.unconfigure_if(self.support.backbone.itf, self.support.host.ip)
         self.support.stop_ra()
 
 if __name__ == '__main__':
