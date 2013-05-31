@@ -191,6 +191,7 @@ mac_translateIcmpLinkLayer(lltype_t target)
   case ICMP6_PARAM_PROB:
   case ICMP6_ECHO_REQUEST:
   case ICMP6_ECHO_REPLY:
+  case ICMP6_RPL:
   case 131:                    //Multicast Listener Report
   case 132:                    //Multicast Listener Done
     return 0;
