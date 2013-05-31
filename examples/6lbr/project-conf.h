@@ -194,6 +194,8 @@
 
 #define SELECT_CALLBACK 1
 
+#define SELECT_CONF_MAX FD_SETSIZE
+
 #define CMD_CONF_OUTPUT border_router_cmd_output
 
 #undef NETSTACK_CONF_FRAMER
