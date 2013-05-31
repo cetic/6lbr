@@ -699,9 +699,7 @@ class MacOSX(Platform):
 
     def unconfigure_if(self, itf, address):
         if itf:
-            #return system("ifconfig %s down" % itf) == 0
             system("ifconfig %s inet6 %s/64 delete" % (itf, address))
-            system("ifconfig %s down" % itf)
             return True
         else:
             return True
@@ -831,10 +829,9 @@ class Linux(Platform):
         return result == 0
 
     def unconfigure_if(self, itf, address):
-        if itf:
-            return system("ifconfig %s down" % itf) == 0
-        else:
-            return True
+        if itf and self.check_prefix(itf, address):
+            return system("ip addr del %s dev %s" % (address, itf)) == 0
+        return True
 
     def configure_bridge(self, itf):
         result = system("brctl addbr %s" % itf)
