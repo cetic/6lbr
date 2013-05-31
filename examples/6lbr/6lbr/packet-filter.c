@@ -38,6 +38,10 @@ static inputfunc_t tcpip_inputfunc;
 #define IS_EUI64_ADDR(a) ((a) != NULL && ((a)->addr[3] != CETIC_6LBR_ETH_EXT_A || (a)->addr[4] != CETIC_6LBR_ETH_EXT_B ))
 #define IS_BROADCAST_ADDR(a) ((a)==NULL || rimeaddr_cmp((rimeaddr_t *)(a), &rimeaddr_null) != 0)
 
+#if CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_LEARN_RPL_MAC
+static int rpl_mac_known = 0;
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static void
@@ -58,6 +62,25 @@ wireless_input(void)
   int forwardFrame = 0;
 
   PRINTF("wireless_input\n");
+
+  //Source filtering
+  //----------------
+#if CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_LEARN_RPL_MAC
+  if (!rpl_mac_known) {
+    //Rpl Relay not yet configured, drop packet
+    uip_len = 0;
+    return;
+  }
+  if (rimeaddr_cmp
+	  (packetbuf_addr(PACKETBUF_ADDR_SENDER),
+	   & rimeaddr_node_addr) != 0) {
+    printf("WSN packet received with RplRoot address, another TB is within range, dropping it\n");
+    //Drop packet
+    uip_len = 0;
+    return;
+  }
+#endif
+
   //Destination filtering
   //---------------------
   if(IS_BROADCAST_ADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {      //Broadcast
@@ -232,7 +255,13 @@ eth_input(void)
       uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
       if ( rank == RPL_MIN_HOPRANKINC ) {
     	platform_set_wsn_mac((rimeaddr_t *) &srcAddr);
+        rpl_mac_known=1;
       }
+    }
+    if (!rpl_mac_known) {
+      //Rpl Relay not yet configured, drop packet
+      uip_len = 0;
+      return;
     }
     wireless_output(NULL, &destAddr);
 #else
