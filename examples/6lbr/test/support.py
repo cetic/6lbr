@@ -147,6 +147,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
+        print >>conf, "EXTRA_PARAMS=-v1"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, self.nvm_file)
