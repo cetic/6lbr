@@ -20,7 +20,7 @@ class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
         self.br2.set_mode('SMART-BRIDGE', config.channel, accept_ra=True, smart_multi_br=True)
         
     @skipUnlessTrue("S0")
-    def test_S0(self):
+    def test_S0_ping_br(self):
         """
         Check 6LBR start-up and connectivity
         """

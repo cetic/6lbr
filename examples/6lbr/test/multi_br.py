@@ -4,8 +4,33 @@ import sys
 from time import sleep
 
 class MultiBrNonRegressionScenarios(base.TestScenarios):
+    @skipUnlessTrue("S0")
+    def test_S0_ping_br(self):
+        """
+        Check 6LBR start-up and connectivity
+        """
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+
     @skipUnlessTrue("S1")
-    def test_S1_move_mote_disjoint(self):
+    def test_S1_ping_mote(self):
+        """
+        Ping mote from host.
+        """
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+
+    @skipUnlessTrue("S2")
+    def test_S2_move_mote_disjoint(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
@@ -24,12 +49,12 @@ class MultiBrNonRegressionScenarios(base.TestScenarios):
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @skipUnlessTrue("S2")
-    def test_S2_move_mote_overlap(self):
+    @skipUnlessTrue("S3")
+    def test_S3_move_mote_overlap(self):
         pass
     
-    @skipUnlessTrue("S3")
-    def test_S3_br_failure(self):
+    @skipUnlessTrue("S4")
+    def test_S4_br_failure(self):
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
