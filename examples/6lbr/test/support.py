@@ -830,7 +830,8 @@ class Linux(Platform):
 
     def unconfigure_if(self, itf, address):
         if itf and self.check_prefix(itf, address):
-            return system("ip addr del %s dev %s" % (address, itf)) == 0
+            result = system("ip addr del %s/64 dev %s" % (address, itf)) == 0
+            return result
         return True
 
     def configure_bridge(self, itf):
