@@ -181,13 +181,13 @@ eth_input(void)
             && (BUF->dest.addr[4] == 0xFF)
             && (BUF->dest.addr[5] == 0xFF)) {
     /* IPv6 does not use broadcast addresses, hence this should not happen */
-    PRINTF("eth_input: Dropping broadcast packet\n\r");
+    PRINTF("eth_input: Dropping broadcast packet\n");
     uip_len = 0;
     return;
   } else {
     /* Complex Address Translation */
     if(mac_createSicslowpanLongAddr(&(BUF->dest.addr[0]), &destAddr) == 0) {
-      PRINTF("eth_input: Address translation failed\n\r");
+      PRINTF("eth_input: Address translation failed\n");
       uip_len = 0;
       return;
     }
@@ -199,7 +199,7 @@ eth_input(void)
   uint8_t transReturn = mac_translateIPLinkLayer(ll_802154_type);
 
   if(transReturn != 0) {
-    PRINTF("eth_input: IPTranslation returns %d\n\r", transReturn);
+    PRINTF("eth_input: IPTranslation returns %d\n", transReturn);
   }
   //Filter mDNS (TODO !)
   if (UIP_IP_BUF->proto == UIP_PROTO_UDP && UIP_UDP_BUF->destport == UIP_HTONS(5353)) {
