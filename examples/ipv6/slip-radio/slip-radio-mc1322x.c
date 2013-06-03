@@ -32,16 +32,11 @@
  */
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "mc1322x.h"
 #include "cmd.h"
 #include <stdio.h>
 #include <string.h>
-#include "net/netstack.h"
-#include "net/packetbuf.h"
-#include "packetutils.h"
-
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
 
 int
 cmd_handler_mc1322x(const uint8_t *data, int len)
@@ -52,7 +47,7 @@ cmd_handler_mc1322x(const uint8_t *data, int len)
       set_channel(data[2]-11);
       return 1;
     } else if(data[1] == 'M') {
-      PRINTF("mc1322x_cmd: Got MAC\n");
+      printf("mc1322x_cmd: Got MAC\n");
       memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
       rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
       return 1;

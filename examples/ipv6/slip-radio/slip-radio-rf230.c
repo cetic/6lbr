@@ -32,12 +32,9 @@
  */
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "cmd.h"
 #include <string.h>
-#include "net/netstack.h"
-#include "net/packetbuf.h"
-#include "packetutils.h"
-#include "net/uip.h"
 
 #include "radio/rf230bb/rf230bb.h"
 #if CONTIKI_TARGET_NOOLIBERRY
