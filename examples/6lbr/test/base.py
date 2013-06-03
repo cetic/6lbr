@@ -15,6 +15,11 @@ try:
 except ImportError:
     print "Configuration file not found, using default..."
 
+try:
+    import gen_config
+except ImportError:
+    pass
+
 def skipUnlessTrue(descriptor):
     if hasattr(config, descriptor):
         if getattr(config, descriptor) == 0:
@@ -193,7 +198,10 @@ class TestScenarios:
         config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
         config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
         config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
-        
+        config.udp_port=getattr(config, 'udp_port', 3000)
+        config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')
+        config.ping_repeat=getattr(config, 'ping_repeat', 100)
+
         #Cooja configuration
         config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
 
