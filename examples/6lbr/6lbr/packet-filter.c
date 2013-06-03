@@ -245,9 +245,6 @@ eth_input(void)
   //-------------
 #if CETIC_6LBR_TRANSPARENTBRIDGE
   if(forwardFrame) {
-    PRINTF("eth_input: Forwarding frame to ");
-    PRINTLLADDR(&destAddr);
-    PRINTF("\n");
     mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
 #if CETIC_6LBR_LEARN_RPL_MAC
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
@@ -263,8 +260,17 @@ eth_input(void)
       uip_len = 0;
       return;
     }
-    wireless_output(NULL, &destAddr);
+    if(rimeaddr_cmp((rimeaddr_t *) &srcAddr, &rimeaddr_node_addr) != 0) {
+      //Only forward RplRoot packets
+      PRINTF("eth_input: Forwarding frame to ");
+      PRINTLLADDR(&destAddr);
+      PRINTF("\n");
+      wireless_output(NULL, &destAddr);
+    }
 #else
+    PRINTF("eth_input: Forwarding frame to ");
+    PRINTLLADDR(&destAddr);
+    PRINTF("\n");
     wireless_output(&srcAddr, &destAddr);
 #endif
   }
