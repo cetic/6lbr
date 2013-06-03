@@ -3,7 +3,6 @@ import sys
 from os import system
 from subprocess import Popen
 from time import sleep
-import config
 from support import *
 from tcpdump import TcpDump
 import time
@@ -11,21 +10,17 @@ import shutil
 import urllib2
 import os
 
-def skipUnlessTrue(descriptor):
-    if not hasattr(config, descriptor):
-        return unittest.skip("%s not defined in config.py, skipping" % descriptor)
-    if getattr(config, descriptor) == 0:
-        return unittest.skip("%s set to False in config.py, skipping" % descriptor)
-    else:
-        return lambda func: func
+try:
+    import config
+except ImportError:
+    print "Configuration file not found, using default..."
 
-def skipUnlessFalse(descriptor):
-    if not hasattr(config, descriptor):
-        return unittest.skip("%s not defined in config.py, skipping" % descriptor)
-    if getattr(config, descriptor) != 0:
-        return unittest.skip("%s set to True in config.py, skipping" % descriptor)
-    else:
-        return lambda func: func
+def skipUnlessTrue(descriptor):
+    if hasattr(config, descriptor):
+        if getattr(config, descriptor) == 0:
+          return unittest.skip("%s set to False in config.py, skipping" % descriptor)
+    #Not mentioned or true, run the test
+    return lambda func: func
 
 class TestSupport:
     def __init__(self, test_name):
@@ -182,6 +177,31 @@ class TestSupport:
                         pass
 
 class TestScenarios:
+    def init_config(self):
+        #Class definition
+        config.backboneClass=getattr(config, 'backboneClass', NativeBridgeBB)
+        config.brClass=getattr(config, 'brClass', LocalNativeBR)
+        config.wsnClass=getattr(config, 'wsnClass', CoojaWsn)
+        config.moteClass=getattr(config, 'moteClass', LocalTelosMote)
+        config.platformClass=getattr(config, 'platformClass', Linux)
+        
+        #Common configuration
+        config.report_path=getattr(config, 'report_path', 'report')
+        config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
+        config.channel=getattr(config, 'channel', 26)
+        config.wsn_prefix=getattr(config, 'wsn_prefix', '8888')
+        config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
+        config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
+        config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
+        
+        #Cooja configuration
+        config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
+
+        #Physical configuration
+        config.slip_radio=getattr(config, 'slip_radio', [])
+        config.motes = getattr(config, 'motes', [])
+        config.mote_baudrate=getattr(config, 'config_baudrate', 115200)
+
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
 
@@ -189,6 +209,7 @@ class TestScenarios:
         print >> sys.stderr, "\n******** %s ********" % self.test_name
 
     def setUp(self):
+        self.init_config()
         self.test_name=self.__class__.__name__ + '.' + self._testMethodName
         self.multi_br=False
         self.bridge_mode=False

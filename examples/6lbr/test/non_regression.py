@@ -1,5 +1,5 @@
 import base
-from base import skipUnlessTrue, skipUnlessFalse
+from base import skipUnlessTrue
 from time import sleep
 
 class NonRegressionScenarios(base.TestScenarios):
