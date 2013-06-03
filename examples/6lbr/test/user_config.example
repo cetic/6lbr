@@ -64,27 +64,3 @@ config.S5020=0
 config.S5021=1
 config.S5022=0
 config.S5023=0
-
-"""
-modes
-define 1 to run each selected scenario in that mode, 0 to skip the mode
-"""
-config.mode_SmartBridgeManual=0
-config.mode_SmartBridgeAuto=1
-config.mode_Router=0
-config.mode_RouterNoRa=0
-
-config.mode_RplRootTransparentBridge=0
-config.mode_RplRoot6lr=0
-
-config.mode_NdpRouter=0
-
-config.mode_MultiBrSmartBridgeAuto=0
-config.mode_RplRootMultiTransparentBridge=0
-
-#Debug modes, do not use
-config.mode_RplRoot=0
-config.mode_RplRootNoRa=0
-config.mode_TransparentBridgeManual=0
-config.mode_TransparentBridgeAuto=0
-

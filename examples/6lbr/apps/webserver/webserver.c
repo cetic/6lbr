@@ -253,7 +253,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #endif
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_LEARN_RPL_MAC
-  add("RPL TRANSPARENT BRIGDE");
+  add("RPL Relay");
 #else
   add("FULL TRANSPARENT BRIGDE");
 #endif

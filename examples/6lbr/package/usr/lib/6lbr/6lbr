@@ -86,8 +86,8 @@ while ((1)); do
 		$BIN_6LBR/cetic_6lbr_router $PARAMS
 	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
 		$BIN_6LBR/cetic_6lbr_smart_bridge $PARAMS
-	elif [ "$MODE" = 'RPL-TRANSPARENT-BRIDGE' ]; then
-		$BIN_6LBR/cetic_6lbr_rpl_transparent_bridge $PARAMS
+	elif [ "$MODE" = 'RPL-RELAY' ]; then
+		$BIN_6LBR/cetic_6lbr_rpl_relay $PARAMS
 	elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
 		$BIN_6LBR/cetic_6lbr_full_transparent_bridge $PARAMS
 	elif [ "$MODE" = 'NDP-ROUTER' ]; then

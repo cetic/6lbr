@@ -88,9 +88,9 @@ bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
 	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
 
-bin/cetic_6lbr_rpl_transparent_bridge:
+bin/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(NATIVE_CONF)
-	mv cetic-6lbr.native bin/cetic_6lbr_rpl_transparent_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
 
 bin/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(NATIVE_CONF)
@@ -117,7 +117,7 @@ all_native:
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_transparent_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge 
 	$(MAKE) TARGET=native clean
@@ -133,9 +133,9 @@ bin_econotag/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
 
-bin_econotag/cetic_6lbr_rpl_transparent_bridge:
+bin_econotag/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(ECONOTAG_CONF)
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_rpl_transparent_bridge 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_rpl_relay
 
 bin_econotag/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(ECONOTAG_CONF)
@@ -158,7 +158,7 @@ all_econotag:
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_rpl_transparent_bridge 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_full_transparent_bridge 
 	$(MAKE) TARGET=econotag clean

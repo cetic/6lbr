@@ -236,12 +236,12 @@ cetic_6lbr_init(void)
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_LEARN_RPL_MAC
-  printf("Starting as RPL Transparent-BRIDGE\n");
+  printf("Starting as RPL Relay\n");
 #else
-  printf("Starting as Full Transparent-BRIDGE\n");
+  printf("Starting as Full TRANSPARENT-BRIDGE\n");
 #endif
 #elif CETIC_6LBR_SMARTBRIDGE
-  printf("Starting as Smart-BRIDGE\n");
+  printf("Starting as SMART-BRIDGE\n");
 #elif CETIC_6LBR_ROUTER
 #if UIP_CONF_IPV6_RPL
   printf("Starting as RPL ROUTER\n");

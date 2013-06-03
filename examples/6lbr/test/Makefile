@@ -48,7 +48,7 @@ serial2pty:
 radiologger-headless:	
 	pushd ${COOJADIR}/apps/radiologger-headless; ant jar; popd
 
-non-regression: nr-router nr-smartbridge nr-6lr nr-ndp-router nr-rpl-transparentbridge nr-multi-smartbridge nr-rpl-multi-transparentbridge nr-rpl-multi-6lr
+non-regression: nr-router nr-smartbridge nr-6lr nr-ndp-router nr-rpl-root-rpl-relay nr-multi-smartbridge nr-rpl-root-multi-rpl-relay nr-rpl-multi-6lr
 
 nr-router:
 	$(MAKE) preset_1dag_10nodes.csc
@@ -66,17 +66,17 @@ nr-ndp-router:
 	$(MAKE) preset_1dag_1node.csc
 	python2.7 NdpRouter.py
 
-nr-rpl-transparentbridge:
+nr-rpl-root-rpl-relay:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 RplTransparentBridge.py
+	python2.7 RplRootRplRelay.py
 
 nr-multi-smartbridge:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
 	python2.7 SmartBridge.py
 
-nr-rpl-multi-transparentbridge:
+nr-rpl-root-multi-rpl-relay:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 RplMultiTransparentBridge.py
+	python2.7 RplRootMultiRplRelay.py
 
 nr-rpl-multi-6lr:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
