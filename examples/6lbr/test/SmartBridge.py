@@ -1,11 +1,10 @@
 #!/usr/bin/python2.7
 
-from non_regression import NonRegressionScenarios
 import unittest
 import config
 from time import sleep
 
-class SmartBridgeAuto(NonRegressionScenarios, unittest.TestCase):
+class SmartBridgeAuto(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
         self.host_is_router=True

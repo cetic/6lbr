@@ -1,11 +1,10 @@
 #!/usr/bin/python2.7
 
-from non_regression import NonRegressionScenarios
 import unittest
 import config
 from time import sleep
 
-class RplRootRplRelay(NonRegressionScenarios, unittest.TestCase):
+class RplRootRplRelay(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
         self.support.backbone.prefix=config.eth_prefix
         self.support.wsn.prefix=config.wsn_prefix

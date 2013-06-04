@@ -1,12 +1,11 @@
 #!/usr/bin/python2.7
 
-from multi_br import MultiBrNonRegressionScenarios
 import unittest
 import config
 from time import sleep
 from base import skipUnlessTrue
 
-class MultiBrSmartBridgeAuto(MultiBrNonRegressionScenarios, unittest.TestCase):
+class MultiBrSmartBridgeAuto(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
         self.host_is_router=True
