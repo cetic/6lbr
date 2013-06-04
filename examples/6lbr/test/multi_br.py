@@ -1,5 +1,5 @@
 import base
-from base import skipUnlessTrue, skipUnlessFalse
+from base import skipUnlessTrue
 import sys
 from time import sleep
 
