@@ -1,11 +1,15 @@
 import base
+import config
+import time
+import os
+import sys
 
 from base import skipUnlessTrue
 
 class PerformanceMultiBrScenarios(base.TestScenarios):
     def S400x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -60,7 +64,7 @@ class PerformanceMultiBrScenarios(base.TestScenarios):
 
     def S500x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -123,7 +127,7 @@ class PerformanceMultiBrScenarios(base.TestScenarios):
 
     def S502x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -185,7 +189,7 @@ class PerformanceMultiBrScenarios(base.TestScenarios):
 
     def S600x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()

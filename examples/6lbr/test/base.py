@@ -204,6 +204,7 @@ class TestScenarios:
 
         #Cooja configuration
         config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
+        config.simulation_path=getattr(config, 'simulation_path', None)
 
         #Physical configuration
         config.slip_radio=getattr(config, 'slip_radio', [])

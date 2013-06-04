@@ -19,19 +19,18 @@ gen_config_name_pyc='gen_config.pyc'
 def init_performance_config():
     config.report_path=getattr(config, 'report_path', 'report')
     config.topologies=getattr(config, 'topologies', ['./coojagen/examples/config_preset_1dag_10nodes.py'])
-    config.start_delays=getattr(config, 'start_delays', [0, 60, 300, 900])
+    config.start_delays=getattr(config, 'start_delays', [0])
     config.test_repeat=getattr(config, 'test_repeat', 1)
+    config.test_modes=getattr(config, 'test_modes', [])
+    config.test_scenarios=getattr(config, 'test_scenarios', '')
 
 
-def generate_config(name, current_topo, report_path, start_delay=0):
+def generate_config(name, report_path, start_delay=0):
     gen_config = open( gen_config_name, 'w')
     print >> gen_config, "import config"
-    print >> gen_config, "config.topology='%s'" % name
+    print >> gen_config, "config.simulation_path='%s'" % name
     print >> gen_config, "config.report_path='%s'" % report_path
-    print >> gen_config, "config.multi_br=%d" % current_topo.multi_br
     print >> gen_config, "config.start_delay=%d" % start_delay
-    if current_topo.multi_br:
-        print >> gen_config, "config.disjoint_dag=%d" % current_topo.disjoint_dag
     #config.stop_br
     gen_config.close()
     if os.path.exists(gen_config_name_pyc):
@@ -65,9 +64,10 @@ for simgen_config_path in config.topologies:
                 os.makedirs(report_path)
                 print >> sys.stderr, " ======================"
                 print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
-                generate_config(simname, config_simgen, start_delay)
+                generate_config(simfile, report_path, start_delay)
                 #Run the test suite with the current topology
-                system("python2.7 ./performance.py")
+                modes=["--mode %s" % mode for mode in config.test_modes]
+                system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
                 os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
         #Move the current coojasim working directory to its final location
         shutil.copyfile(os.path.join('coojagen/output', simname+'.csc'),os.path.join(report_path, simname+'.csc'))

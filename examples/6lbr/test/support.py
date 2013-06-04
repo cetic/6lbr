@@ -226,13 +226,16 @@ class CoojaWsn(Wsn):
         self.test_motes=[]
 
     def setUp(self):
-        try:
-            topology_file = open(config.topology_file, 'r')
-            simulation_path = topology_file.readline().rstrip()
-            topology_file.close()
-        except IOError:
-            print "Could not open %s topology file" % config.topology_file
-            raise
+        if config.simulation_path:
+            simulation_path=config.simulation_path
+        else:
+            try:
+                topology_file = open(config.topology_file, 'r')
+                simulation_path = topology_file.readline().rstrip()
+                topology_file.close()
+            except IOError:
+                print "Could not open %s topology file" % config.topology_file
+                raise
 
         print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path

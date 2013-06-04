@@ -1,11 +1,15 @@
 import base
+import config
+import time
+import os
+import sys
 
 from base import skipUnlessTrue
 
 class PerformanceSingleBrScenarios(base.TestScenarios):
     def S10xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -65,7 +69,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
             os.system("touch %s/SKIPPED" % config.report_path)
             return
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()
@@ -158,7 +162,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
 
     def S20xx_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
-        self.assertTrue(self.support.start_6lbr(config.report_path+'/6lbr'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
         self.set_up_network()
         timenetsetdone = time.time()

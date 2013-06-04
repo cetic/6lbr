@@ -4,7 +4,7 @@ import unittest
 import config
 from time import sleep
 
-class SmartBridgeAuto(config.scenarios, unittest.TestCase):
+class SmartBridge(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
         self.host_is_router=True

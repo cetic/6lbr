@@ -11,7 +11,7 @@ except ImportError:
 
 
 parser = argparse.ArgumentParser(description='6LBR tests')
-parser.add_argument('--modes', metavar='<mode name>', dest='modes', nargs='+',
+parser.add_argument('--modes', metavar='<mode name>', dest='modes', action='append',
                    help='Modes to run')
 parser.add_argument('--scenarios', metavar='<test scenarios name>', dest='scenarios',
                    help='Test scenarios to be executed')
