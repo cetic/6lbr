@@ -67,7 +67,7 @@ for simgen_config_path in config.topologies:
                 print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
                 generate_config(simname, config_simgen, start_delay)
                 #Run the test suite with the current topology
-                system("python2.7 ./test.py")
+                system("python2.7 ./performance.py")
                 os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
         #Move the current coojasim working directory to its final location
         shutil.copyfile(os.path.join('coojagen/output', simname+'.csc'),os.path.join(report_path, simname+'.csc'))
