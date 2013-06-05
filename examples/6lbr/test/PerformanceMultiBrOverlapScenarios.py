@@ -6,7 +6,7 @@ import sys
 
 from base import skipUnlessTrue
 
-class PerformanceMultiBrScenarios(base.TestScenarios):
+class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
     def S400x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")

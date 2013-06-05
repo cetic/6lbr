@@ -5,7 +5,7 @@ import config
 from time import sleep
 from base import skipUnlessTrue
 
-class MultiBrSmartBridge(config.scenarios, unittest.TestCase):
+class MultiSmartBridge(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
         self.bridge_mode=True
         self.host_is_router=True

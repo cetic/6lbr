@@ -17,6 +17,7 @@ except ImportError:
 
 try:
     import gen_config
+    print "Importing generated config"
 except ImportError:
     pass
 
