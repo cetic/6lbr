@@ -52,32 +52,39 @@ non-regression: nr-router nr-smartbridge nr-6lr nr-ndp-router nr-rpl-root-rpl-re
 
 nr-router:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 Router.py
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes Router
 
 nr-smartbridge:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 SmartBridge.py
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes SmartBridge
 
 nr-6lr:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 6lr.py
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes 6lr
 
 nr-ndp-router:
 	$(MAKE) preset_1dag_1node.csc
-	python2.7 NdpRouter.py
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes NdpRouter
 
 nr-rpl-root-rpl-relay:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 RplRootRplRelay.py
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes RplRootRplRelay
 
 nr-multi-smartbridge:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 SmartBridge.py
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes MultiSmartBridge
+	$(MAKE) grid_2br_3x6.csc
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes MultiSmartBridge
 
 nr-rpl-root-multi-rpl-relay:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 RplRootMultiRplRelay.py
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes RplRootMultiRplRelay
+	$(MAKE) grid_2br_3x6.csc
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes RplRootMultiRplRelay
 
 nr-rpl-multi-6lr:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 Multi6lr.py
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr
+	$(MAKE) grid_2br_3x6.csc
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr
+	
