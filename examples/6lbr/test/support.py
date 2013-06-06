@@ -36,6 +36,23 @@ class Backbone:
             self.platform.pcap_stop(self.tcap)
             self.tcap=None
 
+class EthernetBB(Backbone):
+    def setUp(self):
+        self.itf = config.ethernet_dev
+        result = self.platform.configure_bridge(self.itf)
+        self.if_up()
+        return result
+
+    def tearDown(self):
+        self.if_down()
+        return self.platform.unconfigure_bridge(self.itf)
+
+    def isBridge(self):
+        return True
+
+    def isBrCreated(self):
+        return False
+
 class NativeBB(Backbone):
     def __init__(self, platform):
         Backbone.__init__(self, platform)
@@ -73,51 +90,108 @@ class NativeTapBB(NativeBB):
         return True
 
 class BRProxy:
-    def __init__(self):
+    def __init__(self, backbone, wsn, device):
+        self.backbone=backbone
+        self.wsn=wsn
+        self.device=device
         self.itf=None
         self.ip=None
 
     def setUp(self):
-        pass
+        self.log=None
+        if not self.device:
+            self.device=self.wsn.allocate_br_dev()
+        else:
+            self.device['used']=1
+
     def tearDown(self):
-        pass
+        if ( self.process ):
+            self.stop_6lbr()
+        self.wsn.release_br_dev(self.device)
 
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         pass
 
-    def start_6lbr(self, log):
+    def start_6lbr(self, log_stem):
         pass
 
     def stop_6lbr(self):
         pass
 
-class LocalNativeBR(BRProxy):
-    def __init__(self, backbone, wsn, radio):
-        BRProxy.__init__(self)
+econotag_index=0
+
+class LocalEconotagBR(BRProxy):
+    def __init__(self, backbone, wsn, device):
+        BRProxy.__init__(self, backbone, wsn, device)
+        global econotag_index
         self.process=None
-        self.backbone=backbone
-        self.wsn=wsn
-        self.itf = backbone.allocate_tap()
-        self.radio=radio
+        self.device=device
+        econotag_index += 1
+        self.index=econotag_index
 
-    def setUp(self):
-        self.log=None
-        if not self.radio:
-            self.radio=self.wsn.allocate_radio_dev()
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+        if mode=='ROUTER':
+            self.bin='../bin_econotag/cetic_6lbr_router'
         else:
-            self.radio['used']=1
+            raise Exception("Unsupported mode '%s'" % mode)
+        if iid:
+            self.ip=self.backbone.create_address(iid)
+        else:
+            self.ip=self.backbone.create_address(self.device['iid'])
+        self.cfg_path=os.path.join(config.test_report_path, "br_%d" % self.index)
+        self.nvm_file=os.path.join(self.cfg_path, "test.dat")
+        if not os.path.exists(self.cfg_path):
+            os.makedirs(self.cfg_path)
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, self.nvm_file)
+        if iid:
+            params += " --eth-ip=%s" % self.ip
+        subprocess.check_output("../tools/nvm_tool " + params, shell=True)
+        if config.econotag_nvm_flasher:
+            pass
+        else:
+            print >> sys.stderr, "No flasher tool, using existing nvm"
 
-    def tearDown(self):
-        if ( self.process ):
-            self.stop_6lbr()
-        self.wsn.release_radio_dev(self.radio)
+    def start_6lbr(self, log_stem):
+        print >> sys.stderr, "Starting 6LBR %d (id %s)..." % (self.index, self.device['iid'])
+        if config.econotag_bbmc:
+            pass
+        self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
+        self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
+        #self.process = subprocess.Popen('echo ' + config.econotag_loader + ' -t '+ self.device['dev'] + ' ' + self.bin], stdout=self.log)
+        if not config.econotag_bbmc:
+            print >> sys.stderr, "Press the reset button"
+            dummy = raw_input()
+        sleep(1)
+        return self.process != None
+
+
+    def stop_6lbr(self):
+        if self.process:
+            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.index, self.device['iid'])
+            if config.econotag_bbmc:
+                pass
+            else:
+                print >> sys.stderr, "Press the reset button"
+                dummy = raw_input()
+            self.process.terminate()
+            sleep(1)
+            self.log.close()
+            self.process = None
+        return True
+
+class LocalNativeBR(BRProxy):
+    def __init__(self, backbone, wsn, device):
+        BRProxy.__init__(self, backbone, wsn, device)
+        self.process=None
+        self.itf = backbone.allocate_tap()
 
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
         else:
-            self.ip=self.backbone.create_address(self.radio['iid'])
+            self.ip=self.backbone.create_address(self.device['iid'])
         self.cfg_path=os.path.join(config.test_report_path, "br", self.itf)
         self.cfg_file=os.path.join(self.cfg_path, "test.conf")
         self.nvm_file=os.path.join(self.cfg_path, "test.dat")
@@ -136,11 +210,11 @@ class LocalNativeBR(BRProxy):
         else:
             print >>conf, "BRIDGE=0"
 
-        if 'dev' in self.radio:
-            print >>conf, "DEV_RADIO=%s" % self.radio['dev']
+        if 'dev' in self.device:
+            print >>conf, "DEV_RADIO=%s" % self.device['dev']
         else:
-            print >>conf, "SOCK_RADIO=%s" % self.radio['socket']
-            print >>conf, "SOCK_PORT=%s" % self.radio['port']
+            print >>conf, "SOCK_RADIO=%s" % self.device['socket']
+            print >>conf, "SOCK_PORT=%s" % self.device['port']
 
         print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
@@ -156,7 +230,7 @@ class LocalNativeBR(BRProxy):
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
     def start_6lbr(self, log_stem=""):
-        print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.radio['iid'])
+        print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.device['iid'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
         sleep(1)
@@ -170,7 +244,7 @@ class LocalNativeBR(BRProxy):
                 #Give some time to write packets to file
                 sleep(1)
                 self.backbone.if_down()
-            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.radio['iid'])
+            print >> sys.stderr, "Stopping 6LBR %s (id %s)..." % (self.itf, self.device['iid'])
             self.process.terminate()
             sleep(1)
             self.log.close()
@@ -301,14 +375,14 @@ class CoojaWsn(Wsn):
     def add_test_mote(self, nodeid):
         self.test_motes.append(nodeid)
     
-    def allocate_radio_dev(self):
+    def allocate_br_dev(self):
         for slip_mote in self.slip_motes:
             if 'used' not in slip_mote:
                 slip_mote['used'] = 1
                 return slip_mote
         raise Exception()
 
-    def release_radio_dev(self, slip_mote):
+    def release_br_dev(self, slip_mote):
         del slip_mote['used']
 
     def get_test_mote(self):
@@ -334,7 +408,10 @@ class LocalWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        self.radioDevList=deepcopy(config.slip_radio)
+        self.brDevList=[]
+        #TODO: add device type
+        self.brDevList+=deepcopy(config.slip_radio)
+        self.brDevList+=deepcopy(config.econotag_br)
         self.moteDevList=deepcopy(config.motes)
 
     def setUp(self):
@@ -347,14 +424,14 @@ class LocalWsn(Wsn):
             mote.tearDown()
         self.motelist = []
 
-    def allocate_radio_dev(self):
-        for dev in self.radioDevList:
+    def allocate_br_dev(self):
+        for dev in self.brDevList:
             if 'used' not in dev:
                 dev['used']=1
                 return dev
         raise Exception()
 
-    def release_radio_dev(self, dev):
+    def release_br_dev(self, dev):
         del dev['used']
 
     def allocate_mote_dev(self):

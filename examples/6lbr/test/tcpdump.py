@@ -8,7 +8,8 @@ class TcpDump:
     instance=None
     def call_tcpdump_fg(self, itf, count, filter, timeout):
         try:
-            subprocess.check_output("./tcpdump.sh %d -i %s -c %d %s >/dev/null 2>&1" % (timeout, itf, count, filter), shell=True)
+            print"./tcpdump.sh %d -i %s -c %d %s" % (timeout, itf, count, filter)
+            subprocess.check_output("./tcpdump.sh %d -v -i %s -c %d %s" % (timeout, itf, count, filter), shell=True)
             return True
         except subprocess.CalledProcessError as e:
             return False

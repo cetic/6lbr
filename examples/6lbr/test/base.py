@@ -65,8 +65,8 @@ class TestSupport:
     def stop_ra(self):
         return self.platform.stop_ra()
 
-    def add_6lbr(self, radio=None):
-        _br = config.brClass(self.backbone, self.wsn, radio)
+    def add_6lbr(self, device=None):
+        _br = config.brClass(self.backbone, self.wsn, device)
         self.brList.append(_br)
         return _br
 
@@ -194,6 +194,7 @@ class TestScenarios:
         #Common configuration
         config.report_path=getattr(config, 'report_path', 'report')
         config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
+        config.backbone_dev=getattr(config, 'ethernet_dev', 'eth0')
         config.channel=getattr(config, 'channel', 26)
         config.wsn_prefix=getattr(config, 'wsn_prefix', '8888')
         config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
