@@ -150,16 +150,18 @@ class LocalEconotagBR(BRProxy):
 
     def start_6lbr(self, log_stem, keep_nvm=False):
         print >> sys.stderr, "Starting 6LBR %d (id %s)..." % (self.index, self.device['iid'])
-        if config.econotag_bbmc:
-            pass
         if keep_nvm:
             print >> sys.stderr, "Using existing nvm"
         elif config.econotag_nvm_flasher:
-            if not config.econotag_bbmc:
+            if config.econotag_bbmc:
+                subprocess.call(args=[config.econotag_bbmc, '-l', 'redbee-econotag', 'reset'])
+            else:
                 print >> sys.stderr, "Press the reset button"
             subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], '-b', str(config.econotag_flasher_delay), '-e' ])
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
+        if config.econotag_bbmc:
+            subprocess.call(args=[config.econotag_bbmc, '-l', 'redbee-econotag', 'reset'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
         if not config.econotag_bbmc:

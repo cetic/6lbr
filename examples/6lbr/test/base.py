@@ -219,7 +219,7 @@ class TestScenarios:
         #Econotag configuration
         config.econotag_br=getattr(config, 'econotag_br', [])
         config.econotag_loader=getattr(config, 'econotag_loader', '../../../cpu/mc1322x/tools/mc1322x-load.pl')
-        econotag_bbmc=getattr(config, 'econotag_bbmc', None)
+        config.econotag_bbmc=getattr(config, 'econotag_bbmc', '../../../cpu/mc1322x/tools/ftditools/bbmc')
         config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
         config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
 
