@@ -6,6 +6,8 @@ NVM_FILE=$1
 shift
 DEV=$1
 shift
+BBMC=$1
+shift
 
 if [ ! -e "$NVM_FILE" ]; then
 	echo "NVM file $NVM_FILE not found"
@@ -24,4 +26,4 @@ fi
 
 FLASHER=`dirname $0`
 
-$MC1322X_LOAD -t $DEV -f $FLASHER/6lbr_nvm_flasher_redbee-econotag.bin -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
+$MC1322X_LOAD -t $DEV -f $FLASHER/6lbr_nvm_flasher_redbee-econotag.bin -c "$BBMC -l redbee-econotag reset" -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`

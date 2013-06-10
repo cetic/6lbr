@@ -154,22 +154,23 @@ class LocalEconotagBR(BRProxy):
             print >> sys.stderr, "Using existing nvm"
         elif config.econotag_nvm_flasher:
             if config.econotag_bbmc:
-                subprocess.call(args=[config.econotag_bbmc, '-l', 'redbee-econotag', 'reset'])
+                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], config.econotag_bbmc, '-b', str(config.econotag_flasher_delay), '-e'])
+                sleep(1)
             else:
                 print >> sys.stderr, "Press the reset button"
-            subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], '-b', str(config.econotag_flasher_delay), '-e' ])
+                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], '-b', str(config.econotag_flasher_delay), '-e' ])
+                sleep(1)
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
-        if config.econotag_bbmc:
-            subprocess.call(args=[config.econotag_bbmc, '-l', 'redbee-econotag', 'reset'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
-        self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
-        if not config.econotag_bbmc:
+        if config.econotag_bbmc:
+            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc], stdout=self.log)
+        else:
+            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
             print >> sys.stderr, "Press the reset button"
             dummy = raw_input()
         sleep(1)
         return self.process != None
-
 
     def stop_6lbr(self):
         if self.process:
@@ -537,13 +538,10 @@ class LocalTelosMote(MoteProxy):
             timeout = 1
         )
         self.reset_mote()
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
         self.ip=self.wsn.create_address(self.config['iid'])
 
     def tearDown(self):
         MoteProxy.tearDown(self)
-        self.serialport.close()
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -558,21 +556,24 @@ class LocalTelosMote(MoteProxy):
 
     def reset_mote(self):
         print >> sys.stderr, "Resetting mote..."
-        if(self.serialport.isOpen()):
-            self.serialport.close()
         system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % self.config['dev'])
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        return self.wait_until("Starting '6LBR Demo'\n", 15)
+        result=self.wait_until("Starting '6LBR Demo'\n", 15)
+        self.serialport.close()
+        return result
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
+        self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nrfchannel %d\r\n" % channel)
         self.serialport.write("\r\nstart6lbr\r\n")
-        return self.wait_until("done\r\n", 15)
+        result=self.wait_until("done\r\n", 15)
+        self.serialport.close()
+        return result
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
@@ -582,9 +583,12 @@ class LocalTelosMote(MoteProxy):
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        return self.wait_until("Starting '6LBR Demo'\n", 15)
+        result=self.wait_until("Starting '6LBR Demo'\n", 15)
+        self.serialport.close()
+        return result
 
     def send_cmd(self, cmd, expect=None, expect_time=0):
+        self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\n"+cmd+"\r\n")
@@ -592,6 +596,7 @@ class LocalTelosMote(MoteProxy):
             ret = self.wait_until(expect, expect_time)
         else:
             ret = True
+        self.serialport.close()
         return ret
 
     def ping(self, address, expect_reply=False, count=0):
