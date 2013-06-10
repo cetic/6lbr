@@ -147,18 +147,21 @@ class LocalEconotagBR(BRProxy):
         if iid:
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
-        if config.econotag_nvm_flasher:
-            pass
-        else:
-            print >> sys.stderr, "No flasher tool, using existing nvm"
 
-    def start_6lbr(self, log_stem):
+    def start_6lbr(self, log_stem, keep_nvm=False):
         print >> sys.stderr, "Starting 6LBR %d (id %s)..." % (self.index, self.device['iid'])
         if config.econotag_bbmc:
             pass
+        if keep_nvm:
+            print >> sys.stderr, "Using existing nvm"
+        elif config.econotag_nvm_flasher:
+            if not config.econotag_bbmc:
+                print >> sys.stderr, "Press the reset button"
+            subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], '-b', str(config.econotag_flasher_delay), '-e' ])
+        else:
+            print >> sys.stderr, "No flasher tool, using existing nvm"
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
-        #self.process = subprocess.Popen('echo ' + config.econotag_loader + ' -t '+ self.device['dev'] + ' ' + self.bin], stdout=self.log)
         if not config.econotag_bbmc:
             print >> sys.stderr, "Press the reset button"
             dummy = raw_input()

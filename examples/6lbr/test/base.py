@@ -208,10 +208,20 @@ class TestScenarios:
         config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
         config.simulation_path=getattr(config, 'simulation_path', None)
 
-        #Physical configuration
+        #Nativr configuration
         config.slip_radio=getattr(config, 'slip_radio', [])
         config.motes = getattr(config, 'motes', [])
         config.mote_baudrate=getattr(config, 'config_baudrate', 115200)
+        
+        #Remote configuration
+        config.ethernet_dev=getattr(config, 'ethernet_dev', 'eth0')
+
+        #Econotag configuration
+        config.econotag_br=getattr(config, 'econotag_br', [])
+        config.econotag_loader=getattr(config, 'econotag_loader', '../../../cpu/mc1322x/tools/mc1322x-load.pl')
+        econotag_bbmc=getattr(config, 'econotag_bbmc', None)
+        config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
+        config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
 
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
