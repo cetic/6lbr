@@ -19,18 +19,18 @@ gen_config_name_pyc='gen_config.pyc'
 def init_performance_config():
     config.report_path=getattr(config, 'report_path', 'report')
     config.topologies=getattr(config, 'topologies', ['./coojagen/examples/config_preset_1dag_10nodes.py'])
-    config.start_delays=getattr(config, 'start_delays', [0])
+    config.dag_stabilisation_delays=getattr(config, 'dag_stabilisation_delays', [0])
     config.test_repeat=getattr(config, 'test_repeat', 1)
     config.test_modes=getattr(config, 'test_modes', [])
     config.test_scenarios=getattr(config, 'test_scenarios', '')
 
 
-def generate_config(name, report_path, start_delay=0):
+def generate_config(name, report_path, dag_stabilisation_delay=0):
     gen_config = open( gen_config_name, 'w')
     print >> gen_config, "import config"
     print >> gen_config, "config.simulation_path='%s'" % name
     print >> gen_config, "config.report_path='%s'" % report_path
-    print >> gen_config, "config.start_delay=%d" % start_delay
+    print >> gen_config, "config.dag_stabilisation_delay=%d" % dag_stabilisation_delay
     #config.stop_br
     gen_config.close()
     if os.path.exists(gen_config_name_pyc):
@@ -57,14 +57,14 @@ for simgen_config_path in config.topologies:
     for simfile in simfiles:
         #Open and run the next COOJA topology
         simname = os.path.basename(simfile).replace('.csc','')
-        for start_delay in config.start_delays:
+        for dag_stabilisation_delay in config.dag_stabilisation_delays:
             for i in range(1,config.test_repeat+1):
-                itername='iter-%03d-%02d'% (start_delay, i)
+                itername='iter-%03d-%02d'% (dag_stabilisation_delay, i)
                 report_path=os.path.join(config.report_path, runname, simname, itername)
                 os.makedirs(report_path)
                 print >> sys.stderr, " ======================"
-                print >> sys.stderr, " == ITER %03d : %02d ==" % (start_delay, i)
-                generate_config(simfile, report_path, start_delay)
+                print >> sys.stderr, " == ITER %03d : %02d ==" % (dag_stabilisation_delay, i)
+                generate_config(simfile, report_path, dag_stabilisation_delay)
                 #R² the test suite with the current topology
                 modes=["--mode %s" % mode for mode in config.test_modes]
                 system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))

@@ -7,7 +7,7 @@ import sys
 from base import skipUnlessTrue
 
 class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
-    def S400x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
+    def S400x_base(self, start_udp, wsn_udp, udp_echo):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
@@ -19,15 +19,14 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
+        self.wait_mote_start()
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         timemotedetectdone = time.time()
-        if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
-            time.sleep(mote_start_delay)
+        self.wait_dag_stabilisation()
         timemoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
         timemotepingdone = time.time()
@@ -60,7 +59,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
-    def S502x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
+    def S502x_base(self, start_udp, wsn_udp, udp_echo):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
@@ -72,15 +71,14 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
+        self.wait_mote_start()
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         timemotedetectdone = time.time()
-        if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
-            time.sleep(mote_start_delay)
+        self.wait_dag_stabilisation()
         timemoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
         timemotepingdone = time.time()
@@ -126,7 +124,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(False, False, False, config.start_delay)
+        self.S400x_base(False, False, False)
 
     @skipUnlessTrue("S4001")
     def test_S4001(self):
@@ -134,7 +132,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, False, False, config.start_delay)
+        self.S400x_base(True, False, False)
 
     @skipUnlessTrue("S4002")
     def test_S4002(self):
@@ -142,7 +140,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, True, False, config.start_delay)
+        self.S400x_base(True, True, False)
 
     @skipUnlessTrue("S4003")
     def test_S4003(self):
@@ -150,7 +148,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, True, True, config.start_delay)
+        self.S400x_base(True, True, True)
 
     @skipUnlessTrue("S5020")
     @skipUnlessTrue("start_delay")
@@ -159,7 +157,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(False, False, False, config.start_delay)
+        self.S502x_base(False, False, False)
 
     @skipUnlessTrue("S5021")
     @skipUnlessTrue("start_delay")
@@ -168,7 +166,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, False, False, config.start_delay)
+        self.S502x_base(True, False, False)
 
     @skipUnlessTrue("S5022")
     @skipUnlessTrue("start_delay")
@@ -177,7 +175,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, True, False, config.start_delay)
+        self.S502x_base(True, True, False)
 
     @skipUnlessTrue("S5023")
     @skipUnlessTrue("start_delay")
@@ -186,5 +184,5 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, True, True, config.start_delay)
+        self.S502x_base(True, True, True)
 

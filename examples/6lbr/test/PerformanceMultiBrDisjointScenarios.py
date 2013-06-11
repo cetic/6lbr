@@ -8,7 +8,7 @@ from base import skipUnlessTrue
 
 class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
 
-    def S500x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
+    def S500x_base(self, start_udp, wsn_udp, udp_echo):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
@@ -20,15 +20,14 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
+        self.wait_mote_start()
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         timemotedetectdone = time.time()
-        if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
-            time.sleep(mote_start_delay)
+        self.wait_dag_stabilisation()
         timemoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
         timemotepingdone = time.time()
@@ -69,7 +68,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
             timereport.write("Network stopped = %f\n" % (1000*(timenetunsetdone-timestart),))
             timereport.write("Stop Test = %f\n" % (1000*(timestop-timestart),))
 
-    def S600x_base(self, start_udp, wsn_udp, udp_echo, mote_start_delay = 0):
+    def S600x_base(self, start_udp, wsn_udp, udp_echo):
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
         timenetset = time.time()
@@ -81,14 +80,13 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        if mote_start_delay > 0:
-            print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
-            time.sleep(mote_start_delay)
+        self.wait_mote_start()
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         timemotedetectdone = time.time()
+        self.wait_dag_stabilisation()
         timemoteping = time.time()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
         timemotepingdone = time.time()
@@ -147,7 +145,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(False, False, False, config.start_delay)
+        self.S500x_base(False, False, False)
 
     @skipUnlessTrue("S5001")
     def test_S5001(self):
@@ -155,7 +153,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, False, False, config.start_delay)
+        self.S500x_base(True, False, False)
 
     @skipUnlessTrue("S5002")
     def test_S5002(self):
@@ -163,7 +161,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, False, config.start_delay)
+        self.S500x_base(True, True, False)
 
     @skipUnlessTrue("S5003")
     def test_S5003(self):
@@ -171,28 +169,28 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, True, config.start_delay)
+        self.S500x_base(True, True, True)
 
     @skipUnlessTrue("S6000")
     def test_S6000(self):
         """
         """
-        self.S600x_base(False, False, False, config.start_delay)
+        self.S600x_base(False, False, False)
 
     @skipUnlessTrue("S6001")
     def test_S6001(self):
         """
         """
-        self.S600x_base(True, False, False, config.start_delay)
+        self.S600x_base(True, False, False)
 
     @skipUnlessTrue("S6002")
     def test_S6002(self):
         """
         """
-        self.S600x_base(True, True, False, config.start_delay)
+        self.S600x_base(True, True, False)
 
     @skipUnlessTrue("S6003")
     def test_S6003(self):
         """
         """
-        self.S600x_base(True, True, True, config.start_delay)
+        self.S600x_base(True, True, True)
