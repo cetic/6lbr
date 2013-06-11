@@ -164,7 +164,7 @@ class LocalEconotagBR(BRProxy):
             print >> sys.stderr, "No flasher tool, using existing nvm"
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         if config.econotag_bbmc:
-            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc], stdout=self.log)
+            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc])
         else:
             self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
             print >> sys.stderr, "Press the reset button"
