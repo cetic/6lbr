@@ -223,6 +223,30 @@ class TestScenarios:
         config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
         config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
 
+        #Test configuration 
+        config.ping_6lbr_timeout=getattr(config,'ping_6lbr_timeout',40)
+        config.mote_in_6lbr_timeout=getattr(config,'mote_in_6lbr_timeout',30)
+        config.ping_mote_timeout=getattr(config,'ping_mote_timeout',60)
+        config.no_ping_mote_timeout=getattr(config,'no_ping_mote_timeout',10)
+        config.ping_from_mote_timeout=getattr(config,'ping_from_mote_timeout',60)
+        config.external_host=getattr(config,'external_host','cccc::1')
+        config.ping_moved_mote_timeout=getattr(config,'ping_moved_mote_timeout',240)
+        config.ping_switched_mote_timeout=getattr(config,'ping_switched_mote_timeout',600)
+        config.mote_start_delay=getattr(config,'mote_start_delay',0)
+        config.dag_stabilisation_delay=getattr(config,'dag_stabilisation_delay',0)
+        config.long_dag_stabilisation_delay=getattr(config,'long_dag_stabilisation_delay',60)
+    
+    def wait_mote_start(self):
+        if config.mote_start_delay > 0:
+            print >> sys.stderr, "Wait %d s before starting up mote" % config.mote_start_delay
+            sleep(config.mote_start_delay)
+
+    def wait_dag_stabilisation(self, long=False):
+        delay = config.long_dag_stabilisation_delay if long else config.dag_stabilisation_delay
+        if delay > 0:
+            print >> sys.stderr, "Wait %d s for DAG stabilisation" % delay
+            sleep(delay)
+
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
 
