@@ -19,7 +19,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -41,7 +40,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
-        self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
         timenetunsetdone = time.time()
@@ -74,7 +72,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -102,7 +99,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
-        self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
         timenetunsetdone = time.time()
@@ -137,7 +133,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
@@ -164,7 +159,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
         self.support.platform.ping_stop(tping)
-        self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
         timenetunsetdone = time.time()
@@ -199,7 +193,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
                 self.assertTrue(self.support.start_udp_clients())
             else:
                 self.assertTrue(self.support.start_udp_client())
-        tcap = self.support.platform.pcap_start(config.backbone_dev,os.path.join(config.report_path,'%s.pcap'%config.backbone_dev))
         if mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s for DAG stabilisation" % mote_start_delay
             time.sleep(mote_start_delay)
@@ -235,7 +228,6 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
             else:
                 self.assertTrue(self.support.stop_udp_client())
             self.assertTrue(self.support.platform.udpsrv_stop())
-        self.support.platform.pcap_stop(tcap)
         timenetunset = time.time()
         self.tear_down_network()
         timenetunsetdone = time.time()
