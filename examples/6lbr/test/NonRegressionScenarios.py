@@ -1,4 +1,5 @@
 import base
+import config
 from base import skipUnlessTrue
 from time import sleep
 

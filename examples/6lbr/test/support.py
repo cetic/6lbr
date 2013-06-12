@@ -600,12 +600,18 @@ class LocalTelosMote(MoteProxy):
         return ret
 
     def ping(self, address, expect_reply=False, count=0):
+        #TODO: should use send_cmd()
         print "Ping %s..." % address
+        self.serialport.open()
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
         self.serialport.write("\r\nping %s\r\n" % address)
         if expect_reply:
-            return self.wait_until("Received an icmp6 echo reply\n", 10)
+            ret = self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
-            return True
+            ret = True
+        self.serialport.close()
+        return ret
 
 class VirtualTelosMote(MoteProxy):
     def __init__(self, wsn):
