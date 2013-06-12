@@ -21,7 +21,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
             else:
                 self.assertTrue(self.support.start_udp_client())
         self.wait_mote_start()
-        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping.log')
+        tping = self.support.platform.ping_run(self.support.test_mote.ip,1,config.test_report_path+'/ping.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
@@ -46,7 +46,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
         print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-        with open(config.report_path+'/time.log', "a") as timereport:
+        with open(config.test_report_path+'/time.log', "a") as timereport:
             timereport.write("Start Test= %f\n" % (timestart,))
             timereport.write("ms since start...\n")
             timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
@@ -64,7 +64,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
     def S11xx_base(self, start_udp, wsn_udp, udp_echo, global_repair = False):
         if not self.bridge_mode:
             print >> sys.stderr, "Not in bridge mode, skipping test"
-            os.system("touch %s/SKIPPED" % config.report_path)
+            os.system("touch %s/SKIPPED" % config.test_report_path)
             return
         timestart = time.time()
         self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
@@ -78,8 +78,8 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
             else:
                 self.assertTrue(self.support.start_udp_client())
         self.wait_mote_start()
-        tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.report_path+'/ping1.log')
-        tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace(config.wsn_prefix,config.wsn_second_prefix),1,config.report_path+'/ping2.log')
+        tping1 = self.support.platform.ping_run(self.support.test_mote.ip,1,config.test_report_path+'/ping1.log')
+        tping2 = self.support.platform.ping_run(self.support.test_mote.ip.replace(config.wsn_prefix,config.wsn_second_prefix),1,config.test_report_path+'/ping2.log')
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
@@ -138,7 +138,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
         print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-        with open(config.report_path+'/time.log', "a") as timereport:
+        with open(config.test_report_path+'/time.log', "a") as timereport:
             timereport.write("Start Test= %f\n" % (timestart,))
             timereport.write("ms since start...\n")
             timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
@@ -191,7 +191,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         timestop = time.time()
         print >> sys.stderr, "Test duration = %f s" % (timestop-timestart,)
-        with open(config.report_path+'/time.log', "a") as timereport:
+        with open(config.test_report_path+'/time.log', "a") as timereport:
             timereport.write("Start Test= %f\n" % (timestart,))
             timereport.write("ms since start...\n")
             timereport.write("Network start = %f\n" % (1000*(timenetset-timestart),))
