@@ -3,6 +3,7 @@ import config
 import time
 import os
 import sys
+import urllib2
 
 from base import skipUnlessTrue
 
@@ -24,7 +25,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         timemoterun = time.time()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         timemotedetect = time.time()
-        self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout30), "Mote not detected")
+        self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         timemotedetectdone = time.time()
         self.wait_dag_stabilisation()
         timemoteping = time.time()

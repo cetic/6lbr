@@ -65,7 +65,7 @@ for simgen_config_path in config.topologies:
                 print >> sys.stderr, " ======================"
                 print >> sys.stderr, " == ITER %03d : %02d ==" % (dag_stabilisation_delay, i)
                 generate_config(simfile, report_path, dag_stabilisation_delay)
-                #R² the test suite with the current topology
+                #Run the test suite with the current topology
                 modes=["--mode %s" % mode for mode in config.test_modes]
                 system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
                 os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
