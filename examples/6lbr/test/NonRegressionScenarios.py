@@ -120,7 +120,7 @@ class NonRegressionScenarios(base.TestScenarios):
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         sleep(1)
-        self.assertTrue(self.support.start_6lbr('_2'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr('_2', keep_nvm=True), "Could not start 6LBR")
         self.set_up_network()
         self.wait_dag_stabilisation()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")

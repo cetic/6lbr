@@ -94,7 +94,6 @@ class BRProxy:
         self.backbone=backbone
         self.wsn=wsn
         self.device=device
-        self.itf=None
         self.ip=None
 
     def setUp(self):
@@ -105,14 +104,17 @@ class BRProxy:
             self.device['used']=1
 
     def tearDown(self):
-        if ( self.process ):
+        if ( self.is_running() ):
             self.stop_6lbr()
         self.wsn.release_br_dev(self.device)
 
+    def is_running(self):
+        pass
+    
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         pass
 
-    def start_6lbr(self, log_stem):
+    def start_6lbr(self, log_stem, keep_nvm=False):
         pass
 
     def stop_6lbr(self):
@@ -125,9 +127,11 @@ class LocalEconotagBR(BRProxy):
         BRProxy.__init__(self, backbone, wsn, device)
         global econotag_index
         self.process=None
-        self.device=device
         econotag_index += 1
         self.index=econotag_index
+
+    def is_running(self):
+        return self.process != None
 
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         if mode=='ROUTER':
@@ -192,6 +196,9 @@ class LocalNativeBR(BRProxy):
         self.process=None
         self.itf = backbone.allocate_tap()
 
+    def is_running(self):
+        return self.process != None
+
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         self.mode=mode
         if iid:
@@ -235,7 +242,7 @@ class LocalNativeBR(BRProxy):
             params += " --eth-ip=%s" % self.ip
         subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
-    def start_6lbr(self, log_stem=""):
+    def start_6lbr(self, log_stem="", keep_nvm=False):
         print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.device['iid'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
@@ -257,24 +264,79 @@ class LocalNativeBR(BRProxy):
             self.process = None
         return True
 
+remote_br_index=0
+
 class RemoteNativeBR(BRProxy):    
-    def setUp(self):
-        self.itf="eth0"
+    def __init__(self, backbone, wsn, device):
+        BRProxy.__init__(self, backbone, wsn, device)
+        global remote_br_index
+        remote_br_index += 1
+        self.index=remote_br_index
+        self.running=False
 
-    def tearDown(self):
-        if ( self.process ):
-            self.stop_6lbr()
+    def is_running(self):
+        return self.running
 
-    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False, addr_rewrite=True, filter_rpl=True):
-        pass
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+        self.mode=mode
+        if iid:
+            self.ip=self.backbone.create_address(iid)
+        else:
+            self.ip=self.backbone.create_address(self.device['iid'])
+        self.cfg_path=os.path.join(config.test_report_path, "br_%d" % self.index)
+        self.cfg_file=os.path.join(self.cfg_path, "test.conf")
+        self.nvm_file=os.path.join(self.cfg_path, "test.dat")
+        if not os.path.exists(self.cfg_path):
+            os.makedirs(self.cfg_path)
+        conf = open(self.cfg_file, 'w')
+        print >>conf, "MODE=%s" % mode
+        print >>conf, "DEV_ETH=eth0"
+        print >>conf, "DEV_TAP=tap0"
+        print >>conf, "RAW_ETH=0"
+        print >>conf, "BRIDGE=1"
+        print >>conf, "CREATE_BRIDGE=0"
+        print >>conf, "DEV_BRIDGE=br0"
+        print >>conf, "DEV_RADIO=%s" % self.device['dev']
+        print >>conf, "BAUDRATE=%s" % self.device['baudrate']
+        print >>conf, "EXTRA_PARAMS=-v1"
+        conf.close()
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        params="--new %s --channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d %s" % (net_config, channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, self.nvm_file)
+        if iid:
+            params += " --eth-ip=%s" % self.ip
+        subprocess.check_output("../tools/nvm_tool " + params, shell=True)
 
-    def start_6lbr(self, log):
+    def remote_cmd(self, cmd):
+        result = system("ssh -i %s -o NumberOfPasswordPrompts=0 %s@%s sudo '%s'" % (config.id_file, config.remote_user, self.device['ctrl_ip'], cmd))
+        return result == 0
+
+    def send_file(self, local_file, remote_file):
+        result = system("scp -i %s -o NumberOfPasswordPrompts=0 %s %s@%s:%s" % (config.id_file, local_file, config.remote_user, self.device['ctrl_ip'], remote_file))
+        return result == 0
+
+    def retrieve_file(self, remote_file, local_file):
+        result = system("scp -i %s -o NumberOfPasswordPrompts=0 %s@%s:%s %s" % (config.id_file, config.remote_user, self.device['ctrl_ip'], remote_file, local_file))
+        return result == 0
+
+    def start_6lbr(self, log_stem="", keep_nvm=False):
+        self.remote_cmd("/etc/init.d/6lbr stop")
         print >> sys.stderr, "Starting 6LBR..."
-        return False
+        ret = self.send_file(self.cfg_file, '/etc/6lbr/6lbr.conf')
+        if not keep_nvm:
+            ret = ret and self.send_file(self.nvm_file, '/etc/6lbr/nvm.dat')
+        ret = ret and self.remote_cmd("/etc/init.d/6lbr start")
+        self.running=ret
+        return ret
 
     def stop_6lbr(self):
         print >> sys.stderr, "Stopping 6LBR..."
-        return False
+        ret = self.remote_cmd("/etc/init.d/6lbr stop")
+        print "Retrieve log file..."
+        ret = ret and self.retrieve_file('/var/log/6lbr.log', os.path.join(self.cfg_path, '6lbr.log'))
+        print "Retrieve err file..."
+        ret = ret and self.retrieve_file('/var/log/6lbr.err', os.path.join(self.cfg_path, '6lbr.err'))
+        self.running=False
+        return ret
 
 class Wsn:
     def __init__(self):
@@ -418,6 +480,7 @@ class LocalWsn(Wsn):
         #TODO: add device type
         self.brDevList+=deepcopy(config.slip_radio)
         self.brDevList+=deepcopy(config.econotag_br)
+        self.brDevList+=deepcopy(config.remote_br)
         self.moteDevList=deepcopy(config.motes)
 
     def setUp(self):

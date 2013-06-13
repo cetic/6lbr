@@ -13,3 +13,4 @@ run_pool
 *.dat
 postprocessing/allres.txt
 postprocessing/testfile.txt
+/config.py

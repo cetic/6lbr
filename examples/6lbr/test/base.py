@@ -70,10 +70,10 @@ class TestSupport:
         self.brList.append(_br)
         return _br
 
-    def start_6lbr(self, log=""):
+    def start_6lbr(self, log="", keep_nvm=False):
         ret = True
         for _br in self.brList:
-            ret = ret and _br.start_6lbr(log)
+            ret = ret and _br.start_6lbr(log, keep_nvm)
         return ret
 
     def stop_6lbr(self):
@@ -193,7 +193,6 @@ class TestScenarios:
         
         #Common configuration
         config.report_path=getattr(config, 'report_path', 'report')
-        config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
         config.channel=getattr(config, 'channel', 26)
         config.wsn_prefix=getattr(config, 'wsn_prefix', '8888')
         config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
@@ -207,13 +206,19 @@ class TestScenarios:
         config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
         config.simulation_path=getattr(config, 'simulation_path', None)
 
-        #Nativr configuration
+        #Native configuration
         config.slip_radio=getattr(config, 'slip_radio', [])
         config.motes = getattr(config, 'motes', [])
         config.mote_baudrate=getattr(config, 'config_baudrate', 115200)
+
+        #Local configuration
+        config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
         
         #Remote configuration
+        config.remote_br=getattr(config, 'remote_br', [])
         config.ethernet_dev=getattr(config, 'ethernet_dev', 'eth0')
+        config.id_file=getattr(config, 'id_file', None)
+        config.remote_user=getattr(config, 'remote_user', 'root')
 
         #Econotag configuration
         config.econotag_br=getattr(config, 'econotag_br', [])
