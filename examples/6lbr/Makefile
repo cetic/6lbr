@@ -217,6 +217,9 @@ ipk:
 tools:
 	cd tools && $(MAKE)
 
+6lbr-demo:
+	pushd test; ../package/usr/bin/6lbr conf-templates/cooja-1-router.conf; popd
+
 include $(CONTIKI)/Makefile.include
 
 .PHONY: all_native all_econotag deb ipk tools bin/* bin_econotag/*

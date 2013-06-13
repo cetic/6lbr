@@ -130,7 +130,7 @@ timeout_handler(void)
     rpl_dag_t *dag = rpl_get_any_dag();
     uip_ipaddr_copy(&newdest_addr, globaladdr);
     memcpy(&newdest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
-    has_dest=1;
+    has_dest = dag == NULL ? 0 : 1;
 #else
     uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
     if ( defrt != NULL ) {
