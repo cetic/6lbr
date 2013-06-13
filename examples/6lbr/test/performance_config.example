@@ -1,0 +1,14 @@
+test_scenarios='PerformanceSingleBrScenarios'
+test_modes=['Router', 'SmartBridge']
+
+#test_repeat=5
+#dag_stabilisation_delays=[0, 60, 600]
+#topologies=[
+    #'./coojagen/examples/config_line_single_br.py',
+    #'./coojagen/examples/config_grid_single_br.py',
+    #'./coojagen/examples/config_preset_1dag_1node.py',
+    #'./coojagen/examples/config_preset_1dag_10nodes.py',
+    #'./coojagen/examples/config_preset_2dags_20nodes_disjoint.py',
+    #'./coojagen/examples/config_preset_2dags_20nodes_overlap.py',
+    #'./coojagen/examples/config_grid_2br.py'
+#]
