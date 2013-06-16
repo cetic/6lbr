@@ -12,6 +12,7 @@ import config
 import re
 import os
 import serial
+import fabric.api
 
 class Backbone:
     def __init__(self, platform):
@@ -520,12 +521,20 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        self.hypernode_ip = None
+        self.supernode_hostname = '192.168.99.15'
+        self.brDevList=[]
+        self.brDevList+=deepcopy(config.slip_radio)
 
     def setUp(self):
         # TODO: Open connection to Hypernode
         # TODO: Import testbed configuration file
         # TODO: Create a new TestbedMote for each mote on the testbed
+        #self.tb_list()
+        motelist=['/dev/ttyUSB5','/dev/ttyUSB1','/dev/ttyUSB0','/dev/ttyUSB9','/dev/ttyUSB8','/dev/ttyUSB21','/dev/ttyUSB14','/dev/ttyUSB11']
+        self.tb_prog('6lbr-demo.sky', motelist, 'sky')
+        mote = config.moteClass(self)
+        mote.setUp()
+        self.motelist.append(mote)
         pass
 
     def tearDown(self):
@@ -533,6 +542,54 @@ class TestbedWsn(Wsn):
             mote.tearDown()
         self.motelist = []
         # TODO: Close connection to Hypernode
+
+    def allocate_br_dev(self):
+        for dev in self.brDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
+
+    def release_br_dev(self, dev):
+        del dev['used']
+
+    def allocate_mote_dev(self):
+        for dev in self.moteDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
+
+    def release_mote_dev(self, dev):
+        del dev['used']
+
+    def get_test_mote(self):
+        return self.motelist[-1]
+
+    def supernode_cmd(self, cmd):
+        with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True):
+            print >> sys.stderr, fabric.api.run(cmd)
+
+    #TODO send binfile to supernode, or reuse existing one from there
+    def tb_prog(self, binfile, mote_devs, mote_type):
+        #if 'mote_id' not in motes:
+        #    return False #TODO: Handle error: mote id does not exist
+        system('scp /home/sd/git/sixlbr/examples/6lbr-demo/%s root@%s:/root/bin' % (binfile, self.supernode_hostname))
+        self.supernode_cmd('tb_action -a prog -t %s -f /root/bin/%s -d %s' % (mote_type, binfile, ','.join(mote_devs)))
+
+    def tb_reset(self, mote_type, mote_devs=None):
+        if mote_devs == None:
+            mote_devs='all'
+        supernode_cmd('tb_action -a reset -t %s -d %s' % (mote_type, mote_devs))
+
+    def tb_erase(self, mote_type, mote_devs=None):
+        if mote_devs == None:
+            mote_devs = 'all'
+        supernode_cmd('tb_action -a erase -t %s -d %s' % (mote_type, mote_devs))
+
+    def tb_list(self, mote_type='sky'):
+        self.supernode_cmd('tb_list -t %s -s' % (mote_type))
+        pass
 
 class MoteProxy:
     def __init__(self):
