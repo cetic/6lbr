@@ -69,7 +69,8 @@ for simgen_config_path in config.topologies:
                 modes=["--mode %s" % mode for mode in config.test_modes]
                 system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
                 os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
-                os.unlink(gen_config_name_pyc)
+                if os.path.exists(gen_config_name_pyc):
+                    os.unlink(gen_config_name_pyc)
         #Move the current coojasim working directory to its final location
         shutil.copyfile(os.path.join('coojagen/output', simname+'.csc'),os.path.join(report_path, simname+'.csc'))
         shutil.copyfile(os.path.join('coojagen/output', simname+'.motes'),os.path.join(report_path, simname+'.motes'))
