@@ -47,6 +47,10 @@ if [[ "$CREATE_BRIDGE" != "0" && "$CREATE_BRIDGE" != "LAZY" && "$CREATE_BRIDGE" 
 	CREATE_BRIDGE="1"
 fi
 
+if [ "$ETH_JOIN_BRIDGE" == "" ]; then
+	ETH_JOIN_BRIDGE="1"
+fi
+
 # Radio configuration
 
 # No default values as platform are too different

@@ -217,6 +217,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
 
+        print >>conf, "ETH_JOIN_BRIDGE=0"
+
         if self.backbone.isBridge():
             print >>conf, "BRIDGE=1"
             print >>conf, "CREATE_BRIDGE=0"

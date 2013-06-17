@@ -22,10 +22,13 @@ case $MODE_6LBR in
 
 			if [ "$BRIDGE" = "1" ]; then
 				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
-					echo "6lbr-ifup: Create bridge $DEV_BRIDGE and attach device $DEV_ETH"
+					echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
 					brctl addbr $DEV_BRIDGE
 					brctl setfd $DEV_BRIDGE 0
-					brctl addif $DEV_BRIDGE $DEV_ETH
+					if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
+						echo "6lbr-ifup: attach device $DEV_ETH"
+						brctl addif $DEV_BRIDGE $DEV_ETH
+					fi
 					ip addr flush dev $DEV_ETH
 					ip link set $DEV_BRIDGE up
 				else
