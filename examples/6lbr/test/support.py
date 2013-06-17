@@ -531,12 +531,20 @@ class TestbedWsn(Wsn):
         # TODO: Open connection to Hypernode
         # TODO: Import testbed configuration file
         # TODO: Create a new TestbedMote for each mote on the testbed
-        #self.tb_list()
-        motelist=['/dev/ttyUSB5','/dev/ttyUSB1','/dev/ttyUSB0','/dev/ttyUSB9','/dev/ttyUSB8','/dev/ttyUSB21','/dev/ttyUSB14','/dev/ttyUSB11']
-        self.tb_prog('6lbr-demo.sky', motelist, 'sky')
-        mote = config.moteClass(self)
-        mote.setUp()
-        self.motelist.append(mote)
+        motedevs = self.tb_list()
+        for motedev in motedevs.split('\n'):
+            mote = config.moteClass(self, motedev.rstrip())
+            mote.setUp()
+            self.motelist.append(mote)
+
+        for mote in self.motelist:
+            print >> sys.stderr, ("mote", mote.dev)    
+        #motelist=['/dev/ttyUSB5','/dev/ttyUSB1','/dev/ttyUSB0','/dev/ttyUSB9','/dev/ttyUSB8','/dev/ttyUSB21','/dev/ttyUSB14','/dev/ttyUSB11']
+        #self.tb_prog('6lbr-demo.sky', motelist, 'sky')
+        #self.tb_reset('sky', 'all')
+        #mote = config.moteClass(self)
+        #mote.setUp()
+        #self.motelist.append(mote)
         pass
 
     def tearDown(self):
@@ -570,27 +578,29 @@ class TestbedWsn(Wsn):
 
     def supernode_cmd(self, cmd):
         with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True):
-            print >> sys.stderr, fabric.api.run(cmd)
+            output = fabric.api.run(cmd)
+            print >> sys.stderr, output
+            return output
 
     #TODO send binfile to supernode, or reuse existing one from there
     def tb_prog(self, binfile, mote_devs, mote_type):
         #if 'mote_id' not in motes:
         #    return False #TODO: Handle error: mote id does not exist
-        system('scp /home/sd/git/sixlbr/examples/6lbr-demo/%s root@%s:/root/bin' % (binfile, self.supernode_hostname))
+        system('scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /home/sd/git/sixlbr/examples/6lbr-demo/%s root@%s:/root/bin' % (binfile, self.supernode_hostname))
         self.supernode_cmd('tb_action -a prog -t %s -f /root/bin/%s -d %s' % (mote_type, binfile, ','.join(mote_devs)))
 
     def tb_reset(self, mote_type, mote_devs=None):
         if mote_devs == None:
             mote_devs='all'
-        supernode_cmd('tb_action -a reset -t %s -d %s' % (mote_type, mote_devs))
+        self.supernode_cmd('tb_action -a reset -t %s' % (mote_type))
 
     def tb_erase(self, mote_type, mote_devs=None):
         if mote_devs == None:
             mote_devs = 'all'
-        supernode_cmd('tb_action -a erase -t %s -d %s' % (mote_type, mote_devs))
+        self.supernode_cmd('tb_action -a erase -t %s -d %s' % (mote_type, mote_devs))
 
     def tb_list(self, mote_type='sky'):
-        self.supernode_cmd('tb_list -t %s -s' % (mote_type))
+        return self.supernode_cmd('tb_list -t %s -s' % (mote_type))
         pass
 
 class MoteProxy:
@@ -623,9 +633,10 @@ class MoteProxy:
         pass
 
 class TestbedMote(MoteProxy):
-    def __init__(self, wsn):
+    def __init__(self, wsn, dev):
         MoteProxy.__init__(self)
         self.wsn=wsn
+        self.dev=dev
 
     def wait_until(self, text, count):
         pass
