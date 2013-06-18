@@ -28,8 +28,8 @@ case $MODE_6LBR in
 					if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
 						echo "6lbr-ifup: attach device $DEV_ETH"
 						brctl addif $DEV_BRIDGE $DEV_ETH
+						ip addr flush dev $DEV_ETH
 					fi
-					ip addr flush dev $DEV_ETH
 					ip link set $DEV_BRIDGE up
 				else
 					echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
