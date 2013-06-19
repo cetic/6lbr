@@ -523,23 +523,26 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
+        #TODO: do not hardcode ip here
         self.supernode_hostname = '192.168.99.15'
         self.brDevList=[]
         self.brDevList+=deepcopy(config.slip_radio)
 
     def setUp(self):
-        # TODO: Open connection to Hypernode
-        # TODO: Import testbed configuration file
-        # TODO: Create a new TestbedMote for each mote on the testbed
         motedevs = self.tb_list()
+        #Just a sanity-check to see if there are some motes up and running
         for motedev in motedevs.split('\n'):
             mote = config.moteClass(self, motedev.rstrip())
             mote.setUp()
             self.motelist.append(mote)
 
         for mote in self.motelist:
-            print >> sys.stderr, ("mote", mote.dev)    
-        #motelist=['/dev/ttyUSB5','/dev/ttyUSB1','/dev/ttyUSB0','/dev/ttyUSB9','/dev/ttyUSB8','/dev/ttyUSB21','/dev/ttyUSB14','/dev/ttyUSB11']
+            print >> sys.stderr, ("mote", mote.dev)
+
+        #reset the whole testbed, twice, to avoid errors. 
+        #for simplicity, we do not use prog for now, it is pre-flashed
+        self.tb_reset()
+        self.tb_reset()
         #self.tb_prog('6lbr-demo.sky', motelist, 'sky')
         #self.tb_reset('sky', 'all')
         #mote = config.moteClass(self)
@@ -551,7 +554,6 @@ class TestbedWsn(Wsn):
         for mote in self.motelist:
             mote.tearDown()
         self.motelist = []
-        # TODO: Close connection to Hypernode
 
     def allocate_br_dev(self):
         for dev in self.brDevList:
@@ -582,17 +584,20 @@ class TestbedWsn(Wsn):
             print >> sys.stderr, output
             return output
 
-    #TODO send binfile to supernode, or reuse existing one from there
     def tb_prog(self, binfile, mote_devs, mote_type):
-        #if 'mote_id' not in motes:
-        #    return False #TODO: Handle error: mote id does not exist
+        #TODO: Handle error: mote id does not exist
+        #TODO: Handle prog errors
         system('scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /home/sd/git/sixlbr/examples/6lbr-demo/%s root@%s:/root/bin' % (binfile, self.supernode_hostname))
         self.supernode_cmd('tb_action -a prog -t %s -f /root/bin/%s -d %s' % (mote_type, binfile, ','.join(mote_devs)))
 
-    def tb_reset(self, mote_type, mote_devs=None):
-        if mote_devs == None:
-            mote_devs='all'
-        self.supernode_cmd('tb_action -a reset -t %s' % (mote_type))
+    def tb_reset(self, mote_type=None, mote_devs=None):
+        if mote_type == None:
+            self.supernode_cmd('tb_action -a reset')
+        else:
+            if mote_devs == None:
+                self.supernode_cmd('tb_action -a reset -t %s' % (mote_type))
+            else:
+                self.supernode_cmd('tb_action -a reset -t %s -d %s' % (mote_type, ','.join(mote_devs)))
 
     def tb_erase(self, mote_type, mote_devs=None):
         if mote_devs == None:
