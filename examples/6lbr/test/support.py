@@ -524,25 +524,33 @@ class TestbedWsn(Wsn):
         Wsn.__init__(self)
         self.motelist = []
         #TODO: do not hardcode ip here
-        self.supernode_hostname = '192.168.99.15'
+        self.supernode_hostname = '192.168.10.10'
         self.brDevList=[]
         self.brDevList+=deepcopy(config.slip_radio)
+        self.brDevList+=deepcopy(config.econotag_br)
+        self.brDevList+=deepcopy(config.remote_br)
+        self.testmote_label=config.testmote['label']
 
     def setUp(self):
-        motedevs = self.tb_list()
+        motelist = self.tb_list(verbose=True)
         #Just a sanity-check to see if there are some motes up and running
-        for motedev in motedevs.split('\n'):
-            mote = config.moteClass(self, motedev.rstrip())
-            mote.setUp()
+        for elem in motelist.split('\n'):
+            (label, serial, dev, name) = elem.split('\t')
+            if label == self.testmote_label:
+                print >> sys.stderr, "Found testmote %s %s" % (label, dev)
+                mote = config.moteClass(self, label, dev, config.testmote['iid'])
+            else:
+                mote = config.moteClass(self, label, dev)
             self.motelist.append(mote)
+            mote.setUp()
 
         for mote in self.motelist:
             print >> sys.stderr, ("mote", mote.dev)
 
         #reset the whole testbed, twice, to avoid errors. 
         #for simplicity, we do not use prog for now, it is pre-flashed
-        self.tb_reset()
-        self.tb_reset()
+        self.tb_reset('sky')
+        self.tb_reset('sky')
         #self.tb_prog('6lbr-demo.sky', motelist, 'sky')
         #self.tb_reset('sky', 'all')
         #mote = config.moteClass(self)
@@ -576,7 +584,10 @@ class TestbedWsn(Wsn):
         del dev['used']
 
     def get_test_mote(self):
-        return self.motelist[-1]
+        for mote in self.motelist:
+            if mote.label == self.testmote_label:
+                return mote
+        return None
 
     def supernode_cmd(self, cmd):
         with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True):
@@ -604,9 +615,11 @@ class TestbedWsn(Wsn):
             mote_devs = 'all'
         self.supernode_cmd('tb_action -a erase -t %s -d %s' % (mote_type, mote_devs))
 
-    def tb_list(self, mote_type='sky'):
-        return self.supernode_cmd('tb_list -t %s -s' % (mote_type))
-        pass
+    def tb_list(self, mote_type='sky', verbose=False):
+        if verbose:
+            return self.supernode_cmd('tb_list -t %s' % (mote_type))
+        else:
+            return self.supernode_cmd('tb_list -t %s -s' % (mote_type))
 
 class MoteProxy:
     def __init__(self):
@@ -638,10 +651,14 @@ class MoteProxy:
         pass
 
 class TestbedMote(MoteProxy):
-    def __init__(self, wsn, dev):
+    def __init__(self, wsn, label, dev, iid=None):
         MoteProxy.__init__(self)
         self.wsn=wsn
+        self.label=label
         self.dev=dev
+        self.baudrate=115200 #TODO hardcoded
+        if iid != None:
+            self.ip=self.wsn.create_address(iid)
 
     def wait_until(self, text, count):
         pass
@@ -651,7 +668,8 @@ class TestbedMote(MoteProxy):
         # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
 
     def start_mote(self, channel):
-        pass
+        return self.wsn.supernode_cmd('tb_serial_cmd -c start6lbr -b %s -d %s -r done -t 10' % (self.baudrate, self.dev))
+        
         # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
 
     def stop_mote(self):
