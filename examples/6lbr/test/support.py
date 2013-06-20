@@ -40,13 +40,13 @@ class Backbone:
 class EthernetBB(Backbone):
     def setUp(self):
         self.itf = config.ethernet_dev
-        result = self.platform.configure_bridge(self.itf)
+        #result = self.platform.configure_bridge(self.itf)
         self.if_up()
-        return result
+        return True
 
     def tearDown(self):
         self.if_down()
-        return self.platform.unconfigure_bridge(self.itf)
+        return True #self.platform.unconfigure_bridge(self.itf)
 
     def isBridge(self):
         return True
