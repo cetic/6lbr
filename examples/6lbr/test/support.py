@@ -662,23 +662,28 @@ class TestbedMote(MoteProxy):
 
     def wait_until(self, text, count):
         pass
-    
-    def reset_mote(self):
-        pass
-        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
 
+    def reset_mote(self):
+        self.wsn.tb_reset('sky', [self.dev,])
+    
     def start_mote(self, channel):
-        return self.wsn.supernode_cmd('tb_serial_cmd -c start6lbr -b %s -d %s -r done -t 10' % (self.baudrate, self.dev))
-        
-        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
+        return self.send_cmd('start6lbr', 'done', 15)       
+
+    def send_cmd(self, cmd, expect=None, expect_time=0):
+        if expect == None:
+            return self.wsn.supernode_cmd('tb_serial_cmd -c %s -b %s -d %s' % (cmd, self.baudrate, self.dev))
+        else:
+            return self.wsn.supernode_cmd('tb_serial_cmd -c %s -b %s -d %s -r %s -t %d' % (cmd, self.baudrate, self.dev, expect, int(expect_time)))
 
     def stop_mote(self):
-        pass
-        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
+        print >> sys.stderr, "Stopping mote..."
+        self.wsn.tb_reset('sky', [self.dev,])
+        #return self.send_cmd("reboot", "Starting", 5)
+        return True
 
     def ping(self, address, expect_reply=False, count=0):
-        pass
-        # TODO: Call ping on the specified mote instance
+        print "Ping %s..." % address
+        return self.send_cmd('"ping %s"' % address, '"Received an icmp6 echo reply\n"', 50)
 
 class LocalTelosMote(MoteProxy):
     def __init__(self, wsn):
