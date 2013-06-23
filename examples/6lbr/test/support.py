@@ -532,15 +532,22 @@ class TestbedWsn(Wsn):
         self.testmote_label=config.testmote['label']
 
     def setUp(self):
-        motelist = self.tb_list(verbose=True)
+        motelist = self.tb_list(mote_type='sky', verbose=True)
+        motelist += '\r\n' + self.tb_list(mote_type='z1', verbose=True)
         #Just a sanity-check to see if there are some motes up and running
         for elem in motelist.split('\n'):
             (label, serial, dev, name) = elem.split('\t')
+            type=""
+            if label[0] == "T":
+                type='sky'
+            elif label[1] == "Z":
+                type='z1'
+            print >> sys.stderr, type
             if label == self.testmote_label:
                 print >> sys.stderr, "Found testmote %s %s" % (label, dev)
-                mote = config.moteClass(self, label, dev, config.testmote['iid'])
+                mote = config.moteClass(self, label, dev, type, config.testmote['iid'])
             else:
-                mote = config.moteClass(self, label, dev)
+                mote = config.moteClass(self, label, dev, type)
             self.motelist.append(mote)
             mote.setUp()
 
@@ -551,6 +558,8 @@ class TestbedWsn(Wsn):
         #for simplicity, we do not use prog for now, it is pre-flashed
         self.tb_reset('sky')
         self.tb_reset('sky')
+        self.tb_reset('z1')
+        self.tb_reset('z1')
         #self.tb_prog('6lbr-demo.sky', motelist, 'sky')
         #self.tb_reset('sky', 'all')
         #mote = config.moteClass(self)
@@ -651,11 +660,12 @@ class MoteProxy:
         pass
 
 class TestbedMote(MoteProxy):
-    def __init__(self, wsn, label, dev, iid=None):
+    def __init__(self, wsn, label, dev, type, iid=None):
         MoteProxy.__init__(self)
         self.wsn=wsn
         self.label=label
         self.dev=dev
+        self.type=type
         self.baudrate=115200 #TODO hardcoded
         if iid != None:
             self.ip=self.wsn.create_address(iid)
@@ -664,7 +674,7 @@ class TestbedMote(MoteProxy):
         pass
 
     def reset_mote(self):
-        self.wsn.tb_reset('sky', [self.dev,])
+        self.wsn.tb_reset(self.type, [self.dev,])
     
     def start_mote(self, channel):
         return self.send_cmd('start6lbr', 'done', 15)       
