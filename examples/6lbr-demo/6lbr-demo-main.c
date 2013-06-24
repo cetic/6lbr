@@ -4,7 +4,11 @@
 #include "shell.h"
 #include "serial-shell.h"
 #include "dev/serial-line.h"
+#ifdef CONTIKI_TARGET_Z1
+#include "dev/uart0.h"
+#else
 #include "dev/uart1.h"
+#endif
 #include "shell-6lbr.h"
 #endif
 
@@ -33,7 +37,11 @@ PROCESS_THREAD(demo_6lbr_process, ev, data)
   PROCESS_BEGIN();
 
 #if SHELL
+#ifdef CONTIKI_TARGET_Z1
+  uart0_set_input(serial_line_input_byte);
+#else
   uart1_set_input(serial_line_input_byte);
+#endif
   serial_line_init();
 
   serial_shell_init();
