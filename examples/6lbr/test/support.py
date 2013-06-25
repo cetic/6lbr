@@ -12,6 +12,7 @@ import config
 import re
 import os
 import serial
+import fabric.api
 
 class Backbone:
     def __init__(self, platform):
@@ -39,13 +40,13 @@ class Backbone:
 class EthernetBB(Backbone):
     def setUp(self):
         self.itf = config.ethernet_dev
-        result = self.platform.configure_bridge(self.itf)
+        #result = self.platform.configure_bridge(self.itf)
         self.if_up()
-        return result
+        return True
 
     def tearDown(self):
         self.if_down()
-        return self.platform.unconfigure_bridge(self.itf)
+        return True #self.platform.unconfigure_bridge(self.itf)
 
     def isBridge(self):
         return True
@@ -215,6 +216,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
+
+        print >>conf, "ETH_JOIN_BRIDGE=0"
 
         if self.backbone.isBridge():
             print >>conf, "BRIDGE=1"
@@ -520,19 +523,112 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        self.hypernode_ip = None
+        #TODO: do not hardcode ip here
+        self.supernode_hostname = '192.168.10.10'
+        self.brDevList=[]
+        self.brDevList+=deepcopy(config.slip_radio)
+        self.brDevList+=deepcopy(config.econotag_br)
+        self.brDevList+=deepcopy(config.remote_br)
+        self.testmote_label=config.testmote['label']
 
     def setUp(self):
-        # TODO: Open connection to Hypernode
-        # TODO: Import testbed configuration file
-        # TODO: Create a new TestbedMote for each mote on the testbed
-        pass
+        motelist = self.tb_list(mote_type='sky', verbose=True)
+        motelist += '\r\n' + self.tb_list(mote_type='z1', verbose=True)
+        #Just a sanity-check to see if there are some motes up and running
+        for elem in motelist.split('\n'):
+            (label, serial, dev, name) = elem.split('\t')
+            type=""
+            if label[0] == "T":
+                type='sky'
+            elif label[1] == "Z":
+                type='z1'
+            print >> sys.stderr, type
+            if label == self.testmote_label:
+                print >> sys.stderr, "Found testmote %s %s" % (label, dev)
+                mote = config.moteClass(self, label, dev, type, config.testmote['iid'])
+            else:
+                mote = config.moteClass(self, label, dev, type)
+            self.motelist.append(mote)
+            mote.setUp()
+
+        for mote in self.motelist:
+            print >> sys.stderr, ("mote", mote.dev)
+
+        #reset the whole testbed, twice, to avoid errors. 
+        #for simplicity, we do not use prog for now, it is pre-flashed
+        self.tb_reset('sky')
+        self.tb_reset('sky')
+        self.tb_reset('z1')
+        self.tb_reset('z1')
+        #In testbed mode we use the 6lbr-demo-delay mode for ALL motes, because we want to avoid the first wave of reset motes to
+        #Join the old DODAG still running on the other motes. So now we need to startup all the motes except the real delay motes
+
+        for mote in self.motelist:
+            if mote.label != self.testmote_label:
+                mote.start_mote(config.channel, False)
 
     def tearDown(self):
         for mote in self.motelist:
             mote.tearDown()
         self.motelist = []
-        # TODO: Close connection to Hypernode
+
+    def allocate_br_dev(self):
+        for dev in self.brDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
+
+    def release_br_dev(self, dev):
+        del dev['used']
+
+    def allocate_mote_dev(self):
+        for dev in self.moteDevList:
+            if 'used' not in dev:
+                dev['used']=1
+                return dev
+        raise Exception()
+
+    def release_mote_dev(self, dev):
+        del dev['used']
+
+    def get_test_mote(self):
+        for mote in self.motelist:
+            if mote.label == self.testmote_label:
+                return mote
+        return None
+
+    def supernode_cmd(self, cmd):
+        with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True):
+            output = fabric.api.run(cmd)
+            print >> sys.stderr, output
+            return output
+
+    def tb_prog(self, binfile, mote_devs, mote_type):
+        #TODO: Handle error: mote id does not exist
+        #TODO: Handle prog errors
+        system('scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /home/sd/git/sixlbr/examples/6lbr-demo/%s root@%s:/root/bin' % (binfile, self.supernode_hostname))
+        self.supernode_cmd('tb_action -a prog -t %s -f /root/bin/%s -d %s' % (mote_type, binfile, ','.join(mote_devs)))
+
+    def tb_reset(self, mote_type=None, mote_devs=None):
+        if mote_type == None:
+            self.supernode_cmd('tb_action -a reset')
+        else:
+            if mote_devs == None:
+                self.supernode_cmd('tb_action -a reset -t %s' % (mote_type))
+            else:
+                self.supernode_cmd('tb_action -a reset -t %s -d %s' % (mote_type, ','.join(mote_devs)))
+
+    def tb_erase(self, mote_type, mote_devs=None):
+        if mote_devs == None:
+            mote_devs = 'all'
+        self.supernode_cmd('tb_action -a erase -t %s -d %s' % (mote_type, mote_devs))
+
+    def tb_list(self, mote_type='sky', verbose=False):
+        if verbose:
+            return self.supernode_cmd('tb_list -t %s' % (mote_type))
+        else:
+            return self.supernode_cmd('tb_list -t %s -s' % (mote_type))
 
 class MoteProxy:
     def __init__(self):
@@ -548,7 +644,7 @@ class MoteProxy:
     def reset_mote(self):
         pass
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm):
         pass
 
     def stop_mote(self):
@@ -564,28 +660,45 @@ class MoteProxy:
         pass
 
 class TestbedMote(MoteProxy):
-    def __init__(self, wsn):
+    def __init__(self, wsn, label, dev, type, iid=None):
         MoteProxy.__init__(self)
         self.wsn=wsn
+        self.label=label
+        self.dev=dev
+        self.type=type
+        self.baudrate=115200 #TODO hardcoded
+        if iid != None:
+            self.ip=self.wsn.create_address(iid)
 
     def wait_until(self, text, count):
         pass
-    
-    def reset_mote(self):
-        pass
-        # TODO: Call reset_mote on the specified mote instance (testbed-reset + start6lbrapps)
 
-    def start_mote(self, channel):
-        pass
-        # TODO: TestbedMote will implement start mote through a generic write mechanism to a mote's serial port
+    def reset_mote(self):
+        self.wsn.tb_reset(self.type, [self.dev,])
+    
+    def start_mote(self, channel, wait_confirm=True):
+        self.send_cmd('rfchannel %d' % channel)
+        if wait_confirm:
+            return self.send_cmd('start6lbr', 'done', 15)       
+        else:
+            return self.send_cmd('start6lbr')
+
+    def send_cmd(self, cmd, expect=None, expect_time=0):
+        if expect == None:
+            self.wsn.supernode_cmd('tb_serial_cmd -c "%s" -b %s -d %s' % (cmd, self.baudrate, self.dev))
+        else:
+            self.wsn.supernode_cmd('tb_serial_cmd -c "%s" -b %s -d %s -r %s -t %d' % (cmd, self.baudrate, self.dev, expect, int(expect_time)))
+        return True #TODO: check if supernode_cmd functions and return True/False. Supernode cmd returns the output string, not True/False
 
     def stop_mote(self):
-        pass
-        # TODO: Call stop_mote on the specified mote instance (testbed-reset)
+        print >> sys.stderr, "Stopping mote..."
+        self.wsn.tb_reset('sky', [self.dev,])
+        #return self.send_cmd("reboot", "Starting", 5)
+        return True
 
     def ping(self, address, expect_reply=False, count=0):
-        pass
-        # TODO: Call ping on the specified mote instance
+        print "Ping %s..." % address
+        return self.send_cmd('"ping %s"' % address, '"Received an icmp6 echo reply\n"', 50)
 
 class LocalTelosMote(MoteProxy):
     def __init__(self, wsn):
@@ -627,7 +740,7 @@ class LocalTelosMote(MoteProxy):
         self.serialport.close()
         return result
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm=True):
         print >> sys.stderr, "Starting mote..."
         self.serialport.open()
         self.serialport.flushInput()
@@ -719,7 +832,7 @@ class VirtualTelosMote(MoteProxy):
         print >> sys.stderr, "Resetting mote..."
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm=True):
         #TODO check if send_cmd and the receiveing mote can handle this in 1 command: \r\nrfchannel %d\r\nstart6lbr\r\n
         print >> sys.stderr, "Starting mote..."
         self.serialport.open()
@@ -770,7 +883,7 @@ class InteractiveMote(MoteProxy):
     def setUp(self):
         self.ip="aaaa::" + config.iid_mote
 
-    def start_mote(self,channel):
+    def start_mote(self,channel, wait_confirm=True):
         print >> sys.stderr, "*** Press enter when mote is powered on"
         dummy = raw_input()
         self.mote_started=True

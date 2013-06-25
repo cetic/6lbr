@@ -4,6 +4,11 @@
 #include "dev/cc2420.h"
 #include "contiki-net.h"
 
+#ifdef CONTIKI_TARGET_Z1
+#include "dev/leds.h"
+#include "sys/node-id.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -17,6 +22,13 @@ extern uint8_t udp_client_run;
 PROCESS_NAME(tcpip_process);
 
 /*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_TARGET_Z1
+PROCESS(shell_nodeid_process, "nodeid");
+SHELL_COMMAND(nodeid_command,
+	      "nodeid",
+	      "nodeid: set node ID",
+	      &shell_nodeid_process);
+#endif
 PROCESS(shell_fast_reboot_process, "reboot");
 SHELL_COMMAND(fast_reboot_command,
 	      "reboot",
@@ -59,6 +71,39 @@ PROCESS_THREAD(shell_fast_reboot_process, ev, data)
 
   PROCESS_END();
 }
+
+/*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_TARGET_Z1
+PROCESS_THREAD(shell_nodeid_process, ev, data)
+{
+  uint16_t nodeid;
+  char buf[20];
+  const char *newptr;
+  PROCESS_BEGIN();
+
+  nodeid = shell_strtolong(data, &newptr);
+
+  /* If no node ID was given on the command line, we print out the
+     current channel. Else we burn the new node ID. */
+  if(newptr == data) {
+    nodeid = node_id;
+  } else {
+    nodeid = shell_strtolong(data, &newptr);
+    watchdog_stop();
+    leds_on(LEDS_RED);
+    node_id_burn(nodeid);
+    leds_on(LEDS_BLUE);
+    node_id_restore();
+    leds_off(LEDS_RED + LEDS_BLUE);
+    watchdog_start();
+  }
+
+  snprintf(buf, sizeof(buf), "%d", nodeid);
+  shell_output_str(&nodeid_command, "Node ID: ", buf);
+
+  PROCESS_END();
+}
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_start_6lbr_process, ev, data)
 {
@@ -135,6 +180,9 @@ PROCESS_THREAD(shell_udp_process, ev, data)
 void
 shell_6lbr_init(void)
 {
+#ifdef CONTIKI_TARGET_Z1
+  shell_register_command(&nodeid_command);
+#endif
   shell_register_command(&fast_reboot_command);
   shell_register_command(&start6lbr_command);
   shell_register_command(&rfchannel_command);

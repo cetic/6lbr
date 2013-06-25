@@ -1,5 +1,5 @@
-import base
 import config
+import base
 import time
 import os
 import sys

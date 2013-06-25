@@ -143,7 +143,7 @@ class NonRegressionScenarios(base.TestScenarios):
         """
         pass
 
-    @skipUnlessTrue("S8")
+    @skipUnlessTrue("S9")
     def test_S9_udp_trafic(self):
         """
         Test UDP traffic towards host.
