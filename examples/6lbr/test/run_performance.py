@@ -43,36 +43,54 @@ mod = 0
 
 runname='run-%s' % time.strftime("%Y%m%d%H%M%S")
 
-for simgen_config_path in config.topologies:
-    parser = simgen.ConfigParser()
+#Check to make sure we're not on the testbed
+if config.topologies != 'CETIC Testbed':
+    for simgen_config_path in config.topologies:
+        parser = simgen.ConfigParser()
 
-    print("LOADING CONFIG %s" % simgen_config_path)
-    config_simgen = imp.load_source('module.name_%d' % mod, simgen_config_path)
-    mod += 1
-    if not parser.parse_config(config_simgen):
-	sys.exit("topology generation error")
+        print("LOADING CONFIG %s" % simgen_config_path)
+        config_simgen = imp.load_source('module.name_%d' % mod, simgen_config_path)
+        mod += 1
+        if not parser.parse_config(config_simgen):
+    	    sys.exit("topology generation error")
 
-    simfiles = parser.get_simfiles()
+        simfiles = parser.get_simfiles()
 
-    for simfile in simfiles:
-        #Open and run the next COOJA topology
-        simname = os.path.basename(simfile).replace('.csc','')
-        for dag_stabilisation_delay in config.dag_stabilisation_delays:
-            for i in range(1,config.test_repeat+1):
-                itername='iter-%03d-%02d'% (dag_stabilisation_delay, i)
-                report_path=os.path.join(config.report_path, runname, simname, itername)
-                os.makedirs(report_path)
-                print >> sys.stderr, " ======================"
-                print >> sys.stderr, " == ITER %03d : %02d ==" % (dag_stabilisation_delay, i)
-                generate_config(simfile, report_path, dag_stabilisation_delay)
-                #Run the test suite with the current topology
-                modes=["--mode %s" % mode for mode in config.test_modes]
-                system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
-                os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
-                if os.path.exists(gen_config_name_pyc):
-                    os.unlink(gen_config_name_pyc)
-        #Move the current coojasim working directory to its final location
-        shutil.copyfile(os.path.join('coojagen/output', simname+'.csc'),os.path.join(report_path, simname+'.csc'))
-        shutil.copyfile(os.path.join('coojagen/output', simname+'.motes'),os.path.join(report_path, simname+'.motes'))
+        for simfile in simfiles:
+            #Open and run the next COOJA topology
+            simname = os.path.basename(simfile).replace('.csc','')
+            for dag_stabilisation_delay in config.dag_stabilisation_delays:
+                for i in range(1,config.test_repeat+1):
+                    itername='iter-%03d-%02d'% (dag_stabilisation_delay, i)
+                    report_path=os.path.join(config.report_path, runname, simname, itername)
+                    os.makedirs(report_path)
+                    print >> sys.stderr, " ======================"
+                    print >> sys.stderr, " == ITER %03d : %02d ==" % (dag_stabilisation_delay, i)
+                    generate_config(simfile, report_path, dag_stabilisation_delay)
+                    #Run the test suite with the current topology
+                    modes=["--mode %s" % mode for mode in config.test_modes]
+                    system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
+                    os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
+                    if os.path.exists(gen_config_name_pyc):
+                        os.unlink(gen_config_name_pyc)
+            #Move the current coojasim working directory to its final location
+            shutil.copyfile(os.path.join('coojagen/output', simname+'.csc'),os.path.join(report_path, simname+'.csc'))
+            shutil.copyfile(os.path.join('coojagen/output', simname+'.motes'),os.path.join(report_path, simname+'.motes'))
 
-
+#Else, we are on CETIC Testbed. 
+#This is a hack while we make the previous piece of code independant of COOJA
+else:
+    for dag_stabilisation_delay in config.dag_stabilisation_delays:
+        for i in range(1,config.test_repeat+1):
+            itername='iter-%03d-%02d'% (dag_stabilisation_delay, i)
+            report_path=os.path.join(config.report_path, runname, itername)
+            os.makedirs(report_path)
+            print >> sys.stderr, " ==== CETIC TESTBED ==="
+            print >> sys.stderr, " ======================"
+            print >> sys.stderr, " == ITER %03d : %02d ==" % (dag_stabilisation_delay, i)
+            generate_config('testbed', report_path, dag_stabilisation_delay)
+            modes=["--mode %s" % mode for mode in config.test_modes]
+            system("python2.7 ./run_tests.py  --scenarios %s %s" % (config.test_scenarios, ' '.join(modes)))
+            os.rename(gen_config_name, os.path.join(report_path, gen_config_name))
+            if os.path.exists(gen_config_name_pyc):
+                os.unlink(gen_config_name_pyc)
