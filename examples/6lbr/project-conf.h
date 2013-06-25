@@ -46,7 +46,7 @@
 /*------------------------------------------------------------------*/
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 2
+#define UIP_CONF_DS6_ADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
@@ -70,7 +70,7 @@
 /*------------------------------------------------------------------*/
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 1
+#define UIP_CONF_DS6_ADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
@@ -106,7 +106,7 @@
 #define UIP_CONF_ND6_DEF_MAXDADNS	1
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 3
+#define UIP_CONF_DS6_ADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
@@ -141,7 +141,7 @@
 #define UIP_CONF_ND6_DEF_MAXDADNS	1
 
 //Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 3
+#define UIP_CONF_DS6_ADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
