@@ -560,12 +560,12 @@ class TestbedWsn(Wsn):
         self.tb_reset('sky')
         self.tb_reset('z1')
         self.tb_reset('z1')
-        #self.tb_prog('6lbr-demo.sky', motelist, 'sky')
-        #self.tb_reset('sky', 'all')
-        #mote = config.moteClass(self)
-        #mote.setUp()
-        #self.motelist.append(mote)
-        pass
+        #In testbed mode we use the 6lbr-demo-delay mode for ALL motes, because we want to avoid the first wave of reset motes to
+        #Join the old DODAG still running on the other motes. So now we need to startup all the motes except the real delay motes
+
+        for mote in self.motelist:
+            if mote.label != self.testmote_label:
+                mote.start_mote(config.channel, False)
 
     def tearDown(self):
         for mote in self.motelist:
@@ -644,7 +644,7 @@ class MoteProxy:
     def reset_mote(self):
         pass
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm):
         pass
 
     def stop_mote(self):
@@ -676,14 +676,19 @@ class TestbedMote(MoteProxy):
     def reset_mote(self):
         self.wsn.tb_reset(self.type, [self.dev,])
     
-    def start_mote(self, channel):
-        return self.send_cmd('start6lbr', 'done', 15)       
+    def start_mote(self, channel, wait_confirm=True):
+        self.send_cmd('rfchannel %d' % channel)
+        if wait_confirm:
+            return self.send_cmd('start6lbr', 'done', 15)       
+        else:
+            return self.send_cmd('start6lbr')
 
     def send_cmd(self, cmd, expect=None, expect_time=0):
         if expect == None:
-            return self.wsn.supernode_cmd('tb_serial_cmd -c %s -b %s -d %s' % (cmd, self.baudrate, self.dev))
+            self.wsn.supernode_cmd('tb_serial_cmd -c "%s" -b %s -d %s' % (cmd, self.baudrate, self.dev))
         else:
-            return self.wsn.supernode_cmd('tb_serial_cmd -c %s -b %s -d %s -r %s -t %d' % (cmd, self.baudrate, self.dev, expect, int(expect_time)))
+            self.wsn.supernode_cmd('tb_serial_cmd -c "%s" -b %s -d %s -r %s -t %d' % (cmd, self.baudrate, self.dev, expect, int(expect_time)))
+        return True #TODO: check if supernode_cmd functions and return True/False. Supernode cmd returns the output string, not True/False
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
@@ -735,7 +740,7 @@ class LocalTelosMote(MoteProxy):
         self.serialport.close()
         return result
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm=True):
         print >> sys.stderr, "Starting mote..."
         self.serialport.open()
         self.serialport.flushInput()
@@ -827,7 +832,7 @@ class VirtualTelosMote(MoteProxy):
         print >> sys.stderr, "Resetting mote..."
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
-    def start_mote(self, channel):
+    def start_mote(self, channel, wait_confirm=True):
         #TODO check if send_cmd and the receiveing mote can handle this in 1 command: \r\nrfchannel %d\r\nstart6lbr\r\n
         print >> sys.stderr, "Starting mote..."
         self.serialport.open()
@@ -878,7 +883,7 @@ class InteractiveMote(MoteProxy):
     def setUp(self):
         self.ip="aaaa::" + config.iid_mote
 
-    def start_mote(self,channel):
+    def start_mote(self,channel, wait_confirm=True):
         print >> sys.stderr, "*** Press enter when mote is powered on"
         dummy = raw_input()
         self.mote_started=True
