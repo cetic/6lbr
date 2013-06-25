@@ -209,7 +209,7 @@ class TestScenarios:
         #Native configuration
         config.slip_radio=getattr(config, 'slip_radio', [])
         config.motes = getattr(config, 'motes', [])
-        config.mote_baudrate=getattr(config, 'config_baudrate', 115200)
+        config.mote_baudrate=getattr(config, 'mote_baudrate', 115200)
 
         #Local configuration
         config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
