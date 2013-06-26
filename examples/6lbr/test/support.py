@@ -333,6 +333,7 @@ class RemoteNativeBR(BRProxy):
 
     def start_6lbr(self, log_stem="", keep_nvm=False):
         self.remote_cmd("/etc/init.d/6lbr stop")
+        self.remote_cmd("rm /var/log/6lbr*")
         print >> sys.stderr, "Starting 6LBR..."
         ret = self.send_file(self.cfg_file, '/etc/6lbr/6lbr.conf')
         if not keep_nvm:
@@ -541,8 +542,7 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        #TODO: do not hardcode ip here
-        self.supernode_hostname = '192.168.10.10'
+        self.supernode_hostname = config.supernode
         self.brDevList=[]
         self.brDevList+=deepcopy(config.slip_radio)
         self.brDevList+=deepcopy(config.econotag_br)
@@ -553,13 +553,12 @@ class TestbedWsn(Wsn):
         print >> sys.stderr, "Discovering Testbed Motes..."
         motelist = self.tb_list(mote_type='sky', verbose=True)
         motelist += '\r\n' + self.tb_list(mote_type='z1', verbose=True)
-        #Just a sanity-check to see if there are some motes up and running
         for elem in motelist.split('\n'):
             (label, serial, dev, name) = elem.split('\t')
             type=""
             if label[0] == "T":
                 type='sky'
-            elif label[1] == "Z":
+            elif label[0] == "Z":
                 type='z1'
             if label == self.testmote_label:
                 print >> sys.stderr, "Found testmote %s %s" % (label, dev)

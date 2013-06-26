@@ -241,6 +241,9 @@ class TestScenarios:
         config.mote_start_delay=getattr(config,'mote_start_delay',0)
         config.dag_stabilisation_delay=getattr(config,'dag_stabilisation_delay',0)
         config.long_dag_stabilisation_delay=getattr(config,'long_dag_stabilisation_delay',60)
+
+        #Testbed
+        config.supernode=getattr(config, 'supernode', '192.168.10.10') #CETIC's supernode1 ip on the testbed VLAN
     
     def wait_mote_start(self):
         if config.mote_start_delay > 0:
