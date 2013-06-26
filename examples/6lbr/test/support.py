@@ -546,13 +546,12 @@ class TestbedWsn(Wsn):
         print >> sys.stderr, "Discovering Testbed Motes..."
         motelist = self.tb_list(mote_type='sky', verbose=True)
         motelist += '\r\n' + self.tb_list(mote_type='z1', verbose=True)
-        #Just a sanity-check to see if there are some motes up and running
         for elem in motelist.split('\n'):
             (label, serial, dev, name) = elem.split('\t')
             type=""
             if label[0] == "T":
                 type='sky'
-            elif label[1] == "Z":
+            elif label[0] == "Z":
                 type='z1'
             if label == self.testmote_label:
                 print >> sys.stderr, "Found testmote %s %s" % (label, dev)
