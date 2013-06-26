@@ -535,8 +535,7 @@ class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
         self.motelist = []
-        #TODO: do not hardcode ip here
-        self.supernode_hostname = '192.168.10.10'
+        self.supernode_hostname = config.supernode
         self.brDevList=[]
         self.brDevList+=deepcopy(config.slip_radio)
         self.brDevList+=deepcopy(config.econotag_br)
