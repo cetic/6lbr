@@ -18,6 +18,7 @@ extern uint8_t use_user_dest_addr;
 extern uip_ip6addr_t user_dest_addr;
 extern uint16_t user_dest_port;
 extern uint8_t udp_client_run;
+extern clock_time_t udp_interval;
 
 PROCESS_NAME(tcpip_process);
 
@@ -54,6 +55,11 @@ SHELL_COMMAND(udp_port_command,
 	      "udp-port",
 	      "udp-port <port>: configure udp destination port",
 	      &shell_udp_port_process);
+PROCESS(shell_udp_interval_process, "udp-int");
+SHELL_COMMAND(udp_interval_command,
+	      "udp-int",
+	      "udp-int <int>: configure udp interval",
+	      &shell_udp_interval_process);
 PROCESS(shell_udp_process, "udp");
 SHELL_COMMAND(udp_command,
 	      "udp",
@@ -165,6 +171,21 @@ PROCESS_THREAD(shell_udp_port_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_udp_interval_process, ev, data)
+{
+  clock_time_t interval;
+  const char *newptr;
+  PROCESS_BEGIN();
+
+  interval = shell_strtolong(data, &newptr);
+
+  if(newptr != data) {
+    udp_interval = interval * CLOCK_SECOND;
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_udp_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -188,6 +209,7 @@ shell_6lbr_init(void)
   shell_register_command(&rfchannel_command);
   shell_register_command(&udp_host_command);
   shell_register_command(&udp_port_command);
+  shell_register_command(&udp_interval_command);
   shell_register_command(&udp_command);
 }
 /*---------------------------------------------------------------------------*/
