@@ -124,7 +124,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(False, False, False)
+        self.S400x_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S4001")
     def test_S4001(self):
@@ -132,7 +132,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, False, False)
+        self.S400x_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S4002")
     def test_S4002(self):
@@ -140,7 +140,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, True, False)
+        self.S400x_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S4003")
     def test_S4003(self):
@@ -148,7 +148,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S400x_base(True, True, True)
+        self.S400x_base(start_udp=True, wsn_udp=True, udp_echo=True)
 
     @skipUnlessTrue("S5020")
     @skipUnlessTrue("start_delay")
@@ -157,7 +157,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(False, False, False)
+        self.S502x_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S5021")
     @skipUnlessTrue("start_delay")
@@ -166,7 +166,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, False, False)
+        self.S502x_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S5022")
     @skipUnlessTrue("start_delay")
@@ -175,7 +175,7 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, True, False)
+        self.S502x_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S5023")
     @skipUnlessTrue("start_delay")
@@ -184,5 +184,5 @@ class PerformanceMultiBrOverlapScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S502x_base(True, True, True)
+        self.S502x_base(start_udp=True, wsn_udp=True, udp_echo=True)
 

@@ -145,7 +145,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(False, False, False)
+        self.S500x_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S5001")
     def test_S5001(self):
@@ -153,7 +153,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, False, False)
+        self.S500x_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S5002")
     def test_S5002(self):
@@ -161,7 +161,7 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, False)
+        self.S500x_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S5003")
     def test_S5003(self):
@@ -169,28 +169,28 @@ class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S500x_base(True, True, True)
+        self.S500x_base(start_udp=True, wsn_udp=True, udp_echo=True)
 
     @skipUnlessTrue("S6000")
     def test_S6000(self):
         """
         """
-        self.S600x_base(False, False, False)
+        self.S600x_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S6001")
     def test_S6001(self):
         """
         """
-        self.S600x_base(True, False, False)
+        self.S600x_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S6002")
     def test_S6002(self):
         """
         """
-        self.S600x_base(True, True, False)
+        self.S600x_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S6003")
     def test_S6003(self):
         """
         """
-        self.S600x_base(True, True, True)
+        self.S600x_base(start_udp=True, wsn_udp=True, udp_echo=True)
