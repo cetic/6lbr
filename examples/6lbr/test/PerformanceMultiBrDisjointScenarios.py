@@ -4,6 +4,7 @@ import time
 import os
 import sys
 
+from time import sleep
 from base import skipUnlessTrue
 
 class PerformanceMultiBrDisjointScenarios(base.TestScenarios):
