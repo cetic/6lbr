@@ -180,7 +180,7 @@ PROCESS_THREAD(shell_udp_interval_process, ev, data)
   interval = shell_strtolong(data, &newptr);
 
   if(newptr != data) {
-    udp_interval = interval;
+    udp_interval = interval * CLOCK_SECOND;
   }
 
   PROCESS_END();
