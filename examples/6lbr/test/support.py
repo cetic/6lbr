@@ -103,6 +103,7 @@ class BRProxy:
             self.device=self.wsn.allocate_br_dev()
         else:
             self.device['used']=1
+        self.stop_6lbr_forced()
 
     def tearDown(self):
         if ( self.is_running() ):
@@ -119,6 +120,9 @@ class BRProxy:
         pass
 
     def stop_6lbr(self):
+        pass
+
+    def stop_6lbr_forced(self):
         pass
 
 econotag_index=0
@@ -341,6 +345,11 @@ class RemoteNativeBR(BRProxy):
         self.running=False
         return ret
 
+    def stop_6lbr_forced(self):
+        print >> sys.stderr, "Stopping 6LBR..."
+        ret = self.remote_cmd("/etc/init.d/6lbr stop")
+        return ret
+
 class Wsn:
     def __init__(self):
         self.prefix=None
@@ -350,6 +359,9 @@ class Wsn:
 
     def tearDown(self):
 	    pass
+
+    def reset(self):
+        pass
 
     def create_address(self, iid):
         return self.prefix + '::' + iid
@@ -554,6 +566,7 @@ class TestbedWsn(Wsn):
         for mote in self.motelist:
             print >> sys.stderr, ("mote", mote.dev)
 
+    def reset(self):
         #reset the whole testbed, twice, to avoid errors. 
         #for simplicity, we do not use prog for now, it is pre-flashed
         self.tb_reset('sky')

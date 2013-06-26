@@ -49,6 +49,7 @@ class TestSupport:
             print >> sys.stderr, "Setup 6LBR #%i" % i
             _br.setUp()
         self.test_mote = self.wsn.get_test_mote()
+        self.wsn.reset()
 
     def tearDown(self):
         for _br in self.brList:
