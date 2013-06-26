@@ -544,6 +544,7 @@ class TestbedWsn(Wsn):
         self.testmote_label=config.testmote['label']
 
     def setUp(self):
+        print >> sys.stderr, "Discovering Testbed Motes..."
         motelist = self.tb_list(mote_type='sky', verbose=True)
         motelist += '\r\n' + self.tb_list(mote_type='z1', verbose=True)
         #Just a sanity-check to see if there are some motes up and running
@@ -554,7 +555,6 @@ class TestbedWsn(Wsn):
                 type='sky'
             elif label[1] == "Z":
                 type='z1'
-            print >> sys.stderr, type
             if label == self.testmote_label:
                 print >> sys.stderr, "Found testmote %s %s" % (label, dev)
                 mote = config.moteClass(self, label, dev, type, config.testmote['iid'])
@@ -563,12 +563,14 @@ class TestbedWsn(Wsn):
             self.motelist.append(mote)
             mote.setUp()
 
-        for mote in self.motelist:
-            print >> sys.stderr, ("mote", mote.dev)
+        #We could re-use this if we implement a verbose mode:
+        #for mote in self.motelist:
+        #    print >> sys.stderr, ("mote", mote.dev)
 
     def reset(self):
         #reset the whole testbed, twice, to avoid errors. 
         #for simplicity, we do not use prog for now, it is pre-flashed
+        print >> sys.stderr, "Resetting the Testbed..."
         self.tb_reset('sky')
         self.tb_reset('sky')
         self.tb_reset('z1')
@@ -612,9 +614,9 @@ class TestbedWsn(Wsn):
         return None
 
     def supernode_cmd(self, cmd):
-        with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True):
+        with fabric.api.settings(host_string=self.supernode_hostname, user='root', use_ssh_config=True, hide=True), fabric.api.hide('output'), fabric.api.hide('running'):
             output = fabric.api.run(cmd)
-            print >> sys.stderr, output
+            #print >> sys.stderr, output
             return output
 
     def tb_prog(self, binfile, mote_devs, mote_type):
@@ -690,7 +692,9 @@ class TestbedMote(MoteProxy):
         self.wsn.tb_reset(self.type, [self.dev,])
     
     def start_mote(self, channel, wait_confirm=True):
+        print >> sys.stderr, "Set channel %d on %s mote, device %s" % (channel, self.type, self.dev)
         self.send_cmd('rfchannel %d' % channel)
+        print >> sys.stderr, "Start %s mote, device %s" % (self.type, self.dev)
         if wait_confirm:
             return self.send_cmd('start6lbr', 'done', 15)       
         else:
