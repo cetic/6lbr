@@ -327,6 +327,7 @@ class RemoteNativeBR(BRProxy):
 
     def start_6lbr(self, log_stem="", keep_nvm=False):
         self.remote_cmd("/etc/init.d/6lbr stop")
+        self.remote_cmd("rm /var/log/6lbr*")
         print >> sys.stderr, "Starting 6LBR..."
         ret = self.send_file(self.cfg_file, '/etc/6lbr/6lbr.conf')
         if not keep_nvm:
