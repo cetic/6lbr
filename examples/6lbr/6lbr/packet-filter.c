@@ -406,6 +406,11 @@ bridge_output(uip_lladdr_t * dest)
     eth_output(NULL, dest);
   }
   if( ! IS_EUI48_ADDR(dest) || isBroadcast) {
+	if (isBroadcast
+	    && UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+	    && UIP_ICMP_BUF->type == ICMP6_NA) {
+		return 0;
+	}
     wireless_output(NULL, dest);
   }
   return 0;
