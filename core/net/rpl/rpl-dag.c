@@ -975,8 +975,9 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("\n");
 
   ANNOTATE("#A join=%u\n", dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
-
-  rpl_process_parent_event(instance, p);
+  if(dag->rank != ROOT_RANK(instance)) {
+    rpl_process_parent_event(instance, p);
+  }
   p->dtsn = dio->dtsn;
 }
 
