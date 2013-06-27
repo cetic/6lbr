@@ -1155,12 +1155,15 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
+/* Experimental Multi-BR: Do not Discard DIOs with infinite rank */
+/*
   if(dio->rank == INFINITE_RANK) {
     PRINTF("RPL: Ignoring DIO from node with infinite rank: ");
     PRINT6ADDR(from);
     PRINTF("\n");
     return;
   }
+*/
 
   if(instance == NULL) {
     PRINTF("RPL: New instance detected: Joining...\n");
