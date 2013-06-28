@@ -9,7 +9,7 @@ class RplRootRplRelay(config.scenarios, unittest.TestCase):
         self.support.backbone.prefix=config.eth_prefix
         self.support.wsn.prefix=config.wsn_prefix
         self.tb = self.support.add_6lbr()
-        self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null', 'iid': '-'})
+        self.rpl_root = self.support.add_6lbr(device={'dev': '/dev/null', 'iid': '-'})
         self.support.setUp()
         self.tb.set_mode('RPL-RELAY', config.channel, accept_ra=False)
         self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
