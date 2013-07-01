@@ -10,7 +10,7 @@ class Multi6lr(config.scenarios, unittest.TestCase):
         self.support.wsn.prefix=config.wsn_prefix
         self.tb1 = self.support.add_6lbr()
         self.tb2 = self.support.add_6lbr()
-        self.rpl_root = self.support.add_6lbr(radio={'dev': '/dev/null', 'iid': '-'})
+        self.rpl_root = self.support.add_6lbr(device={'dev': '/dev/null', 'iid': '-'})
         self.support.setUp()
         self.tb1.set_mode('6LR', config.channel, accept_ra=False)
         self.tb2.set_mode('6LR', config.channel, accept_ra=False)
