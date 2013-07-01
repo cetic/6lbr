@@ -38,6 +38,8 @@
 #ifndef RPL_CONF_H
 #define RPL_CONF_H
 
+#include "contiki-conf.h"
+
 /* Set to 1 to enable RPL statistics */
 #ifndef RPL_CONF_STATS
 #define RPL_CONF_STATS 0
@@ -152,6 +154,34 @@
 #define RPL_DIO_REDUNDANCY          RPL_CONF_DIO_REDUNDANCY
 #else
 #define RPL_DIO_REDUNDANCY          10
+#endif
+
+/*
+ * Initial metric attributed to a link when the ETX is unknown
+ */
+#ifndef RPL_CONF_INIT_LINK_METRIC
+#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(5)
+#else
+#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(RPL_CONF_INIT_LINK_METRIC)
+#endif
+
+/*
+ * Default route lifetime unit. This is the granularity of time
+ * used in RPL lifetime values, in seconds.
+ */
+#ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
+#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#else
+#define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
+#endif
+
+/*
+ * Default route lifetime as a multiple of the lifetime unit.
+ */
+#ifndef RPL_CONF_DEFAULT_LIFETIME
+#define RPL_DEFAULT_LIFETIME            0xff
+#else
+#define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
 
 #endif /* RPL_CONF_H */

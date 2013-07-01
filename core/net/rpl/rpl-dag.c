@@ -57,10 +57,7 @@
 
 #include "net/neighbor-info.h"
 
-#if CETIC_6LBR
-#include "nvm-config.h"
-#endif
-
+#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -528,7 +525,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   p->dag = dag;
   p->rank = dio->rank;
   p->dtsn = dio->dtsn;
-  p->link_metric = INITIAL_LINK_METRIC;
+  p->link_metric = RPL_INIT_LINK_METRIC;
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
   list_add(dag->parents, p);
   return p;
@@ -1181,6 +1178,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
   }
+  
+  /* Prefix Information Option treated to add new prefix */
+  if(dio->prefix_info.length != 0) {
+    if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+      PRINTF("RPL : Prefix announced in DIO\n");
+      rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
+    }
+  }
 
   if(dag->rank == ROOT_RANK(instance)) {
     if(dio->rank != INFINITE_RANK) {
@@ -1247,14 +1252,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  /* Prefix Information Option treated to add new prefix */
-  if(dio->prefix_info.length != 0) {
-    if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-      PRINTF("RPL : Prefix announced in DIO\n");
-      rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
-    }
-  }
-
   /* We don't use route control, so we can have only one official parent. */
   if(dag->joined && p == dag->preferred_parent) {
     if(should_send_dao(instance, dio, p)) {
@@ -1268,3 +1265,4 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /*---------------------------------------------------------------------------*/
+#endif /* UIP_CONF_IPV6 */
