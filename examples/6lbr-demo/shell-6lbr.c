@@ -4,6 +4,11 @@
 #include "dev/cc2420.h"
 #include "contiki-net.h"
 
+#ifdef CONTIKI_TARGET_Z1
+#include "dev/leds.h"
+#include "sys/node-id.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -13,10 +18,18 @@ extern uint8_t use_user_dest_addr;
 extern uip_ip6addr_t user_dest_addr;
 extern uint16_t user_dest_port;
 extern uint8_t udp_client_run;
+extern clock_time_t udp_interval;
 
 PROCESS_NAME(tcpip_process);
 
 /*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_TARGET_Z1
+PROCESS(shell_nodeid_process, "nodeid");
+SHELL_COMMAND(nodeid_command,
+	      "nodeid",
+	      "nodeid: set node ID",
+	      &shell_nodeid_process);
+#endif
 PROCESS(shell_fast_reboot_process, "reboot");
 SHELL_COMMAND(fast_reboot_command,
 	      "reboot",
@@ -42,6 +55,11 @@ SHELL_COMMAND(udp_port_command,
 	      "udp-port",
 	      "udp-port <port>: configure udp destination port",
 	      &shell_udp_port_process);
+PROCESS(shell_udp_interval_process, "udp-int");
+SHELL_COMMAND(udp_interval_command,
+	      "udp-int",
+	      "udp-int <int>: configure udp interval",
+	      &shell_udp_interval_process);
 PROCESS(shell_udp_process, "udp");
 SHELL_COMMAND(udp_command,
 	      "udp",
@@ -59,6 +77,39 @@ PROCESS_THREAD(shell_fast_reboot_process, ev, data)
 
   PROCESS_END();
 }
+
+/*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_TARGET_Z1
+PROCESS_THREAD(shell_nodeid_process, ev, data)
+{
+  uint16_t nodeid;
+  char buf[20];
+  const char *newptr;
+  PROCESS_BEGIN();
+
+  nodeid = shell_strtolong(data, &newptr);
+
+  /* If no node ID was given on the command line, we print out the
+     current channel. Else we burn the new node ID. */
+  if(newptr == data) {
+    nodeid = node_id;
+  } else {
+    nodeid = shell_strtolong(data, &newptr);
+    watchdog_stop();
+    leds_on(LEDS_RED);
+    node_id_burn(nodeid);
+    leds_on(LEDS_BLUE);
+    node_id_restore();
+    leds_off(LEDS_RED + LEDS_BLUE);
+    watchdog_start();
+  }
+
+  snprintf(buf, sizeof(buf), "%d", nodeid);
+  shell_output_str(&nodeid_command, "Node ID: ", buf);
+
+  PROCESS_END();
+}
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_start_6lbr_process, ev, data)
 {
@@ -120,6 +171,21 @@ PROCESS_THREAD(shell_udp_port_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_udp_interval_process, ev, data)
+{
+  clock_time_t interval;
+  const char *newptr;
+  PROCESS_BEGIN();
+
+  interval = shell_strtolong(data, &newptr);
+
+  if(newptr != data) {
+    udp_interval = interval * CLOCK_SECOND;
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_udp_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -135,11 +201,15 @@ PROCESS_THREAD(shell_udp_process, ev, data)
 void
 shell_6lbr_init(void)
 {
+#ifdef CONTIKI_TARGET_Z1
+  shell_register_command(&nodeid_command);
+#endif
   shell_register_command(&fast_reboot_command);
   shell_register_command(&start6lbr_command);
   shell_register_command(&rfchannel_command);
   shell_register_command(&udp_host_command);
   shell_register_command(&udp_port_command);
+  shell_register_command(&udp_interval_command);
   shell_register_command(&udp_command);
 }
 /*---------------------------------------------------------------------------*/

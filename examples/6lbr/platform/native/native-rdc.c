@@ -227,7 +227,7 @@ slip_got_mac(const uint8_t * data)
 }
 
 void
-slip_set_mac(rimeaddr_t * mac_addr)
+slip_set_mac(rimeaddr_t const * mac_addr)
 {
 	uint8_t buffer[10];
 	int i;

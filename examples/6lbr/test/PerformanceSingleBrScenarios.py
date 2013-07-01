@@ -1,5 +1,5 @@
-import base
 import config
+import base
 import time
 import os
 import sys
@@ -212,7 +212,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(False, False, False)
+        self.S10xx_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S1001")
     def test_S1001(self):
@@ -220,7 +220,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, False, False)
+        self.S10xx_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S1002")
     def test_S1002(self):
@@ -228,7 +228,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True, False)
+        self.S10xx_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S1003")
     def test_S1003(self):
@@ -236,7 +236,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S10xx_base(True, True, True)
+        self.S10xx_base(start_udp=True, wsn_udp=True, udp_echo=True)
 
     @skipUnlessTrue("S1100")
     def test_S1100(self):
@@ -244,7 +244,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(False, False, False, True)
+        self.S11xx_base(start_udp=False, wsn_udp=False, udp_echo=False, global_repair=True)
 
     @skipUnlessTrue("S1101")
     def test_S1101(self):
@@ -252,7 +252,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, False, False, True)
+        self.S11xx_base(start_udp=True, wsn_udp=False, udp_echo=False, global_repair=True)
 
     @skipUnlessTrue("S1102")
     def test_S1102(self):
@@ -260,7 +260,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, True, False, True)
+        self.S11xx_base(start_udp=True, wsn_udp=True, udp_echo=False, global_repair=True)
 
     @skipUnlessTrue("S1103")
     def test_S1103(self):
@@ -268,7 +268,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, with global repair.
         """
-        self.S11xx_base(True, True, True, True)   
+        self.S11xx_base(start_udp=True, wsn_udp=True, udp_echo=True, global_repair=True)
         
     @skipUnlessTrue("S1110")
     def test_S1110(self):
@@ -276,7 +276,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(False, False, False)
+        self.S11xx_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S1111")
     def test_S1111(self):
@@ -284,7 +284,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, False, False)
+        self.S11xx_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S1112")
     def test_S1112(self):
@@ -292,7 +292,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, True, False)
+        self.S11xx_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S1113")
     def test_S1113(self):
@@ -300,7 +300,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote. The prefix change once the mote is reachable, no global repair.
         """
-        self.S11xx_base(True, True, True)
+        self.S11xx_base(start_udp=True, wsn_udp=True, udp_echo=True)
 
     @skipUnlessTrue("S2000")
     def test_S2000(self):
@@ -308,7 +308,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(False, False, False)
+        self.S20xx_base(start_udp=False, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S2001")
     def test_S2001(self):
@@ -316,7 +316,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, False, False)
+        self.S20xx_base(start_udp=True, wsn_udp=False, udp_echo=False)
 
     @skipUnlessTrue("S2002")
     def test_S2002(self):
@@ -324,7 +324,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True, False)
+        self.S20xx_base(start_udp=True, wsn_udp=True, udp_echo=False)
 
     @skipUnlessTrue("S2003")
     def test_S2003(self):
@@ -332,4 +332,4 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.S20xx_base(True, True, True)
+        self.S20xx_base(start_udp=True, wsn_udp=True, udp_echo=True)

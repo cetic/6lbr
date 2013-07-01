@@ -302,11 +302,32 @@ main(int argc, char **argv)
   }
 
 
+
+#if SLIP_RADIO
+  memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
+  /* Setup nullmac-like MAC for 802.15.4 */
+  /*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
+  /*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+
+  /* Setup X-MAC for 802.15.4 */
+  queuebuf_init();
+
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()),
+         RF_CHANNEL);
+#else
+
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
-/*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
-/*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+  /*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
+  /*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
@@ -362,6 +383,7 @@ main(int argc, char **argv)
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
+#endif /* SLIP_RADIO */
 
 #if !WITH_UIP && !WITH_UIP6
   uart0_set_input(serial_line_input_byte);

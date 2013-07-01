@@ -863,12 +863,12 @@ main(int argc, char *argv[])
 
     //RPL Configuration
     UPDATE_INT("rpl-instance-id", rpl_instance_id)
-    UPDATE_INT("rpl-dio-intdoubl", rpl_dio_intdoubl)
-    UPDATE_INT("rpl-dio-intmin", rpl_dio_intmin)
+    UPDATE_INT("rpl-dio-int-doubling", rpl_dio_intdoubl)
+    UPDATE_INT("rpl-dio-int-min", rpl_dio_intmin)
     UPDATE_INT("rpl-dio-redundancy", rpl_dio_redundancy)
     UPDATE_INT("rpl-default-lifetime", rpl_default_lifetime)
     //TODO: uint16_t rpl_max_rankinc;
-    UPDATE_INT("rpl-min-hoprankinc", rpl_min_hoprankinc)
+    UPDATE_INT("rpl-min-rank-inc", rpl_min_hoprankinc)
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
 
   } else if(print_nvm_file) {
