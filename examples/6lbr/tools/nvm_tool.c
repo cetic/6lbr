@@ -482,7 +482,7 @@ print_nvm(void)
 #define ra_min_delay_option 7004
 
 //RA PIO Configuration
-#define ra_prefix_flags_option 8000
+#define ra_pio_en_option 8000
 #define ra_prefix_vtime_option 8001
 #define ra_prefix_ptime_option 8002
 
@@ -533,7 +533,7 @@ static struct option long_options[] = {
   {"ra-min-delay", required_argument, 0, ra_min_delay_option},
 
   //RA PIO Configuration
-  //{"", required_argument, 0, ra_prefix_flags_option},
+  {"ra-pio-en", required_argument, 0, ra_pio_en_option},
   {"ra-prefix-vtime", required_argument, 0, ra_prefix_vtime_option},
   {"ra-prefix-ptime", required_argument, 0, ra_prefix_ptime_option},
 
@@ -614,6 +614,7 @@ help(char const *name)
   printf("\t--ra-min-delay <seconds> \t Min interval between two RA\n");
 
   //RA PIO Configuration
+  printf("\t--ra-pio-en <0|1> \t\t Enable Prefix Information Option\n");
   printf("\t--ra-prefix-vtime <seconds> \t Advertised prefix valid lifetime\n");
   printf("\t--ra-prefix-ptime <seconds> \t Advertised prefix preferred lifetime\n");
 
@@ -701,6 +702,7 @@ main(int argc, char *argv[])
   char *ra_min_delay = NULL;
 
   //RA PIO Configuration
+  char *ra_pio_en = NULL;
   char *ra_prefix_vtime = NULL;
   char *ra_prefix_ptime = NULL;
 
@@ -853,7 +855,7 @@ main(int argc, char *argv[])
     UPDATE_INT("ra-min-delay", ra_min_delay)
 
     //RA PIO Configuration
-    //ra_prefix_flags
+    UPDATE_FLAG("ra-pio-en", ra_pio_en, ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO)
     UPDATE_INT("ra-prefix-vtime", ra_prefix_vtime)
     UPDATE_INT("ra-prefix-ptime", ra_prefix_ptime)
 

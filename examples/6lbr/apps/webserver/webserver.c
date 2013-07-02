@@ -821,6 +821,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("<br /><h3>RA Prefix</h3>");
+  INPUT_FLAG_CB( "ra_pio", ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO, "Send Prefix Information");
   INPUT_FLAG_CB( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, "Prefix on-link");
   INPUT_FLAG_CB( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, "Allow autoconfiguration");
   SEND_STRING(&s->sout, buf);
@@ -1011,8 +1012,9 @@ update_config(const char *name)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
     UPDATE_INT( "ra_min_delay", ra_min_delay, 1)
 
-    UPDATE_FLAG( "ra_prefix_o", ra_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
-    UPDATE_FLAG( "ra_prefix_a", ra_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
+    UPDATE_FLAG( "ra_pio", ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO, 1)
+    UPDATE_FLAG( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
+    UPDATE_FLAG( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
     UPDATE_INT( "ra_prefix_vtime", ra_prefix_vtime, 1)
     UPDATE_INT( "ra_prefix_ptime", ra_prefix_ptime, 1)
 
