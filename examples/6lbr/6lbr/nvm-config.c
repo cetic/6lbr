@@ -72,6 +72,8 @@ check_nvm(volatile nvm_data_t * nvm_data)
     PRINTF("Migrate NVM version 0 towards 1\n");
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
+    nvm_data->global_flags = CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS;
+
     nvm_data->wsn_net_prefix_len = CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN;
     nvm_data->eth_net_prefix_len = CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX_LEN;
 
@@ -88,6 +90,7 @@ check_nvm(volatile nvm_data_t * nvm_data)
     nvm_data->ra_rio_lifetime = CETIC_6LBR_NVM_DEFAULT_RA_RIO_LIFETIME;
 
     nvm_data->rpl_instance_id = CETIC_6LBR_NVM_DEFAULT_RPL_INSTANCE_ID;
+    nvm_data->rpl_preference = CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE;
     nvm_data->rpl_dio_intdoubl = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_INT_DOUBLING;
     nvm_data->rpl_dio_intmin = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_MIN_INT;
     nvm_data->rpl_dio_redundancy = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_REDUNDANCY;

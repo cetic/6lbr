@@ -52,6 +52,7 @@
 #else
 #define PRINTF(...)
 #endif
+#include "uip-debug.h"
 
 uint8_t mac_set;
 
@@ -219,7 +220,9 @@ slip_request_mac(void)
 void
 slip_got_mac(const uint8_t * data)
 {
-  printf("Got MAC\n");
+  printf("Got MAC: ");
+  uip_debug_lladdr_print(&uip_lladdr);
+  printf("\n");
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
   rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
@@ -227,7 +230,7 @@ slip_got_mac(const uint8_t * data)
 }
 
 void
-slip_set_mac(rimeaddr_t * mac_addr)
+slip_set_mac(rimeaddr_t const * mac_addr)
 {
 	uint8_t buffer[10];
 	int i;

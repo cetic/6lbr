@@ -810,7 +810,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("<br /><h2>RA Daemon</h2>");
-  INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, "RA Daemon", "active", "inactive");
+  INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -821,6 +821,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("<br /><h3>RA Prefix</h3>");
+  INPUT_FLAG_CB( "ra_pio", ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO, "Send Prefix Information");
   INPUT_FLAG_CB( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, "Prefix on-link");
   INPUT_FLAG_CB( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, "Allow autoconfiguration");
   SEND_STRING(&s->sout, buf);
@@ -840,6 +841,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if UIP_CONF_IPV6_RPL
   add("<br /><h2>RPL Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
+  INPUT_INT( "rpl_preference", rpl_preference, "Preference");
   INPUT_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, "DIO interval doubling");
   INPUT_INT( "rpl_dio_intmin", rpl_dio_intmin, "DIO min interval");
   SEND_STRING(&s->sout, buf);
@@ -1003,7 +1005,7 @@ update_config(const char *name)
     UPDATE_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, 1)
     UPDATE_IPADDR("eth_addr", eth_ip_addr, 1)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
-    UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, 1)
+    UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
 
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
@@ -1011,8 +1013,9 @@ update_config(const char *name)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
     UPDATE_INT( "ra_min_delay", ra_min_delay, 1)
 
-    UPDATE_FLAG( "ra_prefix_o", ra_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
-    UPDATE_FLAG( "ra_prefix_a", ra_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
+    UPDATE_FLAG( "ra_pio", ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO, 1)
+    UPDATE_FLAG( "ra_prefix_o", ra_prefix_flags, UIP_ND6_RA_FLAG_ONLINK, 1)
+    UPDATE_FLAG( "ra_prefix_a", ra_prefix_flags, UIP_ND6_RA_FLAG_AUTONOMOUS, 1)
     UPDATE_INT( "ra_prefix_vtime", ra_prefix_vtime, 1)
     UPDATE_INT( "ra_prefix_ptime", ra_prefix_ptime, 1)
 
@@ -1020,6 +1023,7 @@ update_config(const char *name)
     UPDATE_INT( "ra_rio_lifetime", ra_rio_lifetime, 1)
 
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
+    UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
     UPDATE_INT( "rpl_dio_intmin", rpl_dio_intmin, 1)
     UPDATE_INT( "rpl_dio_redundancy", rpl_dio_redundancy, 1)

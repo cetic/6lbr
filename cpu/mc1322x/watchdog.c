@@ -59,5 +59,7 @@ watchdog_stop(void)
 void
 watchdog_reboot(void)
 {
+	int i = 0;
+	int j = i / i;
 }
 /*---------------------------------------------------------------------------*/

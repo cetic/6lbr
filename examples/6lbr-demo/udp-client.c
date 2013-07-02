@@ -52,6 +52,7 @@ uint8_t use_user_dest_addr = 0;
 uip_ip6addr_t user_dest_addr;
 uint16_t user_dest_port = 3000;
 uint8_t udp_client_run = 0;
+clock_time_t udp_interval = CETIC_6LBR_UDP_PERIOD * CLOCK_SECOND;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
@@ -200,12 +201,12 @@ PROCESS_THREAD(udp_client_process, ev, data)
 #if UDP_CLIENT_AUTOSTART
   udp_client_run=1;
 #endif
-  etimer_set(&et, SEND_INTERVAL);
+  etimer_set(&et, udp_interval);
   while(1) {
     PROCESS_YIELD();
     if(etimer_expired(&et)) {
       timeout_handler();
-      etimer_restart(&et);
+      etimer_set(&et, udp_interval);
     } else if(ev == tcpip_event) {
       tcpip_handler();
     }

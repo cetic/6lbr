@@ -237,6 +237,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   dag->version = version;
   dag->joined = 1;
   dag->grounded = RPL_GROUNDED;
+  dag->preference = RPL_PREFERENCE;
   instance->mop = RPL_MOP_DEFAULT;
   instance->of = &RPL_OF;
   dag->preferred_parent = NULL;
@@ -972,8 +973,9 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("\n");
 
   ANNOTATE("#A join=%u\n", dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
-
-  rpl_process_parent_event(instance, p);
+  if(dag->rank != ROOT_RANK(instance)) {
+    rpl_process_parent_event(instance, p);
+  }
   p->dtsn = dio->dtsn;
 }
 
@@ -1151,12 +1153,15 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
+/* Experimental Multi-BR: Do not Discard DIOs with infinite rank */
+/*
   if(dio->rank == INFINITE_RANK) {
     PRINTF("RPL: Ignoring DIO from node with infinite rank: ");
     PRINT6ADDR(from);
     PRINTF("\n");
     return;
   }
+*/
 
   if(instance == NULL) {
     PRINTF("RPL: New instance detected: Joining...\n");

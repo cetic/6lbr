@@ -49,6 +49,7 @@ class TestSupport:
             print >> sys.stderr, "Setup 6LBR #%i" % i
             _br.setUp()
         self.test_mote = self.wsn.get_test_mote()
+        self.wsn.reset()
 
     def tearDown(self):
         for _br in self.brList:
@@ -128,14 +129,17 @@ class TestSupport:
                 return True
         return False
 
-    def start_udp_client(self, host = None, port = None):
+    def start_udp_client(self, host = None, port = None, interval=None):
         if host is None:
             host = self.host.ip
         if port is None:
             port = config.udp_port
+        if interval is None:
+            interval=config.udp_interval
         print >> sys.stderr, "Enable UDP traffic on test mote"
         ok = self.test_mote.send_cmd("udp-dest %s" % host)
         ok = ok and self.test_mote.send_cmd("udp-port %d" % port)
+        ok = ok and self.test_mote.send_cmd("udp-int %d" % interval)
         ok = ok and self.test_mote.send_cmd("udp start")
         return ok
 
@@ -143,14 +147,17 @@ class TestSupport:
         print >> sys.stderr, "Disable UDP traffic on test mote"
         return self.test_mote.send_cmd("udp stop")
 
-    def start_udp_clients(self, host = None, port = None):
+    def start_udp_clients(self, host = None, port = None, interval=None):
         if host is None:
             host = self.host.ip
         if port is None:
             port = config.udp_port
+        if interval is None:
+            interval=config.udp_interval
         print >> sys.stderr, "Enable UDP traffic"
         ok = self.wsn.send_cmd_all("udp-dest %s" % host)
         ok = ok and self.wsn.send_cmd_all("udp-port %d" % port)
+        ok = ok and self.wsn.send_cmd_all("udp-int %d" % interval)
         ok = ok and self.wsn.send_cmd_all("udp start")
         return ok
 
@@ -199,8 +206,10 @@ class TestScenarios:
         config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
         config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
         config.udp_port=getattr(config, 'udp_port', 3000)
+        config.udp_interval=getattr(config, 'udp_interval', 10)
         config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')
         config.ping_repeat=getattr(config, 'ping_repeat', 100)
+        config.dio_int_doubling=getattr(config, 'dio_int_doubling', 8)
 
         #Cooja configuration
         config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
@@ -239,6 +248,9 @@ class TestScenarios:
         config.mote_start_delay=getattr(config,'mote_start_delay',0)
         config.dag_stabilisation_delay=getattr(config,'dag_stabilisation_delay',0)
         config.long_dag_stabilisation_delay=getattr(config,'long_dag_stabilisation_delay',60)
+
+        #Testbed
+        config.supernode=getattr(config, 'supernode', '192.168.10.10') #CETIC's supernode1 ip on the testbed VLAN
     
     def wait_mote_start(self):
         if config.mote_start_delay > 0:

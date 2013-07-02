@@ -499,7 +499,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   ipaddr_add(&eth_dft_router);
   add("<br>");
   add("RA Daemon : ");
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
+  if((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) != 0) {
     add("active (Lifetime : %d)", UIP_CONF_ROUTER_LIFETIME);
   } else {
     add("inactive");
