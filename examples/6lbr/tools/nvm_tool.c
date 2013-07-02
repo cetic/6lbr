@@ -292,6 +292,8 @@ migrate_nvm(void)
   {
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
+    nvm_data->global_flags = CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS;
+
     nvm_data->wsn_net_prefix_len = CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN;
     nvm_data->eth_net_prefix_len = CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX_LEN;
 

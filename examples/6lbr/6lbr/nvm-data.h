@@ -19,6 +19,9 @@ typedef struct {
   uint8_t channel;
 
   //Version 1 configuration data
+  //Global configuration
+  uint16_t global_flags;
+
   //WSN Configuration
   uint8_t wsn_net_prefix_len;
 
@@ -94,6 +97,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_CHANNEL				26
 
 //Version 1 configuration data
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			0
 //WSN Configuration
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN	64
 
