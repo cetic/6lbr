@@ -810,7 +810,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("<br /><h2>RA Daemon</h2>");
-  INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, "RA Daemon", "active", "inactive");
+  INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -1003,7 +1003,7 @@ update_config(const char *name)
     UPDATE_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, 1)
     UPDATE_IPADDR("eth_addr", eth_ip_addr, 1)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
-    UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG, 1)
+    UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
 
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)

@@ -418,7 +418,7 @@ print_nvm(void)
   PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
   printf("\n");
 
-  PRINT_BOOL("RA daemon", mode, CETIC_MODE_ROUTER_SEND_CONFIG);
+  PRINT_BOOL("RA daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON);
   PRINT_INT("RA router lifetime", ra_router_lifetime);
   PRINT_INT("RA maximum interval", ra_max_interval);
   PRINT_INT("RA minimum interval", ra_min_interval);
@@ -838,7 +838,7 @@ main(int argc, char *argv[])
     UPDATE_INT("eth-prefix-len", eth_net_prefix_len)
     UPDATE_IP("eth-ip", eth_ip_addr)
     UPDATE_IP("dft-router", eth_dft_router)
-    UPDATE_FLAG("eth-ra-daemon", eth_ra_daemon, mode, CETIC_MODE_ROUTER_SEND_CONFIG)
+    UPDATE_FLAG("eth-ra-daemon", eth_ra_daemon, mode, CETIC_MODE_ROUTER_RA_DAEMON)
 	UPDATE_FLAG("eth-ip-autoconf", eth_addr_autoconf, mode, CETIC_MODE_ETH_AUTOCONF)
 
 	UPDATE_FLAG("addr-rewrite", local_addr_rewrite, mode, CETIC_MODE_REWRITE_ADDR_MASK)
@@ -846,7 +846,7 @@ main(int argc, char *argv[])
 
     UPDATE_INT("rpl-version", rpl_version_id)
 
-    UPDATE_FLAG("ra-daemon-en", ra_daemon_en, mode, CETIC_MODE_ROUTER_SEND_CONFIG)
+    UPDATE_FLAG("ra-daemon-en", ra_daemon_en, mode, CETIC_MODE_ROUTER_RA_DAEMON)
     UPDATE_INT("ra-router-lifetime", ra_router_lifetime)
     UPDATE_INT("ra-max-interval", ra_max_interval)
     UPDATE_INT("ra-min-interval", ra_min_interval)
