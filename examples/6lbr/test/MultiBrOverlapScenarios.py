@@ -3,9 +3,11 @@ import config
 from base import skipUnlessTrue
 import sys
 from time import sleep
+import unittest
 
 class MultiBrOverlapScenarios(base.TestScenarios):
     @skipUnlessTrue("S1")
+    @unittest.skip("Not implemented")
     def test_S1_move_mote_overlap(self):
         pass
     
