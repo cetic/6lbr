@@ -819,6 +819,11 @@ uip_ds6_send_ra_sollicited(void)
 void
 uip_ds6_send_ra_periodic(void)
 {
+#if CETIC_6LBR
+  if ((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) == 0 ) {
+	  return;
+  }
+#endif
   if(racount > 0) {
     /* send previously scheduled RA */
     uip_nd6_ra_output(NULL);
