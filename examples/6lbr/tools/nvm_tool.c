@@ -310,6 +310,7 @@ migrate_nvm(void)
     nvm_data->ra_rio_lifetime = CETIC_6LBR_NVM_DEFAULT_RA_RIO_LIFETIME;
 
     nvm_data->rpl_instance_id = CETIC_6LBR_NVM_DEFAULT_RPL_INSTANCE_ID;
+    nvm_data->rpl_preference = CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE;
     nvm_data->rpl_dio_intdoubl = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_INT_DOUBLING;
     nvm_data->rpl_dio_intmin = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_MIN_INT;
     nvm_data->rpl_dio_redundancy = CETIC_6LBR_NVM_DEFAULT_RPL_DIO_REDUNDANCY;
@@ -437,6 +438,7 @@ print_nvm(void)
 
   //RPL Configuration
   PRINT_INT("RPL instance ID", rpl_instance_id);
+  PRINT_INT("RPL Preference", rpl_preference);
   PRINT_INT("RPL version ID : ", rpl_version_id);
   PRINT_INT("RPL DIO interval doubling", rpl_dio_intdoubl);
   PRINT_INT("RPL DIO minimum interval", rpl_dio_intmin);
@@ -501,6 +503,7 @@ print_nvm(void)
 //TODO: uint16_t rpl_max_rankinc;
 #define rpl_min_hoprankinc_option 10005
 #define rpl_lifetime_unit_option 10006
+#define rpl_preference_option 10007
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
@@ -545,6 +548,7 @@ static struct option long_options[] = {
 
   //RPL Configuration
   {"rpl-instance-id", required_argument, 0, rpl_instance_id_option},
+  {"rpl-preference", required_argument, 0, rpl_preference_option},
   {"rpl-version", required_argument, 0, rpl_version_id_option},
   {"rpl-dio-int-doubling", required_argument, 0, rpl_dio_intdoubl_option},
   {"rpl-dio-int-min", required_argument, 0, rpl_dio_intmin_option},
@@ -627,6 +631,7 @@ help(char const *name)
 
   //RPL Configuration
   printf("\t--rpl-instance-id <id> \t\t RPL instance ID to create\n");
+  printf("\t--rpl-preference <pref> \t\t RPL DAG preference level\n");
   printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
   printf("\t--rpl-dio-int-doubling <number>  RPL DIO interval doubling\n");
   printf("\t--rpl-dio-int-min \t\t RPL DIO minimum interval between unsolicited DIO\n");
@@ -714,6 +719,7 @@ main(int argc, char *argv[])
 
   //RPL Configuration
   char *rpl_instance_id = NULL;
+  char *rpl_preference = NULL;
   char *rpl_dio_intdoubl = NULL;
   char *rpl_dio_intmin = NULL;
   char *rpl_dio_redundancy = NULL;
@@ -779,6 +785,7 @@ main(int argc, char *argv[])
 
     //RPL Configuration
     CASE_OPTION(rpl_instance_id)
+    CASE_OPTION(rpl_preference)
     CASE_OPTION(rpl_dio_intdoubl)
     CASE_OPTION(rpl_dio_intmin)
     CASE_OPTION(rpl_dio_redundancy)
@@ -867,6 +874,7 @@ main(int argc, char *argv[])
 
     //RPL Configuration
     UPDATE_INT("rpl-instance-id", rpl_instance_id)
+    UPDATE_INT("rpl-preference", rpl_preference)
     UPDATE_INT("rpl-dio-int-doubling", rpl_dio_intdoubl)
     UPDATE_INT("rpl-dio-int-min", rpl_dio_intmin)
     UPDATE_INT("rpl-dio-redundancy", rpl_dio_redundancy)

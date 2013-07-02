@@ -48,6 +48,7 @@ typedef struct {
 
   //RPL Configuration
   uint8_t rpl_instance_id;
+  uint8_t rpl_preference;
   uint8_t rpl_dio_intdoubl;
   uint8_t rpl_dio_intmin;
   uint8_t rpl_dio_redundancy;
@@ -127,6 +128,7 @@ typedef struct {
 //#define CETIC_6LBR_NVM_DEFAULT_RPL_MAX_HOP_RANK_INC
 #define CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC		256
 #define CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT		0x0100
+#define CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE           0
 
 /*---------------------------------------------------------------------------*/
 

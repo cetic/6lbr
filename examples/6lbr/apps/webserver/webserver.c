@@ -841,6 +841,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if UIP_CONF_IPV6_RPL
   add("<br /><h2>RPL Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
+  INPUT_INT( "rpl_preference", rpl_preference, "Preference");
   INPUT_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, "DIO interval doubling");
   INPUT_INT( "rpl_dio_intmin", rpl_dio_intmin, "DIO min interval");
   SEND_STRING(&s->sout, buf);
@@ -1022,6 +1023,7 @@ update_config(const char *name)
     UPDATE_INT( "ra_rio_lifetime", ra_rio_lifetime, 1)
 
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
+    UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
     UPDATE_INT( "rpl_dio_intmin", rpl_dio_intmin, 1)
     UPDATE_INT( "rpl_dio_redundancy", rpl_dio_redundancy, 1)
