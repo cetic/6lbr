@@ -12,7 +12,6 @@ import config
 import re
 import os
 import serial
-import fabric.api
 
 class Backbone:
     def __init__(self, platform):
@@ -541,6 +540,7 @@ class LocalWsn(Wsn):
 class TestbedWsn(Wsn):
     def __init__(self):
         Wsn.__init__(self)
+        import fabric.api
         self.motelist = []
         self.supernode_hostname = config.supernode
         self.brDevList=[]
