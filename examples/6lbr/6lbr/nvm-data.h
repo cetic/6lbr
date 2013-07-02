@@ -19,6 +19,9 @@ typedef struct {
   uint8_t channel;
 
   //Version 1 configuration data
+  //Global configuration
+  uint16_t global_flags;
+
   //WSN Configuration
   uint8_t wsn_net_prefix_len;
 
@@ -45,6 +48,7 @@ typedef struct {
 
   //RPL Configuration
   uint8_t rpl_instance_id;
+  uint8_t rpl_preference;
   uint8_t rpl_dio_intdoubl;
   uint8_t rpl_dio_intmin;
   uint8_t rpl_dio_redundancy;
@@ -67,7 +71,7 @@ typedef struct {
 //Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
 #define CETIC_MODE_WAIT_RA_MASK			0x04
-#define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
+#define CETIC_MODE_ROUTER_RA_DAEMON		0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_AUTOCONF         0x20
 #define CETIC_MODE_SMART_MULTI_BR		0x80
@@ -75,6 +79,7 @@ typedef struct {
 //RA Mode flags
 
 //RA PIO mode flags
+#define CETIC_6LBR_MODE_SEND_PIO		0x0100
 
 //RA RIO mode flags
 #define CETIC_6LBR_MODE_SEND_RIO		0x0100
@@ -83,7 +88,7 @@ typedef struct {
 
 //Default values
 
-#define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK )
+#define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_RA_DAEMON | CETIC_MODE_REWRITE_ADDR_MASK )
 #define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		RPL_LOLLIPOP_INIT
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0)
 #define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100)
@@ -93,6 +98,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_CHANNEL				26
 
 //Version 1 configuration data
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			0
 //WSN Configuration
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN	64
 
@@ -106,7 +112,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_RA_MIN_INTERVAL		(CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL/3)
 #define CETIC_6LBR_NVM_DEFAULT_RA_MIN_DELAY			3
 
-#define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_FLAGS		(UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS)
+#define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_FLAGS		(CETIC_6LBR_MODE_SEND_PIO | UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS)
 #define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_VTIME		86400
 #define CETIC_6LBR_NVM_DEFAULT_RA_PREFIX_PTIME		14400
 
@@ -122,6 +128,7 @@ typedef struct {
 //#define CETIC_6LBR_NVM_DEFAULT_RPL_MAX_HOP_RANK_INC
 #define CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC		256
 #define CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT		0x0100
+#define CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE           0
 
 /*---------------------------------------------------------------------------*/
 

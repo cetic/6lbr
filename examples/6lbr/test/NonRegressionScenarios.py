@@ -2,6 +2,7 @@ import base
 import config
 from base import skipUnlessTrue
 from time import sleep
+import unittest
 
 class NonRegressionScenarios(base.TestScenarios):
     @skipUnlessTrue("S0")
@@ -130,6 +131,7 @@ class NonRegressionScenarios(base.TestScenarios):
 
 
     @skipUnlessTrue("S7")
+    @unittest.skip("Not implemented")
     def test_S7_switch_prefix(self):
         """
         Observe the propagation of the Prefix switching in the WSN side (when supported in the WPAN).
@@ -137,6 +139,7 @@ class NonRegressionScenarios(base.TestScenarios):
         pass
 
     @skipUnlessTrue("S8")
+    @unittest.skip("Not implemented")
     def test_S8_incoming_rio(self):
         """
         Observe the propagation of the RIO in the WSN side (when supported in the WPAN).
@@ -144,6 +147,7 @@ class NonRegressionScenarios(base.TestScenarios):
         pass
 
     @skipUnlessTrue("S9")
+    @unittest.skip("Not implemented")
     def test_S9_udp_trafic(self):
         """
         Test UDP traffic towards host.

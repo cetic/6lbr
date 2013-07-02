@@ -215,13 +215,13 @@ cetic_6lbr_init(void)
 
   //Prefix and RA configuration
 #if UIP_CONF_IPV6_RPL
-  uint8_t publish = (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0;
+  uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
   uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, publish,
                      nvm_data.ra_prefix_flags,
                      nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
 #else
   uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, 0, 0, 0, 0);
-  uint8_t publish = (nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0;
+  uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
   uip_ds6_prefix_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, publish,
 		             nvm_data.ra_prefix_flags,
 		             nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);

@@ -41,4 +41,7 @@
 #undef RPL_CONF_DEFAULT_LIFETIME_UNIT
 #define RPL_CONF_DEFAULT_LIFETIME_UNIT    (nvm_data.rpl_lifetime_unit)
 
+#undef RPL_CONF_PREFERENCE
+#define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
+
 #endif
