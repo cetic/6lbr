@@ -154,4 +154,10 @@
 #define RPL_DIO_REDUNDANCY          10
 #endif
 
+#ifdef RPL_CONF_PREFERENCE
+#define RPL_PREFERENCE              RPL_CONF_PREFERENCE
+#else
+#define RPL_PREFERENCE              0
+#endif
+
 #endif /* RPL_CONF_H */
