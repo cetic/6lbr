@@ -776,6 +776,7 @@ main(int argc, char *argv[])
     CASE_OPTION(ra_min_delay)
 
     //RA PIO Configuration
+    CASE_OPTION(ra_pio_en)
     CASE_OPTION(ra_prefix_vtime)
     CASE_OPTION(ra_prefix_ptime)
 
