@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -33,6 +34,7 @@
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * Copyright (c) 2009, 2010 Joakim Eriksson, Niclas Finne, Dogan Yazar.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

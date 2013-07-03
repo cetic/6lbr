@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -32,6 +33,7 @@
  *         Border router header file
  * \author
  *         Joakim Eriksson <joakime@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #ifndef NATIVE_SLIP_H_

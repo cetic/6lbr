@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -35,6 +36,7 @@
  *         Adam Dunkels <adam@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #include "net/packetbuf.h"

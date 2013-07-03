@@ -1,14 +1,6 @@
-/**
- * \file sicslow_ethernet.c
- *         Routines to interface between Ethernet and 6LowPan
- *
- * \author
- *         Colin O'Flynn <coflynn@newae.com>
- *
- * \addtogroup usbstick 
- */
-
-/* Copyright (c) 2008 by:
+/* 
+ * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2008 by:
  * Colin O'Flynn coflynn@newae.com
  * Eric Gnoske egnoske@gmail.com
  * Blake Leverett bleverett@gmail.com
@@ -43,6 +35,17 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file sicslow_ethernet.c
+ *         Routines to interface between Ethernet and 6LowPan
+ *
+ * \author
+ *         Colin O'Flynn <coflynn@newae.com>
+ *         6LBR Team <6lbr@cetic.be>
+ *
+ * \addtogroup usbstick 
  */
 
 /**
