@@ -16,7 +16,9 @@ PROCESS(demo_6lbr_process, "6LBR Demo");
 
 PROCESS_NAME(web_sense_process);
 PROCESS_NAME(webserver_nogui_process);
+#if UDPCLIENT
 PROCESS_NAME(udp_client_process);
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
