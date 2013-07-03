@@ -54,6 +54,7 @@
 #define WEBSERVER_CONF_CFS_PATHLEN 80
 
 //Temporary : When RDC is enabled the mote can not communicate with Econotag
+#undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     		csma_driver
 
 #undef NETSTACK_CONF_RDC
