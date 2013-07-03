@@ -14,11 +14,13 @@
 
 extern void start_apps(void);
 
+#if UDPCLIENT
 extern uint8_t use_user_dest_addr;
 extern uip_ip6addr_t user_dest_addr;
 extern uint16_t user_dest_port;
 extern uint8_t udp_client_run;
 extern clock_time_t udp_interval;
+#endif
 
 PROCESS_NAME(tcpip_process);
 
@@ -45,6 +47,7 @@ SHELL_COMMAND(rfchannel_command,
 	      "rfchannel",
 	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
 	      &shell_rfchannel_process);
+#if UDPCLIENT
 PROCESS(shell_udp_host_process, "udp-dest");
 SHELL_COMMAND(udp_host_command,
 	      "udp-dest",
@@ -65,6 +68,7 @@ SHELL_COMMAND(udp_command,
 	      "udp",
 	      "udp <start|stop>: configure udp client",
 	      &shell_udp_process);
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_fast_reboot_process, ev, data)
 {
@@ -142,6 +146,7 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#if UDPCLIENT
 PROCESS_THREAD(shell_udp_host_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -197,6 +202,7 @@ PROCESS_THREAD(shell_udp_process, ev, data)
   udp_client_run = strcmp("start", data) == 0;
   PROCESS_END();
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 shell_6lbr_init(void)
@@ -207,9 +213,11 @@ shell_6lbr_init(void)
   shell_register_command(&fast_reboot_command);
   shell_register_command(&start6lbr_command);
   shell_register_command(&rfchannel_command);
+#if UDPCLIENT
   shell_register_command(&udp_host_command);
   shell_register_command(&udp_port_command);
   shell_register_command(&udp_interval_command);
   shell_register_command(&udp_command);
+#endif
 }
 /*---------------------------------------------------------------------------*/

@@ -1199,7 +1199,7 @@ class Linux(Platform):
 
     def ping(self, target):
         print "ping %s" % target
-        result = system("ping6 -s %d -W 1 -c 1 %s > /dev/null" % (config.ping_payload, target))
+        result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (config.ping_payload, config.ping_timeout, target))
         #if result >> 8 == 2:
         sleep(1)
         return result == 0
@@ -1227,7 +1227,7 @@ class Linux(Platform):
     def ping_loop(self, target, interval, out):
         while True:
             result = system("echo '***' >> %s" % out)
-            result = system("ping6 -D -s %d -W 1 -c 1 %s 2>&1 >> %s" % (config.ping_payload, target, out))
+            result = system("ping6 -D -s %d -W %d -c 1 %s 2>&1 >> %s" % (config.ping_payload, config.ping_timeout, target, out))
             time.sleep(interval)
 
     def pcap_start(self, itf, out):

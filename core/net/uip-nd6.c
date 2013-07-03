@@ -81,6 +81,7 @@
 #include "rio.h"
 #endif
 
+#if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
 #include "net/uip-debug.h"
@@ -1101,3 +1102,4 @@ discard:
 #endif /* !UIP_CONF_ROUTER */
 
  /** @} */
+#endif /* UIP_CONF_IPV6 */

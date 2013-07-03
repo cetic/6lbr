@@ -205,6 +205,7 @@ class TestScenarios:
         config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
         config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
         config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
+        config.ping_timeout=getattr(config, 'ping_timeout', 8)
         config.udp_port=getattr(config, 'udp_port', 3000)
         config.udp_interval=getattr(config, 'udp_interval', 10)
         config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')

@@ -224,12 +224,7 @@ eth_input(void)
   if(transReturn != 0) {
     PRINTF("eth_input: IPTranslation returns %d\n", transReturn);
   }
-  //Filter mDNS (TODO !)
-  if (UIP_IP_BUF->proto == UIP_PROTO_UDP && UIP_UDP_BUF->destport == UIP_HTONS(5353)) {
-    printf("Dropping mDNS packet\n");
-    uip_len=0;
-    return;
-  }
+
   //Destination filtering
   //---------------------
   if(memcmp((uint8_t *) & eth_mac_addr, BUF->dest.addr, 6) == 0) {

@@ -185,7 +185,7 @@
 #define WEBSERVER_CONF_CFS_URLCONV 1
 
 #undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
 
 /* Do not change lines below */
 #define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
