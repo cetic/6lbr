@@ -873,8 +873,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && (CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE)
   add("<br /><h2>RPL Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
   INPUT_INT( "rpl_preference", rpl_preference, "Preference");
@@ -890,6 +891,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
+#if CETIC_6LBR_ROUTER
   add("<br /><h2>Packet filtering</h2>");
   INPUT_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, "Address rewrite", "enabled", "disabled");
 #endif
