@@ -76,7 +76,7 @@ static uint8_t nvm_mem[NVM_SIZE];
 nvm_data_t *nvm_data = (nvm_data_t *) nvm_mem;
 
 void create_empty_nvm(void);
-void migrate_nvm(void);
+void migrate_nvm(uint8_t print_info);
 
 /*---------------------------------------------------------------------------*/
 
@@ -96,8 +96,6 @@ load_nvm_file(char const *nvm_file)
     perror("Error reading nvm file");
     exit(1);
   }
-
-  migrate_nvm();
 }
 
 void
@@ -288,7 +286,7 @@ mode_update(uint8_t mask, uint8_t value)
 /*---------------------------------------------------------------------------*/
 
 void
-migrate_nvm(void)
+migrate_nvm(uint8_t print_info)
 {
   uip_ipaddr_t loc_fipaddr;
 
@@ -296,8 +294,10 @@ migrate_nvm(void)
      || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
     //NVM is invalid or we are rollbacking from another version
     //Set all data to default values
-    printf
-      ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+	if (print_info) {
+      printf
+        ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+	}
     nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
     nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
 
@@ -324,6 +324,9 @@ migrate_nvm(void)
   }
   if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
   {
+	if (print_info) {
+	  printf("Migrate NVM version 0 towards 1\n");
+	}
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
     nvm_data->global_flags = CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS;
@@ -358,8 +361,6 @@ void
 create_empty_nvm(void)
 {
   memset(nvm_mem, 0xff, NVM_SIZE);
-
-  migrate_nvm();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -868,8 +869,10 @@ main(int argc, char *argv[])
 
   if(source_nvm_file) {
     load_nvm_file(source_nvm_file);
+    migrate_nvm(1);
   } else {
     create_empty_nvm();
+    migrate_nvm(0);
   }
 
   if(update_nvm_file || new_nvm_file) {
