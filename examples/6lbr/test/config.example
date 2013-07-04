@@ -1,0 +1,214 @@
+################################################################################
+# 6LBR TEST FRAMEWORK DOCUMENTATION
+################################################################################
+
+#This file describes all the configuration parameters of the 6LBR test framework
+#Typical configuration examples are provided in other files with only the most
+#relevant parameters configured
+
+################################################################################
+# TEST ENVIRONMENT CONFIGURATION
+
+################################################################################
+#The backbone is the medium connecting altogether the test host and all the BRs
+
+#EthernetBB is used when the medium is a vanilla Ethernet connection
+#backboneClass=EthernetBB
+
+#NativeBridgeBB is used when the medium is a virtual bridge created on the test host
+#backboneClass=NativeBridgeBB #Default value
+
+#NativeTapBB is used instead of NativeBridgeBB when the host does not support virtual
+#bridge. In this configuration, multi-6lbr setup are not possible 
+#backboneClass=NativeTapBB
+
+################################################################################
+# The test environment can control several types of BR
+
+#RemoteNativeBR is used to test a remote native BR, like a RPi based 6BLR
+#Communication is done using ssh 
+#brClass=RemoteNativeBR
+
+#LocalEconotagBR is used to test a USB connected Econotag based 6LBR
+#brClass=LocalEconotagBR
+
+#LocalNativeBR is used to test a native 6LBR running on the test host
+#brClass=LocalNativeBR #Default value
+
+################################################################################
+# The wireless network can either be a real deployment or a simulated WSN in Cooja
+
+#CoojaWsn is used when the WSN is entirely simulated in Cooja
+#wsnClass=CoojaWsn #default value
+
+#LocalWsn is used when the WSN is a standalone WSN
+#wsnClass=LocalWsn
+
+################################################################################
+# The test mote present in the Wsn is controled by the test framework
+ 
+#LocalTelosMote represents a USB connected Telos compatible test mote
+#moteClass=LocalTelosMote #Default value
+
+#Note, in CoojaWsn mode, moteClass is not used
+
+################################################################################
+# Test framework can run on Linux based platform or MacOS-X based platform
+
+#platformClass=Linux # Default value
+#platformClass=MacOSX
+
+################################################################################
+#Common configuration
+
+#Path to the test report directory, all the logs are stored there under the test
+#name
+#report_path='report'
+
+#802.15.4 channel to be used
+#channel=26
+
+#IPv6 prefix of the WSN network
+#wsn_prefix='8888'
+
+#IPv6 prefix to be used in prefix switching tests
+#wsn_second_prefix='9999'
+
+#IPv6 prefix to be used on the Backbone
+#eth_prefix='bbbb'
+
+#External host IP to use for IPv6 routing testing
+#external_host='cccc::1'
+
+#Ping payload size (Used to test packet fragmentation)
+#ping_payload=8 #Default is 54
+
+#UDP port of the test udp server
+#udp_port=3000
+
+#IID of a second test mote in mote to mote communication tests
+#second_mote_ip='0212:7416:0016:1616'
+
+################################################################################
+#Cooja configuration
+
+#Name of the file containing the description of the WSN topology
+#simulation_path=None
+
+#Name of the file containing the name of the generated topology file
+#Used only if simulation_path is not set
+#topology_file='coojagen/output/LASTFILE'
+
+################################################################################
+#Native configuration
+
+#This contains the list of all the slip radio available to Native BRs
+#slip_radio=[ {'dev': 'tty device', 'iid': 'iid converted mac address'} ]
+
+#This contains the list of all the test motes available in the WSN
+#motes[ {'dev': 'tty device', 'iid': 'iid converted mac address'} ]
+
+#Test mode serial link baudrate
+#mote_baudrate=115200
+
+################################################################################
+#Local configuration
+
+#Name of the bridge device created by NativeBridgeBB
+#backbone_dev='br0'
+        
+################################################################################
+#Remote configuration
+
+#List of the remote 6LBR configurations
+#remote_br=[ {'iid': 'iid converted mac address', 'dev': 'slip-radio tty device',
+              'baudrate': 'slip-radio baudrate', 'ctrl_ip': 'ipv4 control address of the BR'}]
+
+#Name of the Ethernet interface connected to the Ethernet backbone
+#ethernet_dev='eth0'
+
+#Path the the rsa id file containing the shared key
+#id_file=''
+
+#Name of the user on the 6LBR
+#remote_user='root'
+
+################################################################################
+#Econotag configuration
+
+#List of the Econotag based BR configurations
+#econotag_br=[{'iid': 'iid converted mac address', 'dev': 'BR tty device'}]
+
+#Econotag binary loader
+#econotag_loader='../../../cpu/mc1322x/tools/mc1322x-load.pl'
+
+#Econotag bbmc tool
+#econotag_bbmc='../../../cpu/mc1322x/tools/ftditools/bbmc'
+
+#Econotag nvm flasher tool
+#econotag_nvm_flasher='../tools/econotag/flash.sh'
+
+#Delay to use when flashing nvm configuration
+#econotag_flasher_delay=50000
+
+################################################################################
+#Test configuration
+
+# Delay to ping a 6LBR
+#ping_6lbr_timeout=40
+
+#Delay for the test mote to appear in 6LBR tables (Not implemented yet)
+#mote_in_6lbr_timeout=30
+
+#Delay to ping the mote
+#ping_mote_timeout=60
+
+#Delay for pinging the mote fail
+#no_ping_mote_timeout=10
+
+#Delay to ping a host from the test mote
+#ping_from_mote_timeout=60
+
+#Delay to ping the test mote after move it
+#ping_moved_mote_timeout=240
+
+#Delay to ping the test mote after BR switch over
+#ping_switched_mote_timeout=600
+
+#Delay before starting the test mote
+#mote_start_delay=0
+
+#Delay before starting actually perform the test
+#dag_stabilisation_delay=0
+
+#Delay before starting actually perform the test
+#(Used in tests that require such a delay)
+#long_dag_stabilisation_delay=60
+
+#Number of ping request to be sent in ping discovery tests
+#ping_repeat=100
+
+#Payload size of the ping request
+#ping_payload=8
+
+#Ping reply timeout
+#ping_timeout=1
+
+################################################################################
+# Test Skipping
+
+#Set a test ID to 0 to skip it
+
+#S0=0
+#S1=0
+#S2=0
+#S3=0
+#S4=0
+#S5=0
+#S6=0
+#S7=0
+#S8=0
+#S9=0
+#S10=0
+#S11=0
+#S12=0

@@ -12,16 +12,3 @@ remote_br=[{'iid': 'ba27:ebff:feb1:eb4d', 'dev': '/dev/ttyAMA0', 'baudrate': '38
 
 id_file='to be filled in'
 
-#S0=0
-#S1=0
-#S2=0
-#S3=0
-#S4=0
-#S5=0
-#S6=0
-#S7=0
-#S8=0
-#S9=0
-#S10=0
-#S11=0
-#S12=0
