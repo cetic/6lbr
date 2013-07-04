@@ -462,6 +462,7 @@ print_nvm(void)
   PRINT_INT("RA minimum delay", ra_min_delay);
 
   //RA PIO Configuration
+  PRINT_BOOL("RA PIO enabled", ra_prefix_flags, CETIC_6LBR_MODE_SEND_PIO);
   PRINT_INT("RA prefix valid lifetime", ra_prefix_vtime);
   PRINT_INT("RA prefix preferred lifetime", ra_prefix_ptime);
 
