@@ -1,11 +1,4 @@
-<<<<<<< HEAD:README
 6LBR is a 6LoWPAN Border Router based on The Contiki Operating System.
-=======
-The Contiki Operating System
-============================
-
-[![Build Status](https://secure.travis-ci.org/contiki-os/contiki.png)](http://travis-ci.org/contiki-os/contiki)
->>>>>>> contiki/master:README.md
 
 This 6LBR repository is a fork of Contiki with additions:
 
@@ -20,12 +13,8 @@ To track changes, see the 6lbr branch of our main Contiki fork on GitHub.
 Likewise, useful commits for Contiki are submitted back into the official
 Contiki repository through pull requests.
 
-<<<<<<< HEAD:README
 * Home: http://cetic.github.com/6lbr
 * Documentation: http://github.com/cetic/6lbr/wiki
 * Contiki: http://www.contiki-os.org
 * Nooliberry: https://github.com/Noolitic/Nooliberry/wiki
 * Contiki fork with a 6lbr branch: http://github.com/cetic/contiki
-=======
-[http://contiki-os.org](http://contiki-os.org)
->>>>>>> contiki/master:README.md
