@@ -1,8 +1,31 @@
-test_scenarios='PerformanceSingleBrScenarios'
-test_modes=['Router', 'SmartBridge']
+################################################################################
+# 6LBR PERFORMANCE TEST FRAMEWORK DOCUMENTATION
+################################################################################
 
+# NOTE : Test environment configuration is done in config.py !
+
+################################################################################
+# Test definition
+
+#Test scenarios to be run
+#test_scenarios='PerformanceSingleBrScenarios'
+
+#Test modes to be used
+#test_modes=['Router', 'SmartBridge']
+
+################################################################################
+# Test configuration
+
+#Number of test repetition
 #test_repeat=5
-#dag_stabilisation_delays=[0, 60, 600]
+
+#List of dag stabilisation delays to be used
+#dag_stabilisation_delays=[0, 60, 700]
+
+#List of udp traffic frequency to be used
+#udp_intervals=[0, 10, 30, 60, 120]
+
+#List of topologies to be tested
 #topologies=[
     #'./coojagen/examples/config_line_single_br.py',
     #'./coojagen/examples/config_grid_single_br.py',

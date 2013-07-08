@@ -31,7 +31,9 @@ launch-cooja:
 %.csc: ${COOJAGEN}/examples/config_%.py
 	python2.7 gensimfile.py $<
 
-build-cooja: serial2pty radiologger-headless
+build-cooja: do-build-cooja serial2pty radiologger-headless
+
+do-build-cooja:
 	pushd ${COOJADIR}; ant jar; popd
 
 config-cooja:
@@ -43,7 +45,7 @@ config-cooja:
 	if [ `whoami` = root ] && ! grep -Fq radiologger-headless $(COOJA_ROOT_CONFIG) ; then sed -i "/^DEFAULT_PROJECTDIRS=/ s/\$$/\;\[APPS_DIR\]\/radiologger-headless/" $(COOJA_ROOT_CONFIG); fi
 
 serial2pty:
-	pushd ${COOJADIR}/apps/serial2pty; ant jar; popd
+	pushd ${COOJADIR}/apps/serial2pty; echo $(JAVA_HOME); ant jar; popd
 
 radiologger-headless:	
 	pushd ${COOJADIR}/apps/radiologger-headless; ant jar; popd

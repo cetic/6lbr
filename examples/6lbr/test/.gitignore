@@ -14,3 +14,4 @@ run_pool
 postprocessing/allres.txt
 postprocessing/testfile.txt
 /config.py
+/performance_config.py

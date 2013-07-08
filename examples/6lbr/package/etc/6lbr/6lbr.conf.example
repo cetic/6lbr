@@ -18,6 +18,8 @@
 
 #RAW_ETH=1
 #DEV_ETH=eth0
+
+#Some Ethernet controllers include the FCS field when capturing packet, others not
 #RAW_ETH_FCS=0
 #RAW_ETH_FCS=1
 
@@ -38,10 +40,12 @@
 #CREATE_BRIDGE=0
 #DEV_BRIDGE=br0
 
-# The CETIC 6LBR can optionally create the Ethernet Bridge and attach also
-# DEV_ETH to it
+# The CETIC 6LBR can optionally create the Ethernet Bridge and optionally attach
+# also DEV_ETH to it (Note that Eth will loose its configuration in that case)
 
 #CREATE_BRIDGE=1
+
+#ETH_JOIN_BRIDGE=1
 
 ################################################################################
 #SLIP Radio configuration
@@ -85,3 +89,11 @@
 # This parameter can be used to specify additional parameters to the CETIC 6LBR
 
 #EXTRA_PARAMS=
+
+################################################################################
+# Cooja support
+# If Cooja is used to simulate the WSN, the following configuration parameters
+# are used to configure the connection to the simulated slip-radio
+
+#SOCK_RADIO=localhost
+#SOCK_PORT=60001
