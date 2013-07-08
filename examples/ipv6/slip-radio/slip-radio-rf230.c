@@ -32,11 +32,16 @@
  */
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "cmd.h"
+#include <string.h>
 
-#include "radio/rf230/radio.h"
 #include "radio/rf230bb/rf230bb.h"
-
+#if CONTIKI_TARGET_NOOLIBERRY
+#include "net/mac/frame802154.h"
+#else
+#include "params.h"
+#endif
 
 #define DEBUG 0
 #if DEBUG
@@ -55,6 +60,18 @@ cmd_handler_rf230(const uint8_t *data, int len)
     if(data[1] == 'C') {
       PRINTF("CMD: Setting channel: %d\n", data[2]);
       rf230_set_channel(data[2]);
+      return 1;
+    } else if(data[1] == 'M') {
+      PRINTF("CMD: Got MAC\n");
+      memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
+      rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
+      uint16_t shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
+        rimeaddr_node_addr.u8[1];
+#if CONTIKI_TARGET_NOOLIBERRY
+      rf230_set_pan_addr(IEEE802154_PANID, shortaddr, rimeaddr_node_addr.u8);
+#else
+      rf230_set_pan_addr(params_get_panid(), shortaddr, rimeaddr_node_addr.u8);
+#endif
       return 1;
     }
   } else if(data[0] == '?') {

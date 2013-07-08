@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<project name="COOJA Serial2Pty" default="compile" basedir=".">
+  <property name="java" location="java"/>
+  <property name="native" location="native"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name ="contiki_base" value="../../../../../contiki" />
+  <property name="cooja_jar" value="${contiki_base}/tools/cooja/dist/cooja.jar"/>
+  <property name="cooja_mspsim_jar" value="${contiki_base}/tools/cooja/apps/mspsim/lib/cooja_mspsim.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${java}" destdir="${build}" debug="on">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="${cooja_jar}"/>
+        <pathelement location="${cooja_mspsim_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init, clean-native">
+    <delete dir="${build}"/>
+    <delete file="${lib}/serial2pty.jar"/>
+  </target>
+
+  <target name="jar" depends="clean, init, compile, compile-native">
+    <mkdir dir="${lib}"/>
+    <jar destfile="${lib}/serial2pty.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+
+  <!-- ==================== JNI stuff ==================== -->
+  <target name="compile-header" depends="compile">
+    <javah outputFile="${build}/LinuxPseudoTerminal.h" classpath="${build}" 
+          class="de.fau.cooja.plugins.LinuxPseudoTerminal" />
+  </target>
+  
+  <target name="copy-native-includes" depends="compile-header">
+    <mkdir dir="${native}/include" />
+    <copy todir="${native}/include">
+      <fileset dir="${build}">
+        <include name="**/*.h" />
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile-native" depends="copy-native-includes">
+    <exec executable="make" dir="${native}" failonerror="true" newenvironment="false" />
+    <copy todir="${lib}">
+      <fileset dir="${native}">
+        <include name="*.so" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="clean-native" depends="init">
+    <exec executable="make" dir="${native}" failonerror="false">
+	<arg value="clean"/>
+    </exec>
+    <delete file="${lib}/libpty.so"/>
+  </target>
+
+</project>

@@ -1,6 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 . $CETIC_6LBR_CONF
+. `dirname $0`/6lbr-functions
+
+config_default
 
 MODE_6LBR=$1
 DEV=$2
@@ -14,15 +17,29 @@ case $MODE_6LBR in
 	case $OS in
 		Linux)
 			if [ "$BRIDGE" = "1" ]; then
-				ifconfig $DEV_BRIDGE down
-				brctl delbr $DEV_BRIDGE
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
+					echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
+					ip link set $DEV_BRIDGE down
+					ip addr flush dev $DEV_BRIDGE
+					ip addr flush dev $DEV
+					brctl delbr $DEV_BRIDGE
+				else
+					echo "6lbr-ifdown: Remove interface $DEV"
+					brctl delif $DEV_BRIDGE $DEV
+				fi
 			fi
-			ifconfig $DEV down
+			ip link set $DEV down
 			netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
 			;;
 		Darwin)
 			if [ "$BRIDGE" = "1" ]; then
-				ifconfig $DEV_BRIDGE destroy
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
+					echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
+					ifconfig $DEV_BRIDGE destroy
+				else
+					echo "6lbr-ifdown: Remove interface $DEV"
+					ifconfig $DEV_BRIDGE delm $DEV
+				fi
 			fi
 			;;
 		*)

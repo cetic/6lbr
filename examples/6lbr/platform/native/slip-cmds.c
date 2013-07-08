@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -33,6 +34,7 @@
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #include "contiki.h"
@@ -70,12 +72,12 @@ border_router_cmd_handler(const uint8_t * data, int len)
     if(data[1] == 'G' && command_context == CMD_CONTEXT_STDIO) {
       /* This is supposed to be from stdin */
       printf("Performing Global Repair...\n");
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+      //rpl_repair_root(RPL_DEFAULT_INSTANCE);
       return 1;
     } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Setting MAC address\n");
-      slip_set_mac(&data[2]);
+      slip_got_mac(&data[2]);
       return 1;
     } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */

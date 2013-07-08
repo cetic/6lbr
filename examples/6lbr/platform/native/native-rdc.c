@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -35,6 +36,7 @@
  *         Adam Dunkels <adam@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #include "net/packetbuf.h"
@@ -52,6 +54,7 @@
 #else
 #define PRINTF(...)
 #endif
+#include "uip-debug.h"
 
 uint8_t mac_set;
 
@@ -202,6 +205,13 @@ slip_print_stat()
 }
 /*---------------------------------------------------------------------------*/
 void
+slip_reboot(void)
+{
+  printf("Reset SLIP Radio\n");
+  write_to_slip((uint8_t *) "!R", 2);
+}
+
+void
 slip_request_mac(void)
 {
   printf("Fetching MAC address\n");
@@ -210,13 +220,30 @@ slip_request_mac(void)
 }
 
 void
-slip_set_mac(const uint8_t * data)
+slip_got_mac(const uint8_t * data)
 {
-  printf("Got MAC\n");
+  printf("Got MAC: ");
+  uip_debug_lladdr_print(&uip_lladdr);
+  printf("\n");
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
   rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
   mac_set = 1;
+}
+
+void
+slip_set_mac(rimeaddr_t const * mac_addr)
+{
+	uint8_t buffer[10];
+	int i;
+
+	PRINTF("Set MAC address\n");
+	buffer[0] = '!';
+	buffer[1] = 'M';
+    for(i = 0; i < 8; i++) {
+    	buffer[2 + i] = mac_addr->u8[i];
+    }
+    write_to_slip(buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -1,3 +1,39 @@
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         6LBR Web Server (Light version well-suited for Econotag)
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "net/uip-ds6-route.h"
@@ -202,10 +238,21 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("SMART BRIGDE");
 #endif
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-  add("TRANSPARENT BRIGDE");
+#if CETIC_6LBR_LEARN_RPL_MAC
+  add("RPL Relay");
+#else
+  add("FULL TRANSPARENT BRIGDE");
+#endif
 #endif
 #if CETIC_6LBR_ROUTER
-  add("ROUTER");
+#if UIP_CONF_IPV6_RPL
+  add("RPL ROUTER");
+#else
+  add("NDP ROUTER");
+#endif
+#endif
+#if CETIC_6LBR_6LR
+  add("6LR");
 #endif
   add("<br>");
   i = clock_seconds() - cetic_6lbr_startup;
@@ -219,12 +266,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
+#if UIP_CONF_IPV6_RPL
   add("Prefix : ");
   ipaddr_add(&cetic_dag->prefix_info.prefix);
   add("/%d", cetic_dag->prefix_info.length);
-#endif
   add("<br>");
+#endif
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br>");
@@ -452,7 +499,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
     ipaddr_add(&wsn_net_prefix);
     add("<br>");
   }
-#else
+#elif CETIC_6LBR_ROUTER
   add("Prefix : ");
   ipaddr_add(&wsn_net_prefix);
   add("<br>");
@@ -488,7 +535,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   ipaddr_add(&eth_dft_router);
   add("<br>");
   add("RA Daemon : ");
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
+  if((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) != 0) {
     add("active (Lifetime : %d)", UIP_CONF_ROUTER_LIFETIME);
   } else {
     add("inactive");
@@ -499,12 +546,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #endif
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("<h3>Packet filtering</h3>");
-  add("RPL filtering : ");
-  if((nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
-    add("enabled<br>");
-  } else {
-    add("disabled<br>");
-  }
 #endif
 #if CETIC_6LBR_ROUTER
   add("<h3>Packet filtering</h3>");

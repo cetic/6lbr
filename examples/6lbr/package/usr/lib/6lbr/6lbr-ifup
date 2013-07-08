@@ -1,6 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 . $CETIC_6LBR_CONF
+. `dirname $0`/6lbr-functions
+
+config_default
 
 MODE_6LBR=$1
 DEV=$2
@@ -14,14 +17,26 @@ case $MODE_6LBR in
 	case $OS in
 		Linux)
 			#Sometimes the generated mac address has the translate bit set to 1
-			#this conflict with packet filter and sicslow-ethernet
-			ifconfig $DEV hw ether 02:a:b:c:d:e up
+			#this can conflict with packet filter and sicslow-ethernet
+			ip link set $DEV address 02:a:b:c:d:e up
 
 			if [ "$BRIDGE" = "1" ]; then
-				brctl addbr $DEV_BRIDGE
-				brctl setfd $DEV_BRIDGE 0
-				brctl addif $DEV_BRIDGE $DEV_TAP $DEV_ETH
-				ifconfig $DEV_BRIDGE up
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
+					echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
+					brctl addbr $DEV_BRIDGE
+					brctl setfd $DEV_BRIDGE 0
+					if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
+						echo "6lbr-ifup: attach device $DEV_ETH"
+						brctl addif $DEV_BRIDGE $DEV_ETH
+						ip addr flush dev $DEV_ETH
+					fi
+					ip link set $DEV_BRIDGE up
+				else
+					echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+				fi
+				ip addr flush dev $DEV
+				brctl addif $DEV_BRIDGE $DEV
+				ifconfig $DEV_BRIDGE
 			fi
 			;;
 
@@ -37,8 +52,16 @@ case $MODE_6LBR in
 			ifconfig $DEV inet6 up
 			
 			if [ "$BRIDGE" = "1" ]; then
-				ifconfig $DEV_BRIDGE create
-				ifconfig $DEV_BRIDGE up addm $DEV_TAP addm $DEV_ETH
+				#TODO: add condition of brctl output as done on line 24 for Linux
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]]; then
+					echo "6lbr-ifup: Create bridge $DEV_BRIDGE and attach device $DEV_ETH"
+					ifconfig $DEV_BRIDGE create
+					ifconfig $DEV_BRIDGE up addm $DEV_ETH
+				else
+					echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+				fi
+				ifconfig $DEV_BRIDGE addm $DEV
+				ifconfig $DEV_BRIDGE
 			fi
 			;;
 
@@ -54,7 +77,3 @@ case $MODE_6LBR in
 esac
 
 ifconfig $DEV
-
-if [ "$BRIDGE" = "1" ]; then
-	ifconfig $DEV_BRIDGE
-fi

@@ -1,12 +1,54 @@
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Packet Filter for 6LBR.
+ *         Enables dual-interfaces (IEEE802.15.4 and Ethernet) under the
+ *         single-interface uIP stack.
+ *         More information: 
+ *           https://github.com/cetic/6lbr/wiki/Implementation-Details
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+
 #include "contiki-net.h"
 #include "net/uip-neighbor.h"
 #include "net/uip-ds6.h"
 #include "net/uip-nd6.h"
 #include "string.h"
 #include "sicslow-ethernet.h"
+#include "rpl-private.h"
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "platform-init.h"
 
 #include "eth-drv.h"
 
@@ -29,9 +71,16 @@ static inputfunc_t tcpip_inputfunc;
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ND6_NS_BUF            ((uip_nd6_ns *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 #define UIP_ND6_NA_BUF            ((uip_nd6_na *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_ICMP_PAYLOAD ((unsigned char *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 
-#define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == CETIC_6LBR_ETH_EXT_A && (a)->addr[4] ==CETIC_6LBR_ETH_EXT_B )
+#define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == CETIC_6LBR_ETH_EXT_A && (a)->addr[4] == CETIC_6LBR_ETH_EXT_B )
+#define IS_EUI64_ADDR(a) ((a) != NULL && ((a)->addr[3] != CETIC_6LBR_ETH_EXT_A || (a)->addr[4] != CETIC_6LBR_ETH_EXT_B ))
 #define IS_BROADCAST_ADDR(a) ((a)==NULL || rimeaddr_cmp((rimeaddr_t *)(a), &rimeaddr_null) != 0)
+
+#if CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_LEARN_RPL_MAC
+static int rpl_mac_known = 0;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -53,6 +102,25 @@ wireless_input(void)
   int forwardFrame = 0;
 
   PRINTF("wireless_input\n");
+
+  //Source filtering
+  //----------------
+#if CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_LEARN_RPL_MAC
+  if (!rpl_mac_known) {
+    //Rpl Relay not yet configured, drop packet
+    uip_len = 0;
+    return;
+  }
+  if (rimeaddr_cmp
+	  (packetbuf_addr(PACKETBUF_ADDR_SENDER),
+	   & rimeaddr_node_addr) != 0) {
+    printf("WSN packet received with RplRoot address, another TB is within range, dropping it\n");
+    //Drop packet
+    uip_len = 0;
+    return;
+  }
+#endif
+
   //Destination filtering
   //---------------------
   if(IS_BROADCAST_ADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {      //Broadcast
@@ -108,28 +176,33 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 
   //Packet filtering
   //----------------
-  //Filter out Ethernet segment traffic
-  if(IS_EUI48_ADDR(dest)) {
+  if(uip_len == 0) {
+    PRINTF("eth_output: uip_len = 0\n");
     return 0;
   }
+#if CETIC_6LBR_WSN_FILTER_RA
   //Filter out RA/RS towards WSN
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
-     (UIP_ICMP_BUF->type == ICMP6_RS || UIP_ICMP_BUF->type == ICMP6_RA) &&
-     (nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) != 0) {
+     (UIP_ICMP_BUF->type == ICMP6_RS || UIP_ICMP_BUF->type == ICMP6_RA)) {
     return 0;
   }
+#endif
+
   //Packet sending
   //--------------
   if(wireless_outputfunc != NULL) {
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-    //Set source address (must be done by hacking node address)
-    rimeaddr_set_node_addr((rimeaddr_t *) src);
+	if ( src != NULL ) {
+      platform_set_wsn_mac((rimeaddr_t *)src);
+	}
 #endif
     PRINTF("wireless_output: sending packet\n");
     ret = wireless_outputfunc(dest);
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-    //Restore node address
-    rimeaddr_set_node_addr((rimeaddr_t *) & wsn_mac_addr);
+	if ( src != NULL ) {
+      //Restore node address
+	  platform_set_wsn_mac((rimeaddr_t *) & wsn_mac_addr);
+	}
 #endif
   } else {
     ret = 0;
@@ -142,7 +215,7 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 void
 eth_input(void)
 {
-#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
   uip_lladdr_t srcAddr;
 #endif
   uip_lladdr_t destAddr;
@@ -171,13 +244,13 @@ eth_input(void)
             && (BUF->dest.addr[4] == 0xFF)
             && (BUF->dest.addr[5] == 0xFF)) {
     /* IPv6 does not use broadcast addresses, hence this should not happen */
-    PRINTF("eth_input: Dropping broadcast packet\n\r");
+    PRINTF("eth_input: Dropping broadcast packet\n");
     uip_len = 0;
     return;
   } else {
     /* Complex Address Translation */
     if(mac_createSicslowpanLongAddr(&(BUF->dest.addr[0]), &destAddr) == 0) {
-      PRINTF("eth_input: Address translation failed\n\r");
+      PRINTF("eth_input: Address translation failed\n");
       uip_len = 0;
       return;
     }
@@ -189,8 +262,9 @@ eth_input(void)
   uint8_t transReturn = mac_translateIPLinkLayer(ll_802154_type);
 
   if(transReturn != 0) {
-    PRINTF("eth_input: IPTranslation returns %d\n\r", transReturn);
+    PRINTF("eth_input: IPTranslation returns %d\n", transReturn);
   }
+
   //Destination filtering
   //---------------------
   if(memcmp((uint8_t *) & eth_mac_addr, BUF->dest.addr, 6) == 0) {
@@ -206,15 +280,44 @@ eth_input(void)
   //-------------
 #if CETIC_6LBR_TRANSPARENTBRIDGE
   if(forwardFrame) {
+    mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
+#if CETIC_6LBR_LEARN_RPL_MAC
+    if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
+      uint8_t *buffer = UIP_ICMP_PAYLOAD;
+      uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
+      if ( rank == RPL_MIN_HOPRANKINC ) {
+    	platform_set_wsn_mac((rimeaddr_t *) &srcAddr);
+        rpl_mac_known=1;
+      }
+    }
+    if (!rpl_mac_known) {
+      //Rpl Relay not yet configured, drop packet
+      uip_len = 0;
+      return;
+    }
+    if(rimeaddr_cmp((rimeaddr_t *) &srcAddr, &rimeaddr_node_addr) != 0) {
+      //Only forward RplRoot packets
+      PRINTF("eth_input: Forwarding frame to ");
+      PRINTLLADDR(&destAddr);
+      PRINTF("\n");
+      wireless_output(NULL, &destAddr);
+    }
+#else
     PRINTF("eth_input: Forwarding frame to ");
     PRINTLLADDR(&destAddr);
     PRINTF("\n");
-    mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
     wireless_output(&srcAddr, &destAddr);
+#endif
   }
 #endif
   if(processFrame) {
     PRINTF("eth_input: Processing frame\n");
+#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+  //RPL uses source packet address to populate its neighbor table
+  //In this two modes RPL packets are incoming from Eth interface
+  mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *) &srcAddr);
+#endif
     send_to_uip();
   } else {
     //Drop packet
@@ -238,20 +341,15 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
     PRINTF("eth_output: uip_len = 0\n");
     return 0;
   }
-  //Filter out traffic not targeted to Ethernet segment
-  if(!IS_EUI48_ADDR(dest) && !IS_BROADCAST_ADDR(dest)) {
-    PRINTF("eth_output: Not ethernet destination : ");
-    PRINTLLADDR(dest);
-    PRINTF("\n");
-    return 0;
-  }
+#if CETIC_6LBR_ETH_FILTER_RPL
   //Filter out RPL (broadcast) traffic
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
-     UIP_ICMP_BUF->type == ICMP6_RPL &&
-     (nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
+     UIP_ICMP_BUF->type == ICMP6_RPL) {
     //PRINTF("eth_output: Filtering RPL traffic\n");
     return 0;
   }
+#endif
+
   //IP packet alteration
   //--------------------
 #if CETIC_6LBR_ROUTER
@@ -310,16 +408,11 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
   }
 
   //Source address
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-  mac_createEthernetAddr(BUF->src.addr, src);
-#endif
-#if CETIC_6LBR_SMARTBRIDGE
-  memcpy(BUF->src.addr, eth_mac_addr, 6);
-#endif
-#if CETIC_6LBR_ROUTER
-  memcpy(BUF->src.addr, eth_mac_addr, 6);
-#endif
-
+  if ( src != NULL ) {
+    mac_createEthernetAddr(BUF->src.addr, src);
+  } else {
+    memcpy(BUF->src.addr, eth_mac_addr, 6);
+  }
   //Sending packet
   //--------------
   PRINTF("eth_output: Sending packet to ethernet\n");
@@ -330,40 +423,53 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 
 /*---------------------------------------------------------------------------*/
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_6LR
 
 static uint8_t
-bridge_output(uip_lladdr_t * a)
+bridge_output(uip_lladdr_t * dest)
 {
+  int isBroadcast = IS_BROADCAST_ADDR(dest);
   PRINTF("bridge_output: Sending packet to ");
-  if(!IS_BROADCAST_ADDR(a)) {
-    PRINTLLADDR(a);
+  if(!isBroadcast) {
+    PRINTLLADDR(dest);
   } else {
     PRINTF("Broadcast");
   }
   PRINTF("\n");
-
-  wireless_output(&wsn_mac_addr, a);
-  eth_output(&wsn_mac_addr, a);
-
+  //Filter WSN vs Ethernet segment traffic
+  if(IS_EUI48_ADDR(dest) || isBroadcast) {
+    eth_output(NULL, dest);
+  }
+  if( ! IS_EUI48_ADDR(dest) || isBroadcast) {
+	if (isBroadcast
+	    && UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+	    && UIP_ICMP_BUF->type == ICMP6_NA) {
+		return 0;
+	}
+    wireless_output(NULL, dest);
+  }
   return 0;
 }
-#else
+#endif
+
+#if CETIC_6LBR_ROUTER
+#if UIP_CONF_IPV6_RPL
 static uint8_t
-bridge_output(uip_lladdr_t * a)
+bridge_output(uip_lladdr_t * dest)
 {
+  int ethernetDest = 0;
   if(uip_len == 0) {
     printf("ERROR: Trying to send empty packet\n");
     return 0;
   }
   PRINTF("bridge_output: Sending packet to ");
-  if(!IS_BROADCAST_ADDR(a)) {
-    PRINTLLADDR(a);
+  if(!IS_BROADCAST_ADDR(dest)) {
+    PRINTLLADDR(dest);
   } else {
     PRINTF("Broadcast");
   }
   PRINTF("\n");
-  if(IS_BROADCAST_ADDR(a)) {
+  if(IS_BROADCAST_ADDR(dest)) {
     //Obviously we can not guess the target segment for a multicast packet
     //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
     //or, in case of link-local packet, check packet type and/or packet data
@@ -374,20 +480,55 @@ bridge_output(uip_lladdr_t * a)
            && uip_ipaddr_prefixcmp(&eth_net_prefix,
                                    &UIP_ND6_NS_BUF->tgtipaddr, 64))
        || uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
-      eth_output(NULL, a);
-    } else {
-      //ret = wireless_output(NULL, a);
-      wireless_output(NULL, a);
+      ethernetDest = 1;
     }
+  }
+  if(ethernetDest || IS_EUI48_ADDR(dest)) {
+    eth_output(NULL, dest);
   } else {
-    if(IS_EUI48_ADDR(a)) {
-      eth_output(NULL, a);
-    } else {
-      wireless_output(NULL, a);
-    }
+#if CETIC_6LBR_ONE_ITF
+	eth_output(&wsn_mac_addr, dest);
+#else
+	wireless_output(NULL, dest);
+#endif
   }
   return 0;
 }
+#else
+static uint8_t
+bridge_output(uip_lladdr_t * dest)
+{
+  int isBroadcast = IS_BROADCAST_ADDR(dest);
+  int wsnDest = 0;
+  PRINTF("bridge_output: Sending packet to ");
+  if(!isBroadcast) {
+    PRINTLLADDR(dest);
+  } else {
+    PRINTF("Broadcast");
+  }
+  PRINTF("\n");
+  if(isBroadcast) {
+    //Obviously we can not guess the target segment for a multicast packet
+    //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
+    //or, in case of link-local packet, check packet type and/or packet data
+    if((UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+        && UIP_ICMP_BUF->type == ICMP6_RA)
+       || (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+           && UIP_ICMP_BUF->type == ICMP6_NS
+           && uip_ipaddr_prefixcmp(&wsn_net_prefix,
+                                   &UIP_ND6_NS_BUF->tgtipaddr, 64))
+       || uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+      wsnDest = 1;
+    }
+  }
+  if(wsnDest || IS_EUI64_ADDR(dest)) {
+		wireless_output(NULL, dest);
+  } else {
+	eth_output(NULL, dest);
+  }
+  return 0;
+}
+#endif
 #endif
 
 /*---------------------------------------------------------------------------*/

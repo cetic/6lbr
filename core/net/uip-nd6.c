@@ -81,6 +81,7 @@
 #include "rio.h"
 #endif
 
+#if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
 #include "net/uip-debug.h"
@@ -429,6 +430,9 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
 void
 uip_nd6_na_input(void)
 {
+#if CETIC_6LBR_SMARTBRIDGE
+  uip_ds6_route_t * route;
+#endif
   uint8_t is_llchange;
   uint8_t is_router;
   uint8_t is_solicited;
@@ -484,6 +488,20 @@ uip_nd6_na_input(void)
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
+#if CETIC_6LBR_SMARTBRIDGE
+  /* Address Advertisement */
+  if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
+    if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
+      printf("Address Advertisement NA\n");
+      route = uip_ds6_route_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+      if (route != NULL ) {
+          printf("Address Advertisement NA for existing route, removing it\n");
+          uip_ds6_route_rm(route);
+      }
+      goto discard;
+    }
+  }
+#endif
   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
   /* Message processing, including TLLAO if any */
   if(addr != NULL) {
@@ -575,6 +593,53 @@ discard:
   uip_len = 0;
   return;
 }
+
+#if CETIC_6LBR_SMARTBRIDGE
+void
+send_purge_na(uip_ipaddr_t *prefix)
+{
+      if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
+    	  return;
+      }
+	  printf("Sending purge NA\n");
+	  uip_ext_len = 0;
+	  UIP_IP_BUF->vtc = 0x60;
+	  UIP_IP_BUF->tcflow = 0;
+	  UIP_IP_BUF->flow = 0;
+	  UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
+	  UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+	  UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+	  UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+
+	  uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
+      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, prefix);
+
+	  UIP_ICMP_BUF->type = ICMP6_NA;
+	  UIP_ICMP_BUF->icode = 0;
+
+	  UIP_ND6_NA_BUF->flagsreserved = UIP_ND6_NA_FLAG_OVERRIDE;
+	  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, prefix, sizeof(uip_ipaddr_t));
+
+	  create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
+	              UIP_ND6_OPT_TLLAO);
+
+	  UIP_ICMP_BUF->icmpchksum = 0;
+	  UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+
+	  uip_len =
+	    UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+
+	  UIP_STAT(++uip_stat.nd6.sent);
+	  PRINTF("Sending Unsolicited NA to ");
+	  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+	  PRINTF(" from ");
+	  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+	  PRINTF(" with target address ");
+	  PRINT6ADDR(&UIP_ND6_NA_BUF->tgtipaddr);
+	  PRINTF("\n");
+	  tcpip_ipv6_output();
+}
+#endif
 
 
 #if UIP_CONF_ROUTER
@@ -1037,3 +1102,4 @@ discard:
 #endif /* !UIP_CONF_ROUTER */
 
  /** @} */
+#endif /* UIP_CONF_IPV6 */

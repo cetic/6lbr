@@ -1,14 +1,6 @@
-/**
- * \file sicslow_ethernet.c
- *         Routines to interface between Ethernet and 6LowPan
- *
- * \author
- *         Colin O'Flynn <coflynn@newae.com>
- *
- * \addtogroup usbstick 
- */
-
-/* Copyright (c) 2008 by:
+/* 
+ * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2008 by:
  * Colin O'Flynn coflynn@newae.com
  * Eric Gnoske egnoske@gmail.com
  * Blake Leverett bleverett@gmail.com
@@ -46,6 +38,17 @@
  */
 
 /**
+ * \file sicslow_ethernet.c
+ *         Routines to interface between Ethernet and 6LowPan
+ *
+ * \author
+ *         Colin O'Flynn <coflynn@newae.com>
+ *         6LBR Team <6lbr@cetic.be>
+ *
+ * \addtogroup usbstick 
+ */
+
+/**
    \ingroup usbstick
    \defgroup sicslowinterop 6LowPan Ethernet Interop
    @{
@@ -76,6 +79,12 @@
 #define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
 #endif
 
+#if CETIC_6LBR_ONE_ITF
+#define UIP_CONF_SIMPLE_ADDR_TRANS	1
+#undef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	0
+#endif
+
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define ETHBUF(x) ((struct uip_eth_hdr *)x)
 
@@ -89,13 +98,6 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet,
                                      uip_lladdr_t * lowpan);
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
-
-//! Location of TRANSLATE (TR) bit in Ethernet address
-#define TRANSLATE_BIT_MASK (1<<2)
-//! Location of LOCAL (GL) bit in Ethernet address
-#define LOCAL_BIT_MASK     (1<<1)
-//! Location of MULTICAST (MU) bit in Ethernet address
-#define MULTICAST_BIT_MASK (1<<0)
 
 #define PREFIX_BUFFER_SIZE 32
 
@@ -192,6 +194,7 @@ mac_translateIcmpLinkLayer(lltype_t target)
   case ICMP6_PARAM_PROB:
   case ICMP6_ECHO_REQUEST:
   case ICMP6_ECHO_REPLY:
+  case ICMP6_RPL:
   case 131:                    //Multicast Listener Report
   case 132:                    //Multicast Listener Done
     return 0;
@@ -313,6 +316,19 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   }
 #endif
 
+#if UIP_CONF_SIMPLE_ADDR_TRANS
+
+  lowpan->addr[0] = ethernet[0];
+  lowpan->addr[1] = ethernet[1];
+  lowpan->addr[2] = ethernet[2];
+  lowpan->addr[3] = CETIC_6LBR_ETH_EXT_A;
+  lowpan->addr[4] = CETIC_6LBR_ETH_EXT_B;
+  lowpan->addr[5] = ethernet[3];
+  lowpan->addr[6] = ethernet[4];
+  lowpan->addr[7] = ethernet[5];
+
+#else //!UIP_CONF_SIMPLE_ADDR_TRANS
+
   uint8_t index;
 
   //Check if translate bit is set, hence we have to look up the prefix
@@ -343,6 +359,8 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   lowpan->addr[5] = ethernet[3];
   lowpan->addr[6] = ethernet[4];
   lowpan->addr[7] = ethernet[5];
+#endif //UIP_CONF_SIMPLE_ADDR_TRANS
+
   return 1;
 }
 
@@ -365,6 +383,17 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     return 1;
   }
 #endif
+
+#if UIP_CONF_SIMPLE_ADDR_TRANS
+
+    ethernet[0] = lowpan->addr[0];
+    ethernet[1] = lowpan->addr[1];
+    ethernet[2] = lowpan->addr[2];
+    ethernet[3] = lowpan->addr[5];
+    ethernet[4] = lowpan->addr[6];
+    ethernet[5] = lowpan->addr[7];
+
+#else //!UIP_CONF_SIMPLE_ADDR_TRANS
 
   uint8_t index = 0;
   uint8_t i;
@@ -442,6 +471,8 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
              ethernet[1], ethernet[2], ethernet[3], ethernet[4], ethernet[5]);
     }
   }
+
+#endif //UIP_CONF_SIMPLE_ADDR_TRANS
 
   return 1;
 }

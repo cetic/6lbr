@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * Copyright (c) 2009, 2010 Joakim Eriksson, Niclas Finne, Dogan Yazar.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,7 +171,7 @@ slip_packet_input(unsigned char *data, int len)
 void
 serial_input(FILE * inslip)
 {
-  unsigned char inbuf[2048];
+  static unsigned char inbuf[2048];
   static int inbufptr = 0;
   int ret, i;
   unsigned char c;

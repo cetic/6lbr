@@ -1,29 +1,43 @@
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Header file for Non-Volatile Memory interface
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+
 #ifndef NVM_CONFIG_H_
 #define NVM_CONFIG_H_
 
-typedef struct {
-  uint16_t magic;
-  uint16_t version;
-  uint8_t eth_ip_addr[16];
-  uint8_t mode;
-  uint8_t rpl_version_id;
-  uint8_t wsn_net_prefix[16];
-  uint8_t wsn_ip_addr[16];
-  uint8_t eth_net_prefix[16];
-  uint8_t eth_dft_router[16];
-  uint8_t channel;
-} nvm_data_t;
-
-#define CETIC_6LBR_NVM_MAGIC	0x2009
-#define CETIC_6LBR_NVM_VERSION	0
-
-#define CETIC_MODE_REWRITE_ADDR_MASK	0x01
-#define CETIC_MODE_FILTER_RPL_MASK		0x02
-#define CETIC_MODE_WAIT_RA_MASK			0x04
-#define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
-#define CETIC_MODE_WSN_AUTOCONF         0x10
-#define CETIC_MODE_ETH_AUTOCONF         0x20
-#define CETIC_MODE_FILTER_NDP_MASK		0x40
+#include "nvm-data.h"
 
 extern nvm_data_t nvm_data;
 

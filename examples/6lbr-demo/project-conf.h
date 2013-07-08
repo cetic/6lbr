@@ -32,6 +32,11 @@
 #ifndef __PROJECT_RPL_WEB_CONF_H__
 #define __PROJECT_RPL_WEB_CONF_H__
 
+#if !UIP_CONF_IPV6_RPL
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER            0
+#endif
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
 
@@ -49,6 +54,7 @@
 #define WEBSERVER_CONF_CFS_PATHLEN 80
 
 //Temporary : When RDC is enabled the mote can not communicate with Econotag
+#undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     		csma_driver
 
 #undef NETSTACK_CONF_RDC
@@ -60,6 +66,9 @@
 #define NULLRDC_CONF_802154_AUTOACK	0
 #undef NULLRDC_CONF_802154_AUTOACK_HW
 #define NULLRDC_CONF_802154_AUTOACK_HW	0
+#else
+#undef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK	1
 #endif
 
 #undef RF_CHANNEL
@@ -67,5 +76,19 @@
 
 #undef SKY_CONF_MAX_TX_POWER
 #define SKY_CONF_MAX_TX_POWER 	31
+
+
+/* RPL & Neighbor Info */
+
+#define RPL_MAX_DAG_PER_INSTANCE	2
+#define RPL_MAX_INSTANCES		1
+#define RPL_CONF_MAX_PARENTS_PER_DAG	24
+#define NEIGHBOR_ATTR_MAX_NEIGHBORS	24
+
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     24
+
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   24
 
 #endif /* __PROJECT_RPL_WEB_CONF_H__ */

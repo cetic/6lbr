@@ -1,4 +1,5 @@
 /*
+ *  Copyright (c) 2013, CETIC.
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -31,6 +32,7 @@
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #include "net/uip.h"
@@ -83,6 +85,10 @@ struct ifreq if_idx;
 #include "slip-config.h"
 //Temporary, should be removed
 #include "native-slip.h"
+#include "native-rdc.h"
+extern int slipfd;
+extern void slip_flushbuf(int fd);
+//End of temporary
 
 #if 1                           //DEBUG
 #define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
@@ -132,6 +138,8 @@ cleanup(void)
               strerror(errno));
     }
   }
+  slip_set_mac(&rimeaddr_null);
+  slip_flushbuf(slipfd);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -263,7 +271,7 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
         ptr =
           (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
         memcpy(eth_mac_addr, ptr, 6);
-        (*eth_mac_addr)[5] = 7;
+        //(*eth_mac_addr)[5] = 7;
         found = 1;
         break;
       }
@@ -299,7 +307,9 @@ tun_init()
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
+#if !CETIC_6LBR_ONE_ITF
   slip_init();
+#endif
 
   if(use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
@@ -318,13 +328,17 @@ tun_init()
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev);
+#if !CETIC_6LBR_ONE_ITF
   if(use_raw_ethernet) {
-    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+#endif
+	fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
     PRINTF("Eth MAC address : ");
     PRINTETHADDR(&eth_mac_addr);
     PRINTF("\n");
     eth_mac_addr_ready = 1;
+#if !CETIC_6LBR_ONE_ITF
   }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

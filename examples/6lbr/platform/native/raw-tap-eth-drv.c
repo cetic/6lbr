@@ -1,3 +1,37 @@
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -58,9 +92,6 @@ eth_drv_init()
 
   /* tun init is also responsible for setting up the SLIP connection */
   tun_init();
-
-  //Set radio channel
-  slip_set_rf_channel(nvm_data.channel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -72,21 +103,35 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   PROCESS_BEGIN();
 
   eth_drv_init();
-
+#if !CETIC_6LBR_ONE_ITF
+  slip_reboot();
   while(!mac_set) {
     etimer_set(&et, CLOCK_SECOND);
     slip_request_mac();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+  //Set radio channel
+  slip_set_rf_channel(nvm_data.channel);
 
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+    eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
     PRINTF("Eth MAC address : ");
     PRINTETHADDR(&eth_mac_addr);
     PRINTF("\n");
     eth_mac_addr_ready = 1;
   }
+#else
+  //TODO: Ethernet Bridge bullshit !
+  eth_mac_addr[5] += 1;
+  mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
+  memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
+  rimeaddr_set_node_addr((rimeaddr_t *) &wsn_mac_addr);
+  PRINTF("ETH Address : ");
+  PRINTLLADDR(&eth_mac_addr);
+  PRINTF("\n");
+#endif
   ethernet_ready = 1;
 
   PROCESS_END();

@@ -1,3 +1,39 @@
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Main 6LBR process and initialisation
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -34,6 +70,7 @@ int eth_mac_addr_ready = 0;
 //WSN
 uip_lladdr_t wsn_mac_addr;
 uip_ip6addr_t wsn_net_prefix;
+uint8_t wsn_net_prefix_len;
 uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 rpl_dag_t *cetic_dag;
@@ -76,6 +113,7 @@ void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
+#if CETIC_6LBR_SMARTBRIDGE
   PRINTF("CETIC_BRIDGE : set_prefix\n");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     PRINTF("Ignoring RA\n");
@@ -86,21 +124,27 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
     PRINTF("Setting DAG prefix : ");
     PRINT6ADDR(&prefix->u8);
     PRINTF("\n");
+    if(!uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len)) {
+      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    }
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
+    wsn_net_prefix_len = len;
   }
+#endif
 }
 
 void
 cetic_6lbr_init(void)
 {
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   uip_ipaddr_t loc_fipaddr;
 
   //DODAGID = link-local address used !
   uip_create_linklocal_prefix(&loc_fipaddr);
   uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-  cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &loc_fipaddr);
+  PRINTF("Configured as DODAG Root\n");
 #endif
 
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
@@ -111,7 +155,7 @@ cetic_6lbr_init(void)
   PRINT6ADDR(&wsn_ip_local_addr);
   PRINTF("\n");
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE
 
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0)    //Manual configuration
   {
@@ -132,21 +176,19 @@ cetic_6lbr_init(void)
     PRINTF("\n");
     memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
            sizeof(nvm_data.eth_dft_router));
-    uip_ds6_defrt_add(&eth_dft_router, 0);
-#if CETIC_6LBR_SMARTBRIDGE
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
-#endif
-  }                             //End manual configuration
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-  printf("Starting as Transparent-BRIDGE\n");
-#else
-  printf("Starting as Smart-BRIDGE\n");
-#endif
-#else /* ROUTER */
+    if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
+      uip_ds6_defrt_add(&eth_dft_router, 0);
+    }
 
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+  }                             //End manual configuration
+#endif
+
+#if CETIC_6LBR_ROUTER
   //WSN network configuration
   memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
          sizeof(nvm_data.wsn_net_prefix));
+  wsn_net_prefix_len = nvm_data.wsn_net_prefix_len;
   if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)    //Address auto configuration
   {
     uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
@@ -164,19 +206,11 @@ cetic_6lbr_init(void)
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
          sizeof(nvm_data.eth_net_prefix));
-  if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
-    PRINTF("RA with autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 1,
-                       UIP_ND6_RA_FLAG_ONLINK | UIP_ND6_RA_FLAG_AUTONOMOUS,
-                       30000, 30000);
-  } else {
-    PRINTF("RA without autoconfig\n");
-    uip_ds6_prefix_add(&eth_net_prefix, 64, 0, 0, 0, 0);
-  }
-
   memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
          sizeof(nvm_data.eth_dft_router));
-  uip_ds6_defrt_add(&eth_dft_router, 0);
+  if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
+    uip_ds6_defrt_add(&eth_dft_router, 0);
+  }
 
   eth_mac64_addr.addr[0] = eth_mac_addr[0];
   eth_mac64_addr.addr[1] = eth_mac_addr[1];
@@ -201,7 +235,9 @@ cetic_6lbr_init(void)
   PRINT6ADDR(&eth_ip_addr.u8);
   PRINTF("\n");
 
-  rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+#endif
 
   //Ugly hack : in order to set WSN local address as the default address
   //We must add it afterwards as uip_ds6_addr_add allocates addr from the end of the list
@@ -213,9 +249,45 @@ cetic_6lbr_init(void)
 
   uip_ds6_addr_add(&wsn_ip_local_addr, 0, ADDR_AUTOCONF);
 
-  uip_ds6_route_info_add(&wsn_net_prefix, 64, 0, 600);
+  //Prefix and RA configuration
+#if UIP_CONF_IPV6_RPL
+  uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
+  uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, publish,
+                     nvm_data.ra_prefix_flags,
+                     nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
+#else
+  uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, 0, 0, 0, 0);
+  uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
+  uip_ds6_prefix_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, publish,
+		             nvm_data.ra_prefix_flags,
+		             nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
+#endif
 
-  printf("Starting as ROUTER\n");
+#if UIP_CONF_IPV6_RPL
+  if ((nvm_data.ra_rio_flags & CETIC_6LBR_MODE_SEND_RIO) != 0 ) {
+    uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
+  }
+#endif
+#endif
+
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_LEARN_RPL_MAC
+  printf("Starting as RPL Relay\n");
+#else
+  printf("Starting as Full TRANSPARENT-BRIDGE\n");
+#endif
+#elif CETIC_6LBR_SMARTBRIDGE
+  printf("Starting as SMART-BRIDGE\n");
+#elif CETIC_6LBR_ROUTER
+#if UIP_CONF_IPV6_RPL
+  printf("Starting as RPL ROUTER\n");
+#else
+  printf("Starting as NDP ROUTER\n");
+#endif
+#elif CETIC_6LBR_6LR
+  printf("Starting as 6LR\n");
+#else
+  printf("Starting in UNKNOWN mode\n");
 #endif
 }
 

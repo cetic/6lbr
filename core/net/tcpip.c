@@ -199,6 +199,7 @@ start_periodic_tcp_timer(void)
 static void
 check_for_tcp_syn(void)
 {
+#if UIP_TCP || UIP_CONF_IP_FORWARD
   /* This is a hack that is needed to start the periodic TCP timer if
      an incoming packet contains a SYN: since uIP does not inform the
      application if a SYN arrives, we have no other way of starting
@@ -209,6 +210,7 @@ check_for_tcp_syn(void)
      (UIP_TCP_BUF->flags & TCP_SYN) == TCP_SYN) {
     start_periodic_tcp_timer();
   }
+#endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -317,7 +319,7 @@ void
 tcp_attach(struct uip_conn *conn,
 	   void *appstate)
 {
-  register uip_tcp_appstate_t *s;
+  uip_tcp_appstate_t *s;
 
   s = &conn->appstate;
   s->p = PROCESS_CURRENT();
@@ -331,7 +333,7 @@ void
 udp_attach(struct uip_udp_conn *conn,
 	   void *appstate)
 {
-  register uip_udp_appstate_t *s;
+  uip_udp_appstate_t *s;
 
   s = &conn->appstate;
   s->p = PROCESS_CURRENT();
@@ -427,7 +429,7 @@ eventhandler(process_event_t ev, process_data_t data)
       }
 	 
       {
-        register struct uip_conn *cptr;
+        struct uip_conn *cptr;
 	    
         for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
           if(cptr->appstate.p == p) {
@@ -439,7 +441,7 @@ eventhandler(process_event_t ev, process_data_t data)
 #endif /* UIP_TCP */
 #if UIP_UDP
       {
-        register struct uip_udp_conn *cptr;
+        struct uip_udp_conn *cptr;
 
         for(cptr = &uip_udp_conns[0];
             cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
@@ -751,7 +753,7 @@ tcpip_poll_tcp(struct uip_conn *conn)
 void
 tcpip_uipcall(void)
 {
-  register uip_udp_appstate_t *ts;
+  uip_udp_appstate_t *ts;
   
 #if UIP_UDP
   if(uip_conn != NULL) {
@@ -766,7 +768,7 @@ tcpip_uipcall(void)
 #if UIP_TCP
  {
    static unsigned char i;
-   register struct listenport *l;
+   struct listenport *l;
    
    /* If this is a connection request for a listening port, we must
       mark the connection with the right process ID. */
@@ -821,7 +823,7 @@ PROCESS_THREAD(tcpip_process, ev, data)
   UIP_FALLBACK_INTERFACE.init();
 #endif
 /* initialize RPL if configured for using RPL */
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6 && UIP_CONF_IPV6_RPL
   rpl_init();
 #endif /* UIP_CONF_IPV6_RPL */
 
