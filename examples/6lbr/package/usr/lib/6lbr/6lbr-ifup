@@ -1,0 +1,79 @@
+#!/bin/bash
+
+. $CETIC_6LBR_CONF
+. `dirname $0`/6lbr-functions
+
+config_default
+
+MODE_6LBR=$1
+DEV=$2
+OS=`uname`
+
+case $MODE_6LBR in
+	raw)
+	;;
+	
+	tap)
+	case $OS in
+		Linux)
+			#Sometimes the generated mac address has the translate bit set to 1
+			#this can conflict with packet filter and sicslow-ethernet
+			ip link set $DEV address 02:a:b:c:d:e up
+
+			if [ "$BRIDGE" = "1" ]; then
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
+					echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
+					brctl addbr $DEV_BRIDGE
+					brctl setfd $DEV_BRIDGE 0
+					if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
+						echo "6lbr-ifup: attach device $DEV_ETH"
+						brctl addif $DEV_BRIDGE $DEV_ETH
+						ip addr flush dev $DEV_ETH
+					fi
+					ip link set $DEV_BRIDGE up
+				else
+					echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+				fi
+				ip addr flush dev $DEV
+				brctl addif $DEV_BRIDGE $DEV
+				ifconfig $DEV_BRIDGE
+			fi
+			;;
+
+		Darwin)
+			#Sometimes the generated mac address has the translate bit set to 1
+			#this conflict with packet filter and sicslow-ethernet
+			ifconfig $DEV link 02:a:b:c:d:e
+			
+			#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
+			ip6 -d $DEV
+			ip6 -u $DEV
+			
+			ifconfig $DEV inet6 up
+			
+			if [ "$BRIDGE" = "1" ]; then
+				#TODO: add condition of brctl output as done on line 24 for Linux
+				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]]; then
+					echo "6lbr-ifup: Create bridge $DEV_BRIDGE and attach device $DEV_ETH"
+					ifconfig $DEV_BRIDGE create
+					ifconfig $DEV_BRIDGE up addm $DEV_ETH
+				else
+					echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+				fi
+				ifconfig $DEV_BRIDGE addm $DEV
+				ifconfig $DEV_BRIDGE
+			fi
+			;;
+
+		*)
+			echo Unknown OS
+			;;
+	esac
+	;;
+	
+	*)
+	echo "Unknown mode $MODE"
+	;;
+esac
+
+ifconfig $DEV

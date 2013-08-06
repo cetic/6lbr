@@ -48,6 +48,11 @@
 #ifdef CONTIKI_TARGET_SKY
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
 #define SLIP_RADIO_CONF_SENSORS slip_radio_sky_sensors
+/* add the cmd_handler_rf230 if TARGET_NOOLIBERRY. Other RF230 platforms can be added */
+#elif CONTIKI_TARGET_NOOLIBERRY
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_rf230
+#elif CONTIKI_TARGET_ECONOTAG
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_mc1322x
 #else
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler
 #endif
@@ -58,8 +63,12 @@
 #define NETSTACK_CONF_MAC     nullmac_driver
 
 #undef NETSTACK_CONF_RDC
-/* #define NETSTACK_CONF_RDC     nullrdc_noframer_driver */
-#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
+//#define NETSTACK_CONF_RDC     nullrdc_noframer_driver
+//#define NETSTACK_CONF_RDC     contikimac_driver
+#undef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK        1
+
 
 #undef NETSTACK_CONF_NETWORK
 #define NETSTACK_CONF_NETWORK slipnet_driver
@@ -73,4 +82,5 @@
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA           1
 
+#define SLIP_CONF_TCPIP_INPUT()
 #endif /* __PROJECT_CONF_H__ */

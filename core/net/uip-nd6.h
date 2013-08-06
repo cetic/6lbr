@@ -72,7 +72,11 @@
 /** @{ */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
+#ifndef UIP_CONF_ND6_MAX_RTR_SOLICITATIONS
 #define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
+#else
+#define UIP_ND6_MAX_RTR_SOLICITATIONS	   UIP_CONF_ND6_MAX_RTR_SOLICITATIONS
+#endif
 /** @} */
 
 /** \name RFC 4861 Router constants */
@@ -82,15 +86,31 @@
 #else
 #define UIP_ND6_SEND_RA UIP_CONF_ND6_SEND_RA
 #endif
+#ifndef UIP_CONF_ND6_MAX_RA_INTERVAL
 #define UIP_ND6_MAX_RA_INTERVAL             600
+#else
+#define UIP_ND6_MAX_RA_INTERVAL             UIP_CONF_ND6_MAX_RA_INTERVAL
+#endif
+#ifndef UIP_CONF_ND6_MIN_RA_INTERVAL
 #define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
+#else
+#define UIP_ND6_MIN_RA_INTERVAL             UIP_CONF_ND6_MIN_RA_INTERVAL
+#endif
 #define UIP_ND6_M_FLAG                      0
 #define UIP_ND6_O_FLAG                      0
+#ifndef UIP_CONF_ROUTER_LIFETIME
 #define UIP_ND6_ROUTER_LIFETIME             3 * UIP_ND6_MAX_RA_INTERVAL
+#else
+#define UIP_ND6_ROUTER_LIFETIME             UIP_CONF_ROUTER_LIFETIME
+#endif
 
 #define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
 #define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
+#ifndef UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
 #define UIP_ND6_MIN_DELAY_BETWEEN_RAS       3   /*seconds*/
+#else
+#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
+#endif
 //#define UIP_ND6_MAX_RA_DELAY_TIME           0.5 /*seconds*/
 #define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
 /** @} */

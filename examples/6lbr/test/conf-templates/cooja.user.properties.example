@@ -1,0 +1,1 @@
+DEFAULT_PROJECTDIRS=[APPS_DIR]/mrm;[APPS_DIR]/mspsim;[APPS_DIR]/avrora;[APPS_DIR]/serial_socket;[APPS_DIR]/collect-view;[APPS_DIR]/powertracker;[APPS_DIR]/serial2pty;[APPS_DIR]/radiologger-headless

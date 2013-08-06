@@ -53,7 +53,7 @@ static uint16_t len;
 #define SERVER_REPLY          1
 
 /* Should we act as RPL root? */
-#define SERVER_RPL_ROOT       1
+#define SERVER_RPL_ROOT       0
 
 #if SERVER_RPL_ROOT
 static uip_ipaddr_t ipaddr;
@@ -92,10 +92,10 @@ static void
 print_stats()
 {
   PRINTF("tl=%lu, ts=%lu, bs=%lu, bc=%lu\n",
-         rimestats.toolong, rimestats.tooshort, rimestats.badsynch,
-         rimestats.badcrc);
-  PRINTF("llrx=%lu, lltx=%lu, rx=%lu, tx=%lu\n", rimestats.llrx,
-         rimestats.lltx, rimestats.rx, rimestats.tx);
+         RIMESTATS_GET(toolong), RIMESTATS_GET(tooshort),
+         RIMESTATS_GET(badsynch), RIMESTATS_GET(badcrc));
+  PRINTF("llrx=%lu, lltx=%lu, rx=%lu, tx=%lu\n", RIMESTATS_GET(llrx),
+         RIMESTATS_GET(lltx), RIMESTATS_GET(rx), RIMESTATS_GET(tx));
 }
 #endif
 /*---------------------------------------------------------------------------*/

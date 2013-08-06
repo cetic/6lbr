@@ -1,0 +1,107 @@
+#!/bin/bash
+
+################################################################################
+# If this script is killed, kills all the child processes
+
+trap 'kill $(jobs -p)' EXIT
+
+################################################################################
+# Read config file
+
+if [ -n "$1" ]; then
+	CFG=$1
+	shift
+else
+	CFG=/etc/6lbr/6lbr.conf
+fi
+
+if [ -e $CFG ]; then
+	echo "Using config file $CFG"
+	. $CFG
+else
+	echo Configuration file $CFG not found
+	exit 1
+fi
+
+export CETIC_6LBR_CONF=$CFG
+
+# Bootstrapping
+
+if [ "$LIB_6LBR" != "" ]; then
+	. $LIB_6LBR/6lbr-functions
+else
+	. `dirname $0`/../lib/6lbr/6lbr-functions
+fi
+
+config_default
+
+################################################################################
+# Build parameters list
+
+# Ethernet
+
+if [ "$RAW_ETH" = "1" ]; then
+	PARAM_ETH="-r"
+	ETH_IF=$DEV_ETH
+	if [ "$RAW_ETH_FCS" == "1" ]; then
+		PARAM_ETH="$PARAM_ETH -f"
+	fi
+else
+	PARAM_ETH="-R"
+	ETH_IF=$DEV_TAP
+fi
+
+# Radio configuration
+
+if [ "$DEV_RADIO" != "" ]; then
+	RADIO="-s $DEV_RADIO"
+fi
+
+if [ "$SOCK_RADIO" != "" ]; then
+	RADIO="-a $SOCK_RADIO"
+	if [ "$SOCK_PORT" != "" ]; then
+		RADIO=$RADIO" -p "$SOCK_PORT
+	fi
+fi
+
+if [ "$BAUDRATE" != "" ]; then
+	BAUDRATE="-B $BAUDRATE"
+fi
+
+# Global configuration and setup scripts
+
+IFUP="-U $IFUP"
+
+IFDOWN="-D $IFDOWN"
+
+PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $EXTRA_PARAMS $*"
+
+echo $PARAMS
+
+################################################################################
+# Launch 6LBR in a loop
+
+while ((1)); do
+	if [ "$MODE" = 'ROUTER' ]; then
+		$BIN_6LBR/cetic_6lbr_router $PARAMS
+	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
+		$BIN_6LBR/cetic_6lbr_smart_bridge $PARAMS
+	elif [ "$MODE" = 'RPL-RELAY' ]; then
+		$BIN_6LBR/cetic_6lbr_rpl_relay $PARAMS
+	elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
+		$BIN_6LBR/cetic_6lbr_full_transparent_bridge $PARAMS
+	elif [ "$MODE" = 'NDP-ROUTER' ]; then
+		$BIN_6LBR/cetic_6lbr_ndp_router $PARAMS
+	elif [ "$MODE" = '6LR' ]; then
+		$BIN_6LBR/cetic_6lbr_6lr $PARAMS
+	elif [ "$MODE" = 'RPL-ROOT' ]; then
+		$BIN_6LBR/cetic_6lbr_rpl_root $PARAMS
+	else
+		echo "Mode '$MODE' unknown, starting as router"
+		$BIN_6LBR/cetic_6lbr_router $PARAMS
+	fi
+	if [ $? != 0 ]; then
+        # 6LBR returned an error, do not start it again
+		break
+	fi
+done

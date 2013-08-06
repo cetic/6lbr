@@ -1,0 +1,99 @@
+################################################################################
+#MODE Selection
+# This parameter is used to select the running mode of the CETIC 6LBR
+# This parameter is mandatory
+
+#MODE=ROUTER
+#MODE=SMART-BRIDGE
+#MODE=RPL-RELAY
+#MODE=FULL-TRANSPARENT-BRIDGE
+#MODE=NDP-ROUTER
+#MODE=6LR
+#MODE=RPL-ROOT
+
+################################################################################
+#RAW Ethernet mode
+# In this mode, the CETIC 6LBR directly send and receive Ethernet frames from
+# the Ethernet controller
+
+#RAW_ETH=1
+#DEV_ETH=eth0
+
+#Some Ethernet controllers include the FCS field when capturing packet, others not
+#RAW_ETH_FCS=0
+#RAW_ETH_FCS=1
+
+################################################################################
+#TAP mode
+# In this mode, the CETIC 6LBR creates a virtual TAP interface, ti can be then
+# bridged or tunneled to the Ethernet network
+
+#RAW_ETH=0
+#DEV_TAP=tap0
+
+################################################################################
+#Bridge configuration
+# If activated, the CETIC 6LBR will use an Ethernet Bridge and connect DEV_TAP
+# to it, effectively connecting the CETIC 6LBR to the Ethernet network
+
+#BRIDGE=1
+#CREATE_BRIDGE=0
+#DEV_BRIDGE=br0
+
+# The CETIC 6LBR can optionally create the Ethernet Bridge and optionally attach
+# also DEV_ETH to it (Note that Eth will loose its configuration in that case)
+
+#CREATE_BRIDGE=1
+
+#ETH_JOIN_BRIDGE=1
+
+################################################################################
+#SLIP Radio configuration
+# These parameters define the SLIP Radio device and the Baudrate to be used to
+# connect to the slip radio
+# Additional parameters can be added in the EXTRA_PARAMS parameter below.
+
+#Serial over USB
+#DEV_RADIO=/dev/ttyUSB0
+
+#ARM platform serial port
+#DEV_RADIO=/dev/ttyAMA0
+
+#SLIP Radio baudrate
+#BAUDRATE=115200
+
+################################################################################
+#NVM File
+# The NVM file contains the user configuration, like the network prefixes, the
+# autofconfiguration flags, ...
+
+#NVM=/etc/6lbr/nvm.dat
+
+################################################################################
+#6LBR installation paths
+
+#LIB_6LBR=/usr/lib/6lbr
+#BIN_6LBR=$LIB_6LBR/bin
+#WWW_6LBR=$LIB_6LBR/www
+
+################################################################################
+#Startup/shutdown
+# At startup and shutdown, the CETIC 6LBR will invoke these scripts to set up
+# and tear down the interface
+
+#IFUP=$LIB_6LBR/6lbr-ifup
+#IFDOWN=$LIB_6LBR/6lbr-ifdown
+
+################################################################################
+#Extra parameters
+# This parameter can be used to specify additional parameters to the CETIC 6LBR
+
+#EXTRA_PARAMS=
+
+################################################################################
+# Cooja support
+# If Cooja is used to simulate the WSN, the following configuration parameters
+# are used to configure the connection to the simulated slip-radio
+
+#SOCK_RADIO=localhost
+#SOCK_PORT=60001

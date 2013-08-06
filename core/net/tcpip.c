@@ -47,6 +47,9 @@
 #include "net/uip-ds6.h"
 #endif
 
+#if CETIC_6LBR
+#include "cetic-6lbr.h"
+#endif
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -128,6 +131,36 @@ tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
 {
   outputfunc = f;
 }
+
+outputfunc_t
+tcpip_get_outputfunc(void)
+{
+  return outputfunc;
+}
+
+static inputfunc_t inputfunc;
+
+void
+tcpip_input(void)
+{
+  if(inputfunc != NULL) {
+    inputfunc();
+  }
+  UIP_LOG("tcpip_input: Use tcpip_set_inputfunc() to set an input function");
+}
+
+void
+tcpip_set_inputfunc(inputfunc_t f)
+{
+  inputfunc = f;
+}
+
+inputfunc_t
+tcpip_get_inputfunc(void)
+{
+  return inputfunc;
+}
+
 #else
 
 static uint8_t (* outputfunc)(void);
@@ -166,6 +199,7 @@ start_periodic_tcp_timer(void)
 static void
 check_for_tcp_syn(void)
 {
+#if UIP_TCP || UIP_CONF_IP_FORWARD
   /* This is a hack that is needed to start the periodic TCP timer if
      an incoming packet contains a SYN: since uIP does not inform the
      application if a SYN arrives, we have no other way of starting
@@ -176,6 +210,7 @@ check_for_tcp_syn(void)
      (UIP_TCP_BUF->flags & TCP_SYN) == TCP_SYN) {
     start_periodic_tcp_timer();
   }
+#endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -284,7 +319,7 @@ void
 tcp_attach(struct uip_conn *conn,
 	   void *appstate)
 {
-  register uip_tcp_appstate_t *s;
+  uip_tcp_appstate_t *s;
 
   s = &conn->appstate;
   s->p = PROCESS_CURRENT();
@@ -298,7 +333,7 @@ void
 udp_attach(struct uip_udp_conn *conn,
 	   void *appstate)
 {
-  register uip_udp_appstate_t *s;
+  uip_udp_appstate_t *s;
 
   s = &conn->appstate;
   s->p = PROCESS_CURRENT();
@@ -394,7 +429,7 @@ eventhandler(process_event_t ev, process_data_t data)
       }
 	 
       {
-        register struct uip_conn *cptr;
+        struct uip_conn *cptr;
 	    
         for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
           if(cptr->appstate.p == p) {
@@ -406,7 +441,7 @@ eventhandler(process_event_t ev, process_data_t data)
 #endif /* UIP_TCP */
 #if UIP_UDP
       {
-        register struct uip_udp_conn *cptr;
+        struct uip_udp_conn *cptr;
 
         for(cptr = &uip_udp_conns[0];
             cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
@@ -524,7 +559,7 @@ eventhandler(process_event_t ev, process_data_t data)
 }
 /*---------------------------------------------------------------------------*/
 void
-tcpip_input(void)
+tcpip_inputfunc(void)
 {
   process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
   uip_len = 0;
@@ -543,6 +578,12 @@ tcpip_ipv6_output(void)
   if(uip_len == 0) {
     return;
   }
+
+  PRINTF("IPv6 packet send from ");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF(" to ");
+  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+  PRINTF("\n");
 
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
@@ -565,6 +606,21 @@ tcpip_ipv6_output(void)
       uip_ds6_route_t* locrt;
       locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
       if(locrt == NULL) {
+#if CETIC_6LBR_SMARTBRIDGE
+        if (uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+          /* In smart-bridge mode, there is no route towards hosts on the Ethernet side
+          Therefore we have to check the destination and assume the host is on-link */
+          nexthop = &UIP_IP_BUF->destipaddr;
+        } else
+#endif
+#if CETIC_6LBR_ROUTER
+        if (uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+          //In router mode, we drop packets towards unknown mote
+          PRINTF("Dropping wsn packet with no route\n");
+          uip_len = 0;
+          return;
+        } else
+#endif
         if((nexthop = uip_ds6_defrt_choose()) == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
@@ -697,7 +753,7 @@ tcpip_poll_tcp(struct uip_conn *conn)
 void
 tcpip_uipcall(void)
 {
-  register uip_udp_appstate_t *ts;
+  uip_udp_appstate_t *ts;
   
 #if UIP_UDP
   if(uip_conn != NULL) {
@@ -712,7 +768,7 @@ tcpip_uipcall(void)
 #if UIP_TCP
  {
    static unsigned char i;
-   register struct listenport *l;
+   struct listenport *l;
    
    /* If this is a connection request for a listening port, we must
       mark the connection with the right process ID. */
@@ -743,6 +799,8 @@ PROCESS_THREAD(tcpip_process, ev, data)
 {
   PROCESS_BEGIN();
   
+  tcpip_set_inputfunc(tcpip_inputfunc);
+
 #if UIP_TCP
  {
    static unsigned char i;
@@ -765,7 +823,7 @@ PROCESS_THREAD(tcpip_process, ev, data)
   UIP_FALLBACK_INTERFACE.init();
 #endif
 /* initialize RPL if configured for using RPL */
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6 && UIP_CONF_IPV6_RPL
   rpl_init();
 #endif /* UIP_CONF_IPV6_RPL */
 

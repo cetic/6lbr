@@ -112,12 +112,6 @@
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
 
-/* Default route lifetime unit. */
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
-
-/* Default route lifetime as a multiple of the lifetime unit. */
-#define RPL_DEFAULT_LIFETIME            0xff
-
 #define RPL_LIFETIME(instance, lifetime) \
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
 
@@ -139,31 +133,6 @@
 
 #define INFINITE_RANK                   0xffff
 
-#define INITIAL_LINK_METRIC		NEIGHBOR_INFO_ETX2FIX(5)
-
-/* Represents 2^n ms. */
-/* Default value according to the specification is 3 which
-   means 8 milliseconds, but that is an unreasonable value if
-   using power-saving / duty-cycling    */
-#ifdef RPL_CONF_DIO_INTERVAL_MIN
-#define RPL_DIO_INTERVAL_MIN        RPL_CONF_DIO_INTERVAL_MIN
-#else
-#define RPL_DIO_INTERVAL_MIN        12
-#endif
-
-/* Maximum amount of timer doublings. */
-#ifdef RPL_CONF_DIO_INTERVAL_DOUBLINGS
-#define RPL_DIO_INTERVAL_DOUBLINGS  RPL_CONF_DIO_INTERVAL_DOUBLINGS
-#else
-#define RPL_DIO_INTERVAL_DOUBLINGS  8
-#endif
-
-/* Default DIO redundancy. */
-#ifdef RPL_CONF_DIO_REDUNDANCY
-#define RPL_DIO_REDUNDANCY          RPL_CONF_DIO_REDUNDANCY
-#else
-#define RPL_DIO_REDUNDANCY          10
-#endif
 
 /* Expire DAOs from neighbors that do not respond in this time. (seconds) */
 #define DAO_EXPIRATION_TIMEOUT          60
@@ -211,10 +180,14 @@
 #define RPL_LOLLIPOP_CIRCULAR_REGION     127
 #define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
 #define RPL_LOLLIPOP_INIT                (RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1)
-#define RPL_LOLLIPOP_INCREMENT(counter)					\
-  ((counter) > RPL_LOLLIPOP_CIRCULAR_REGION ?				\
-   ++(counter) & RPL_LOLLIPOP_MAX_VALUE :				\
-   ++(counter) & RPL_LOLLIPOP_CIRCULAR_REGION)
+#define RPL_LOLLIPOP_INCREMENT(counter)                                 \
+  do {                                                                  \
+    if((counter) > RPL_LOLLIPOP_CIRCULAR_REGION) {                      \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_MAX_VALUE;             \
+    } else {                                                            \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_CIRCULAR_REGION;       \
+    }                                                                   \
+  } while(0)
 
 #define RPL_LOLLIPOP_IS_INIT(counter)		\
   ((counter) > RPL_LOLLIPOP_CIRCULAR_REGION)

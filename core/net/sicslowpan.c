@@ -68,25 +68,24 @@
 #include "net/neighbor-info.h"
 #include "net/netstack.h"
 
-#define DEBUG 0
+#if UIP_CONF_IPV6
+
+#include <stdio.h>
+
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 #if DEBUG
 /* PRINTFI and PRINTFO are defined for input and output to debug one without changing the timing of the other */
 uint8_t p;
 #include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINTFI(...) printf(__VA_ARGS__)
-#define PRINTFO(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5],lladdr->addr[6], lladdr->addr[7])
+#define PRINTFI(...) PRINTF(__VA_ARGS__)
+#define PRINTFO(...) PRINTF(__VA_ARGS__)
 #define PRINTPACKETBUF() PRINTF("RIME buffer: "); for(p = 0; p < packetbuf_datalen(); p++){PRINTF("%.2X", *(rime_ptr + p));} PRINTF("\n")
 #define PRINTUIPBUF() PRINTF("UIP buffer: "); for(p = 0; p < uip_len; p++){PRINTF("%.2X", uip_buf[p]);}PRINTF("\n")
 #define PRINTSICSLOWPANBUF() PRINTF("SICSLOWPAN buffer: "); for(p = 0; p < sicslowpan_len; p++){PRINTF("%.2X", sicslowpan_buf[p]);}PRINTF("\n")
 #else
-#define PRINTF(...)
 #define PRINTFI(...)
 #define PRINTFO(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(lladdr)
 #define PRINTPACKETBUF()
 #define PRINTUIPBUF()
 #define PRINTSICSLOWPANBUF()
@@ -163,7 +162,11 @@ void uip_log(char *msg);
 
 
 /** \brief Size of the 802.15.4 payload (127byte - 25 for MAC header) */
+#ifdef SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
+#define MAC_MAX_PAYLOAD SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
+#else /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 #define MAC_MAX_PAYLOAD 102
+#endif /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 
 
 /** \brief Some MAC layers need a minimum payload, which is
@@ -1329,6 +1332,11 @@ send_packet(rimeaddr_t *dest)
    */
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
 
+#if NETSTACK_CONF_BRIDGE_MODE
+  /* This needs to be explicitly set here for bridge mode to work */
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER,(void*)&uip_lladdr);
+#endif
+
   /* Force acknowledge from sender (test hardware autoacks) */
 #if SICSLOWPAN_CONF_ACK_ALL
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
@@ -1355,6 +1363,8 @@ send_packet(rimeaddr_t *dest)
 static uint8_t
 output(uip_lladdr_t *localdest)
 {
+  int framer_hdrlen;
+
   /* The MAC address of the destination of the packet */
   rimeaddr_t dest;
 
@@ -1422,7 +1432,24 @@ output(uip_lladdr_t *localdest)
   }
   PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
 
-  if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
+  /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_RDC.
+   * We calculate it here only to make a better decision of whether the outgoing packet
+   * needs to be fragmented or not. */
+#define USE_FRAMER_HDRLEN 1
+#if USE_FRAMER_HDRLEN
+  packetbuf_clear();
+  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
+  framer_hdrlen = NETSTACK_FRAMER.create();
+  if(framer_hdrlen < 0) {
+    /* Framing failed, we assume the maximum header length */
+    framer_hdrlen = 21;
+  }
+  packetbuf_clear();
+#else /* USE_FRAMER_HDRLEN */
+  framer_hdrlen = 21;
+#endif /* USE_FRAMER_HDRLEN */
+
+  if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)rime_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*
@@ -1434,7 +1461,7 @@ output(uip_lladdr_t *localdest)
      */
 
     PRINTFO("Fragmentation sending packet len %d\n", uip_len);
-    
+
     /* Create 1st Fragment */
     PRINTFO("sicslowpan output: 1rst fragment ");
 
@@ -1455,7 +1482,7 @@ output(uip_lladdr_t *localdest)
 
     /* Copy payload and send */
     rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
+    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
     PRINTFO("(len %d, tag %d)\n", rime_payload_len, my_tag);
     memcpy(rime_ptr + rime_hdr_len,
            (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
@@ -1491,7 +1518,7 @@ output(uip_lladdr_t *localdest)
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
+    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
     while(processed_ip_out_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_out_len >> 3;
@@ -1530,6 +1557,7 @@ output(uip_lladdr_t *localdest)
     return 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
   } else {
+
     /*
      * The packet does not need to be fragmented
      * copy "payload" and send
@@ -1709,6 +1737,20 @@ input(void)
     return;
   }
   rime_payload_len = packetbuf_datalen() - rime_hdr_len;
+
+  /* Sanity-check size of incoming packet to avoid buffer overflow */
+  {
+    int req_size = UIP_LLH_LEN + uncomp_hdr_len + (uint16_t)(frag_offset << 3)
+        + rime_payload_len;
+    if(req_size > sizeof(sicslowpan_buf)) {
+      PRINTF(
+          "SICSLOWPAN: packet dropped, minimum required SICSLOWPAN_IP_BUF size: %d+%d+%d+%d=%d (current size: %d)\n",
+          UIP_LLH_LEN, uncomp_hdr_len, (uint16_t)(frag_offset << 3),
+          rime_payload_len, req_size, sizeof(sicslowpan_buf));
+      return;
+    }
+  }
+
   memcpy((uint8_t *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (uint16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
   
   /* update processed_ip_in_len if fragment, sicslowpan_len otherwise */
@@ -1843,3 +1885,4 @@ const struct network_driver sicslowpan_driver = {
 };
 /*--------------------------------------------------------------------*/
 /** @} */
+#endif /* UIP_CONF_IPV6 */

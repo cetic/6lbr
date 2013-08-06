@@ -150,7 +150,11 @@ if(scalar(@ARGV)!=0) {
     print @ARGV;
     print ",\n";
 
-    $ob->write(@ARGV);
+    foreach my $d (split /,/, $ARGV[0] ) {
+        $ob->write($d);
+        $ob->write(',');
+        usleep($second_delay) if ($second_delay != 0);
+    }
     $ob->write(',');
 }
 

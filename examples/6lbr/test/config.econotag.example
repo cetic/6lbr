@@ -1,0 +1,11 @@
+from support import *
+
+backboneClass=EthernetBB
+wsnClass=LocalWsn
+brClass=LocalEconotagBR
+moteClass=LocalTelosMote
+platformClass=Linux
+#platformClass=MacOSX
+
+econotag_br=[{'iid': '205:c2a:8cee:1c6d', 'dev': '/dev/ttyUSB1'}]
+motes = [ {'dev': '/dev/ttyUSB1', 'iid': '0212:7400:146e:f407'}]

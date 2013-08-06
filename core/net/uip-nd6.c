@@ -73,7 +73,15 @@
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "lib/random.h"
+#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
+#include "cetic-6lbr.h"
+#include "nvm-config.h"
+#endif
+#if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
+#include "rio.h"
+#endif
 
+#if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
 #include "net/uip-debug.h"
@@ -120,12 +128,18 @@ static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
-static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
+static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 
+#if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
+#define UIP_ND6_OPT_ROUTE_BUF ((uip_nd6_opt_route_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+#if CETIC_6LBR_ROUTER
+static uip_ds6_route_info_t *rtinfo; /**  Pointer to a route information list entry */
+#endif
+#endif
 
 /*------------------------------------------------------------------*/
 /* create a llao */ 
@@ -146,6 +160,10 @@ void
 uip_nd6_ns_input(void)
 {
   uint8_t flags;
+#if CETIC_6LBR_SMARTBRIDGE
+  uip_ds6_route_t * route;
+#endif
+
   PRINTF("Received NS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" to ");
@@ -213,6 +231,25 @@ uip_nd6_ns_input(void)
   }
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
+#if CETIC_6LBR_SMARTBRIDGE
+  //ND Proxy implementation
+  if ( addr == NULL ) {
+    if ( (route = uip_ds6_route_lookup(&UIP_ND6_NS_BUF->tgtipaddr)) != NULL ) {
+      if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+        /* DAD CASE */
+        uip_create_linklocal_allnodes_mcast(&UIP_ND6_NS_BUF->tgtipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        flags = UIP_ND6_NA_FLAG_OVERRIDE;
+        goto create_na;
+      } else {
+        uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
+        goto create_na;
+      }
+    }
+  }
+#endif
   if(addr != NULL) {
 #if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
@@ -295,7 +332,7 @@ create_na:
   UIP_ICMP_BUF->icode = 0;
 
   UIP_ND6_NA_BUF->flagsreserved = flags;
-  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &addr->ipaddr, sizeof(uip_ipaddr_t));
+  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &UIP_ND6_NS_BUF->tgtipaddr, sizeof(uip_ipaddr_t));
 
   create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
               UIP_ND6_OPT_TLLAO);
@@ -393,6 +430,9 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
 void
 uip_nd6_na_input(void)
 {
+#if CETIC_6LBR_SMARTBRIDGE
+  uip_ds6_route_t * route;
+#endif
   uint8_t is_llchange;
   uint8_t is_router;
   uint8_t is_solicited;
@@ -448,6 +488,20 @@ uip_nd6_na_input(void)
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
+#if CETIC_6LBR_SMARTBRIDGE
+  /* Address Advertisement */
+  if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
+    if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
+      printf("Address Advertisement NA\n");
+      route = uip_ds6_route_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+      if (route != NULL ) {
+          printf("Address Advertisement NA for existing route, removing it\n");
+          uip_ds6_route_rm(route);
+      }
+      goto discard;
+    }
+  }
+#endif
   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
   /* Message processing, including TLLAO if any */
   if(addr != NULL) {
@@ -540,6 +594,53 @@ discard:
   return;
 }
 
+#if CETIC_6LBR_SMARTBRIDGE
+void
+send_purge_na(uip_ipaddr_t *prefix)
+{
+      if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
+    	  return;
+      }
+	  printf("Sending purge NA\n");
+	  uip_ext_len = 0;
+	  UIP_IP_BUF->vtc = 0x60;
+	  UIP_IP_BUF->tcflow = 0;
+	  UIP_IP_BUF->flow = 0;
+	  UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
+	  UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+	  UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+	  UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+
+	  uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
+      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, prefix);
+
+	  UIP_ICMP_BUF->type = ICMP6_NA;
+	  UIP_ICMP_BUF->icode = 0;
+
+	  UIP_ND6_NA_BUF->flagsreserved = UIP_ND6_NA_FLAG_OVERRIDE;
+	  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, prefix, sizeof(uip_ipaddr_t));
+
+	  create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
+	              UIP_ND6_OPT_TLLAO);
+
+	  UIP_ICMP_BUF->icmpchksum = 0;
+	  UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+
+	  uip_len =
+	    UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+
+	  UIP_STAT(++uip_stat.nd6.sent);
+	  PRINTF("Sending Unsolicited NA to ");
+	  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+	  PRINTF(" from ");
+	  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+	  PRINTF(" with target address ");
+	  PRINT6ADDR(&UIP_ND6_NA_BUF->tgtipaddr);
+	  PRINTF("\n");
+	  tcpip_ipv6_output();
+}
+#endif
+
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
@@ -582,7 +683,7 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
-      nd6_opt_llao = UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       break;
     default:
       PRINTF("ND option not supported in RS\n");
@@ -600,8 +701,8 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
-        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, 
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
@@ -694,6 +795,23 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 
   uip_len += UIP_ND6_OPT_MTU_LEN;
   nd6_opt_offset += UIP_ND6_OPT_MTU_LEN;
+
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+  for(rtinfo = uip_ds6_route_info_list;
+		  rtinfo < uip_ds6_route_info_list + UIP_DS6_ROUTE_INFO_NB; rtinfo++) {
+	  if((rtinfo->isused)) {
+		  UIP_ND6_OPT_ROUTE_BUF->type = UIP_ND6_OPT_ROUTE_INFO;
+		  UIP_ND6_OPT_ROUTE_BUF->len =(rtinfo->length >> 6) + 1 ;
+		  UIP_ND6_OPT_ROUTE_BUF->preflen = rtinfo->length;
+		  UIP_ND6_OPT_ROUTE_BUF->flagsreserved = rtinfo->flags;
+		  UIP_ND6_OPT_ROUTE_BUF->rlifetime = uip_htonl(rtinfo->lifetime);
+		  uip_ipaddr_copy(&(UIP_ND6_OPT_ROUTE_BUF->prefix), &(rtinfo->ipaddr));
+		  nd6_opt_offset += ((rtinfo->length >> 6) + 1)<<3;
+		  uip_len += ((rtinfo->length >> 6) + 1)<<3;
+	  }
+  }
+#endif /* UIP_CONF_DS6_ROUTE_INFORMATION */
+
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
 
@@ -764,6 +882,12 @@ uip_nd6_ra_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
 
+#if CETIC_6LBR
+  if ((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
+    goto discard;
+  }
+#endif
+
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
      (!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) ||
@@ -830,6 +954,7 @@ uip_nd6_ra_input(void)
           uip_ntohl(nd6_opt_prefix_info->preferredlt))
          && (!uip_is_addr_link_local(&nd6_opt_prefix_info->prefix))) {
         /* on-link flag related processing */
+#if !CETIC_6LBR_SMARTBRIDGE
         if(nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_ONLINK) {
           prefix =
             uip_ds6_prefix_lookup(&nd6_opt_prefix_info->prefix,
@@ -865,6 +990,7 @@ uip_nd6_ra_input(void)
             }
           }
         }
+#endif
         /* End of on-link flag related processing */
         /* autonomous flag related processing */
         if((nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_AUTONOMOUS)
@@ -897,6 +1023,11 @@ uip_nd6_ra_input(void)
               addr->isinfinite = 1;
             }
           } else {
+#if CETIC_6LBR
+        	printf("Tentative global IPv6 address ");
+			uip_debug_ipaddr_print(&ipaddr);
+			printf("\n");
+#endif
             if(uip_ntohl(nd6_opt_prefix_info->validlt) ==
                UIP_ND6_INFINITE_LIFETIME) {
               uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
@@ -905,12 +1036,23 @@ uip_nd6_ra_input(void)
                                ADDR_AUTOCONF);
             }
           }
+#if CETIC_6LBR_SMARTBRIDGE
+          cetic_6lbr_set_prefix(&nd6_opt_prefix_info->prefix, 64, &ipaddr);
+#endif
         }
         /* End of autonomous flag related processing */
       }
       break;
+#if CETIC_6LBR
+    // bridge handling RIO to update routes
+    case UIP_ND6_OPT_ROUTE_INFO:
+      PRINTF("RIO option in RA\n");
+      uip_nd6_opt_route_info *rio = (uip_nd6_opt_route_info *) UIP_ND6_OPT_ROUTE_BUF;
+      uip_ds6_route_info_callback(rio, &UIP_IP_BUF->srcipaddr);
+      break;
+#endif
     default:
-      PRINTF("ND option not supported in RA");
+      PRINTF("ND option not supported in RA\n");
       break;
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
@@ -960,3 +1102,4 @@ discard:
 #endif /* !UIP_CONF_ROUTER */
 
  /** @} */
+#endif /* UIP_CONF_IPV6 */
