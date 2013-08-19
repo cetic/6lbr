@@ -668,7 +668,10 @@ public class Simulation extends Observable implements Runnable {
               availableMoteTypes,
               moteTypeClassName
           );
-          if (newClass != null && !newClass.equals(moteTypeClassName)) {
+          if (newClass == null) {
+            throw new MoteType.MoteTypeCreationException("No mote type class selected");
+          }
+          if (!newClass.equals(moteTypeClassName)) {
             logger.warn("Changing mote type class: " + moteTypeClassName + " -> " + newClass);
             moteTypeClassName = newClass;
           }
@@ -998,7 +1001,7 @@ public class Simulation extends Observable implements Runnable {
    * @param newSpeedLimit
    */
   public void setSpeedLimit(final Double newSpeedLimit) {
-    invokeSimulationThread(new Runnable() {
+    Runnable r = new Runnable() {
       public void run() {
         if (newSpeedLimit == null) {
           speedLimitNone = true;
@@ -1017,7 +1020,14 @@ public class Simulation extends Observable implements Runnable {
         Simulation.this.setChanged();
         Simulation.this.notifyObservers(this);
       }
-    });
+    };
+    if (!isRunning()) {
+    	/* Simulation is stopped, change speed immediately */
+    	r.run();
+    } else {
+    	/* Change speed from simulation thread */
+    	invokeSimulationThread(r);
+    }
   }
 
   /**
