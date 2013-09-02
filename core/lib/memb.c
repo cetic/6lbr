@@ -107,5 +107,19 @@ memb_inmemb(struct memb *m, void *ptr)
     (char *)ptr < (char *)m->mem + (m->num * m->size);
 }
 /*---------------------------------------------------------------------------*/
+int
+memb_count(struct memb *m)
+{
+  int i;
+  int slot_free = 0;
+
+  for(i = 0; i < m->num; ++i) {
+    if(m->count[i] == 0) {
+      ++slot_free;
+    }
+  }
+
+  return slot_free;
+}
 
 /** @} */

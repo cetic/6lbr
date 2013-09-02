@@ -307,6 +307,16 @@ queuebuf_init(void)
 #endif /* QUEUEBUF_STATS */
 }
 /*---------------------------------------------------------------------------*/
+int
+queuebuf_freeslots(void)
+{
+  if(packetbuf_is_reference()) {
+      return memb_count(&refbufmem);
+  } else {
+    return memb_count(&bufmem);
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if QUEUEBUF_DEBUG
 struct queuebuf *
 queuebuf_new_from_packetbuf_debug(const char *file, int line)

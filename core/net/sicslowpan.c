@@ -1459,6 +1459,13 @@ output(uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
+    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD -  SICSLOWPAN_FRAGN_HDR_LEN) + 1;
+    int freeslots = queuebuf_freeslots() - 1;
+    PRINTFO("uip_len: %d, fragments: %d, free slots: %d\n", uip_len, estimated_fragments, freeslots);
+    if ( freeslots < estimated_fragments ) {
+      PRINTFO("Dropping packet, not enough free slots\n");
+      return 0;
+    }
 
     PRINTFO("Fragmentation sending packet len %d\n", uip_len);
 
