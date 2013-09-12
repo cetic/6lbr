@@ -1,0 +1,17 @@
+/test.conf
+.svn
+gen_config.py
+user_config.py
+report/
+*.pcap
+*.pdf
+*~
+testtoremove
+br
+coojagen/output
+run_pool
+*.dat
+postprocessing/allres.txt
+postprocessing/testfile.txt
+/config.py
+/performance_config.py

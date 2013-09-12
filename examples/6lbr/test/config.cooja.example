@@ -1,0 +1,13 @@
+from support import *
+
+#Mode definition
+wsnClass=CoojaWsn
+brClass=LocalNativeBR
+
+#Linux specific
+platformClass=Linux
+backboneClass=NativeBridgeBB
+
+#MacOS specific
+#platformClass=MacOSX
+#backboneClass=NativeTapBB

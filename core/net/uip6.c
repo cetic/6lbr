@@ -52,7 +52,7 @@
  * statement. While it would be possible to break the uip_process()
  * function into many smaller functions, this would increase the code
  * size because of the overhead of parameter passing and the fact that
- * the optimier would not be as efficient.
+ * the optimizer would not be as efficient.
  *
  * The principle is that we have a small buffer, called the uip_buf,
  * in which the device driver puts an incoming packet. The TCP/IP
@@ -63,7 +63,7 @@
  * a byte stream if needed. The application will not be fed with data
  * that is out of sequence.
  *
- * If the application whishes to send data to the peer, it should put
+ * If the application wishes to send data to the peer, it should put
  * its data into the uip_buf. The uip_appdata pointer points to the
  * first available byte. The TCP/IP stack will calculate the
  * checksums, and fill in the necessary header fields and finally send
@@ -78,6 +78,7 @@
 
 #include <string.h>
 
+#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* For Debug, logging, statistics                                            */
 /*---------------------------------------------------------------------------*/
@@ -851,16 +852,24 @@ ext_hdr_options_process(void)
         PRINTF("Processing PADN option\n");
         uip_ext_opt_offset += UIP_EXT_HDR_OPT_PADN_BUF->opt_len + 2;
         break;
-#if UIP_CONF_IPV6_RPL
       case UIP_EXT_HDR_OPT_RPL:
+		/* Fixes situation when a node that is not using RPL
+		 * joins a network which does. The received packages will include the
+		 * RPL header and processed by the "default" case of the switch
+		 * (0x63 & 0xC0 = 0x40). Hence, the packet is discarded as the header
+		 * is considered invalid.
+		 * Using this fix, the header is ignored, and the next header (if
+		 * present) is processed.
+		 */
+#if UIP_CONF_IPV6_RPL
         PRINTF("Processing RPL option\n");
         if(rpl_verify_header(uip_ext_opt_offset)) {
           PRINTF("RPL Option Error: Dropping Packet\n");
           return 1;
         }
-        uip_ext_opt_offset += (UIP_EXT_HDR_OPT_RPL_BUF->opt_len) + 2;
-        return 0;
 #endif /* UIP_CONF_IPV6_RPL */
+        uip_ext_opt_offset += (UIP_EXT_HDR_OPT_BUF->len) + 2;
+        return 0;
       default:
         /*
          * check the two highest order bits of the option
@@ -1111,7 +1120,7 @@ uip_process(uint8_t flag)
     goto drop;
   }
 
-#if UIP_CONF_ROUTER
+#if UIP_CONF_ROUTER || CETIC_6LBR_SMARTBRIDGE
   /*
    * Next header field processing. In IPv6, we can have extension headers,
    * if present, the Hop-by-Hop Option must be processed before forwarding
@@ -1144,14 +1153,20 @@ uip_process(uint8_t flag)
 
 
   /* TBD Some Parameter problem messages */
+#if ! CETIC_6LBR_SMARTBRIDGE
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
+#else
+	  //Crude but effective passthrough for ND Proxy
+	  if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
+	     !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr) &&
+		 (*uip_next_hdr != UIP_PROTO_ICMP6 || (UIP_ICMP_BUF->type != ICMP6_NS && UIP_ICMP_BUF->type != ICMP6_NA))) {
+#endif
     if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
        !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
        !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) {
-
 
       /* Check MTU */
       if(uip_len > UIP_LINK_MTU) {
@@ -1414,6 +1429,9 @@ uip_process(uint8_t flag)
     case ICMP6_ECHO_REPLY:
       /** \note We don't implement any application callback for now */
       PRINTF("Received an icmp6 echo reply\n");
+#if CETIC_6LBR_TRACE_PING
+      printf("Received an icmp6 echo reply\n");
+#endif
       UIP_STAT(++uip_stat.icmp.recv);
       uip_len = 0;
       break;
@@ -2303,3 +2321,4 @@ uip_send(const void *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
+#endif /* UIP_CONF_IPV6 */

@@ -41,6 +41,7 @@
 #include <string.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "dev/watchdog.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -59,7 +60,15 @@ uint8_t packet_ids[16];
 int packet_pos;
 
 static int slip_radio_cmd_handler(const uint8_t *data, int len);
+
+#ifdef CONTIKI_TARGET_SKY
 int cmd_handler_cc2420(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_NOOLIBERRY
+int cmd_handler_rf230(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_ECONOTAG
+int cmd_handler_mc1322x(const uint8_t *data, int len);
+#endif /* CONTIKI_TARGET */
+
 /*---------------------------------------------------------------------------*/
 #ifdef CMD_CONF_HANDLERS
 CMD_HANDLERS(CMD_CONF_HANDLERS);
@@ -123,7 +132,10 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       if(packet_pos >= sizeof(packet_ids)) {
 	packet_pos = 0;
       }
-
+      return 1;
+    } else if(data[1] == 'R') {
+      PRINTF("Rebooting\n");
+      watchdog_reboot();
       return 1;
     }
   } else if(uip_buf[0] == '?') {
@@ -169,6 +181,7 @@ init(void)
   packet_pos = 0;
 }
 /*---------------------------------------------------------------------------*/
+#if !SLIP_RADIO_CONF_NO_PUTCHAR
 #undef putchar
 int
 putchar(int c)
@@ -196,6 +209,7 @@ putchar(int c)
   }
   return c;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS(slip_radio_process, "Slip radio process");
 AUTOSTART_PROCESSES(&slip_radio_process);

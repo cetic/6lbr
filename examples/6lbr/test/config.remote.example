@@ -1,0 +1,14 @@
+from support import *
+
+backboneClass=EthernetBB
+wsnClass=LocalWsn
+brClass=RemoteNativeBR
+moteClass=LocalTelosMote
+platformClass=Linux
+
+motes = [ {'dev': '/dev/ttyUSB1', 'iid': '0212:7400:146e:f407'}]
+
+remote_br=[{'iid': 'ba27:ebff:feb1:eb4d', 'dev': '/dev/ttyAMA0', 'baudrate': '38400', 'ctrl_ip': '192.168.2.100'}]
+
+id_file='to be filled in'
+

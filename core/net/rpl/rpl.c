@@ -52,6 +52,13 @@
 #include <limits.h>
 #include <string.h>
 
+#if CETIC_6LBR_SMARTBRIDGE
+extern void
+send_purge_na(uip_ipaddr_t *prefix);
+#endif
+
+#if UIP_CONF_IPV6
+
 #if RPL_CONF_STATS
 rpl_stats_t rpl_stats;
 #endif
@@ -62,14 +69,31 @@ rpl_purge_routes(void)
 {
   uip_ds6_route_t *r;
 
+  /* First pass, decrement lifetime */
   r = uip_ds6_route_list_head();
 
   while(r != NULL) {
-    if(r->state.lifetime <= 1) {
+    if(r->state.lifetime >= 1) {
+      /*
+       * If a route is at lifetime == 1, set it to 0, scheduling it for
+       * immediate removal below. This achieves the same as the original code,
+       * which would delete lifetime <= 1
+       */
+      r->state.lifetime--;
+    }
+    r = list_item_next(r);
+  }
+
+  /* Second pass, remove dead routes */
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.lifetime < 1) {
+      /* Routes with lifetime == 1 have only just been decremented from 2 to 1,
+       * thus we want to keep them. Hence < and not <= */
       uip_ds6_route_rm(r);
       r = uip_ds6_route_list_head();
     } else {
-      r->state.lifetime--;
       r = list_item_next(r);
     }
   }
@@ -134,10 +158,18 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   rep = uip_ds6_route_lookup(prefix);
   if(rep == NULL) {
+	PRINTF("RPL: Add route for prefix ");
+    PRINT6ADDR(prefix);
+    PRINTF(" to ");
+    PRINT6ADDR(next_hop);
+    PRINTF("\n");
     if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
       PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
+#if CETIC_6LBR_SMARTBRIDGE
+    send_purge_na(prefix);
+#endif
   } else {
     PRINTF("RPL: Updated the next hop for prefix ");
     PRINT6ADDR(prefix);
@@ -245,3 +277,4 @@ rpl_init(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
+#endif /* UIP_CONF_IPV6 */
