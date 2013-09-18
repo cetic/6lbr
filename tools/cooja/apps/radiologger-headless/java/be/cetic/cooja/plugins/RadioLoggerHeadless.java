@@ -34,6 +34,10 @@ import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Properties;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.io.File;
+import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
@@ -66,6 +70,7 @@ public class RadioLoggerHeadless extends VisPlugin {
   private RadioMedium radioMedium;
   private Observer radioMediumObserver;
   private PcapExporter pcapExporter;
+  private File pcapFile;
 
   public RadioLoggerHeadless(final Simulation simulationToControl, final GUI gui) {
     super("Radio messages", gui, false);
@@ -85,12 +90,10 @@ public class RadioLoggerHeadless extends VisPlugin {
           return;
         }
         RadioPacket radioPacket = conn.getSource().getLastPacketTransmitted();
-        //PacketAnalyser.Packet packet = new PacketAnalyser.Packet(radioPacket.getData(), PacketAnalyser.MAC_LEVEL);
         try {
-            //pcapExporter.exportPacketData(packet.getPayload());
             pcapExporter.exportPacketData(radioPacket.getPacketData());
         } catch (IOException e) {
-            System.err.println("Could not export PCap data");
+            System.err.println("Could not export pcap data");
             e.printStackTrace();
         }
       }
@@ -102,4 +105,36 @@ public class RadioLoggerHeadless extends VisPlugin {
       radioMedium.deleteRadioMediumObserver(radioMediumObserver);
     }
   }
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+	    System.err.println("RadioLogger.setConfigXML()");
+	    for (Element element : configXML) {
+	        String name = element.getName();
+	        if (name.equals("pcap_file")) {
+	          pcapFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+	          try {
+		          pcapExporter.openPcap(pcapFile);
+	          } catch (IOException e) {
+	              e.printStackTrace();
+	          }
+	        }
+	      }
+	    return true;
+	  }
+
+	  public Collection<Element> getConfigXML() {
+		    System.err.println("RadioLogger.getConfigXML()");
+		    ArrayList<Element> config = new ArrayList<Element>();
+		    Element element;
+
+		    if (pcapFile != null) {
+		      element = new Element("pcap_file");
+		      File file = simulation.getGUI().createPortablePath(pcapFile);
+		      element.setText(pcapFile.getPath().replaceAll("\\\\", "/"));
+		      element.setAttribute("EXPORT", "copy");
+		      config.add(element);
+		    }
+
+		    return config;
+	  }
+
 }
