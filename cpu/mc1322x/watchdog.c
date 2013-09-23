@@ -34,6 +34,7 @@
  */
 
 #include "dev/watchdog.h"
+#include "crm.h"
 
 /*---------------------------------------------------------------------------*/
 void
@@ -59,7 +60,7 @@ watchdog_stop(void)
 void
 watchdog_reboot(void)
 {
-	int i = 0;
-	int j = i / i;
+  volatile uint32_t SW_RST = CRM->SW_RST;
+  CRM->SW_RST = SW_RST;
 }
 /*---------------------------------------------------------------------------*/

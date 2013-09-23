@@ -266,24 +266,29 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 #if BLOCKING_TX
 	/* block until tx_complete, set by contiki_maca_tx_callback */
 	while((maca_pwr == 1) && !tx_complete && (tx_head != 0)) { continue; }
+    switch(tx_status) {
+    case SUCCESS:
+    case CRC_FAILED: /* CRC_FAILED is usually an ack */
+        PRINTF("TXOK\n\r");
+        return RADIO_TX_OK;
+    case NO_ACK:
+        PRINTF("NOACK\n\r");
+        return RADIO_TX_NOACK;
+    default:
+        PRINTF("TXERR\n\r");
+        return RADIO_TX_ERR;
+    }
+#else
+    return RADIO_TX_OK;
 #endif
+
 }
 
 int contiki_maca_send(const void *payload, unsigned short payload_len) {
+    int status;
 	contiki_maca_prepare(payload, payload_len);
-	contiki_maca_transmit(payload_len);
-	switch(tx_status) {
-	case SUCCESS:
-	case CRC_FAILED: /* CRC_FAILED is usually an ack */
-		PRINTF("TXOK\n\r");
-		return RADIO_TX_OK;
-	case NO_ACK:
-		PRINTF("NOACK\n\r");
-		return RADIO_TX_NOACK;
-	default:
-		PRINTF("TXERR\n\r");
-		return RADIO_TX_ERR;
-	}
+	status = contiki_maca_transmit(payload_len);
+	return status;
 }
 
 PROCESS(contiki_maca_process, "maca process");

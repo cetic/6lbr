@@ -108,6 +108,8 @@ packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 void queuebuf_debug_print(void);
 
+int queuebuf_freeslots(void);
+
 #endif /* __QUEUEBUF_H__ */
 
 /** @} */

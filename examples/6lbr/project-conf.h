@@ -208,7 +208,7 @@
 /*------------------------------------------------------------------*/
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM         4
+#define QUEUEBUF_CONF_NUM         200
 
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     200
