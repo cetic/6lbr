@@ -49,8 +49,13 @@
 #include <termios.h>
 #include <unistd.h>
 #include <termios.h>
+#ifdef __APPLE__
+#include <termios.h>
+#include <util.h>
+#else
 #include <termio.h>
 #include <pty.h>
+#endif
 #include <fcntl.h>
 
 
