@@ -483,6 +483,8 @@ print_nvm(void)
   //TODO: uint16_t rpl_max_rankinc;
   PRINT_INT("RPL minimum rank increment", rpl_min_hoprankinc);
   PRINT_INT("RPL lifetime unit", rpl_lifetime_unit);
+  printf("\n");
+  PRINT_BOOL("Webserver configuration page disabled", global_flags, CETIC_GLOBAL_DISABLE_CONFIG);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -541,6 +543,9 @@ print_nvm(void)
 #define rpl_lifetime_unit_option 10006
 #define rpl_preference_option 10007
 
+//Global flags
+#define disable_config_option 11001
+
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
   {"new", no_argument, 0, new_nvm_action},
@@ -593,6 +598,9 @@ static struct option long_options[] = {
   //TODO: uint16_t rpl_max_rankinc;
   {"rpl-min-rank-inc", required_argument, 0, rpl_min_hoprankinc_option},
   {"rpl-lifetime-unit", required_argument, 0, rpl_lifetime_unit_option},
+
+  //Global flags
+  {"disable-config", required_argument, 0, disable_config_option},
 
   {"fit", no_argument, 0, fit_option},
 
@@ -667,7 +675,7 @@ help(char const *name)
 
   //RPL Configuration
   printf("\t--rpl-instance-id <id> \t\t RPL instance ID to create\n");
-  printf("\t--rpl-preference <pref> \t\t RPL DAG preference level\n");
+  printf("\t--rpl-preference <pref> \t RPL DAG preference level\n");
   printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
   printf("\t--rpl-dio-int-doubling <number>  RPL DIO interval doubling\n");
   printf("\t--rpl-dio-int-min \t\t RPL DIO minimum interval between unsolicited DIO\n");
@@ -676,6 +684,10 @@ help(char const *name)
   //TODO: uint16_t rpl_max_rankinc;
   printf("\t--rpl-min-rank-inc <number> \t RPL Minimun Rank increment\n");
   printf("\t--rpl-lifetime-unit <seconds> \t RPL lifetime unit\n");
+  printf("\n");
+
+  //Global flags
+  printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
   printf("\n");
 
   printf
@@ -764,6 +776,9 @@ main(int argc, char *argv[])
   char *rpl_min_hoprankinc = NULL;
   char *rpl_lifetime_unit = NULL;
 
+  //Global flags
+  char *disable_config = NULL;
+
   int file_nb;
 
   while((c = getopt_long(argc, argv, "h", long_options, &option_index)) != -1) {
@@ -830,6 +845,9 @@ main(int argc, char *argv[])
     //TODO: uint16_t rpl_max_rankinc;
     CASE_OPTION(rpl_min_hoprankinc)
     CASE_OPTION(rpl_lifetime_unit)
+
+    //Global flags
+    CASE_OPTION(disable_config)
 
     case fit_option:
       fit = 1;
@@ -921,6 +939,9 @@ main(int argc, char *argv[])
     //TODO: uint16_t rpl_max_rankinc;
     UPDATE_INT("rpl-min-rank-inc", rpl_min_hoprankinc)
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
+
+    //Global flags
+    UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)
 
   } else if(print_nvm_file) {
     print_nvm();
