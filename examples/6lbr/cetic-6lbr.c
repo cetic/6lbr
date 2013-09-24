@@ -34,6 +34,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "6LBR"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -47,6 +49,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+
+#include "log-6lbr.h"
 
 #include "cetic-6lbr.h"
 #include "platform-init.h"
@@ -86,20 +90,6 @@ uip_ipaddr_t eth_dft_router;
 //Misc
 unsigned long cetic_6lbr_startup;
 
-#define DEBUG 1                 //DEBUG_NONE
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",lladdr[0], lladdr[1], lladdr[2], lladdr[3],lladdr[4], lladdr[5], lladdr[6], lladdr[7])
-#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#define PRINTETHADDR(addr)
-#endif
-
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
@@ -114,16 +104,14 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
 #if CETIC_6LBR_SMARTBRIDGE
-  PRINTF("CETIC_BRIDGE : set_prefix\n");
+  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
-    PRINTF("Ignoring RA\n");
+    LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
 
   if(cetic_dag != NULL) {
-    PRINTF("Setting DAG prefix : ");
-    PRINT6ADDR(&prefix->u8);
-    PRINTF("\n");
+    LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
     if(!uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len)) {
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
     }
@@ -144,16 +132,14 @@ cetic_6lbr_init(void)
   uip_create_linklocal_prefix(&loc_fipaddr);
   uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
   cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &loc_fipaddr);
-  PRINTF("Configured as DODAG Root\n");
+  LOG6LBR_INFO("Configured as DODAG Root\n");
 #endif
 
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
 
   uip_ipaddr_copy(&wsn_ip_local_addr, &local->ipaddr);
 
-  PRINTF("Tentative local IPv6 address ");
-  PRINT6ADDR(&wsn_ip_local_addr);
-  PRINTF("\n");
+  LOG6LBR_6ADDR(INFO, &wsn_ip_local_addr, "Tentative local IPv6 address ");
 
 #if CETIC_6LBR_SMARTBRIDGE
 
@@ -171,9 +157,7 @@ cetic_6lbr_init(void)
              sizeof(nvm_data.wsn_ip_addr));
       uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
     }
-    PRINTF("Tentative global IPv6 address ");
-    PRINT6ADDR(&wsn_ip_addr.u8);
-    PRINTF("\n");
+    LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address ");
     memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
            sizeof(nvm_data.eth_dft_router));
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
@@ -199,9 +183,7 @@ cetic_6lbr_init(void)
            sizeof(nvm_data.wsn_ip_addr));
     uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
   }
-  PRINTF("Tentative global IPv6 address (WSN) ");
-  PRINT6ADDR(&wsn_ip_addr.u8);
-  PRINTF("\n");
+  LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address (WSN) ");
 
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
@@ -231,9 +213,7 @@ cetic_6lbr_init(void)
            sizeof(nvm_data.eth_ip_addr));
     uip_ds6_addr_add(&eth_ip_addr, 0, ADDR_MANUAL);
   }
-  PRINTF("Tentative global IPv6 address (ETH) ");
-  PRINT6ADDR(&eth_ip_addr.u8);
-  PRINTF("\n");
+  LOG6LBR_6ADDR(INFO, &eth_ip_addr, "Tentative global IPv6 address (ETH) ");
 
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
@@ -272,22 +252,22 @@ cetic_6lbr_init(void)
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_LEARN_RPL_MAC
-  printf("Starting as RPL Relay\n");
+  LOG6LBR_INFO("Starting as RPL Relay\n");
 #else
-  printf("Starting as Full TRANSPARENT-BRIDGE\n");
+  LOG6LBR_INFO("Starting as Full TRANSPARENT-BRIDGE\n");
 #endif
 #elif CETIC_6LBR_SMARTBRIDGE
-  printf("Starting as SMART-BRIDGE\n");
+  LOG6LBR_INFO("Starting as SMART-BRIDGE\n");
 #elif CETIC_6LBR_ROUTER
 #if UIP_CONF_IPV6_RPL
-  printf("Starting as RPL ROUTER\n");
+  LOG6LBR_INFO("Starting as RPL ROUTER\n");
 #else
-  printf("Starting as NDP ROUTER\n");
+  LOG6LBR_INFO("Starting as NDP ROUTER\n");
 #endif
 #elif CETIC_6LBR_6LR
-  printf("Starting as 6LR\n");
+  LOG6LBR_INFO("Starting as 6LR\n");
 #else
-  printf("Starting in UNKNOWN mode\n");
+  LOG6LBR_INFO("Starting in UNKNOWN mode\n");
 #endif
 }
 
@@ -333,13 +313,13 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   process_start(&udp_server_process, NULL);
 #endif
 
-  printf("CETIC 6LBR Started\n");
+  LOG6LBR_INFO("CETIC 6LBR Started\n");
 
 #if CONTIKI_TARGET_NATIVE
   PROCESS_WAIT_EVENT();
   etimer_set(&reboot_timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT();
-  printf("Exiting...\n");
+  LOG6LBR_INFO("Exiting...\n");
   exit(0);
 #endif
 

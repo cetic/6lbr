@@ -50,11 +50,11 @@
 
 #include "contiki.h"
 #include "native-nvm.h"
+#include "log-6lbr.h"
 #include "slip-config.h"
 
 int slip_config_verbose = 0;
 int slip_config_flowcontrol = 0;
-int slip_config_timestamp = 0;
 const char *slip_config_siodev = NULL;
 const char *slip_config_host = NULL;
 const char *slip_config_port = NULL;
@@ -83,7 +83,7 @@ slip_config_handle_arguments(int argc, char **argv)
   slip_config_verbose = 0;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRfU:D:w:")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
@@ -98,7 +98,19 @@ slip_config_handle_arguments(int argc, char **argv)
       break;
 
     case 'L':
-      slip_config_timestamp = 1;
+      if (optarg) {
+        Log6lbr_level = atoi(optarg) * 10;
+      } else {
+        Log6lbr_level = Log6lbr_Level_DEFAULT;
+      }
+      break;
+
+    case 'S':
+      if (optarg) {
+        Log6lbr_services = strtol(optarg, NULL, 16);
+      } else {
+        Log6lbr_services = Log6lbr_Service_DEFAULT;
+      }
       break;
 
     case 's':
@@ -177,8 +189,6 @@ slip_config_handle_arguments(int argc, char **argv)
       fprintf(stderr,
               " -H             Hardware CTS/RTS flow control (default disabled)\n");
       fprintf(stderr,
-              " -L             Log output format (adds time stamps)\n");
-      fprintf(stderr,
               " -s siodev      Serial device (default /dev/ttyUSB0)\n");
       fprintf(stderr,
               " -a host        Connect via TCP to server at <host>\n");
@@ -188,7 +198,7 @@ slip_config_handle_arguments(int argc, char **argv)
       fprintf(stderr, " -r	        Use Raw Ethernet interface\n");
       fprintf(stderr, " -R             Use Tap Ethernet interface\n");
       fprintf(stderr, " -f             Raw Ethernet frames contains FCS\n");
-      fprintf(stderr, " -v[level]      Verbosity level\n");
+      fprintf(stderr, " -v[level]      SLIP Verbosity level\n");
       fprintf(stderr, "    -v0         No messages\n");
       fprintf(stderr,
               "    -v1         Encapsulated SLIP debug messages (default)\n");
@@ -199,12 +209,14 @@ slip_config_handle_arguments(int argc, char **argv)
       fprintf(stderr,
               "    -v4         All printable characters as they are received\n");
       fprintf(stderr, "    -v5         All SLIP packets in hex\n");
-      fprintf(stderr, "    -v          Equivalent to -v3\n");
+      fprintf(stderr, "    -v          Equivalent to -v2\n");
       fprintf(stderr,
               " -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
       fprintf(stderr,
               "                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
       fprintf(stderr, "                -d is equivalent to -d10.\n");
+      fprintf(stderr, " -L[level]      Log level\n");
+      fprintf(stderr, " -S[services]   Log services\n");
       fprintf(stderr, " -c conf        Configuration file (nvm file)\n");
       fprintf(stderr, " -U script      Interface up configuration script\n");
       fprintf(stderr,
@@ -257,6 +269,9 @@ slip_config_handle_arguments(int argc, char **argv)
   if(nvm_file == NULL) {
     nvm_file = default_nvm_file;
   }
+
+  printf("Log level : %d\n", Log6lbr_level);
+  printf("Log services : %x\n", Log6lbr_services);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

@@ -70,7 +70,7 @@ CFLAGS += -DCETIC_NODE_INFO=1
 PROJECT_SOURCEFILES += node-info.c 
 endif
 
-PROJECT_SOURCEFILES += rio.c packet-filter.c sicslow-ethernet.c nvm-config.c node-info.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c node-info.c
 ifeq ($(TARGET),native)
 APPS = slip-cmd
 PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c

@@ -273,6 +273,8 @@
 
 /* Do not change lines below */
 
+#define LOG6LBR_TIMESTAMP           0
+
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
 

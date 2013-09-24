@@ -35,6 +35,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "TAP"
+
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include <stdio.h>
@@ -51,10 +53,6 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-
-
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
 
 #ifdef linux
 #include <netinet/in.h>
@@ -75,7 +73,6 @@ struct ifreq if_idx;
 #include <ifaddrs.h>
 #endif
 
-#include <err.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "eth-drv.h"
@@ -83,18 +80,14 @@ struct ifreq if_idx;
 #include "packet-filter.h"
 #include "cetic-6lbr.h"
 #include "slip-config.h"
+#include "log-6lbr.h"
+
 //Temporary, should be removed
 #include "native-slip.h"
 #include "native-rdc.h"
 extern int slipfd;
 extern void slip_flushbuf(int fd);
 //End of temporary
-
-#if DEBUG
-#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
-#else
-#define PRINTETHADDR(addr)
-#endif
 
 #ifndef __CYGWIN__
 static int tunfd;
@@ -134,7 +127,7 @@ cleanup(void)
       ssystem("%s %s %s", slip_config_ifdown_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
-      fprintf(stderr, "Could not access %s : %s\n", slip_config_ifdown_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
               strerror(errno));
     }
   }
@@ -146,7 +139,7 @@ cleanup(void)
 void
 sigcleanup(int signo)
 {
-  printf("signal %d\n", signo);
+  LOG6LBR_FATAL("signal %d\n", signo);
   exit(1);                      /* exit(0) will call cleanup() */
 }
 
@@ -159,7 +152,7 @@ ifconf(const char *tundev)
       ssystem("%s %s %s", slip_config_ifup_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
-      fprintf(stderr, "Could not access %s : %s\n", slip_config_ifup_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
               strerror(errno));
     }
   }
@@ -183,28 +176,34 @@ eth_alloc(const char *tundev)
   int sockfd;
 
   if((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
-    perror("socket");
+    LOG6LBR_FATAL("socket() : %s\n", strerror(errno));
+    exit(1);
   }
   memset(&if_idx, 0, sizeof(struct ifreq));
   strncpy(if_idx.ifr_name, tundev, IFNAMSIZ - 1);
-  if(ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0)
-    perror("SIOCGIFINDEX");
+  if(ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0) {
+    LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
+    exit(1);
+  }
   struct sockaddr_ll sll;
 
   sll.sll_family = AF_PACKET;
   sll.sll_ifindex = if_idx.ifr_ifindex;
   sll.sll_protocol = htons(ETH_P_ALL);
-  if(bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) < 0)
-    perror("bind");
+  if(bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+    LOG6LBR_FATAL("bind() : %s\n", strerror(errno));
+    exit(1);
+  }
   struct packet_mreq mr;
 
   memset(&mr, 0, sizeof(mr));
   mr.mr_ifindex = if_idx.ifr_ifindex;
   mr.mr_type = PACKET_MR_PROMISC;
   if(setsockopt(sockfd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mr, sizeof(mr)) <
-     0)
-    perror("setsockopt");
-
+     0) {
+    LOG6LBR_FATAL("setsockopt() : %s\n", strerror(errno));
+    exit(1);
+  }
   return sockfd;
 }
 
@@ -249,7 +248,7 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
 int
 eth_alloc(const char *tundev)
 {
-  fprintf(stderr, "RAW Ethernet mode not supported\n");
+  LOG6LBR_FATAL("RAW Ethernet mode not supported\n");
   exit(1);
 }
 int
@@ -279,7 +278,7 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
     freeifaddrs(ifap);
   }
   if(!found) {
-    fprintf(stderr, "Could not find mac address for %s\n", dev);
+    LOG6LBR_FATAL("Could not find mac address for %s\n", dev);
     exit(1);
   }
 }
@@ -316,12 +315,14 @@ tun_init()
   } else {
     tunfd = tun_alloc(slip_config_tundev);
   }
-  if(tunfd == -1)
-    err(1, "main: open");
+  if(tunfd == -1) {
+    LOG6LBR_FATAL("tun_alloc() : %s\n", strerror(errno));
+    exit(1);
+  }
 
   select_set_callback(tunfd, &tun_select_callback);
 
-  printf("opened device ``/dev/%s''\n", slip_config_tundev);
+  LOG6LBR_INFO("opened device ``/dev/%s''\n", slip_config_tundev);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
@@ -332,9 +333,7 @@ tun_init()
   if(use_raw_ethernet) {
 #endif
 	fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
-    PRINTF("Eth MAC address : ");
-    PRINTETHADDR(&eth_mac_addr);
-    PRINTF("\n");
+	LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
 #if !CETIC_6LBR_ONE_ITF
   }
@@ -347,8 +346,10 @@ tun_output(uint8_t * data, int len)
 {
   /* printf("*** Writing to tun...%d\n", len); */
   if(write(tunfd, data, len) != len) {
-    err(1, "serial_to_tun: write");
+    LOG6LBR_FATAL("write() : %s\n", strerror(errno));
+    exit(1);
   }
+  LOG6LBR_PRINTF(DEBUG, TAP_OUT, "write:%d\n", len);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -356,8 +357,11 @@ tun_input(unsigned char *data, int maxlen)
 {
   int size;
 
-  if((size = read(tunfd, data, maxlen)) == -1)
-    err(1, "tun_input: read");
+  if((size = read(tunfd, data, maxlen)) == -1) {
+    LOG6LBR_FATAL("read() : %s\n", strerror(errno));
+    exit(1);
+  }
+  LOG6LBR_PRINTF(DEBUG, TAP_IN, "read:%d\n", size);
   return size;
 }
 
@@ -399,7 +403,6 @@ handle_fd(fd_set * rset, fd_set * wset)
 
     if(FD_ISSET(tunfd, rset)) {
       size = tun_input(tmp_tap_buf, sizeof(tmp_tap_buf));
-      printf("TUN data incoming read:%d\n", size);
       if(ethernet_has_fcs) {
         //Remove extra data from packet capture
         uip_len = size - ETHERNET_LLH_LEN - 4;
