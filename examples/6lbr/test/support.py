@@ -243,6 +243,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         print >>conf, "EXTRA_PARAMS=-v1"
+        print >>conf, "LOG_6LBR_OUT=-"
+        print >>conf, "LOG_6LBR_ERR=-"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)

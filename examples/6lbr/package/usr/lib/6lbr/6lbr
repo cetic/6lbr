@@ -3,7 +3,7 @@
 ################################################################################
 # If this script is killed, kills all the child processes
 
-trap 'kill $(jobs -p)' EXIT
+trap 'JOBS=$(jobs -p); if [ $JOBS ]; then kill $JOBS; echo "6LBR killed" > /dev/stderr; fi' EXIT
 
 ################################################################################
 # Read config file
@@ -16,10 +16,10 @@ else
 fi
 
 if [ -e $CFG ]; then
-	echo "Using config file $CFG"
+	echo "$0: Using config file $CFG"
 	. $CFG
 else
-	echo Configuration file $CFG not found
+	echo "$0: Configuration file $CFG not found"
 	exit 1
 fi
 
@@ -34,6 +34,17 @@ else
 fi
 
 config_default
+
+################################################################################
+# Configure logs
+
+if [ "$LOG_6LBR_OUT" != "-" ]; then
+	exec >> $LOG_6LBR_OUT
+fi
+
+if [ "$LOG_6LBR_ERR" != "-" ]; then
+	exec 2>> $LOG_6LBR_ERR
+fi
 
 ################################################################################
 # Build parameters list
@@ -76,32 +87,42 @@ IFDOWN="-D $IFDOWN"
 
 PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $EXTRA_PARAMS $*"
 
-echo $PARAMS
-
 ################################################################################
 # Launch 6LBR in a loop
 
 while ((1)); do
+	TIMESTAMP=`date`" : Starting 6LBR "
+	echo "********************************************************************************"
+	echo $TIMESTAMP
+	echo "********************************************************************************" > /dev/stderr
+	echo $TIMESTAMP > /dev/stderr
+	
 	if [ "$MODE" = 'ROUTER' ]; then
-		$BIN_6LBR/cetic_6lbr_router $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_router
 	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
-		$BIN_6LBR/cetic_6lbr_smart_bridge $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_smart_bridge
 	elif [ "$MODE" = 'RPL-RELAY' ]; then
-		$BIN_6LBR/cetic_6lbr_rpl_relay $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_rpl_relay
 	elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
-		$BIN_6LBR/cetic_6lbr_full_transparent_bridge $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_full_transparent_bridge
 	elif [ "$MODE" = 'NDP-ROUTER' ]; then
-		$BIN_6LBR/cetic_6lbr_ndp_router $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_ndp_router
 	elif [ "$MODE" = '6LR' ]; then
-		$BIN_6LBR/cetic_6lbr_6lr $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_6lr
 	elif [ "$MODE" = 'RPL-ROOT' ]; then
-		$BIN_6LBR/cetic_6lbr_rpl_root $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_rpl_root
 	else
 		echo "Mode '$MODE' unknown, starting as router"
-		$BIN_6LBR/cetic_6lbr_router $PARAMS
+		BIN=$BIN_6LBR/cetic_6lbr_router
 	fi
-	if [ $? != 0 ]; then
+	echo "$BIN $PARAMS"
+	$BIN $PARAMS
+	ECODE=$?
+	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
-		break
+        echo `date`" : $BIN failed, exit code: $ECODE" > /dev/stderr
+        if [ "$STOP_AFTER_CRASH" == "1" ]; then
+			break
+		fi
 	fi
 done
