@@ -1032,6 +1032,7 @@ update_config(const char *name)
     PRINTF("Got param: '%s' = '%s'\n", param, value);
     if (0) {
     }
+    UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
