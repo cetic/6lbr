@@ -349,7 +349,7 @@ tun_output(uint8_t * data, int len)
     LOG6LBR_FATAL("write() : %s\n", strerror(errno));
     exit(1);
   }
-  LOG6LBR_PRINTF(DEBUG, TAP_OUT, "write:%d\n", len);
+  LOG6LBR_PRINTF(PACKET, TAP_OUT, "write:%d\n", len);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -361,7 +361,7 @@ tun_input(unsigned char *data, int maxlen)
     LOG6LBR_FATAL("read() : %s\n", strerror(errno));
     exit(1);
   }
-  LOG6LBR_PRINTF(DEBUG, TAP_IN, "read:%d\n", size);
+  LOG6LBR_PRINTF(PACKET, TAP_IN, "read:%d\n", size);
   return size;
 }
 

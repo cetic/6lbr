@@ -57,6 +57,8 @@ enum Log6lbr_Level {
   Log6lbr_Level_INFO = 30,
   Log6lbr_Level_DEBUG = 40,
   Log6lbr_Level_TRACE = 50,
+  Log6lbr_Level_PACKET = 60,
+  Log6lbr_Level_DUMP = 70,
 
   Log6lbr_Level_ALL = 127,
   Log6lbr_Level_DEFAULT = Log6lbr_Level_INFO
@@ -96,7 +98,7 @@ extern void log6lbr_timestamp();
 #define _LOG6LBR_LEVEL_F(level, service, func, ...) { \
   if (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 ) { \
     _LOG6LBR_ADD_TIMESTAMP \
-    printf( LOG6LBR_MODULE ": "); \
+    printf( #level ": " LOG6LBR_MODULE ": " ); \
     func(__VA_ARGS__); \
   } \
   }
