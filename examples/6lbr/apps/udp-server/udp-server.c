@@ -32,15 +32,15 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "UDPS"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "node-info.h"
+#include "log-6lbr.h"
 
 #include <string.h>
-
-#define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -58,9 +58,7 @@ tcpip_handler(void)
 
   if(uip_newdata()) {
     ((char *)uip_appdata)[uip_datalen()] = 0;
-    PRINTF("Server received: '%s' from ", (char *)uip_appdata);
-    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF("\n");
+    LOG6LBR_6ADDR(DEBUG, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
 
 #if CETIC_NODE_INFO
     node_info_t *node = node_info_lookup(&UIP_IP_BUF->srcipaddr);
@@ -75,9 +73,8 @@ tcpip_handler(void)
 #endif
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
-    PRINTF("Responding with message: ");
     sprintf(buf, "Hello from the server! (%d)", ++seq_id);
-    PRINTF("%s\n", buf);
+    LOG6LBR_DEBUG("Responding with message: %s\n", buf);
 
     uip_udp_packet_send(server_conn, buf, strlen(buf));
     /* Restore server connection to allow data from any node */
@@ -88,7 +85,7 @@ tcpip_handler(void)
 PROCESS_THREAD(udp_server_process, ev, data)
 {
   PROCESS_BEGIN();
-  PRINTF("UDP server started\n");
+  LOG6LBR_INFO("UDP server started\n");
 
   server_conn = udp_new(NULL, UIP_HTONS(3001), NULL);
   udp_bind(server_conn, UIP_HTONS(3000));

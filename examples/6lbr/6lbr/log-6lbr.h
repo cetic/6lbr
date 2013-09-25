@@ -56,9 +56,9 @@ enum Log6lbr_Level {
   Log6lbr_Level_WARN = 20,
   Log6lbr_Level_INFO = 30,
   Log6lbr_Level_DEBUG = 40,
-  Log6lbr_Level_TRACE = 50,
-  Log6lbr_Level_PACKET = 60,
-  Log6lbr_Level_DUMP = 70,
+  Log6lbr_Level_PACKET = 50,
+  Log6lbr_Level_DUMP = 60,
+  Log6lbr_Level_TRACE = 70,
 
   Log6lbr_Level_ALL = 127,
   Log6lbr_Level_DEFAULT = Log6lbr_Level_INFO
@@ -72,6 +72,11 @@ enum Log6lbr_Service {
   Log6lbr_Service_RADIO_OUT = 0x00000010,
   Log6lbr_Service_TAP_IN    = 0x00000012,
   Log6lbr_Service_TAP_OUT   = 0x00000014,
+  Log6lbr_Service_SLIP_IN   = 0x00000018,
+  Log6lbr_Service_SLIP_OUT  = 0x00000020,
+  Log6lbr_Service_PF_IN     = 0x00000022,
+  Log6lbr_Service_PF_OUT    = 0x00000024,
+  Log6lbr_Service_SLIP_DBG  = 0x00000028,
 
   Log6lbr_Service_ALL       = -1,
   Log6lbr_Service_DEFAULT   = Log6lbr_Service_ALL
@@ -95,15 +100,29 @@ extern void log6lbr_timestamp();
 #define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
 #define _PRINTF_ETHADDR(addr, ...) { printf(__VA_ARGS__); log6lbr_ethaddr_print(addr); printf("\n"); }
 
+#define LOG6LBR_COND(level, service) (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 )
+
 #define _LOG6LBR_LEVEL_F(level, service, func, ...) { \
-  if (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 ) { \
+  if (LOG6LBR_COND(level, service)) { \
     _LOG6LBR_ADD_TIMESTAMP \
     printf( #level ": " LOG6LBR_MODULE ": " ); \
     func(__VA_ARGS__); \
   } \
   }
 
+#define _LOG6LBR_LEVEL_A(level, service, func, ...) { \
+  if (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 ) { \
+    func(__VA_ARGS__); \
+  } \
+  }
+
+
 #define LOG6LBR_PRINTF(level, service, ...) _LOG6LBR_LEVEL_F(level, service, printf, __VA_ARGS__)
+#define LOG6LBR_6ADDR_PRINTF(level, service, addr, ...) _LOG6LBR_LEVEL_F(level, service, _PRINTF_6ADDR, addr, __VA_ARGS__)
+#define LOG6LBR_LLADDR_PRINTF(level, service, addr, ...) _LOG6LBR_LEVEL_F(level, service, _PRINTF_LLADDR, addr, __VA_ARGS__)
+#define LOG6LBR_ETHADDR_PRINTF(level, service, addr, ...) _LOG6LBR_LEVEL_F(level, service, _PRINTF_ETHADDR, addr, __VA_ARGS__)
+#define LOG6LBR_APPEND(level, service, ...) _LOG6LBR_LEVEL_A(level, service, printf, __VA_ARGS__)
+#define LOG6LBR_WRITE(level, service, buffer, size) _LOG6LBR_LEVEL_F(level, service, fwrite, buffer, size, 1, stdout)
 
 #define LOG6LBR_6ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_6ADDR, addr, __VA_ARGS__)
 #define LOG6LBR_LLADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_LLADDR, addr, __VA_ARGS__)
@@ -115,5 +134,7 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_INFO(...) LOG6LBR_PRINTF(INFO, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_DEBUG(...) LOG6LBR_PRINTF(DEBUG, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_TRACE(...) LOG6LBR_PRINTF(TRACE, GLOBAL, __VA_ARGS__)
+#define LOG6LBR_PACKET(...) LOG6LBR_PRINTF(PACKET, GLOBAL, __VA_ARGS__)
+#define LOG6LBR_DUMP(...) LOG6LBR_PRINTF(DUMP, GLOBAL, __VA_ARGS__)
 
 #endif

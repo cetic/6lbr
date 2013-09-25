@@ -77,7 +77,6 @@ struct ifreq if_idx;
 #include "net/packetbuf.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
-#include "packet-filter.h"
 #include "cetic-6lbr.h"
 #include "slip-config.h"
 #include "log-6lbr.h"
@@ -102,8 +101,6 @@ static const struct select_callback tun_select_callback = {
 
 int ssystem(const char *fmt, ...)
   __attribute__ ((__format__(__printf__, 1, 2)));
-int
-  ssystem(const char *fmt, ...) __attribute__ ((__format__(__printf__, 1, 2)));
 
 int
 ssystem(const char *fmt, ...)
@@ -344,12 +341,11 @@ tun_init()
 void
 tun_output(uint8_t * data, int len)
 {
-  /* printf("*** Writing to tun...%d\n", len); */
   if(write(tunfd, data, len) != len) {
     LOG6LBR_FATAL("write() : %s\n", strerror(errno));
     exit(1);
   }
-  LOG6LBR_PRINTF(PACKET, TAP_OUT, "write:%d\n", len);
+  LOG6LBR_PRINTF(PACKET, TAP_OUT, "write: %d\n", len);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -361,7 +357,7 @@ tun_input(unsigned char *data, int maxlen)
     LOG6LBR_FATAL("read() : %s\n", strerror(errno));
     exit(1);
   }
-  LOG6LBR_PRINTF(PACKET, TAP_IN, "read:%d\n", size);
+  LOG6LBR_PRINTF(PACKET, TAP_IN, "read: %d\n", size);
   return size;
 }
 
@@ -411,7 +407,7 @@ handle_fd(fd_set * rset, fd_set * wset)
       }
       memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
       memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
-      eth_input();
+      eth_drv_input();
 
       if(slip_config_basedelay) {
         struct timeval tv;

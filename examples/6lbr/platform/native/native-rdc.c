@@ -39,22 +39,20 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "BR-RDC"
+
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
 #include "net/netstack.h"
 #include "packetutils.h"
 #include "native-slip.h"
 #include "cetic-6lbr.h"
+#include "log-6lbr.h"
+
 #include <string.h>
 
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-#include "uip-debug.h"
+ /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
+#define WIRESHARK_IMPORT_FORMAT 0
 
 uint8_t mac_set;
 
@@ -87,7 +85,7 @@ packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
     mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
   } else {
-    PRINTF("*** ERROR: too high session id %d\n", sessionid);
+    LOG6LBR_ERROR("*** ERROR: too high session id %d\n", sessionid);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -126,7 +124,7 @@ send_packet(mac_callback_t sent, void *ptr)
 
   if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
-    PRINTF("br-rdc: send failed, too large header\n");
+    LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
     mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
 
   } else {
@@ -136,10 +134,31 @@ send_packet(mac_callback_t sent, void *ptr)
     size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
 #endif
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
-      PRINTF("br-rdc: send failed, too large header\n");
+      LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
     } else {
-      PRINTF("SLIP: Sending %d\n", packetbuf_totlen());
+      LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d\n", packetbuf_datalen());
+      if (LOG6LBR_COND(DUMP, RADIO_OUT)) {
+        uint8_t *data = packetbuf_dataptr();
+        int len = packetbuf_datalen();
+        int i;
+    #if WIRESHARK_IMPORT_FORMAT
+        printf("0000");
+        for(i = 0; i < len; i++)
+          printf(" %02x", data[i]);
+    #else
+        printf("         ");
+        for(i = 0; i < len; i++) {
+          printf("%02x", data[i]);
+          if((i & 3) == 3)
+            printf(" ");
+          if((i & 15) == 15)
+            printf("\n         ");
+        }
+    #endif
+        printf("\n");
+      }
+
       sid = setup_callback(sent, ptr);
 
       buf[0] = '!';
@@ -166,8 +185,29 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 static void
 packet_input(void)
 {
+  LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
+  if (LOG6LBR_COND(DUMP, RADIO_IN)) {
+    uint8_t *data = packetbuf_dataptr();
+    int len = packetbuf_datalen();
+    int i;
+#if WIRESHARK_IMPORT_FORMAT
+    printf("0000");
+    for(i = 0; i < len; i++)
+      printf(" %02x", data[i]);
+#else
+    printf("         ");
+    for(i = 0; i < len; i++) {
+      printf("%02x", data[i]);
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
+    }
+#endif
+    printf("\n");
+  }
   if(NETSTACK_FRAMER.parse() < 0) {
-    PRINTF("br-rdc: failed to parse %u\n", packetbuf_datalen());
+    LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
   } else {
     NETSTACK_MAC.input();
   }
@@ -207,14 +247,14 @@ slip_print_stat()
 void
 slip_reboot(void)
 {
-  printf("Reset SLIP Radio\n");
+  LOG6LBR_INFO("Reset SLIP Radio\n");
   write_to_slip((uint8_t *) "!R", 2);
 }
 
 void
 slip_request_mac(void)
 {
-  printf("Fetching MAC address\n");
+  LOG6LBR_INFO("Fetching MAC address\n");
   mac_set = 0;
   write_to_slip((uint8_t *) "?M", 2);
 }
@@ -225,9 +265,7 @@ slip_got_mac(const uint8_t * data)
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
   rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
-  printf("Got MAC: ");
-  uip_debug_lladdr_print(&uip_lladdr);
-  printf("\n");
+  LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
   mac_set = 1;
 }
 
@@ -237,7 +275,7 @@ slip_set_mac(rimeaddr_t const * mac_addr)
 	uint8_t buffer[10];
 	int i;
 
-	PRINTF("Set MAC address\n");
+    LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC: ");
 	buffer[0] = '!';
 	buffer[1] = 'M';
     for(i = 0; i < 8; i++) {

@@ -54,6 +54,8 @@
    @{
 */
 
+#define LOG6LBR_MODULE "6LE"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 
@@ -71,9 +73,7 @@
 #include <string.h>
 
 #include "cetic-6lbr.h"
-
-#define DEBUG 0
-#include "uip-debug.h"
+#include "log-6lbr.h"
 
 #ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
 #define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
@@ -123,7 +123,7 @@ mac_translateIPLinkLayer(lltype_t target)
 {
 
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6) {
-    PRINTF("translateIP: ICMP Message detected\n\r");
+    LOG6LBR_TRACE("translateIP: ICMP Message detected\n\r");
     return mac_translateIcmpLinkLayer(target);
   }
   return 0;
@@ -284,7 +284,7 @@ mac_translateIcmpLinkLayer(lltype_t target)
 
       //This shouldn't happen!
       if(UIP_ICMP_OPTS(icmp_opt_offset)->length == 0) {
-        PRINTF("Option in ND packet has length zero, error?\n\r");
+        LOG6LBR_TRACE("Option in ND packet has length zero, error?\n\r");
         len = 0;
       }
 
@@ -402,13 +402,11 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A)
      && (lowpan->addr[4] == CETIC_6LBR_ETH_EXT_B)) {
         /** Nope: just copy over 6 bytes **/
-    PRINTF("Low2Eth direct : ");
-    PRINTLLADDR(lowpan);
-    PRINTF("\n");
+    LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth direct : ");
     if((lowpan->
         addr[0] & (TRANSLATE_BIT_MASK | MULTICAST_BIT_MASK | LOCAL_BIT_MASK))
        == (TRANSLATE_BIT_MASK | LOCAL_BIT_MASK)) {
-      PRINTF("Low2Eth direct : ADDRESS PREFIX CONFLICT\n");
+      LOG6LBR_INFO("Low2Eth direct : ADDRESS PREFIX CONFLICT\n");
     }
 
     ethernet[0] = lowpan->addr[0];
@@ -421,9 +419,7 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
   } else {
         /** Yes: need to store prefix **/
-    PRINTF("Low2Eth translate : ");
-    PRINTLLADDR(lowpan);
-    PRINTF("\n");
+    LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth translate : ");
 
     for(i = 0; i < prefixCounter; i++) {
       //Check the current prefix - if it fails, check next one
@@ -436,7 +432,7 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     index = i;
 
     if(index >= PREFIX_BUFFER_SIZE) {
-      PRINTF("Low2Eth buffer overflow\n");
+      LOG6LBR_ERROR("Low2Eth buffer overflow\n");
       // Overflow. Fall back to simple translation.
       // TODO: Implement me!
       ethernet[0] = lowpan->addr[0];
@@ -449,7 +445,7 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     } else {
       //Are we making a new one?
       if(index == prefixCounter) {
-        printf("Low2Eth adding prefix\n");
+        LOG6LBR_TRACE("Low2Eth adding prefix\n");
         prefixCounter++;
         prefixBuffer[index][0] = lowpan->addr[0];
         prefixBuffer[index][1] = lowpan->addr[1];
@@ -463,12 +459,8 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
       ethernet[4] = lowpan->addr[6];
       ethernet[5] = lowpan->addr[7];
 
-      PRINTF("Low2Eth Lowpan addr : %d:%d:%d:%d:%d:%d:%d:%d\n",
-             lowpan->addr[0], lowpan->addr[1], lowpan->addr[2],
-             lowpan->addr[3], lowpan->addr[4], lowpan->addr[5],
-             lowpan->addr[6], lowpan->addr[7]);
-      PRINTF("Low2Eth Ethernet addr : %d:%d:%d:%d:%d:%d\n", ethernet[0],
-             ethernet[1], ethernet[2], ethernet[3], ethernet[4], ethernet[5]);
+      LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth Lowpan addr : ");
+      LOG6LBR_ETHADDR(TRACE, (ethaddr_t *)ethernet, "Low2Eth Ethernet addr : ");
     }
   }
 

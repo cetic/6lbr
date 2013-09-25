@@ -53,7 +53,6 @@
 #include "log-6lbr.h"
 #include "slip-config.h"
 
-int slip_config_verbose = 0;
 int slip_config_flowcontrol = 0;
 const char *slip_config_siodev = NULL;
 const char *slip_config_host = NULL;
@@ -79,8 +78,6 @@ slip_config_handle_arguments(int argc, char **argv)
   const char *prog;
   signed char c;
   int baudrate = 115200;
-
-  slip_config_verbose = 0;
 
   prog = argv[0];
   while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:")) != -1) {
@@ -168,9 +165,7 @@ slip_config_handle_arguments(int argc, char **argv)
       break;
 
     case 'v':
-      slip_config_verbose = 2;
-      if(optarg)
-        slip_config_verbose = atoi(optarg);
+      printf("Warning: -v option is deprecated, use -L and -S instead\n");
       break;
 
     case '?':
@@ -198,18 +193,6 @@ slip_config_handle_arguments(int argc, char **argv)
       fprintf(stderr, " -r	        Use Raw Ethernet interface\n");
       fprintf(stderr, " -R             Use Tap Ethernet interface\n");
       fprintf(stderr, " -f             Raw Ethernet frames contains FCS\n");
-      fprintf(stderr, " -v[level]      SLIP Verbosity level\n");
-      fprintf(stderr, "    -v0         No messages\n");
-      fprintf(stderr,
-              "    -v1         Encapsulated SLIP debug messages (default)\n");
-      fprintf(stderr,
-              "    -v2         Printable strings after they are received\n");
-      fprintf(stderr,
-              "    -v3         Printable strings and SLIP packet notifications\n");
-      fprintf(stderr,
-              "    -v4         All printable characters as they are received\n");
-      fprintf(stderr, "    -v5         All SLIP packets in hex\n");
-      fprintf(stderr, "    -v          Equivalent to -v2\n");
       fprintf(stderr,
               " -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
       fprintf(stderr,
@@ -230,7 +213,7 @@ slip_config_handle_arguments(int argc, char **argv)
 
   if(argc > 1) {
     err(1,
-        "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t dev] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] [-c conf] [-U ifup] [-D ifdown]",
+        "usage: %s [-B baudrate] [-H] [-L log] [-S services] [-s siodev] [-t dev] [-d delay] [-a serveraddress] [-p serverport] [-c conf] [-U ifup] [-D ifdown]",
         prog);
   }
 

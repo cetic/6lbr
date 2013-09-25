@@ -30,8 +30,8 @@
  *
  */
 
- /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
-#define WIRESHARK_IMPORT_FORMAT 1
+#define LOG6LBR_MODULE "SLIP"
+
 #include "contiki.h"
 
 #include <stdio.h>
@@ -50,8 +50,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <err.h>
+#include <errno.h>
 
+#include "log-6lbr.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
@@ -82,6 +83,8 @@ int slipfd = 0;
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
+#define DEBUG_LINE_MARKER '\r'
+
 /*---------------------------------------------------------------------------*/
 static void *
 get_in_addr(struct sockaddr *sa)
@@ -105,27 +108,27 @@ connect_to_server(const char *host, const char *port)
   hints.ai_socktype = SOCK_STREAM;
 
   if((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
-    err(1, "getaddrinfo: %s", gai_strerror(rv));
+    LOG6LBR_ERROR("getaddrinfo(): %s", gai_strerror(rv));
     return -1;
   }
 
   /* loop through all the results and connect to the first we can */
   for(p = servinfo; p != NULL; p = p->ai_next) {
     if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-      perror("client: socket");
+      LOG6LBR_ERROR("socket() : %s\n", strerror(errno));
       continue;
     }
 
     if(connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
       close(fd);
-      perror("client: connect");
+      LOG6LBR_ERROR("connect() : %s\n", strerror(errno));
       continue;
     }
     break;
   }
 
   if(p == NULL) {
-    err(1, "can't connect to ``%s:%s''", host, port);
+    LOG6LBR_ERROR("can't connect to ``%s:%s''", host, port);
     return -1;
   }
 
@@ -158,9 +161,7 @@ void
 slip_packet_input(unsigned char *data, int len)
 {
   packetbuf_copyfrom(data, len);
-  if(slip_config_verbose > 0) {
-    printf("Packet input over SLIP: %d\n", len);
-  }
+  LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", len);
   NETSTACK_RDC.input();
 }
 /*---------------------------------------------------------------------------*/
@@ -178,14 +179,16 @@ serial_input(FILE * inslip)
 
 #ifdef linux
   ret = fread(&c, 1, 1, inslip);
-  if(ret == -1 || ret == 0)
-    err(1, "serial_input: read");
+  if(ret == -1 || ret == 0) {
+    LOG6LBR_FATAL("read() : %s\n", strerror(errno));
+    exit(1);
+  }
   goto after_fread;
 #endif
 
 read_more:
   if(inbufptr >= sizeof(inbuf)) {
-    printf("*** dropping large %d byte packet\n", inbufptr);
+    LOG6LBR_ERROR("*** dropping large %d byte packet\n", inbufptr);
     inbufptr = 0;
   }
   ret = fread(&c, 1, 1, inslip);
@@ -193,7 +196,8 @@ read_more:
 after_fread:
 #endif
   if(ret == -1) {
-    err(1, "serial_input: read");
+    LOG6LBR_FATAL("read() : %s\n", strerror(errno));
+    exit(1);
   }
   if(ret == 0) {
     clearerr(inslip);
@@ -203,40 +207,25 @@ after_fread:
   switch (c) {
   case SLIP_END:
     if(inbufptr > 0) {
+      LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
+      if (LOG6LBR_COND(DUMP, SLIP_IN)) {
+        printf("         ");
+        for(i = 0; i < inbufptr; i++) {
+          printf("%02x", inbuf[i]);
+          if((i & 3) == 3)
+            printf(" ");
+          if((i & 15) == 15)
+            printf("\n         ");
+        }
+        printf("\n");
+      }
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
         cmd_input(inbuf, inbufptr);
       } else if(inbuf[0] == '?') {
-#define DEBUG_LINE_MARKER '\r'
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
-        printf("SLIP-DBG: ");
-        fwrite(inbuf + 1, inbufptr - 1, 1, stdout);
-      } else if(is_sensible_string(inbuf, inbufptr)) {
-        if(slip_config_verbose == 1) {  /* strings already echoed below for verbose>1 */
-          printf("SLIP-OUT: ");
-          fwrite(inbuf, inbufptr, 1, stdout);
-        }
+        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
       } else {
-        if(slip_config_verbose > 2) {
-          printf("Packet from SLIP of length %d - write TUN\n", inbufptr);
-          if(slip_config_verbose > 4) {
-#if WIRESHARK_IMPORT_FORMAT
-            printf("0000");
-            for(i = 0; i < inbufptr; i++)
-              printf(" %02x", inbuf[i]);
-#else
-            printf("         ");
-            for(i = 0; i < inbufptr; i++) {
-              printf("%02x", inbuf[i]);
-              if((i & 3) == 3)
-                printf(" ");
-              if((i & 15) == 15)
-                printf("\n         ");
-            }
-#endif
-            printf("\n");
-          }
-        }
         slip_packet_input(inbuf, inbufptr);
       }
       inbufptr = 0;
@@ -263,19 +252,13 @@ after_fread:
   default:
     inbuf[inbufptr++] = c;
 
-    /* Echo lines as they are received for verbose=2,3,5+ */
-    /* Echo all printable characters for verbose==4 */
-    if(slip_config_verbose == 4) {
-      if(c == 0 || c == '\r' || c == '\n' || c == '\t'
-         || (c >= ' ' && c <= '~')) {
-        fwrite(&c, 1, 1, stdout);
+    if(c == '\n' && is_sensible_string(inbuf, inbufptr)) {
+      if (inbuf[0] == '\r') {
+        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
+      } else {
+        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       }
-    } else if(slip_config_verbose >= 2) {
-      if(c == '\n' && is_sensible_string(inbuf, inbufptr)) {
-        printf("SLIP-FB:");
-        fwrite(inbuf, inbufptr, 1, stdout);
-        inbufptr = 0;
-      }
+      inbufptr = 0;
     }
     break;
   }
@@ -295,7 +278,8 @@ static void
 slip_send(int fd, unsigned char c)
 {
   if(slip_end >= sizeof(slip_buf)) {
-    err(1, "slip_send overflow");
+    LOG6LBR_FATAL("slip_send overflow\n");
+    exit(1);
   }
   slip_buf[slip_end] = c;
   slip_end++;
@@ -327,7 +311,8 @@ slip_flushbuf(int fd)
   n = write(fd, slip_buf + slip_begin, slip_packet_end - slip_begin);
 
   if(n == -1 && errno != EAGAIN) {
-    err(1, "slip_flushbuf write failed");
+    LOG6LBR_FATAL("slip_flushbuf::write() : %s\n", strerror(errno));
+    exit(1);
   } else if(n == -1) {
     PROGRESS("Q");              /* Outqueue is full! */
   } else {
@@ -363,29 +348,19 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
   const uint8_t *p = inbuf;
   int i;
 
-  if(slip_config_verbose > 2) {
-#ifdef __CYGWIN__
-    printf("Packet from WPCAP of length %d - write SLIP\n", len);
-#else
-    printf("Packet from TUN of length %d - write SLIP\n", len);
-#endif
-    if(slip_config_verbose > 4) {
-#if WIRESHARK_IMPORT_FORMAT
-      printf("0000");
-      for(i = 0; i < len; i++)
-        printf(" %02x", p[i]);
-#else
-      printf("         ");
-      for(i = 0; i < len; i++) {
-        printf("%02x", p[i]);
-        if((i & 3) == 3)
-          printf(" ");
-        if((i & 15) == 15)
-          printf("\n         ");
-      }
-#endif
-      printf("\n");
+
+  LOG6LBR_PRINTF(PACKET, SLIP_OUT, "write: %d\n", len);
+
+  if (LOG6LBR_COND(DUMP, SLIP_OUT)) {
+    printf("         ");
+    for(i = 0; i < len; i++) {
+      printf("%02x", p[i]);
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
     }
+    printf("\n");
   }
 
   /* It would be ``nice'' to send a SLIP_END here but it's not
@@ -428,11 +403,15 @@ stty_telos(int fd)
   speed_t speed = slip_config_b_rate;
   int i;
 
-  if(tcflush(fd, TCIOFLUSH) == -1)
-    err(1, "tcflush");
+  if(tcflush(fd, TCIOFLUSH) == -1) {
+    LOG6LBR_FATAL("tcflush() : %s\n", strerror(errno));
+    exit(1);
+  }
 
-  if(tcgetattr(fd, &tty) == -1)
-    err(1, "tcgetattr");
+  if(tcgetattr(fd, &tty) == -1) {
+    LOG6LBR_FATAL("tcgetattr() : %s\n", strerror(errno));
+    exit(1);
+  }
 
   cfmakeraw(&tty);
 
@@ -450,27 +429,35 @@ stty_telos(int fd)
   cfsetispeed(&tty, speed);
   cfsetospeed(&tty, speed);
 
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1)
-    err(1, "tcsetattr");
+  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) {
+    LOG6LBR_FATAL("tcsetattr() : %s\n", strerror(errno));
+    exit(1);
+  }
 
 #if 1
   /* Nonblocking read and write. */
   /* if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) err(1, "fcntl"); */
 
   tty.c_cflag |= CLOCAL;
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1)
-    err(1, "tcsetattr");
+  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) {
+    LOG6LBR_FATAL("tcsetattr() : %s\n", strerror(errno));
+    exit(1);
+  }
 
   i = TIOCM_DTR;
-  if(ioctl(fd, TIOCMBIS, &i) == -1)
-    err(1, "ioctl");
+  if(ioctl(fd, TIOCMBIS, &i) == -1) {
+    LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
+    exit(1);
+  }
 #endif
 
   usleep(10 * 1000);            /* Wait for hardware 10ms. */
 
   /* Flush input and output buffers. */
-  if(tcflush(fd, TCIOFLUSH) == -1)
-    err(1, "tcflush");
+  if(tcflush(fd, TCIOFLUSH) == -1) {
+    LOG6LBR_FATAL("tcflush() : %s\n", strerror(errno));
+    exit(1);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -510,8 +497,9 @@ slip_init(void)
     }
     slipfd = connect_to_server(slip_config_host, slip_config_port);
     if(slipfd == -1) {
-      err(1, "can't connect to ``%s:%s''", slip_config_host,
+      LOG6LBR_FATAL("can't connect to ``%s:%s''\n", slip_config_host,
           slip_config_port);
+      exit(1);
     }
 
   } else if(slip_config_siodev != NULL) {
@@ -521,7 +509,8 @@ slip_init(void)
     }
     slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
-      err(1, "can't open siodev ``/dev/%s''", slip_config_siodev);
+      LOG6LBR_FATAL( "can't open siodev ``/dev/%s'' : %s\n", slip_config_siodev, strerror(errno));
+      exit(1);
     }
 
   } else {
@@ -538,17 +527,18 @@ slip_init(void)
       }
     }
     if(slipfd == -1) {
-      err(1, "can't open siodev");
+      LOG6LBR_FATAL("can't open siodev : %s\n", strerror(errno));
+      exit(1);
     }
   }
 
   select_set_callback(slipfd, &slip_callback);
 
   if(slip_config_host != NULL) {
-    printf("********SLIP opened to ``%s:%s''\n", slip_config_host,
+    LOG6LBR_INFO("********SLIP opened to ``%s:%s''\n", slip_config_host,
            slip_config_port);
   } else {
-    printf("********SLIP started on ``/dev/%s''\n", slip_config_siodev);
+    LOG6LBR_INFO("********SLIP started on ``/dev/%s''\n", slip_config_siodev);
     stty_telos(slipfd);
   }
 
@@ -556,7 +546,8 @@ slip_init(void)
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) {
-    err(1, "main: fdopen");
+    LOG6LBR_FATAL("main: fdopen: %s\n", strerror(errno));
+    exit(1);
   }
 }
 /*---------------------------------------------------------------------------*/

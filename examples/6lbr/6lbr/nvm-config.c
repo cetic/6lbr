@@ -34,10 +34,11 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "NVM"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include <stdio.h>              /* For printf() */
 #include <string.h>
 #include <ctype.h>
 
@@ -46,22 +47,9 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "nvm-itf.h"
+#include "log-6lbr.h"
 
 nvm_data_t nvm_data;
-
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",(*lladdr)[0], (*lladdr)[1], (*lladdr)[2], (*lladdr)[3], (*lladdr)[4], (*lladdr)[5], (*lladdr)[6], (*lladdr)[7])
-#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#define PRINTETHADDR(addr)
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -75,7 +63,7 @@ check_nvm(volatile nvm_data_t * nvm_data)
      || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
     //NVM is invalid or we are rollbacking from another version
     //Set all data to default values
-    printf
+    LOG6LBR_ERROR
       ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
     nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
     nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
@@ -105,7 +93,7 @@ check_nvm(volatile nvm_data_t * nvm_data)
   }
   if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
   {
-    PRINTF("Migrate NVM version 0 towards 1\n");
+    LOG6LBR_WARN("Migrate NVM version 0 towards 1\n");
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
     nvm_data->global_flags = CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS;
@@ -147,8 +135,8 @@ load_nvm_config(void)
 {
   nvm_data_read();
 
-  PRINTF("NVM Magic : %x\n", nvm_data.magic);
-  PRINTF("NVM Version : %x\n", nvm_data.version);
+  LOG6LBR_INFO("NVM Magic : %x\n", nvm_data.magic);
+  LOG6LBR_INFO("NVM Version : %x\n", nvm_data.version);
 
   check_nvm(&nvm_data);
 }

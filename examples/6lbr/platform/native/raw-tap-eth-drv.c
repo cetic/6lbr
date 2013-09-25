@@ -32,30 +32,24 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "ETH"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/uip.h"
 #include "string.h"
 
+#include "log-6lbr.h"
 #include "cetic-6lbr.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"
 #include "slip-config.h"
 #include "sicslow-ethernet.h"
+#include "packet-filter.h"
 //Temporary, should be removed
 #include "native-rdc.h"
-
-#define DEBUG 1
-#include "net/uip-debug.h"
-
-#if DEBUG
-#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
-#else
-#define PRINTETHADDR(addr)
-#endif
-
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
@@ -69,17 +63,64 @@ static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
 void
 eth_drv_send(void)
 {
-  PRINTF
-    ("ETH send: %d bytes : %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x  %x:%x %x %x %x %x %x %x\n",
-     uip_len, ll_header[0], ll_header[1], ll_header[2], ll_header[3],
-     ll_header[4], ll_header[5], ll_header[6], ll_header[7], ll_header[8],
-     ll_header[9], ll_header[10], ll_header[11], ll_header[12], ll_header[13],
-     uip_buf[0], uip_buf[1], uip_buf[2], uip_buf[3], uip_buf[4], uip_buf[5]);
   //Should remove ll_header
   memcpy(tmp_tap_buf, ll_header, ETHERNET_LLH_LEN);
   memcpy(tmp_tap_buf + ETHERNET_LLH_LEN, uip_buf, uip_len);
+
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
+  if (LOG6LBR_COND(DUMP, ETH_OUT)) {
+    int i;
+#if WIRESHARK_IMPORT_FORMAT
+    printf("0000");
+    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++)
+      printf(" %02x", tmp_tap_buf[i]);
+#else
+    printf("         ");
+    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
+      printf("%02x", tmp_tap_buf[i]);
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
+    }
+#endif
+    printf("\n");
+  }
+
   tun_output(tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
 }
+
+void
+eth_drv_input(void)
+{
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
+  if (LOG6LBR_COND(DUMP, ETH_IN)) {
+    int i;
+#if WIRESHARK_IMPORT_FORMAT
+    printf("0000");
+    for(i = 0; i < ETHERNET_LLH_LEN; i++)
+      printf(" %02x", ll_header[i]);
+    for(i = 0; i < uip_len; i++)
+      printf(" %02x", uip_buf[i]);
+#else
+    printf("         ");
+    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
+      if ( i < ETHERNET_LLH_LEN ) {
+        printf("%02x", ll_header[i]);
+      } else {
+        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+      }
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
+    }
+#endif
+    printf("\n");
+  }
+  eth_input();
+}
+
 void
 eth_drv_exit(void)
 {
@@ -88,7 +129,7 @@ eth_drv_exit(void)
 void
 eth_drv_init()
 {
-  PRINTF("RAW/TAP init\n");
+  LOG6LBR_INFO("RAW/TAP init\n");
 
   /* tun init is also responsible for setting up the SLIP connection */
   tun_init();
@@ -117,9 +158,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
     //We must create our own Ethernet MAC address
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
     eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
-    PRINTF("Eth MAC address : ");
-    PRINTETHADDR(&eth_mac_addr);
-    PRINTF("\n");
+    LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
   }
 #else
@@ -128,9 +167,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
   rimeaddr_set_node_addr((rimeaddr_t *) &wsn_mac_addr);
-  PRINTF("ETH Address : ");
-  PRINTLLADDR(&eth_mac_addr);
-  PRINTF("\n");
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
 #endif
   ethernet_ready = 1;
 

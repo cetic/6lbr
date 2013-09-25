@@ -34,6 +34,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "WEB"
+
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "net/uip-ds6-route.h"
@@ -49,6 +51,7 @@
 #include "nvm-config.h"
 #include "rio.h"
 #include "node-info.h"
+#include "log-6lbr.h"
 
 #if CONTIKI_TARGET_ECONOTAG
 #include "mc1322x.h"
@@ -66,9 +69,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
@@ -1009,7 +1009,7 @@ else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name |= (flag); \
     reboot_needed |= (reboot); \
   } else { \
-	printf("Invalid value for %s : '%s'\n", name, param); \
+	LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
     do_update = 0; \
   } \
 }
@@ -1026,7 +1026,7 @@ else if(strcmp(param, name) == 0) { \
              sizeof(nvm_data.nvm_name)); \
       reboot_needed |= (reboot); \
     } else { \
-      printf("Invalid value for %s : '%s'\n", name, param); \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
       do_update = 0; \
     } \
   }
@@ -1058,7 +1058,7 @@ update_config(const char *name)
       ptr += strlen(ptr);
     }
 
-    PRINTF("Got param: '%s' = '%s'\n", param, value);
+    LOG6LBR_INFO("Got param: '%s' = '%s'\n", param, value);
     if (0) {
     }
     UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
@@ -1100,7 +1100,7 @@ update_config(const char *name)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     else {
-      printf("Unknown parameter '%s'\n", param);
+      LOG6LBR_WARN("Unknown parameter '%s'\n", param);
       do_update=0;
     }
   }

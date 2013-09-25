@@ -51,7 +51,7 @@ uint32_t Log6lbr_services = Log6lbr_Service_ALL;
 
 void
 log6lbr_ethaddr_print(uint8_t (*addr)[6]) {
-  printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5]);
+  printf("%02x:%02x:%02x:%02x:%02x:%02x",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5]);
 }
 /*---------------------------------------------------------------------------*/
 #ifdef LOG6LBR_TIMESTAMP

@@ -36,15 +36,15 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "RIO"
+
 #include <string.h>
 #include <stdlib.h>
 #include "lib/random.h"
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "net/uip-packetqueue.h"
-
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "log-6lbr.h"
 
 #include "rio.h"
 
@@ -65,13 +65,11 @@ uip_ds6_route_info_add(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen,
     locrtinfo->length = ipaddrlen;
     locrtinfo->flags = flags;
     locrtinfo->lifetime = rlifetime;
-    PRINTF("Adding route information ");
-    PRINT6ADDR(&locrtinfo->ipaddr);
-    PRINTF("length %u, flags %x, route lifetime %lx\n",
+    LOG6LBR_6ADDR(DEBUG, &locrtinfo->ipaddr, "Adding route information: length=%u, flags=%x, route lifetime=%lu, dest=",
            ipaddrlen, flags, rlifetime);
     return locrtinfo;
   } else {
-    PRINTF("No more space in route information list\n");
+    LOG6LBR_ERROR("No more space in route information list\n");
   }
   return NULL;
 }
@@ -101,32 +99,28 @@ void
 uip_ds6_route_info_callback(uip_nd6_opt_route_info * rio,
                             uip_ip6addr_t * next_hop)
 {
-  PRINTF("UIP-RIO: callback\n");
+  LOG6LBR_INFO("RIO received\n");
   //TODO Preferences ?
   uip_ds6_route_t *found;
 
   if((found = uip_ds6_route_lookup(&rio->prefix)) == NULL
      && rio->rlifetime != 0) {
     //New route
-    PRINTF("UIP-RIO: new route found !\n");
-    PRINTF("UIP-RIO: type=%d\n", rio->type);
-    PRINTF("UIP-RIO: flags=%d\n", rio->flagsreserved);
-    PRINTF("UIP-RIO: length=%d\nUIP-RIO: Preflen=%d\nUIP-RIO: Prefix=",
-           rio->len, rio->preflen);
-    PRINT6ADDR(&rio->prefix);
-    PRINTF("\nUIP-RIO: lifetime=%d\n", uip_ntohl(rio->rlifetime));
+    LOG6LBR_INFO("New route received\n");
+    LOG6LBR_6ADDR(DEBUG, &rio->prefix, "type=%d, flags=%d, length=%d, lifetime=%d, Preflen=%d, prefix=",
+        rio->type, rio->flagsreserved, rio->len, uip_ntohl(rio->rlifetime), rio->preflen);
     uip_ds6_route_t *new_route;
 
     if((new_route =
         uip_ds6_route_add(&rio->prefix, rio->preflen, next_hop,
                           UIP_DEFAULT_METRIC)) == NULL) {
-      PRINTF("UIP-RIO: error when adding route\n");
+      LOG6LBR_ERROR("error when adding route\n");
     } else {
-      PRINTF("UIP-RIO: route added\n");
+      LOG6LBR_INFO("Route added\n");
       new_route->state.lifetime = uip_ntohl(rio->rlifetime);
     }
   } else {
-    PRINTF("UIP-RIO: the route already exists\n");
+    LOG6LBR_INFO("Route already exists\n");
     if(rio->rlifetime == 0) {
       uip_ds6_route_rm(found);
     } else {
