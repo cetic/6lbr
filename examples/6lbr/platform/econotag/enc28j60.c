@@ -16,15 +16,16 @@
  * Ported to mc1322x platform by Laurent Deru (laurent.deru@cetic.be)
  */
 
+#define LOG6LBR_MODULE "ENC"
+
 #include "spi.h"
 
 #include "enc28j60.h"
 #include "eth-drv.h"
+#include "log-6lbr.h"
+
 //
 #define F_CPU 8000000UL         // 8 MHz
-
-#define DEBUG 0
-#include "net/uip-debug.h"
 
 static uint8_t Enc28j60Bank;
 static uint16_t NextPacketPtr;
@@ -333,7 +334,7 @@ enc28j60Init(uint8_t * macaddr)
   clock_delay(10);
   enc28j60PhyWrite(PHLCON, 0x476);
   clock_delay(20);
-  printf("ENC28 REV %u\n", enc28j60getrev());
+  LOG6LBR_INFO("ENC28 REV %u\n", enc28j60getrev());
 /*
     //Debug code
     enc28j60PhyWrite(PHLCON,0x3880);//0x476);

@@ -32,6 +32,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "ETH"
+
 #include "enc28j60.h"
 #include "enc28j60-drv.h"
 #include "contiki-net.h"
@@ -44,11 +46,10 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "packet-filter.h"
+#include "log-6lbr.h"
 
 #include "isr.h"
 
-#define DEBUG 0
-#include "net/uip-debug.h"
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
@@ -70,15 +71,65 @@ uip_ipchksum(void)
 void
 eth_drv_send(void)
 {
-  PRINTF
-    ("ENC28 send: %d bytes : %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x  %x:%x %x %x %x %x %x %x\n",
-     uip_len, ll_header[0], ll_header[1], ll_header[2], ll_header[3],
-     ll_header[4], ll_header[5], ll_header[6], ll_header[7], ll_header[8],
-     ll_header[9], ll_header[10], ll_header[11], ll_header[12], ll_header[13],
-     uip_buf[0], uip_buf[1], uip_buf[2], uip_buf[3], uip_buf[4], uip_buf[5]);
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
+  if (LOG6LBR_COND(DUMP, ETH_OUT)) {
+    int i;
+#if WIRESHARK_IMPORT_FORMAT
+    printf("0000");
+    for(i = 0; i < ETHERNET_LLH_LEN; i++)
+      printf(" %02x", ll_header[i]);
+    for(i = 0; i < uip_len; i++)
+      printf(" %02x", uip_buf[i]);
+#else
+    printf("         ");
+    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
+      if ( i < ETHERNET_LLH_LEN ) {
+        printf("%02x", ll_header[i]);
+      } else {
+        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+      }
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
+    }
+#endif
+    printf("\n");
+  }
 
   disable_int(enc28j60PacketSend
               (uip_len + sizeof(struct uip_eth_hdr), uip_buf));
+}
+
+void
+eth_drv_input(void)
+{
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
+  if (LOG6LBR_COND(DUMP, ETH_IN)) {
+    int i;
+#if WIRESHARK_IMPORT_FORMAT
+    printf("0000");
+    for(i = 0; i < ETHERNET_LLH_LEN; i++)
+      printf(" %02x", ll_header[i]);
+    for(i = 0; i < uip_len; i++)
+      printf(" %02x", uip_buf[i]);
+#else
+    printf("         ");
+    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
+      if ( i < ETHERNET_LLH_LEN ) {
+        printf("%02x", ll_header[i]);
+      } else {
+        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+      }
+      if((i & 3) == 3)
+        printf(" ");
+      if((i & 15) == 15)
+        printf("\n         ");
+    }
+#endif
+    printf("\n");
+  }
+  eth_input();
 }
 
 /*
@@ -97,7 +148,7 @@ eth_drv_exit(void)
 void
 eth_drv_init()
 {
-  PRINTF("ENC28J60 init\n");
+  LOG6LBR_INFO("ENC28J60 init\n");
   enc28j60Init(eth_mac_addr);
 }
 
@@ -110,7 +161,7 @@ enc28j60_pollhandler(void)
   disable_int(uip_len = enc28j60PacketReceive(UIP_BUFSIZE, uip_buf));
 
   if(uip_len > 0) {
-    eth_input();
+    eth_drv_input();
   }
 }
 
@@ -121,7 +172,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 
   PROCESS_BEGIN();
 
-  printf("ENC-28J60 Process started\n");
+  LOG6LBR_INFO("ENC-28J60 Process started\n");
   eth_drv_init();
 
   ethernet_ready = 1;
