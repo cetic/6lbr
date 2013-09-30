@@ -115,6 +115,7 @@ bin/cetic_6lbr_rpl_root:
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
 
 all_native:
+	rm -rf bin
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
@@ -156,6 +157,7 @@ bin_econotag/cetic_6lbr_6lr:
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_6lr
 
 all_econotag:
+	rm -rf bin_econotag
 	mkdir -p bin_econotag
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge 
