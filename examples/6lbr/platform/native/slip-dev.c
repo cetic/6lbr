@@ -225,6 +225,8 @@ after_fread:
       } else if(inbuf[0] == '?') {
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
+      } else if(is_sensible_string(inbuf, inbufptr)) {
+        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
         slip_packet_input(inbuf, inbufptr);
       }
@@ -251,15 +253,6 @@ after_fread:
     /* FALLTHROUGH */
   default:
     inbuf[inbufptr++] = c;
-
-    if(c == '\n' && is_sensible_string(inbuf, inbufptr)) {
-      if (inbuf[0] == '\r') {
-        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
-      } else {
-        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
-      }
-      inbufptr = 0;
-    }
     break;
   }
 
