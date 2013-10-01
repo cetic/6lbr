@@ -104,20 +104,21 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
 #if CETIC_6LBR_SMARTBRIDGE
-  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
+  int new_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
+  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
 
   if(cetic_dag != NULL) {
-    LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
-    if(!uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len)) {
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
-    }
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
     wsn_net_prefix_len = len;
+    if(new_prefix) {
+      LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
+      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    }
   }
 #endif
 }
