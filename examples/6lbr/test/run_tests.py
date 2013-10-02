@@ -3,6 +3,10 @@
 import unittest
 import argparse
 import sys
+import os
+
+if os.path.exists('config.pyc'):
+    os.unlink('config.pyc')
 
 try:
     import config
