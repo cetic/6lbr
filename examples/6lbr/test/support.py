@@ -1189,7 +1189,7 @@ class Linux(Platform):
         return True
 
     def check_prefix(self, itf, prefix):
-        result = system("ifconfig %s | grep '%s'" % (itf, prefix))
+        result = system("ifconfig %s | grep '%s' > /dev/null" % (itf, prefix))
         return result == 0
 
     def get_address_with_prefix(self, itf, prefix):
