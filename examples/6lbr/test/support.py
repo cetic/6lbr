@@ -394,6 +394,7 @@ class CoojaWsn(Wsn):
         self.motelist = []
         self.slip_motes=[]
         self.test_motes=[]
+        self.err=None
 
     def setUp(self):
         if config.simulation_path:
@@ -409,8 +410,9 @@ class CoojaWsn(Wsn):
 
         print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path
+        self.err=open(os.path.join(config.test_report_path, 'COOJA.err'), "w")
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       nogui], stdout=subprocess.PIPE)
+                                       nogui], stdout=subprocess.PIPE, stderr=self.err)
         line = self.cooja.stdout.readline()
         while 'Simulation main loop started' not in line: # Wait for simulation to start
             if 'serialpty;open;' in line:
@@ -461,6 +463,7 @@ class CoojaWsn(Wsn):
             except serial.SerialException:
                 print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
         self.cooja=None
+        self.err.close()
         self.motelist = []
 
     def add_slip_mote(self, nodeid):
