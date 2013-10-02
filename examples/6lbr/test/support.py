@@ -95,9 +95,10 @@ class BRProxy:
         self.wsn=wsn
         self.device=device
         self.ip=None
+        self.log=None
+        self.err=None
 
     def setUp(self):
-        self.log=None
         if not self.device:
             self.device=self.wsn.allocate_br_dev()
         else:
@@ -173,10 +174,11 @@ class LocalEconotagBR(BRProxy):
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
+        self.err=open(os.path.join(self.cfg_path, '6lbr%s.err' % log_stem), "w")
         if config.econotag_bbmc:
             self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc])
         else:
-            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
+            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log, stderr=self.err)
             print >> sys.stderr, "Press the reset button"
             dummy = raw_input()
         sleep(1)
@@ -193,6 +195,7 @@ class LocalEconotagBR(BRProxy):
             self.process.terminate()
             sleep(1)
             self.log.close()
+            self.err.close()
             self.process = None
         return True
 
@@ -257,7 +260,8 @@ class LocalNativeBR(BRProxy):
     def start_6lbr(self, log_stem="", keep_nvm=False):
         print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.device['iid'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
+        self.err=open(os.path.join(self.cfg_path, '6lbr%s.err' % log_stem), "w")
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log, stderr=self.err)
         sleep(1)
         if self.backbone.isBrCreated():
             self.backbone.if_up()
@@ -273,6 +277,7 @@ class LocalNativeBR(BRProxy):
             self.process.terminate()
             sleep(1)
             self.log.close()
+            self.err.close()
             self.process = None
         return True
 
