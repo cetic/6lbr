@@ -95,10 +95,13 @@ class TestSupport:
     def wait_mote_in_6lbr(self, count):
         return True
 
-    def wait_ping(self, count, target):
+    def wait_ping(self, count, target, name=''):
         for n in range(count):
+            print >> sys.stderr, "\rPinging %s %s (%d)" % (name, target, n+1),
             if (self.ping(target)):
+                print >> sys.stderr
                 return True
+        print >> sys.stderr
         return False
 
     def ping_6lbr(self, br=None):
@@ -109,24 +112,24 @@ class TestSupport:
     def wait_ping_6lbr(self, count, br=None):
         if not br:
            br=self.brList[-1]
-        print >> sys.stderr, "Pinging BR %s" % br.ip
-        return self.wait_ping( count, br.ip )
+        return self.wait_ping( count, br.ip, 'BR')
 
     def ping_mote(self):
         return self.ping( self.test_mote.ip )
 
     def wait_ping_mote(self, count):
-        print >> sys.stderr, "Pinging mote %s" % self.test_mote.ip
-        return self.wait_ping( count, self.test_mote.ip )
+        return self.wait_ping( count, self.test_mote.ip, 'mote' )
 
     def ping_from_mote(self, address, expect_reply=False, count=0):
         return self.test_mote.ping( address, expect_reply, count )
 
     def wait_ping_from_mote(self, count, target):
-        print >> sys.stderr, "Pinging from mote %s" % self.test_mote.ip
         for n in range(count):
+            print >> sys.stderr, "\rPinging from mote %s (%d)" % (self.test_mote.ip, n+1)
             if (self.ping_from_mote(target, True)):
+                print >> sys.stderr
                 return True
+        print >> sys.stderr
         return False
 
     def start_udp_client(self, host = None, port = None, interval=None):

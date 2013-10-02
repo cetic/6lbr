@@ -1055,7 +1055,7 @@ class MacOSX(Platform):
         return False
 
     def ping(self, target):
-        print >> sys.stderr, "ping..."
+        #print >> sys.stderr, "ping..."
         result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (config.ping_payload, target))
         if result != 0:
             sleep(1)
@@ -1208,7 +1208,7 @@ class Linux(Platform):
         return True
 
     def ping(self, target):
-        print "ping %s" % target
+        #print "ping %s" % target
         result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (config.ping_payload, config.ping_timeout, target))
         #if result >> 8 == 2:
         sleep(1)
