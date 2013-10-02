@@ -830,7 +830,7 @@ class VirtualTelosMote(MoteProxy):
         self.mobility_data = []
 
     def setUp(self):
-        print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
+        #print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
         self.serialport = serial.Serial(
             port=self.mote_dev,
 	        baudrate=config.mote_baudrate,
@@ -861,12 +861,12 @@ class VirtualTelosMote(MoteProxy):
         return False
 
     def reset_mote(self):
-        print >> sys.stderr, "Resetting mote..."
+        print >> sys.stderr, "Resetting mote %d..." % self.mote_id
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def start_mote(self, channel, wait_confirm=True):
         #TODO check if send_cmd and the receiveing mote can handle this in 1 command: \r\nrfchannel %d\r\nstart6lbr\r\n
-        print >> sys.stderr, "Starting mote..."
+        print >> sys.stderr, "Starting mote %d..." % self.mote_id
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
@@ -878,7 +878,7 @@ class VirtualTelosMote(MoteProxy):
         return ret
 
     def stop_mote(self):
-        print >> sys.stderr, "Stopping mote..."
+        print >> sys.stderr, "Stopping mote %d..." % self.mote_id
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def ping(self, address, expect_reply=False, count=0):
