@@ -81,4 +81,22 @@ fi
 if [ "$IFDOWN" == "" ]; then
 	IFDOWN=$LIB_6LBR/6lbr-ifdown
 fi
+
+if [ "$LOG_6LBR" == "" ]; then
+	LOG_6LBR=/var/log
+fi
+
+if [ "$LOG_6LBR_OUT" == "" ]; then
+	LOG_6LBR_OUT=$LOG_6LBR/6lbr.log
+fi
+
+if [ "$LOG_6LBR_ERR" == "" ]; then
+	LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
+fi
+
+if [ "$STOP_AFTER_CRASH" == "" ]; then
+	STOP_AFTER_CRASH="1"
+fi
+
+# function config_default
 }

@@ -8,6 +8,9 @@ import sys
 import time
 import shutil
 
+if os.path.exists('performance_config.pyc'):
+    os.unlink('performance_config.pyc')
+
 try:
     import performance_config as config
 except ImportError:

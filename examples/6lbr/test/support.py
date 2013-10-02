@@ -95,9 +95,10 @@ class BRProxy:
         self.wsn=wsn
         self.device=device
         self.ip=None
+        self.log=None
+        self.err=None
 
     def setUp(self):
-        self.log=None
         if not self.device:
             self.device=self.wsn.allocate_br_dev()
         else:
@@ -173,10 +174,11 @@ class LocalEconotagBR(BRProxy):
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
+        self.err=open(os.path.join(self.cfg_path, '6lbr%s.err' % log_stem), "w")
         if config.econotag_bbmc:
             self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc])
         else:
-            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log)
+            self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log, stderr=self.err)
             print >> sys.stderr, "Press the reset button"
             dummy = raw_input()
         sleep(1)
@@ -193,6 +195,7 @@ class LocalEconotagBR(BRProxy):
             self.process.terminate()
             sleep(1)
             self.log.close()
+            self.err.close()
             self.process = None
         return True
 
@@ -243,6 +246,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         print >>conf, "EXTRA_PARAMS=-v1"
+        print >>conf, "LOG_6LBR_OUT=-"
+        print >>conf, "LOG_6LBR_ERR=-"
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
@@ -255,7 +260,8 @@ class LocalNativeBR(BRProxy):
     def start_6lbr(self, log_stem="", keep_nvm=False):
         print >> sys.stderr, "Starting 6LBR %s (id %s)..." % (self.itf, self.device['iid'])
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log)
+        self.err=open(os.path.join(self.cfg_path, '6lbr%s.err' % log_stem), "w")
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  self.cfg_file], stdout=self.log, stderr=self.err)
         sleep(1)
         if self.backbone.isBrCreated():
             self.backbone.if_up()
@@ -271,6 +277,7 @@ class LocalNativeBR(BRProxy):
             self.process.terminate()
             sleep(1)
             self.log.close()
+            self.err.close()
             self.process = None
         return True
 
@@ -387,6 +394,7 @@ class CoojaWsn(Wsn):
         self.motelist = []
         self.slip_motes=[]
         self.test_motes=[]
+        self.err=None
 
     def setUp(self):
         if config.simulation_path:
@@ -402,8 +410,9 @@ class CoojaWsn(Wsn):
 
         print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path
+        self.err=open(os.path.join(config.test_report_path, 'COOJA.err'), "w")
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
-                                       nogui], stdout=subprocess.PIPE)
+                                       nogui], stdout=subprocess.PIPE, stderr=self.err)
         line = self.cooja.stdout.readline()
         while 'Simulation main loop started' not in line: # Wait for simulation to start
             if 'serialpty;open;' in line:
@@ -454,6 +463,7 @@ class CoojaWsn(Wsn):
             except serial.SerialException:
                 print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
         self.cooja=None
+        self.err.close()
         self.motelist = []
 
     def add_slip_mote(self, nodeid):
@@ -820,7 +830,7 @@ class VirtualTelosMote(MoteProxy):
         self.mobility_data = []
 
     def setUp(self):
-        print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
+        #print >> sys.stderr, "Mote setup %s %d" % (self.mote_dev, self.mote_id)
         self.serialport = serial.Serial(
             port=self.mote_dev,
 	        baudrate=config.mote_baudrate,
@@ -851,12 +861,12 @@ class VirtualTelosMote(MoteProxy):
         return False
 
     def reset_mote(self):
-        print >> sys.stderr, "Resetting mote..."
+        print >> sys.stderr, "Resetting mote %d..." % self.mote_id
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def start_mote(self, channel, wait_confirm=True):
         #TODO check if send_cmd and the receiveing mote can handle this in 1 command: \r\nrfchannel %d\r\nstart6lbr\r\n
-        print >> sys.stderr, "Starting mote..."
+        print >> sys.stderr, "Starting mote %d..." % self.mote_id
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
@@ -868,7 +878,7 @@ class VirtualTelosMote(MoteProxy):
         return ret
 
     def stop_mote(self):
-        print >> sys.stderr, "Stopping mote..."
+        print >> sys.stderr, "Stopping mote %d..." % self.mote_id
         return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
 
     def ping(self, address, expect_reply=False, count=0):
@@ -1045,7 +1055,7 @@ class MacOSX(Platform):
         return False
 
     def ping(self, target):
-        print >> sys.stderr, "ping..."
+        #print >> sys.stderr, "ping..."
         result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (config.ping_payload, target))
         if result != 0:
             sleep(1)
@@ -1161,7 +1171,7 @@ class Linux(Platform):
 
     def start_ra(self, itf, prefix):
         print >> sys.stderr, "Start RA daemon (%s)..." % prefix
-        system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.forwarding=1" % itf)
         #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd/radvd.%s.%s.conf" % (itf,prefix)], shell=True, preexec_fn=os.setsid)
         self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd/radvd.%s.%s.conf" % (itf,prefix)).split())
         return self.radvd != None
@@ -1179,26 +1189,26 @@ class Linux(Platform):
         return True
 
     def check_prefix(self, itf, prefix):
-        result = system("ifconfig %s | grep '%s'" % (itf, prefix))
+        result = system("ifconfig %s | grep '%s' > /dev/null" % (itf, prefix))
         return result == 0
 
     def get_address_with_prefix(self, itf, prefix):
         return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
-        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.forwarding=0" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.accept_ra=1" % itf)
         return True
 
     def support_rio(self):
         return True
 
     def accept_rio(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
         return True
 
     def ping(self, target):
-        print "ping %s" % target
+        #print "ping %s" % target
         result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (config.ping_payload, config.ping_timeout, target))
         #if result >> 8 == 2:
         sleep(1)

@@ -48,7 +48,7 @@ extern uint8_t ll_header[ETHERNET_LLH_LEN];
 PROCESS_NAME(eth_drv_process);
 
 void eth_drv_send(void);
-
+void eth_drv_input(void);
 void eth_drv_exit(void);
 void eth_drv_init(void);
 

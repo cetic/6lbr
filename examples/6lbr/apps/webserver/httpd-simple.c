@@ -38,10 +38,13 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
+#define LOG6LBR_MODULE "HTTP"
+
 #include <stdio.h>
 #include <string.h>
 
 #include "contiki-net.h"
+#include "log-6lbr.h"
 
 //#include "urlconv.h"
 
@@ -183,7 +186,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_BEGIN(&s->outputpt);
 
   s->script = NULL;
-  printf("Script : %s\n", s->filename);
+  LOG6LBR_INFO("Script : %s\n", s->filename);
   s->script = httpd_simple_get_script(&s->filename[1]);
   if(s->script == NULL) {
     strncpy(s->filename, "/notfound.html", sizeof(s->filename));

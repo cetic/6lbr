@@ -50,7 +50,7 @@ serial2pty:
 radiologger-headless:	
 	pushd ${COOJADIR}/apps/radiologger-headless; ant jar; popd
 
-non-regression: nr-router nr-smartbridge nr-6lr nr-ndp-router nr-rpl-root-rpl-relay nr-multi-smartbridge nr-rpl-root-multi-rpl-relay nr-rpl-multi-6lr
+non-regression: nr-router nr-smartbridge nr-rpl-root-6lr nr-ndp-router nr-rpl-root-rpl-relay nr-multi-smartbridge nr-rpl-root-multi-rpl-relay nr-rpl-multi-6lr
 
 nr-router:
 	$(MAKE) preset_1dag_10nodes.csc

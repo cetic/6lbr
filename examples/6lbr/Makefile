@@ -70,7 +70,7 @@ CFLAGS += -DCETIC_NODE_INFO=1
 PROJECT_SOURCEFILES += node-info.c 
 endif
 
-PROJECT_SOURCEFILES += rio.c packet-filter.c sicslow-ethernet.c nvm-config.c node-info.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c node-info.c
 ifeq ($(TARGET),native)
 APPS = slip-cmd
 PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c
@@ -115,6 +115,7 @@ bin/cetic_6lbr_rpl_root:
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
 
 all_native:
+	rm -rf bin
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
@@ -156,6 +157,7 @@ bin_econotag/cetic_6lbr_6lr:
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_6lr
 
 all_econotag:
+	rm -rf bin_econotag
 	mkdir -p bin_econotag
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge 
@@ -224,4 +226,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag deb ipk tools bin/* bin_econotag/*
+.PHONY: all_native all_econotag deb ipk tools bin/* bin_econotag/* tools

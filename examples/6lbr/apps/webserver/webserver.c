@@ -34,6 +34,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "WEB"
+
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "net/uip-ds6-route.h"
@@ -49,6 +51,7 @@
 #include "nvm-config.h"
 #include "rio.h"
 #include "node-info.h"
+#include "log-6lbr.h"
 
 #if CONTIKI_TARGET_ECONOTAG
 #include "mc1322x.h"
@@ -66,9 +69,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
@@ -560,8 +560,13 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
       }
     }
   }
-  add("<br /><h3>Actions</h3>");
-  add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><h3>Actions</h3>");
+    add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+  } else {
+    add("<br /><h3>Actions (disabled)</h3>");
+    add("Trigger global repair<br />");
+  }
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #else
@@ -676,7 +681,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("</pre><h2>Neighbors</h2><pre>");
   for(i = 0; i < UIP_DS6_NBR_NB; i++) {
     if(uip_ds6_nbr_cache[i].isused) {
-      add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
+      if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+        add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
+      }
       ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
       add(" ");
       lladdr_add(&uip_ds6_nbr_cache[i].lladdr);
@@ -692,7 +699,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   reset_buf();
   for(r = uip_ds6_route_list_head(), i = 0; r != NULL;
       r = list_item_next(r), ++i) {
-    add("[<a href=\"route_rm?%d\">del</a>] ", i);
+    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+      add("[<a href=\"route_rm?%d\">del</a>] ", i);
+    }
     ipaddr_add(&r->ipaddr);
     add("/%u (via ", r->length);
     ipaddr_add(&r->nexthop);
@@ -763,23 +772,41 @@ PT_THREAD(generate_network(struct httpd_state *s))
 /*---------------------------------------------------------------------------*/
 
 #define INPUT_FLAG(name, nvm_name, flag, text, on_text, off_text) \
-  add(text " : <br />" \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <br />" \
 	  "<input type=\"radio\" name=\""name"\" value=\"1\" %s> "on_text" <br />", \
 	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
-  add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> "off_text" <br />", \
-      (nvm_data.nvm_name & (flag)) == 0 ? "checked" : "");
+	add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> "off_text" <br />", \
+      (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
+  } else { \
+    add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? on_text : off_text ); \
+  }
 
 #define INPUT_FLAG_CB(name, nvm_name, flag, text) \
-  add("<input type=\"checkbox\" name=\""name"\" value=\"1\" %s> " text "<br />", \
-	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : "");
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add("<input type=\"checkbox\" name=\""name"\" value=\"1\" %s> " text "<br />", \
+	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+  } else { \
+    add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? "on" : "off" ); \
+  }
 
 #define INPUT_IPADDR(name, nvm_name, text) \
-  add(text " : <input type=\"text\" name=\""name"\" value=\""); \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" value=\""); \
       ipaddr_add_u8(nvm_data.nvm_name); \
-  add("\" /><br />");
+    add("\" /><br />"); \
+  } else { \
+    add(text " : "); \
+    ipaddr_add_u8(nvm_data.nvm_name); \
+    add("<br />"); \
+  }
 
 #define INPUT_INT(name, nvm_name, text) \
-  add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name);
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
+  } else { \
+    add(text " : %d<br />", nvm_data.nvm_name); \
+  }
 
 static
 PT_THREAD(generate_config(struct httpd_state *s))
@@ -895,7 +922,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h2>Packet filtering</h2>");
   INPUT_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, "Address rewrite", "enabled", "disabled");
 #endif
-  add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  }
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -980,7 +1009,7 @@ else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name |= (flag); \
     reboot_needed |= (reboot); \
   } else { \
-	printf("Invalid value for %s : '%s'\n", name, param); \
+	LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
     do_update = 0; \
   } \
 }
@@ -997,7 +1026,7 @@ else if(strcmp(param, name) == 0) { \
              sizeof(nvm_data.nvm_name)); \
       reboot_needed |= (reboot); \
     } else { \
-      printf("Invalid value for %s : '%s'\n", name, param); \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
       do_update = 0; \
     } \
   }
@@ -1029,9 +1058,10 @@ update_config(const char *name)
       ptr += strlen(ptr);
     }
 
-    PRINTF("Got param: '%s' = '%s'\n", param, value);
+    LOG6LBR_INFO("Got param: '%s' = '%s'\n", param, value);
     if (0) {
     }
+    UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
@@ -1070,7 +1100,7 @@ update_config(const char *name)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     else {
-      printf("Unknown parameter '%s'\n", param);
+      LOG6LBR_WARN("Unknown parameter '%s'\n", param);
       do_update=0;
     }
   }
@@ -1109,30 +1139,34 @@ httpd_simple_get_script(const char *name)
     return generate_network;
   } else if(strcmp(name, "config.html") == 0) {
     return generate_config;
-  } else if(strcmp(name, "rpl-gr") == 0) {
+  } else if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    if(strcmp(name, "rpl-gr") == 0) {
 #if UIP_CONF_IPV6_RPL
-    rpl_repair_root(RPL_DEFAULT_INSTANCE);
+      rpl_repair_root(RPL_DEFAULT_INSTANCE);
 #endif
-    return generate_rpl;
-  } else if(memcmp(name, "route_rm?", 9) == 0) {
-    redirect = 1;
-    i = atoi(name + 9);
-    for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
-      if(i == 0) {
-        uip_ds6_route_rm(r);
-        break;
+      return generate_rpl;
+    } else if(memcmp(name, "route_rm?", 9) == 0) {
+      redirect = 1;
+      i = atoi(name + 9);
+      for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
+        if(i == 0) {
+          uip_ds6_route_rm(r);
+          break;
+        }
       }
-    }
-    return generate_network;
-  } else if(memcmp(name, "nbr_rm?", 7) == 0) {
-    redirect = 1;
-    uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
-    return generate_network;
-  } else if(memcmp(name, "config?", 7) == 0) {
-    if(update_config(name + 7)) {
-      return generate_config;
+      return generate_network;
+    } else if(memcmp(name, "nbr_rm?", 7) == 0) {
+      redirect = 1;
+      uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
+      return generate_network;
+    } else if(memcmp(name, "config?", 7) == 0) {
+      if(update_config(name + 7)) {
+        return generate_config;
+      } else {
+        return generate_reboot;
+      }
     } else {
-      return generate_reboot;
+      return generate_404;
     }
   } else {
     return generate_404;

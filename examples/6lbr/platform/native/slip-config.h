@@ -43,7 +43,6 @@
 #include <stdint.h>
 #include <termios.h>
 
-extern int slip_config_verbose;
 extern int slip_config_flowcontrol;
 extern int slip_config_timestamp;
 extern const char *slip_config_siodev;

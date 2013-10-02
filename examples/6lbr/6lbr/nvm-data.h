@@ -76,6 +76,9 @@ typedef struct {
 #define CETIC_MODE_ETH_AUTOCONF         0x20
 #define CETIC_MODE_SMART_MULTI_BR		0x80
 
+//Global Mode flags
+#define CETIC_GLOBAL_DISABLE_CONFIG     0x0001
+
 //RA Mode flags
 
 //RA PIO mode flags

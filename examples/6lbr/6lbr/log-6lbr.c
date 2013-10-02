@@ -29,51 +29,39 @@
 
 /**
  * \file
- *         NVM Interface for the Econotag platform
+ *         6LBR logging tools
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "NVM"
-
-#include "contiki.h"
-#include "contiki-lib.h"
-
-#include "cetic-6lbr.h"
-#include "nvm-config.h"
-#include "nvm-itf.h"
 #include "log-6lbr.h"
+#include <stdio.h>
+#ifdef LOG6LBR_TIMESTAMP
+#include <time.h>
+#include <sys/time.h>
+#endif
 
-#include <mc1322x.h>
-#include "config.h"
+/*---------------------------------------------------------------------------*/
 
-#define CETIC_6LBR_NVM_ADDRESS (MC1322X_CONFIG_PAGE + 0x100)
+uint8_t Log6lbr_timestamp = 1;
+int8_t Log6lbr_level = Log6lbr_Level_ALL;
+uint32_t Log6lbr_services = Log6lbr_Service_ALL;
 
-void
-nvm_data_read(void)
-{
-  nvmType_t type = 0;
-  nvmErr_t err;
-
-  LOG6LBR_INFO("Reading 6LBR NVM\n");
-  err = nvm_detect(gNvmInternalInterface_c, &type);
-  err =
-    nvm_read(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
-             CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
-}
+/*---------------------------------------------------------------------------*/
 
 void
-nvm_data_write(void)
-{
-  nvmType_t type = 0;
-  nvmErr_t err;
-
-  LOG6LBR_INFO("Flashing 6LBR NVM\n");
-  mc1322x_config_save(&mc1322x_config);
-  err = nvm_detect(gNvmInternalInterface_c, &type);
-  err =
-    nvm_write(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
-              CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
+log6lbr_ethaddr_print(uint8_t (*addr)[6]) {
+  printf("%02x:%02x:%02x:%02x:%02x:%02x",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5]);
 }
+/*---------------------------------------------------------------------------*/
+#ifdef LOG6LBR_TIMESTAMP
+void
+log6lbr_timestamp() {
+  struct timeval timestamp;
+  struct tm date;
+  gettimeofday(&timestamp, NULL);
+  localtime_r(&timestamp.tv_sec, &date);
+  printf("%d-%02d-%02d %d:%02d:%02d.%06d: ", date.tm_year+1900, date.tm_mon, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, timestamp.tv_usec);
+}
+#endif
+/*---------------------------------------------------------------------------*/
