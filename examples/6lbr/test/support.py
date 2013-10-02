@@ -1171,7 +1171,7 @@ class Linux(Platform):
 
     def start_ra(self, itf, prefix):
         print >> sys.stderr, "Start RA daemon (%s)..." % prefix
-        system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.forwarding=1" % itf)
         #self.radvd = subprocess.Popen(args=["radvd", "-d", "1", "-C", "radvd/radvd.%s.%s.conf" % (itf,prefix)], shell=True, preexec_fn=os.setsid)
         self.radvd = subprocess.Popen(args=("radvd -d 1 -C radvd/radvd.%s.%s.conf" % (itf,prefix)).split())
         return self.radvd != None
@@ -1196,15 +1196,15 @@ class Linux(Platform):
         return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
-        system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.forwarding=0" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.accept_ra=1" % itf)
         return True
 
     def support_rio(self):
         return True
 
     def accept_rio(self, itf):
-        system("sysctl -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
+        system("sysctl -q -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
         return True
 
     def ping(self, target):
