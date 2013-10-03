@@ -123,7 +123,7 @@ mac_translateIPLinkLayer(lltype_t target)
 {
 
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6) {
-    LOG6LBR_TRACE("translateIP: ICMP Message detected\n\r");
+    LOG6LBR_TRACE("translateIP: ICMP Message detected\n");
     return mac_translateIcmpLinkLayer(target);
   }
   return 0;
@@ -284,7 +284,7 @@ mac_translateIcmpLinkLayer(lltype_t target)
 
       //This shouldn't happen!
       if(UIP_ICMP_OPTS(icmp_opt_offset)->length == 0) {
-        LOG6LBR_TRACE("Option in ND packet has length zero, error?\n\r");
+        LOG6LBR_TRACE("Option in ND packet has length zero, error?\n");
         len = 0;
       }
 
