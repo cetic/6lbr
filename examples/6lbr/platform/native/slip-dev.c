@@ -142,6 +142,21 @@ connect_to_server(const char *host, const char *port)
   return fd;
 }
 /*---------------------------------------------------------------------------*/
+int
+is_sensible_string(const unsigned char *s, int len)
+{
+  int i;
+
+  for(i = 0; i < len; i++) {
+    if(s[i] == '\r' || s[i] == '\n' || s[i] == '\t') {
+      continue;
+    } else if(s[i] < ' ' || '~' < s[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 void
 slip_packet_input(unsigned char *data, int len)
 {
@@ -209,6 +224,8 @@ after_fread:
       } else if(inbuf[0] == '?') {
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
+      } else if(is_sensible_string(inbuf, inbufptr)) {
+        LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
         slip_packet_input(inbuf, inbufptr);
       }
