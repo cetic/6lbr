@@ -3,6 +3,7 @@ import config
 from base import skipUnlessTrue
 from time import sleep
 import unittest
+import sys
 
 class NonRegressionScenarios(base.TestScenarios):
     @skipUnlessTrue("S0")
@@ -131,12 +132,36 @@ class NonRegressionScenarios(base.TestScenarios):
 
 
     @skipUnlessTrue("S7")
-    @unittest.skip("Not implemented")
     def test_S7_switch_prefix(self):
         """
         Observe the propagation of the Prefix switching in the WSN side (when supported in the WPAN).
         """
-        pass
+        if not self.bridge_mode:
+            print >> sys.stderr, "Not in bridge mode, skipping test"
+            return
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
+        self.set_up_network()
+        self.wait_mote_start()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
+        self.wait_dag_stabilisation()
+        self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
+        self.assertTrue( self.support.stop_ra(), "Could not stop RADVD")
+        self.assertTrue( self.support.platform.delete_address(self.support.backbone.itf,self.support.host.ip) )
+
+        self.support.backbone.prefix=config.wsn_second_prefix
+        self.support.host.ip = self.support.host.ip.replace(config.wsn_prefix,config.wsn_second_prefix)
+        self.support.test_mote.ip = self.support.test_mote.ip.replace(config.wsn_prefix,config.wsn_second_prefix)
+        self.support.brList[-1].ip=self.support.brList[-1].ip.replace(config.wsn_prefix,config.wsn_second_prefix)
+
+        self.assertTrue( self.support.platform.configure_if(self.support.backbone.itf,self.support.host.ip) )
+        self.assertTrue( self.support.start_ra(self.support.backbone), "Could not start RADVD")
+        self.assertTrue( self.support.tcpdump.expect_ra(self.support.backbone.itf, 30), "")
+
+        self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     @skipUnlessTrue("S8")
     @unittest.skip("Not implemented")
