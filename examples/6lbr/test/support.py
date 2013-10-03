@@ -1056,9 +1056,10 @@ class MacOSX(Platform):
     def accept_rio(self, itf):
         return False
 
-    def ping(self, target):
+    def ping(self, target, payload=None):
         #print >> sys.stderr, "ping..."
-        result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (config.ping_payload, target))
+        if payload is None: payload=config.ping_payload
+        result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (payload, target))
         if result != 0:
             sleep(1)
         return result == 0
@@ -1209,9 +1210,10 @@ class Linux(Platform):
         system("sysctl -q -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
         return True
 
-    def ping(self, target):
+    def ping(self, target, payload=None):
         #print "ping %s" % target
-        result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (config.ping_payload, config.ping_timeout, target))
+        if payload is None: payload=config.ping_payload
+        result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (payload, config.ping_timeout, target))
         #if result >> 8 == 2:
         sleep(1)
         return result == 0

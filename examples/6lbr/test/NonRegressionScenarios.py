@@ -178,3 +178,23 @@ class NonRegressionScenarios(base.TestScenarios):
         Test UDP traffic towards host.
         """
         pass
+
+    @skipUnlessTrue("S10")
+    def test_S10_fragmentation(self):
+        """
+        Ping mote from host.
+        """
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
+        self.set_up_network()
+        self.wait_mote_start()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
+        self.wait_dag_stabilisation()
+        payload=config.ping_payload
+        while payload <= config.ping_max_payload:
+            print >> sys.stderr, "Ping payload: %d" % payload
+            self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout, payload=payload), "Mote is not responding")
+            payload += config.ping_payload_step
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")

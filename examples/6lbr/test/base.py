@@ -89,16 +89,16 @@ class TestSupport:
     def stop_mote(self):
         return self.test_mote.stop_mote()
 
-    def ping(self, target):
-        return self.platform.ping(target)
+    def ping(self, target, payload=None):
+        return self.platform.ping(target, payload=payload)
 
     def wait_mote_in_6lbr(self, count):
         return True
 
-    def wait_ping(self, count, target, name=''):
+    def wait_ping(self, count, target, name='', payload=None):
         for n in range(count):
             print >> sys.stderr, "\rPinging %s %s (%d)" % (name, target, n+1),
-            if (self.ping(target)):
+            if (self.ping(target, payload=payload)):
                 print >> sys.stderr
                 return True
         print >> sys.stderr
@@ -112,13 +112,13 @@ class TestSupport:
     def wait_ping_6lbr(self, count, br=None):
         if not br:
            br=self.brList[-1]
-        return self.wait_ping( count, br.ip, 'BR')
+        return self.wait_ping( count, br.ip, name='BR')
 
-    def ping_mote(self):
-        return self.ping( self.test_mote.ip )
+    def ping_mote(self, payload=None):
+        return self.ping( self.test_mote.ip, payload=payload )
 
-    def wait_ping_mote(self, count):
-        return self.wait_ping( count, self.test_mote.ip, 'mote' )
+    def wait_ping_mote(self, count, payload=None):
+        return self.wait_ping( count, self.test_mote.ip, name='mote', payload=payload )
 
     def ping_from_mote(self, address, expect_reply=False, count=0):
         return self.test_mote.ping( address, expect_reply, count )
@@ -208,6 +208,8 @@ class TestScenarios:
         config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
         config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
         config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
+        config.ping_max_payload=getattr(config, 'ping_max_payload', 184) #This makes a 232 bytes ip packet (limit is 240 bytes)
+        config.ping_payload_step=getattr(config, 'ping_payload', 10)
         config.ping_timeout=getattr(config, 'ping_timeout', 8)
         config.udp_port=getattr(config, 'udp_port', 3000)
         config.udp_interval=getattr(config, 'udp_interval', 10)

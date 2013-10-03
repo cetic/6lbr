@@ -191,6 +191,12 @@
 #Payload size of the ping request
 #ping_payload=8
 
+#Maximum payload size of the ping request for sweep tests
+#ping_max_payload=200
+
+#Payload increment of the ping request for sweep tests
+#ping_payload_step=10
+
 #Ping reply timeout
 #ping_timeout=1
 
