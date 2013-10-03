@@ -19,3 +19,5 @@ RAW_ETH_FCS=1
 
 DEV_RADIO=/dev/ttyUSB0
 BAUDRATE=115200
+
+LOG_LEVEL=3 #INFO and above only

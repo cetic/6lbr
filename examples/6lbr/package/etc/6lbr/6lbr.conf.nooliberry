@@ -19,3 +19,5 @@ RAW_ETH_FCS=0
 
 DEV_RADIO=/dev/ttyAMA0
 BAUDRATE=38400
+
+LOG_LEVEL=3 #INFO and above only
