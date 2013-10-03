@@ -44,8 +44,8 @@
 /*---------------------------------------------------------------------------*/
 
 uint8_t Log6lbr_timestamp = 1;
-int8_t Log6lbr_level = Log6lbr_Level_ALL;
-uint32_t Log6lbr_services = Log6lbr_Service_ALL;
+int8_t Log6lbr_level = Log6lbr_Level_DEFAULT;
+uint32_t Log6lbr_services = Log6lbr_Service_DEFAULT;
 
 /*---------------------------------------------------------------------------*/
 
