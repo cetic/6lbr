@@ -45,6 +45,7 @@
 #include "net/uip.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 
 #include "sicslow-ethernet.h"
 #include "cetic-6lbr.h"
@@ -120,6 +121,7 @@ static const char *BODY =
   "<div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div>"
   "<div class=\"menu-general\"><a href=\"/network.html\">Network</a></div>"
   "<div class=\"menu-general\"><a href=\"/config.html\">Config</a></div>"
+  "<div class=\"menu-general\"><a href=\"/statistics.html\">Statistics</a></div>"
   "</div></div>\n";
 static const char *BOTTOM = "</div></body></html>";
 
@@ -949,6 +951,119 @@ PT_THREAD(generate_config(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
+#define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)
+
+#define PRINT_RPL_STAT(name, text) add(text " : %d<br />", rpl_stats.name)
+
+static
+PT_THREAD(generate_statistics(struct httpd_state *s))
+{
+#if BUF_USES_STACK
+  char buf[BUF_SIZE];
+#endif
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, TOP);
+  SEND_STRING(&s->sout, BODY);
+  reset_buf();
+  add_div_home("Statistics");
+  add("<div id=\"left_home\">");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add("<h2>IP</h2>");
+#if UIP_STATISTICS
+  add("<h3>IP</h3>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PRINT_UIP_STAT( ip.recv, "Received packets" );
+  PRINT_UIP_STAT( ip.sent, "Sent packets" );
+  PRINT_UIP_STAT( ip.forwarded, "forwarded packets" );
+  PRINT_UIP_STAT( ip.drop, "Dropped packets" );
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PRINT_UIP_STAT( ip.vhlerr, "Wrong IP version or header length" );
+  PRINT_UIP_STAT( ip.fragerr, "Dropped IP fragments" );
+  PRINT_UIP_STAT( ip.chkerr, "Checksum errors" );
+  PRINT_UIP_STAT( ip.protoerr, "Unsupported protocol" );
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add("<h3>ICMP</h3>");
+  PRINT_UIP_STAT( icmp.recv, "Received packets" );
+  PRINT_UIP_STAT( icmp.sent, "Sent packets" );
+  PRINT_UIP_STAT( icmp.drop, "Dropped packets" );
+  PRINT_UIP_STAT( icmp.typeerr, "Unsupported type" );
+  PRINT_UIP_STAT( ip.chkerr, "Checksum errors" );
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+#if UIP_TCP
+  add("<h3>TCP</h3>");
+  PRINT_UIP_STAT( tcp.recv, "Received packets" );
+  PRINT_UIP_STAT( tcp.sent, "Sent packets" );
+  PRINT_UIP_STAT( tcp.drop, "Dropped packets" );
+  PRINT_UIP_STAT( tcp.chkerr, "Checksum errors" );
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PRINT_UIP_STAT( tcp.ackerr, "Ack errors" );
+  PRINT_UIP_STAT( tcp.rst, "Received RST" );
+  PRINT_UIP_STAT( tcp.rexmit, "retransmitted segments" );
+  PRINT_UIP_STAT( tcp.syndrop, "Dropped SYNs" );
+  PRINT_UIP_STAT( tcp.synrst, "SYNs for closed ports" );
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+#if UIP_UDP
+  add("<h3>UDP</h3>");
+  PRINT_UIP_STAT( udp.recv, "Received packets" );
+  PRINT_UIP_STAT( udp.sent, "Sent packets" );
+  PRINT_UIP_STAT( udp.drop, "Dropped packets" );
+  PRINT_UIP_STAT( udp.chkerr, "Checksum errors" );
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+  add("<h3>NDP</h3>");
+  PRINT_UIP_STAT( nd6.recv, "Received packets" );
+  PRINT_UIP_STAT( nd6.sent, "Sent packets" );
+  PRINT_UIP_STAT( nd6.drop, "Dropped packets" );
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#else
+  add("<h3>IP statistics are deactivated</h3>");
+#endif
+#if UIP_CONF_IPV6_RPL
+  add("<h2>RPL</h2>");
+#if RPL_CONF_STATS
+  PRINT_RPL_STAT( mem_overflows, "Memory overflow");
+  PRINT_RPL_STAT( local_repairs, "Local repairs");
+  PRINT_RPL_STAT( global_repairs, "Global repairs");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PRINT_RPL_STAT( malformed_msgs, "Invalid packets");
+  PRINT_RPL_STAT( resets, "DIO timer resets");
+  PRINT_RPL_STAT( parent_switch, "Parent switch");
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#else
+  add("<h3>RPL statistics are deactivated</h3>");
+#endif
+#endif
+  add_div_footer();
+  add("</div></div>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  SEND_STRING(&s->sout, BOTTOM);
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
 static
 PT_THREAD(generate_reboot(struct httpd_state *s))
 {
@@ -1141,6 +1256,8 @@ httpd_simple_get_script(const char *name)
     return generate_network;
   } else if(strcmp(name, "config.html") == 0) {
     return generate_config;
+  } else if(strcmp(name, "statistics.html") == 0) {
+    return generate_statistics;
   } else if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     if(strcmp(name, "rpl-gr") == 0) {
 #if UIP_CONF_IPV6_RPL

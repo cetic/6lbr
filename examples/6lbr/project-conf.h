@@ -226,6 +226,12 @@
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
 
+#undef UIP_CONF_STATISTICS
+#define UIP_CONF_STATISTICS         1
+
+#undef RPL_CONF_STATS
+#define RPL_CONF_STATS              1
+
 /* Do not change lines below */
 #define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
 
