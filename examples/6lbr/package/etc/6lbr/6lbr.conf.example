@@ -85,10 +85,46 @@
 #IFDOWN=$LIB_6LBR/6lbr-ifdown
 
 ################################################################################
-#Extra parameters
-# This parameter can be used to specify additional parameters to the CETIC 6LBR
+#Logging configuration
+# These parameters configure the location of the log files and the level of
+# logging
 
+#Location of log files, use - for standard output
+#LOG_6LBR=/var/log
+#LOG_6LBR_OUT=$LOG_6LBR/6lbr.log
+#LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
+
+#Logging level
+
+# 0 : FATAL  : Unrecoverable error detected
+# 1 : ERROR  : Error detected and handled by 6LBR 
+# 2 : WARN   : Unexpected condition occurred or important information message
+# 3 : INFO   : Runtime information
+# 4 : DEBUG  : Debug information
+# 5 : PACKET : Trace printed when a packet is sent/received
+# 6 : DUMP   : Actual packet sent/received
+# 7 : TRACE  : Debug traces at packet level
+
+#LOG_LEVEL=3
+
+# Logging services : Log can be filtered according to the service
+#See log-6lbr.h for the list of current services
+
+#LOG_SERVICES=ffffffff
+
+
+################################################################################
+#Extra parameters
+# These parameters can be used to tweak 6LBR behavior
+
+#This parameter can be used to specify additional parameters to the CETIC 6LBR
 #EXTRA_PARAMS=
+
+#6LBR is not restarted when it exit abnormally, set this value to 0 if you want
+#to restart it anyway (The error condition is logged in the error log)
+
+#STOP_AFTER_CRASH=1
+
 
 ################################################################################
 # Cooja support
