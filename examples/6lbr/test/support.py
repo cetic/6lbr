@@ -245,7 +245,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
-        print >>conf, "EXTRA_PARAMS=-v1"
+        print >>conf, "LOG_LEVEL=12" #All level
+        print >>conf, "LOG_SERVICES=ffffffff" #All services
         print >>conf, "LOG_6LBR_OUT=-"
         print >>conf, "LOG_6LBR_ERR=-"
         conf.close()
@@ -315,7 +316,8 @@ class RemoteNativeBR(BRProxy):
         print >>conf, "DEV_BRIDGE=br0"
         print >>conf, "DEV_RADIO=%s" % self.device['dev']
         print >>conf, "BAUDRATE=%s" % self.device['baudrate']
-        print >>conf, "EXTRA_PARAMS=-v1"
+        print >>conf, "LOG_LEVEL=3" #INFO and above only
+        print >>conf, "LOG_SERVICES=ffffffff" #All services
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
