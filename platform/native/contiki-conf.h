@@ -63,7 +63,7 @@ typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef  int32_t s32_t;
 
-typedef unsigned short uip_stats_t;
+typedef unsigned int uip_stats_t;
 
 #define UIP_CONF_UDP             1
 #define UIP_CONF_MAX_CONNECTIONS 40
