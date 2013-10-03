@@ -39,6 +39,7 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "slip-cmds.h"
+#include "native-rdc.h"
 
 void
 platform_init(void)

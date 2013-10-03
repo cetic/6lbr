@@ -498,8 +498,10 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 static
 PT_THREAD(generate_rpl(struct httpd_state *s))
 {
+#if UIP_CONF_IPV6_RPL
   static int i;
   static int j;
+#endif
 
 #if BUF_USES_STACK
   char buf[BUF_SIZE];

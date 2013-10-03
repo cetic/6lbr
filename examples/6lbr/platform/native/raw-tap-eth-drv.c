@@ -139,12 +139,11 @@ eth_drv_init()
 
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
-  static struct etimer et;
-
   PROCESS_BEGIN();
 
   eth_drv_init();
 #if !CETIC_6LBR_ONE_ITF
+  static struct etimer et;
   slip_reboot();
   while(!mac_set) {
     etimer_set(&et, CLOCK_SECOND);
