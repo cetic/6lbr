@@ -26,4 +26,10 @@ fi
 
 FLASHER=`dirname $0`
 
-$MC1322X_LOAD -t $DEV -f $FLASHER/6lbr_nvm_flasher_redbee-econotag.bin -c "$BBMC -l redbee-econotag reset" -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
+if  [ "$BBMC" != "None" ]; then
+	BBMC="-c $BBMC '-l redbee-econotag reset'"
+else
+	BBMC=""
+fi
+
+$MC1322X_LOAD -t $DEV -f $FLASHER/6lbr_nvm_flasher_redbee-econotag.bin $BBMC -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`

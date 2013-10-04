@@ -171,7 +171,7 @@ class LocalEconotagBR(BRProxy):
                 sleep(1)
             else:
                 print >> sys.stderr, "Press the reset button"
-                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], '-b', str(config.econotag_flasher_delay), '-e' ])
+                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], 'None', '-b', str(config.econotag_flasher_delay), '-e' ])
                 sleep(1)
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
