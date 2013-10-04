@@ -286,6 +286,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   slip_config_handle_arguments(contiki_argc, contiki_argv);
 #endif
 
+  LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+
   load_nvm_config();
 
   platform_init();
