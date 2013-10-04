@@ -1012,6 +1012,10 @@ class MacOSX(Platform):
         else:
             return True
 
+    def delete_address(self, itf, addr):
+        result = system("ifconfig %s inet6 %s/64 delete" % (itf, addr))
+        return result == 0
+
     def add_route(self, dest, gw=None, itf=None):
         if itf:
             result = system("route add -inet6 -prefixlen 64 %s -interface %s" % (dest, itf))
