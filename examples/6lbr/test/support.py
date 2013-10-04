@@ -141,6 +141,8 @@ class LocalEconotagBR(BRProxy):
     def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
         if mode=='ROUTER':
             self.bin='../bin_econotag/cetic_6lbr_router'
+        if mode=='SMART-BRIDGE':
+            self.bin='../bin_econotag/cetic_6lbr_smart_bridge'
         else:
             raise Exception("Unsupported mode '%s'" % mode)
         if iid:
