@@ -181,7 +181,7 @@ class LocalEconotagBR(BRProxy):
             self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin, '-c', "%s -l redbee-econotag reset" % config.econotag_bbmc])
         else:
             self.process = subprocess.Popen(args=[config.econotag_loader,  '-t', self.device['dev'], '-f', self.bin], stdout=self.log, stderr=self.err)
-            print >> sys.stderr, "Press the reset button"
+            print >> sys.stderr, "Press the reset button and then press Enter"
             dummy = raw_input()
         sleep(1)
         return self.process != None
@@ -192,7 +192,7 @@ class LocalEconotagBR(BRProxy):
             if config.econotag_bbmc:
                 pass
             else:
-                print >> sys.stderr, "Press the reset button"
+                print >> sys.stderr, "Press the reset button and then press Enter"
                 dummy = raw_input()
             self.process.terminate()
             sleep(1)
