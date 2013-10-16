@@ -118,8 +118,8 @@ timeout_handler(void)
   static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
   int i;
-  uip_ipaddr_t *globaladdr = NULL;
-  uip_ipaddr_t newdest_addr;
+  uip_ip6addr_t *globaladdr = NULL;
+  uip_ip6addr_t newdest_addr;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
   int has_dest=0;
 
