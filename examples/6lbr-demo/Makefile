@@ -39,6 +39,17 @@ CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
 endif
 
+WITH_COAPSERVER?=0
+ifneq ($(WITH_COAPSERVER),0)
+WITH_COAP=13
+CFLAGS += -DWITH_COAP=13
+CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
+APPS += er-coap-13
+APPS += erbium
+PROJECT_SOURCEFILES += er-example-server.c
+endif
+
 UDP_PERIOD?=5
 ifneq ($(UDP_PERIOD),)
 CFLAGS += -DCETIC_6LBR_UDP_PERIOD=$(UDP_PERIOD)
