@@ -35,7 +35,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_FULL
+#define DEBUG 0
 #include "net/uip-debug.h"
 
 #ifndef CETIC_6LBR_UDP_PERIOD

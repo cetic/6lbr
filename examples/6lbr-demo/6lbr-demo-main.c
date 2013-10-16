@@ -19,6 +19,9 @@ PROCESS_NAME(webserver_nogui_process);
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
 #endif
+#if WITH_COAP
+PROCESS_NAME(rest_server_example);
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -31,6 +34,10 @@ start_apps(void)
 #if WEBSERVER
   process_start(&web_sense_process, NULL);
   process_start(&webserver_nogui_process, NULL);
+#endif
+
+#if WITH_COAP
+  process_start(&rest_server_example, NULL);
 #endif
 }
 
