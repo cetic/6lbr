@@ -375,14 +375,10 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 
   //IP header alteration
   //--------------------
-  //Remove Hop-by-hop extension header
-  if(uip_ext_len > 0) {
-    extern void remove_ext_hdr(void);
-    uint8_t proto = *((uint8_t *) UIP_IP_BUF + 40);
+#if UIP_CONF_IPV6_RPL
+  rpl_remove_header();
+#endif
 
-    remove_ext_hdr();
-    UIP_IP_BUF->proto = proto;
-  }
   //Create packet header
   //--------------------
   //Packet type
