@@ -468,6 +468,7 @@ class ConfigParser():
 
 				sim.udgm_set_range(config_simgen.tx_range)
 				sim.udgm_set_interference_range(config_simgen.tx_interference)
+				sim.udgm_set_rx_tx_ratios(config_simgen.rx_success, config_simgen.tx_success)
 
 				motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
 				"""
