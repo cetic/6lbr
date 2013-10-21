@@ -424,6 +424,11 @@ class ConfigParser():
 
 				sim.udgm_set_range(config_simgen.tx_range)
 				sim.udgm_set_interference_range(config_simgen.tx_interference)
+				if not hasattr(config_simgen, 'rx_success'):
+				    config_simgen.rx_success=1.0
+				if not hasattr(config_simgen, 'tx_success'):
+				    config_simgen.tx_success=1.0
+				sim.udgm_set_rx_tx_ratios(config_simgen.rx_success, config_simgen.tx_success)
 
 				coords = generators.gen(config_simgen, mote_count)
 				if(previous_count == len(coords)):
