@@ -392,16 +392,11 @@ class ConfigParser():
 		config_simgen = imp.load_source('module.name', config_path)
                 return self.parse_config(config_simgen)
 	def parse_config(self, config_simgen):
-		if hasattr(config_simgen, 'outputfolder'):
-			outputfolder = config_simgen.outputfolder
-		else:
-			outputfolder = '..' + os.path.sep + 'output'
 
-		if hasattr(config_simgen, 'template'):
-			template_path = config_simgen.template
-		else:
-			template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
+		self.check_config(config_simgen)
 
+		outputfolder = config_simgen.outputfolder
+		template_path = config_simgen.template
 		mkdir(outputfolder)
 		cleardir(outputfolder)
 
@@ -424,10 +419,6 @@ class ConfigParser():
 
 				sim.udgm_set_range(config_simgen.tx_range)
 				sim.udgm_set_interference_range(config_simgen.tx_interference)
-				if not hasattr(config_simgen, 'rx_success'):
-				    config_simgen.rx_success=1.0
-				if not hasattr(config_simgen, 'tx_success'):
-				    config_simgen.tx_success=1.0
 				sim.udgm_set_rx_tx_ratios(config_simgen.rx_success, config_simgen.tx_success)
 
 				coords = generators.gen(config_simgen, mote_count)
@@ -511,6 +502,27 @@ class ConfigParser():
 
 		print("Done. Generated %d simfiles" % len(self.simfiles))
 		return True
+
+	def check_config(self, config_simgen):
+		self.check_param(config_simgen, 'outputfolder', False, '..' + os.path.sep + 'output')
+		self.check_param(config_simgen, 'template', False, '..' + os.path.sep + 'templates' + os.path.sep + 'cooja-template-udgm.csc')
+		self.check_param(config_simgen, 'radio_model', False, 'udgm', True)
+		if config_simgen.radio_model == 'udgm':
+			self.check_param(config_simgen, 'tx_range', True, None)
+			self.check_param(config_simgen, 'tx_range', False, config_simgen.tx_range)
+			self.check_param(config_simgen, 'rx_success', False, 1.0)
+			self.check_param(config_simgen, 'tx_success', False, 1.0)
+
+	def check_param(self, conf, name, mandatory, default, force=False):
+		if not hasattr(conf, name):
+			if mandatory:
+				sys.exit("COOJAGEN: ERROR - Parameter %s is mandatory" % name)
+			else:
+				setattr(conf, name, default)
+		if force:
+			param = getattr(conf, name)
+			if param != default:
+				sys.exit("COOJAGEN: ERROR - Parameter %s must be %s" % (name, default))
 
 	def get_simfiles(self):
 		return self.simfiles
