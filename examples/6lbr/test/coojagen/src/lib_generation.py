@@ -176,7 +176,7 @@ class Sim():
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+2)
-			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%.1f</transmitting_range>\r\n" % mote_range)
+			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%f</transmitting_range>\r\n" % mote_range)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
@@ -185,7 +185,7 @@ class Sim():
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+3)
-			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%.1f</interference_range>\r\n" % interference_range)
+			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%f</interference_range>\r\n" % interference_range)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
@@ -195,8 +195,8 @@ class Sim():
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
-			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.1f</success_ratio_tx>\r\n" % tx)
-			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.1f</success_ratio_rx>\r\n" % rx)
+			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%f</success_ratio_tx>\r\n" % tx)
+			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%f</success_ratio_rx>\r\n" % rx)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
@@ -392,16 +392,11 @@ class ConfigParser():
 		config_simgen = imp.load_source('module.name', config_path)
                 return self.parse_config(config_simgen)
 	def parse_config(self, config_simgen):
-		if hasattr(config_simgen, 'outputfolder'):
-			outputfolder = config_simgen.outputfolder
-		else:
-			outputfolder = '..' + os.path.sep + 'output'
 
-		if hasattr(config_simgen, 'template'):
-			template_path = config_simgen.template
-		else:
-			template_path = '..' + os.path.sep + 'templates' . os.path.sep + 'cooja-template-udgm.csc'
+		self.check_config(config_simgen)
 
+		outputfolder = config_simgen.outputfolder
+		template_path = config_simgen.template
 		mkdir(outputfolder)
 		cleardir(outputfolder)
 
@@ -410,102 +405,85 @@ class ConfigParser():
 		previous_count = 0
 		if config_simgen.topology != 'preset':
 			for mote_count in config_simgen.mote_count:
-				sim = Sim(template_path)
-
-				for mote_type in config_simgen.mote_types:
-					mote_type_obj = SimMoteType(    mote_type['shortname'],
-									mote_type['fw_folder'],
-									mote_type['maketarget'],
-									mote_type['makeargs'],
-									mote_type['serial'],
-									mote_type['description'])
-					self.mote_types.append(mote_type_obj)
-					sim.insert_sky_motetype(mote_type_obj)
-
-				sim.udgm_set_range(config_simgen.tx_range)
-				sim.udgm_set_interference_range(config_simgen.tx_interference)
-
+				sim = self.init_simulation(template_path, config_simgen)
 				coords = generators.gen(config_simgen, mote_count)
 				if(previous_count == len(coords)):
 					continue
-
 				previous_count = len(coords)
-
-				motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
 				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
+				self.place_motes(sim, coords, simfilepath, config_simgen)
 
-				for index,coord in enumerate(coords):
-					nodeid = index + 1
-					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
-					mote.set_coords(coord[0], coord[1], coord[2])
-					self.motelist.append(mote)
-
-				sim.add_motes(self.motelist)
-				sim.set_timeout(999999999) #stop time in ms
-
-				if hasattr(config_simgen, 'mobility'):
-					sim.add_mobility(config_simgen.mobility)
-
-				if hasattr(config_simgen, 'interactive_mobility'):
-					self.add_mobility_data(config_simgen.interactive_mobility)
-
-				sim.save_simfile(simfilepath)
-				self.simfiles.append(simfilepath)
-				print("****\n%s" % simfilepath)
-				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
-
-				self.motelist=[]
 		else: #preset
 			simlist = generators.load_preset(config_simgen.preset_data_path)
 			for coords in simlist:
-				sim = Sim(template_path)
-
-				for mote_type in config_simgen.mote_types:
-					mote_type_obj = SimMoteType(    mote_type['shortname'],
-									mote_type['fw_folder'],
-									mote_type['maketarget'],
-									mote_type['makeargs'],
-									mote_type['serial'],
-									mote_type['description'])
-					self.mote_types.append(mote_type_obj)
-					sim.insert_sky_motetype(mote_type_obj)
-
-				sim.udgm_set_range(config_simgen.tx_range)
-				sim.udgm_set_interference_range(config_simgen.tx_interference)
-
-				motenames = self.assign_mote_types(config_simgen.assignment, len(coords))
-				"""
-				if hasattr(config_simgen, 'label'):
-					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '_' + config_simgen.label + '-' + str(len(coords)) + '-' + now + '.csc'
-				else:
-					simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + config_simgen.topology + '-' + str(len(coords)) + '-' + now + '.csc'
-				"""
+				sim = self.init_simulation(template_path, config_simgen)
 				simfilepath = os.path.normpath(outputfolder) + os.path.sep + 'coojasim-' + os.path.splitext(os.path.basename(config_simgen.preset_data_path))[0] + '-' + str(len(coords)) + '-' + now + '.csc'
-
-				for index,coord in enumerate(coords):
-					nodeid = index + 1
-					mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
-					mote.set_coords(coord['x'], coord['y'], coord['z'])
-					self.motelist.append(mote)
-
-				sim.add_motes(self.motelist)
-				sim.set_timeout(999999999) #stop time in ms
-
-				if hasattr(config_simgen, 'mobility'):
-					sim.add_mobility(config_simgen.mobility)
-
-				if hasattr(config_simgen, 'interactive_mobility'):
-					self.add_mobility_data(config_simgen.interactive_mobility)
-
-				sim.save_simfile(simfilepath)
-				self.simfiles.append(simfilepath)
-				print("****\n%s" % simfilepath)
-				export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
-
-				self.motelist=[]
+				self.place_motes(sim, coords, simfilepath, config_simgen)
 
 		print("Done. Generated %d simfiles" % len(self.simfiles))
 		return True
+
+	def check_config(self, conf):
+		self.check_param(conf, 'outputfolder', False, '..' + os.path.sep + 'output')
+		self.check_param(conf, 'template', False, '..' + os.path.sep + 'templates' + os.path.sep + 'cooja-template-udgm.csc')
+		self.check_param(conf, 'radio_model', False, 'udgm', True)
+		if conf.radio_model == 'udgm':
+			self.check_param(conf, 'tx_range', True, None)
+			self.check_param(conf, 'tx_range', False, conf.tx_range)
+			self.check_param(conf, 'rx_success', False, 1.0)
+			self.check_param(conf, 'tx_success', False, 1.0)
+
+	def check_param(self, conf, name, mandatory, default, force=False):
+		if not hasattr(conf, name):
+			if mandatory:
+				sys.exit("COOJAGEN: ERROR - Parameter %s is mandatory" % name)
+			else:
+				setattr(conf, name, default)
+		if force:
+			param = getattr(conf, name)
+			if param != default:
+				sys.exit("COOJAGEN: ERROR - Parameter %s must be %s" % (name, default))
+
+	def init_simulation(self, template_path, conf):
+		sim = Sim(template_path)
+		for mote_type in conf.mote_types:
+			mote_type_obj = SimMoteType(    mote_type['shortname'],
+							mote_type['fw_folder'],
+							mote_type['maketarget'],
+							mote_type['makeargs'],
+							mote_type['serial'],
+							mote_type['description'])
+			self.mote_types.append(mote_type_obj)
+			sim.insert_sky_motetype(mote_type_obj)
+
+		sim.udgm_set_range(conf.tx_range)
+		sim.udgm_set_interference_range(conf.tx_interference)
+		sim.udgm_set_rx_tx_ratios(conf.rx_success, conf.tx_success)
+		return sim
+
+	def place_motes(self, sim, coords, simfilepath, conf):
+		motenames = self.assign_mote_types(conf.assignment, len(coords))
+		for index,coord in enumerate(coords):
+			nodeid = index + 1
+			mote = SimMote(self.mote_type_from_shortname(motenames[index]), nodeid)
+			mote.set_coords(coord[0], coord[1], coord[2])
+			self.motelist.append(mote)
+
+		sim.add_motes(self.motelist)
+		sim.set_timeout(999999999) #stop time in ms
+
+		if hasattr(conf, 'mobility'):
+			sim.add_mobility(conf.mobility)
+
+		if hasattr(conf, 'interactive_mobility'):
+			self.add_mobility_data(conf.interactive_mobility)
+
+		sim.save_simfile(simfilepath)
+		self.simfiles.append(simfilepath)
+		print("****\n%s" % simfilepath)
+		export_mote_list(simfilepath[:-4]+'.motes', self.motelist)
+
+		self.motelist=[]
 
 	def get_simfiles(self):
 		return self.simfiles
