@@ -44,7 +44,6 @@
 #include "net/tcpip.h"
 #include "net/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
-#include "net/neighbor-info.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -72,7 +71,7 @@ rpl_purge_routes(void)
   rpl_dag_t *dag;
 
   /* First pass, decrement lifetime */
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.lifetime >= 1) {
@@ -83,11 +82,11 @@ rpl_purge_routes(void)
        */
       r->state.lifetime--;
     }
-    r = list_item_next(r);
+    r = uip_ds6_route_next(r);
   }
 
   /* Second pass, remove dead routes */
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.lifetime < 1) {
@@ -95,7 +94,7 @@ rpl_purge_routes(void)
        * thus we want to keep them. Hence < and not <= */
       uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
       PRINTF("No more routes to ");
       PRINT6ADDR(&prefix);
       dag = default_instance->current_dag;
@@ -108,7 +107,7 @@ rpl_purge_routes(void)
       }
       PRINTF("\n");
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
 }
@@ -118,14 +117,14 @@ rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
 
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.dag == dag) {
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
 }
@@ -135,33 +134,18 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
 
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
-    if(uip_ipaddr_cmp(&r->nexthop, nexthop) &&
+    if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), nexthop) &&
        r->state.dag == dag) {
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
   ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-
-#if 0
-  uip_ds6_route_t *locroute;
-
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB;
-      locroute++) {
-    if(locroute->isused
-        && uip_ipaddr_cmp(&locroute->nexthop, nexthop)
-        && locroute->state.dag == dag) {
-      locroute->isused = 0;
-    }
-  }
-  ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-#endif /* 0 */
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
@@ -177,7 +161,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
     PRINTF(" to ");
     PRINT6ADDR(next_hop);
     PRINTF("\n");
-    if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
+    if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop)) == NULL) {
       PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
@@ -192,6 +176,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
     PRINTF("\n");
     uip_ipaddr_copy(&rep->nexthop, next_hop);
   }
+
   rep->state.dag = dag;
   rep->state.lifetime = RPL_LIFETIME(dag->instance, dag->instance->default_lifetime);
   rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
@@ -205,8 +190,8 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
   return rep;
 }
 /*---------------------------------------------------------------------------*/
-static void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
+void
+rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;
@@ -215,36 +200,19 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
-  PRINTF("RPL: Neighbor ");
-  PRINT6ADDR(&ipaddr);
-  PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", NEIGHBOR_INFO_FIX2ETX(etx));
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       parent = rpl_find_parent_any_dag(instance, &ipaddr);
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
+        PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
         parent->updated = 1;
-        parent->link_metric = etx;
-
-        if(instance->of->parent_state_callback != NULL) {
-          instance->of->parent_state_callback(parent, known, etx);
-        }
-        if(!known) {
-          PRINTF("RPL: Removing parent ");
-          PRINT6ADDR(&parent->addr);
-          PRINTF(" in instance %u because of bad connectivity (ETX %d)\n", instance->instance_id, etx);
-          parent->rank = INFINITE_RANK;
+        if(instance->of->neighbor_link_callback != NULL) {
+          instance->of->neighbor_link_callback(parent, status, numtx);
         }
       }
     }
-  }
-
-  if(!known) {
-    PRINTF("RPL: Deleting routes installed by DAOs received from ");
-    PRINT6ADDR(&ipaddr);
-    PRINTF("\n");
-    uip_ds6_route_rm_by_nexthop(&ipaddr);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -255,18 +223,17 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   rpl_instance_t *instance;
   rpl_instance_t *end;
 
-  if(!nbr->isused) {
-    PRINTF("RPL: Removing neighbor ");
-    PRINT6ADDR(&nbr->ipaddr);
-    PRINTF("\n");
-    for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
-      if(instance->used == 1 ) {
-        p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
-        if(p != NULL) {
-          p->rank = INFINITE_RANK;
-          /* Trigger DAG rank recalculation. */
-          p->updated = 1;
-        }
+  PRINTF("RPL: Removing neighbor ");
+  PRINT6ADDR(&nbr->ipaddr);
+  PRINTF("\n");
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+    if(instance->used == 1 ) {
+      p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
+      if(p != NULL) {
+        p->rank = INFINITE_RANK;
+        /* Trigger DAG rank recalculation. */
+        PRINTF("RPL: rpl_ipv6_neighbor_callback infinite rank\n");
+        p->updated = 1;
       }
     }
   }
@@ -279,8 +246,8 @@ rpl_init(void)
   PRINTF("RPL started\n");
   default_instance = NULL;
 
+  rpl_dag_init();
   rpl_reset_periodic_timer();
-  neighbor_info_subscribe(rpl_link_neighbor_callback);
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);

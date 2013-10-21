@@ -208,9 +208,10 @@ uip_nd6_ns_input(void)
 			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			  0, NBR_STALE);
         } else {
+          uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		    &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		    lladdr, UIP_LLADDR_LEN) != 0) {
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		   UIP_LLADDR_LEN);
             nbr->state = NBR_STALE;
           } else {
@@ -513,20 +514,22 @@ uip_nd6_na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
+    uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+    lladdr = uip_ds6_nbr_get_ll(nbr);
     if(nbr == NULL) {
       goto discard;
     }
     if(nd6_opt_llao != 0) {
       is_llchange =
-        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)(&nbr->lladdr),
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
       if(nd6_opt_llao == NULL) {
         goto discard;
       }
-      memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+      memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 	     UIP_LLADDR_LEN);
       if(is_solicited) {
         nbr->state = NBR_REACHABLE;
@@ -549,7 +552,7 @@ uip_nd6_na_input(void)
         if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
            || nd6_opt_llao == 0) {
           if(nd6_opt_llao != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		   UIP_LLADDR_LEN);
           }
           if(is_solicited) {
@@ -683,7 +686,7 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
-      nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = (uint8_t *)UIP_ND6_OPT_HDR_BUF;
       break;
     default:
       PRINTF("ND option not supported in RS\n");
@@ -701,15 +704,19 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
-        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, 
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		  &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-          memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		 UIP_LLADDR_LEN);
-          nbr->state = NBR_STALE;
+            uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
+          uip_ds6_nbr_t nbr_data = *nbr;
+          uip_ds6_nbr_rm(nbr);
+          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+          nbr->reachable = nbr_data.reachable;
+          nbr->sendns = nbr_data.sendns;
+          nbr->nscount = nbr_data.nscount;
         }
         nbr->isrouter = 0;
       }
@@ -933,9 +940,10 @@ uip_nd6_ra_input(void)
         if(nbr->state == NBR_INCOMPLETE) {
           nbr->state = NBR_STALE;
         }
+        uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		  &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-          memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		  lladdr, UIP_LLADDR_LEN) != 0) {
+          memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		 UIP_LLADDR_LEN);
           nbr->state = NBR_STALE;
         }
