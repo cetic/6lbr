@@ -176,7 +176,7 @@ class Sim():
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+2)
-			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%.1f</transmitting_range>\r\n" % mote_range)
+			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%f</transmitting_range>\r\n" % mote_range)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
@@ -185,7 +185,7 @@ class Sim():
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+3)
-			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%.1f</interference_range>\r\n" % interference_range)
+			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%f</interference_range>\r\n" % interference_range)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
@@ -195,8 +195,8 @@ class Sim():
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
-			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.4f</success_ratio_tx>\r\n" % tx)
-			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.4f</success_ratio_rx>\r\n" % rx)
+			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%f</success_ratio_tx>\r\n" % tx)
+			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%f</success_ratio_rx>\r\n" % rx)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
