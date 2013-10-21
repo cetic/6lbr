@@ -1279,7 +1279,8 @@ httpd_simple_get_script(const char *name)
       return generate_network;
     } else if(memcmp(name, "nbr_rm?", 7) == 0) {
       redirect = 1;
-      uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
+      //TODO: merge-contiki-1.1.2 disabled this for now, see #7082
+      //uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
       return generate_network;
     } else if(memcmp(name, "config?", 7) == 0) {
       if(update_config(name + 7)) {
