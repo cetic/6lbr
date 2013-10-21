@@ -607,7 +607,6 @@ tcpip_ipv6_output(void)
     if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
       nexthop = &UIP_IP_BUF->destipaddr;
     } else {
-<<<<<<< HEAD
       uip_ds6_route_t* route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);

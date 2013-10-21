@@ -38,6 +38,7 @@
 
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
+#include "net/uip-ds6-nbr.h"
 #include "net/uip-ds6-route.h"
 #include "contiki.h"
 #include "contiki-lib.h"
@@ -683,32 +684,34 @@ PT_THREAD(generate_network(struct httpd_state *s))
   reset_buf();
 
   add("</pre><h2>Neighbors</h2><pre>");
-  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-        add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
-      }
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      add(" ");
-      lladdr_add(&uip_ds6_nbr_cache[i].lladdr);
-      add(" ");
-      add_network_cases(uip_ds6_nbr_cache[i].state);
-      add("\n");
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
+
+  uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+  while(nbr != NULL) {
+  //for(i = 0; i < UIP_DS6_NBR_NB; i++) {
+  //  if(uip_ds6_nbr_cache[i].isused) {
+    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+      add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
     }
+    ipaddr_add(&nbr->ipaddr);
+    add(" ");
+    lladdr_add(uip_ds6_nbr_get_ll(nbr));
+    add(" ");
+    add_network_cases(nbr->state);
+    add("\n");
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
   }
   add("</pre><h2>Routes</h2><pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  for(r = uip_ds6_route_list_head(), i = 0; r != NULL;
+  for(r = uip_ds6_route_head(), i = 0; r != NULL;
       r = list_item_next(r), ++i) {
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"route_rm?%d\">del</a>] ", i);
     }
     ipaddr_add(&r->ipaddr);
     add("/%u (via ", r->length);
-    ipaddr_add(&r->nexthop);
+    ipaddr_add(&r->next->ipaddr);
     if(1 || (r->state.lifetime < 600)) {
       add(") %lu s\n", r->state.lifetime);
     } else {
@@ -1267,7 +1270,7 @@ httpd_simple_get_script(const char *name)
     } else if(memcmp(name, "route_rm?", 9) == 0) {
       redirect = 1;
       i = atoi(name + 9);
-      for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
+      for(r = uip_ds6_route_head(); r != NULL; r = list_item_next(r), --i) {
         if(i == 0) {
           uip_ds6_route_rm(r);
           break;
