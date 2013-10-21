@@ -218,7 +218,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       private Logger mlogger = Logger.getLogger("MSPSim");
       @Override
       public void log(Loggable source, String message) {
-        mlogger.debug("" + getID() + ": " + source.getID() + ": " + message);
+        //mlogger.debug("" + getID() + ": " + source.getID() + ": " + message);
       }
       
       @Override
