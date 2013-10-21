@@ -195,8 +195,8 @@ class Sim():
 		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
-			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.1f</success_ratio_tx>\r\n" % tx)
-			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.1f</success_ratio_rx>\r\n" % rx)
+			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%.4f</success_ratio_tx>\r\n" % tx)
+			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%.4f</success_ratio_rx>\r\n" % rx)
 		
 		else:
 			print("ERROR: radio model is not UDGM\r\n")
