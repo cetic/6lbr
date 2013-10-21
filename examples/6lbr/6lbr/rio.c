@@ -112,8 +112,7 @@ uip_ds6_route_info_callback(uip_nd6_opt_route_info * rio,
     uip_ds6_route_t *new_route;
 
     if((new_route =
-        uip_ds6_route_add(&rio->prefix, rio->preflen, next_hop,
-                          UIP_DEFAULT_METRIC)) == NULL) {
+        uip_ds6_route_add(&rio->prefix, rio->preflen, next_hop)) == NULL) {
       LOG6LBR_ERROR("error when adding route\n");
     } else {
       LOG6LBR_INFO("Route added\n");
