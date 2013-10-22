@@ -604,6 +604,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   static int i;
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
+  static uip_ds6_nbr_t *nbr;
 
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -685,10 +686,10 @@ PT_THREAD(generate_network(struct httpd_state *s))
 
   add("</pre><h2>Neighbors</h2><pre>");
 
-  uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
-  while(nbr != NULL) {
-  //for(i = 0; i < UIP_DS6_NBR_NB; i++) {
-  //  if(uip_ds6_nbr_cache[i].isused) {
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
     }
@@ -701,17 +702,18 @@ PT_THREAD(generate_network(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
+
   add("</pre><h2>Routes</h2><pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   for(r = uip_ds6_route_head(), i = 0; r != NULL;
-      r = list_item_next(r), ++i) {
+      r = uip_ds6_route_next(r), ++i) {
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"route_rm?%d\">del</a>] ", i);
     }
     ipaddr_add(&r->ipaddr);
     add("/%u (via ", r->length);
-    ipaddr_add(&r->next->ipaddr);
+    ipaddr_add(uip_ds6_route_nexthop(r));
     if(1 || (r->state.lifetime < 600)) {
       add(") %lu s\n", r->state.lifetime);
     } else {
