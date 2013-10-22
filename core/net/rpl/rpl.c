@@ -168,13 +168,6 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 #if CETIC_6LBR_SMARTBRIDGE
     send_purge_na(prefix);
 #endif
-  } else {
-    PRINTF("RPL: Updated the next hop for prefix ");
-    PRINT6ADDR(prefix);
-    PRINTF(" to ");
-    PRINT6ADDR(next_hop);
-    PRINTF("\n");
-    uip_ipaddr_copy(&rep->next->ipaddr, next_hop);
   }
 
   rep->state.dag = dag;
