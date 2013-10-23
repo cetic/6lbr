@@ -647,7 +647,7 @@ toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 /******************************************************************************/
 #if REST_RES_LIGHT && defined (PLATFORM_HAS_LIGHT)
 /* A simple getter example. Returns the reading from light sensor with a simple etag */
-RESOURCE(light, METHOD_GET, "sensors/light", "title=\"Photosynthetic and solar light (supports JSON)\";rt=\"LightSensor\"");
+PERIODIC_RESOURCE(light, METHOD_GET, "sensors/light", "title=\"Photosynthetic and solar light (supports JSON)\";rt=\"LightSensor\"", 5*CLOCK_SECOND);
 void
 light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
@@ -685,6 +685,31 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
     REST.set_response_payload(response, msg, strlen(msg));
   }
 }
+void
+light_periodic_handler(resource_t *r)
+{
+  static uint16_t obs_counter = 0;
+  static char content[REST_MAX_CHUNK_SIZE];
+
+  ++obs_counter;
+
+  PRINTF("TICK %u for /%s\n", obs_counter, r->url);
+  uint16_t light_photosynthetic = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+  uint16_t light_solar = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
+
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_NON, REST.status.OK, 0 );
+  //coap_set_payload(notification, content, snprintf(content, sizeof(content), "TICK %u", obs_counter));
+  coap_set_header_content_type(notification, REST.type.APPLICATION_JSON);
+  snprintf((char *)content, REST_MAX_CHUNK_SIZE, "{'light':{'photosynthetic':%u,'solar':%u}}", light_photosynthetic, light_solar);
+
+  coap_set_payload(notification, content, strlen((char *)content));
+
+  /* Notify the registered observers with the given message type, observe option, and payload. */
+  REST.notify_subscribers(r, obs_counter, notification);
+}
+
 #endif /* PLATFORM_HAS_LIGHT */
 
 /******************************************************************************/
@@ -844,7 +869,8 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #endif /* PLATFORM_HAS_LEDS */
 #if defined (PLATFORM_HAS_LIGHT) && REST_RES_LIGHT
   SENSORS_ACTIVATE(light_sensor);
-  rest_activate_resource(&resource_light);
+  //rest_activate_resource(&resource_light);
+  rest_activate_periodic_resource(&periodic_resource_light);
 #endif
 #if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
   SENSORS_ACTIVATE(battery_sensor);
