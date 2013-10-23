@@ -71,9 +71,6 @@
 #define NULLRDC_CONF_802154_AUTOACK	1
 #endif
 
-#undef RF_CHANNEL
-#define RF_CHANNEL              26
-
 #undef SKY_CONF_MAX_TX_POWER
 #define SKY_CONF_MAX_TX_POWER 	31
 
