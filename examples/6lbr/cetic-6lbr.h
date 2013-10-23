@@ -74,4 +74,12 @@ extern uip_ipaddr_t eth_dft_router;
 // Misc
 extern unsigned long cetic_6lbr_startup;
 
+enum cetic_6lbr_restart_type_t {
+  CETIC_6LBR_NO_RESTART,
+  CETIC_6LBR_RESTART,
+  CETIC_6LBR_REBOOT,
+  CETIC_6LBR_HALT
+};
+
+extern enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 #endif
