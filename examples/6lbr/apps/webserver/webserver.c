@@ -421,12 +421,28 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       ipaddr_add(&node_info_table[i].ipaddr);
       add("</a></td>");
 
-      if(node_info_table[i].ipaddr.u8[8] == 0x02
+      if(0) {
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
          && node_info_table[i].ipaddr.u8[9] == 0x12
-         && node_info_table[i].ipaddr.u8[10] == 0x74) {
-        add("<td><a href=http://[");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("]/status.shtml>Crossbow Telos</a></td>");
+         && (node_info_table[i].ipaddr.u8[10] == 0x74 ||
+             node_info_table[i].ipaddr.u8[10] == 0x75)) {
+        add("<td>Moteiv Telos</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x1A
+         && node_info_table[i].ipaddr.u8[10] == 0x4C) {
+        add("<td>Crossbow Sky</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0xC3
+         && node_info_table[i].ipaddr.u8[9] == 0x0C
+         && node_info_table[i].ipaddr.u8[10] == 0x00) {
+        add("<td>Zolertia Z1</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x80
+         && node_info_table[i].ipaddr.u8[10] == 0xE1) {
+        add("<td>STMicro</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x12
+         && node_info_table[i].ipaddr.u8[10] == 0x4B) {
+        add("<td>TI</td>");
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02
                 && node_info_table[i].ipaddr.u8[9] == 0x50
                 && node_info_table[i].ipaddr.u8[10] == 0xC2
