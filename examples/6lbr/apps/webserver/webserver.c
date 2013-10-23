@@ -116,12 +116,15 @@ static const char *BODY =
   "<h1>6LBR</h1>"
   "<h2>6Lowpan Border Router</h2>"
   "<div id=\"barre_nav\">"
-  "<div class=\"menu-general\"><a href=\"/\">Info</a></div>"
-  "<div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div>"
-  "<div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div>"
-  "<div class=\"menu-general\"><a href=\"/network.html\">Network</a></div>"
-  "<div class=\"menu-general\"><a href=\"/config.html\">Config</a></div>"
-  "<div class=\"menu-general\"><a href=\"/statistics.html\">Statistics</a></div>"
+  "<div class=\"menu-general\">"
+  "<a href=\"/\">Info</a>"
+  "<a href=\"/sensors.html\">Sensors</a>"
+  "<a href=\"/rpl.html\">RPL</a>"
+  "<a href=\"/network.html\">Network</a>"
+  "<a href=\"/config.html\">Config</a>"
+  "<a href=\"/statistics.html\">Statistics</a>"
+  "<a href=\"/admin.html\">Administration</a>"
+  "</div>"
   "</div></div>\n";
 static const char *BOTTOM = "</div></body></html>";
 
@@ -1065,7 +1068,49 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(generate_reboot(struct httpd_state *s))
+PT_THREAD(generate_admin(struct httpd_state *s))
+{
+#if BUF_USES_STACK
+  char buf[BUF_SIZE];
+#endif
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, TOP);
+  SEND_STRING(&s->sout, BODY);
+  reset_buf();
+  add_div_home("Administration");
+  add("<div id=\"left_home\">");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add("<h2>Administration</h2>");
+  add("<div id=\"left_home\">");
+  add("<form action=\"restart\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Restart 6LBR\"/></form><br />");
+  add("<form action=\"reboot\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reboot 6LBR\"/></form><br />");
+
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<form action=\"halt\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Halt 6LBR\"/></form><br />");
+  add("<form action=\"reset_config\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset NVM to factory default\"/></form><br />");
+
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add_div_footer();
+  add("</div></div>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  SEND_STRING(&s->sout, BOTTOM);
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(generate_restart_page(struct httpd_state *s))
 {
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -1074,12 +1119,36 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout,
-              "<meta http-equiv=\"refresh\" content=\"2; url=/config.html\" />");
+              "<meta http-equiv=\"refresh\" content=\"2; url=/index.html\" />");
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home("Reboot");
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      add_div_home("Restart");
+      break;
+    case CETIC_6LBR_REBOOT:
+      add_div_home("Reboot");
+      break;
+    case CETIC_6LBR_HALT:
+      add_div_home("Halt");
+      break;
+    default:
+      add_div_home("Error");
+  }
   add("<div id=\"left_home\">");
-  add("Restarting BR...<br />");
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      add("Restarting BR...<br />");
+      break;
+    case CETIC_6LBR_REBOOT:
+      add("Rebooting BR...<br />");
+      break;
+    case CETIC_6LBR_HALT:
+      add("Halting BR...<br />");
+      break;
+    default:
+      add("Error...<br />");
+  }
   add
     ("<a href=\"/config.html\">Click here if the page is not refreshing</a><br /><br />");
   add("</div>");
@@ -1282,8 +1351,24 @@ httpd_simple_get_script(const char *name)
       if(update_config(name + 7)) {
         return generate_config;
       } else {
-        return generate_reboot;
+        cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+        return generate_restart_page;
       }
+    } else if(strcmp(name, "admin.html") == 0) {
+      return generate_admin;
+    } else if(memcmp(name, "reset_config?", 12) == 0) {
+      check_nvm(&nvm_data, 1);
+      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+      return generate_restart_page;
+    } else if(memcmp(name, "restart?", 8) == 0) {
+      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+      return generate_restart_page;
+    } else if(memcmp(name, "reboot?", 7) == 0) {
+      cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
+      return generate_restart_page;
+    } else if(memcmp(name, "halt?", 5) == 0) {
+      cetic_6lbr_restart_type = CETIC_6LBR_HALT;
+      return generate_restart_page;
     } else {
       return generate_404;
     }

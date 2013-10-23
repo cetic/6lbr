@@ -90,6 +90,8 @@ uip_ipaddr_t eth_dft_router;
 //Misc
 unsigned long cetic_6lbr_startup;
 
+enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
+
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
@@ -322,8 +324,25 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   PROCESS_WAIT_EVENT();
   etimer_set(&reboot_timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT();
-  LOG6LBR_INFO("Exiting...\n");
-  exit(0);
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      LOG6LBR_INFO("Exiting...\n");
+      exit(0);
+      break;
+    case CETIC_6LBR_REBOOT:
+      LOG6LBR_INFO("Rebooting...\n");
+      system("reboot");
+      break;
+    case CETIC_6LBR_HALT:
+      LOG6LBR_INFO("Halting...\n");
+      system("halt");
+      break;
+    default:
+      //We should never end up here...
+      exit(1);
+  }
+  //We should never end up here...
+  exit(1);
 #endif
 
   PROCESS_END();
