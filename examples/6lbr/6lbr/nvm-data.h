@@ -97,7 +97,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX(a)	uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_IP_ADDR(a)		uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100)
-#define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1)
+#define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_create_unspecified(a)
 #define CETIC_6LBR_NVM_DEFAULT_CHANNEL				26
 
 //Version 1 configuration data
