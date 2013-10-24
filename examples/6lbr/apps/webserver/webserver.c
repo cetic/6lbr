@@ -61,6 +61,7 @@
 
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
+#include "sys/stat.h"
 #endif
 
 #include <stdio.h>              /* For printf() */
@@ -262,6 +263,51 @@ PT_THREAD(send_file(struct httpd_state *s))
   }
   close(s->fd);
   PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(send_log(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char *  log_file = getenv("LOG_6LBR_OUT");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    s->fd = open(log_file, O_RDONLY);
+  } else {
+    s->fd = 0;
+  }
+  if (s->fd > 0) {
+    struct stat st;
+    fstat(s->fd, &st);
+    s->to_send = st.st_size;
+    SEND_STRING(&s->sout, "<pre>");
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+      s->to_send -= s->len;
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0 && s->to_send > 0);
+    close(s->fd);
+    SEND_STRING(&s->sout, "</pre>");
+  } else {
+    SEND_STRING(&s->sout, "Log not available");
+  }
+  PSOCK_END(&s->sout);
+}
+
+static
+void clear_log()
+{
+  char *  log_file = getenv("LOG_6LBR_OUT");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    fclose(stdin);
+    freopen(log_file, "w", stdin);
+  }
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -1100,7 +1146,14 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   reset_buf();
 
   add("<h2>Administration</h2>");
-  add("<div id=\"left_home\">");
+  add("<h3>Logs</h3>");
+  add("<form action=\"log\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
+  add("<form action=\"clear_log\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<h3>Restart</h3>");
   add("<form action=\"restart\" method=\"get\">");
   add("<input type=\"submit\" value=\"Restart 6LBR\"/></form><br />");
   add("<form action=\"reboot\" method=\"get\">");
@@ -1110,6 +1163,7 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   reset_buf();
   add("<form action=\"halt\" method=\"get\">");
   add("<input type=\"submit\" value=\"Halt 6LBR\"/></form><br />");
+  add("<h3>Configuration</h3>");
   add("<form action=\"reset_config\" method=\"get\">");
   add("<input type=\"submit\" value=\"Reset NVM to factory default\"/></form><br />");
 
@@ -1139,6 +1193,9 @@ PT_THREAD(generate_restart_page(struct httpd_state *s))
   SEND_STRING(&s->sout, BODY);
   reset_buf();
   switch (cetic_6lbr_restart_type) {
+  case CETIC_6LBR_NO_RESTART:
+    add_div_home("Done");
+    break;
     case CETIC_6LBR_RESTART:
       add_div_home("Restart");
       break;
@@ -1153,6 +1210,9 @@ PT_THREAD(generate_restart_page(struct httpd_state *s))
   }
   add("<div id=\"left_home\">");
   switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_NO_RESTART:
+      add("Action done<br />");
+      break;
     case CETIC_6LBR_RESTART:
       add("Restarting BR...<br />");
       break;
@@ -1173,7 +1233,9 @@ PT_THREAD(generate_restart_page(struct httpd_state *s))
 
   SEND_STRING(&s->sout, BOTTOM);
 
-  process_post(&cetic_6lbr_process, 0, NULL);
+  if ( cetic_6lbr_restart_type != CETIC_6LBR_NO_RESTART) {
+    process_post(&cetic_6lbr_process, 0, NULL);
+  }
 
   PSOCK_END(&s->sout);
 }
@@ -1372,6 +1434,13 @@ httpd_simple_get_script(const char *name)
       }
     } else if(strcmp(name, "admin.html") == 0) {
       return generate_admin;
+#if CONTIKI_TARGET_NATIVE
+    } else if(memcmp(name, "log?", 4) == 0) {
+      return send_log;
+    } else if(memcmp(name, "clear_log?", 4) == 0) {
+      clear_log();
+      return generate_restart_page;
+#endif
     } else if(memcmp(name, "reset_config?", 12) == 0) {
       check_nvm(&nvm_data, 1);
       cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
