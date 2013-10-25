@@ -452,18 +452,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<div id=\"left_home\">");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Status</td><td>Last seen</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Status</td><td>Last seen</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
-      add("<tr><td><a href=http://[");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("]/>");
-      SEND_STRING(&s->sout, buf);       //TODO: why tunslip6 needs an output here, wpcapslip does not
-      reset_buf();
+      add("<tr><td>");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("</a></td>");
 
@@ -509,6 +505,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       } else {
         add("<td>Unknown</td>");
       }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+      add("<td><a href=http://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]/>web</a></td>");
+      add("<td><a href=coap://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]:5683/>coap</a></td>");
       add("<td>%s</td>", node_info_table[i].my_info);
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_lookup) / CLOCK_SECOND);
