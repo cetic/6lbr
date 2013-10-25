@@ -1393,10 +1393,6 @@ httpd_simple_get_script(const char *name)
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
-#if CONTIKI_TARGET_NATIVE
-  } else if (access(filename, R_OK) == 0) {
-      return send_file;
-#endif
 #if CETIC_NODE_INFO
   } else if(strcmp(name, "sensors.html") == 0) {
     return generate_sensors;
@@ -1461,6 +1457,10 @@ httpd_simple_get_script(const char *name)
     } else {
       return generate_404;
     }
+#if CONTIKI_TARGET_NATIVE
+  } else if (access(filename, R_OK) == 0) {
+      return send_file;
+#endif
   } else {
     return generate_404;
   }
