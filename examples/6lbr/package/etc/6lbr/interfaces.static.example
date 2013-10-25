@@ -1,0 +1,27 @@
+auto lo
+
+iface lo inet loopback
+
+iface eth0 inet static
+address 0.0.0.0
+
+auto br0
+iface br0 inet static
+    pre-up brctl addbr br0
+    pre-up brctl addif br0 eth0
+    pre-up ip addr flush dev eth0
+    post-down ip link set eth0 down
+    post-down ip link set br0 down
+    post-down brctl delif br0 eth0
+    post-down brctl delbr br0
+    address 192.168.2.100
+    netmask 255.255.255.0
+    network 192.168.2.0
+    broadcast 192.168.2.255
+    gateway 192.168.2.254
+
+
+allow-hotplug wlan0
+iface wlan0 inet manual
+wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+iface default inet dhcp
