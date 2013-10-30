@@ -179,7 +179,7 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
     return 0;
   }
   if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
-      (rimeaddr_t *) & wsn_mac_addr) == 0) {
+      (rimeaddr_t *) & wsn_mac_addr)) {
     LOG6LBR_ERROR("wireless_output: sending to self\n");
     return 0;
   }
@@ -341,15 +341,11 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
     return 0;
   }
 
-  //Commented out as TAP interface share the same address as 6lbr ethernet interface
-  //So local request to 6LBR are dropped
-  /*
   if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
-      (rimeaddr_t *) & eth_mac64_addr) == 0) {
+      (rimeaddr_t *) & eth_mac64_addr)) {
     LOG6LBR_ERROR("ethernet_output: sending to self\n");
     return 0;
   }
-  */
 
 #if CETIC_6LBR_ETH_FILTER_RPL
   //Filter out RPL (broadcast) traffic
