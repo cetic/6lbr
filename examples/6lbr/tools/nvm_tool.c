@@ -119,6 +119,8 @@ store_nvm_file(char const *nvm_file, uint8_t fit)
     (addr)->u16[7] = UIP_HTONS(addr7);                                      \
   } while(0)
 
+#define uip_create_unspecified(a) uip_ip6addr(a, 0, 0, 0, 0, 0, 0, 0, 0)
+
 int
 uiplib_ipaddrconv(const char *addrstr, uint8_t * ipaddr)
 {

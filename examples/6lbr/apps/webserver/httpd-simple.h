@@ -62,6 +62,7 @@ struct httpd_state {
   char outputbuf[UIP_TCP_MSS];
   int fd;
   int len;
+  int to_send;
 #endif
   char filename[HTTPD_PATHLEN];
   httpd_simple_script_t script;

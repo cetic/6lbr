@@ -128,8 +128,10 @@ cleanup(void)
               strerror(errno));
     }
   }
+#if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&rimeaddr_null);
   slip_flushbuf(slipfd);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

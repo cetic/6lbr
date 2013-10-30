@@ -6,6 +6,10 @@ CONTIKI?=../..
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
+CFLAGS += -DUIP_CONF_IPV6=1
+
+RF_CHANNEL=26
+CFLAGS +=-DRF_CHANNEL=$(RF_CHANNEL)
 
 WITH_RPL?=1
 ifneq ($(WITH_RPL),1)
@@ -37,6 +41,17 @@ WITH_WEBSERVER?=1
 ifneq ($(WITH_WEBSERVER),0)
 CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
+endif
+
+WITH_COAPSERVER?=0
+ifneq ($(WITH_COAPSERVER),0)
+WITH_COAP=13
+CFLAGS += -DWITH_COAP=13
+CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
+APPS += er-coap-13
+APPS += erbium
+PROJECT_SOURCEFILES += er-example-server.c
 endif
 
 UDP_PERIOD?=5

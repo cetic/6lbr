@@ -223,6 +223,9 @@
 
 #define WEBSERVER_CONF_CFS_URLCONV 1
 
+//Use the whole uip buffer
+#undef UIP_CONF_TCP_MSS
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
 

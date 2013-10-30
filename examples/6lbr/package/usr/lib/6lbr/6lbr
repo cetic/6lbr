@@ -46,6 +46,9 @@ if [ "$LOG_6LBR_ERR" != "-" ]; then
 	exec 2>> $LOG_6LBR_ERR
 fi
 
+export LOG_6LBR_OUT
+export LOG_6LBR_ERR
+
 ################################################################################
 # Build parameters list
 

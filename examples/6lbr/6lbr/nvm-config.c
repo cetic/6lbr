@@ -54,17 +54,19 @@ nvm_data_t nvm_data;
 /*---------------------------------------------------------------------------*/
 
 void
-check_nvm(volatile nvm_data_t * nvm_data)
+check_nvm(volatile nvm_data_t * nvm_data, int reset)
 {
   uint8_t flash = 0;
   uip_ipaddr_t loc_fipaddr;
 
-  if(nvm_data->magic != CETIC_6LBR_NVM_MAGIC
+  if(reset || nvm_data->magic != CETIC_6LBR_NVM_MAGIC
      || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
     //NVM is invalid or we are rollbacking from another version
     //Set all data to default values
-    LOG6LBR_ERROR
-      ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+    if (!reset) {
+      LOG6LBR_ERROR
+        ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+    }
     nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
     nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
 
@@ -93,7 +95,9 @@ check_nvm(volatile nvm_data_t * nvm_data)
   }
   if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
   {
-    LOG6LBR_WARN("Migrate NVM version 0 towards 1\n");
+    if (!reset) {
+      LOG6LBR_WARN("Migrate NVM version 0 towards 1\n");
+    }
     nvm_data->version = CETIC_6LBR_NVM_VERSION_1;
 
     nvm_data->global_flags = CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS;
@@ -138,7 +142,7 @@ load_nvm_config(void)
   LOG6LBR_INFO("NVM Magic : %x\n", nvm_data.magic);
   LOG6LBR_INFO("NVM Version : %x\n", nvm_data.version);
 
-  check_nvm(&nvm_data);
+  check_nvm(&nvm_data, 0);
 }
 
 void
