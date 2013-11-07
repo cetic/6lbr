@@ -1391,6 +1391,8 @@ httpd_simple_get_script(const char *name)
 
   redirect = 0;
 
+  int admin = (nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0;
+
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
 #if CETIC_NODE_INFO
@@ -1405,62 +1407,57 @@ httpd_simple_get_script(const char *name)
     return generate_config;
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
-  } else if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-    if (0) {
+  } else if(admin && strcmp(name, "rpl-gr") == 0) {
 #if UIP_CONF_IPV6_RPL
-    } else if(strcmp(name, "rpl-gr") == 0) {
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
-      return generate_restart_page;
+	rpl_repair_root(RPL_DEFAULT_INSTANCE);
 #endif
-    } else if(memcmp(name, "route_rm?", 9) == 0) {
-      redirect = 1;
-      i = atoi(name + 9);
-      for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
-        if(i == 0) {
-          uip_ds6_route_rm(r);
-          break;
-        }
+    return generate_rpl;
+  } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
+    redirect = 1;
+    i = atoi(name + 9);
+    for(r = uip_ds6_route_head(); r != NULL; r = list_item_next(r), --i) {
+      if(i == 0) {
+        uip_ds6_route_rm(r);
+        break;
       }
-      return generate_network;
-    } else if(memcmp(name, "nbr_rm?", 7) == 0) {
-      redirect = 1;
-      uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
-      return generate_network;
-    } else if(memcmp(name, "config?", 7) == 0) {
-      if(update_config(name + 7)) {
-        return generate_config;
-      } else {
-        cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-        return generate_restart_page;
-      }
-    } else if(strcmp(name, "admin.html") == 0) {
-      return generate_admin;
-#if CONTIKI_TARGET_NATIVE
-    } else if(memcmp(name, "log?", 4) == 0) {
-      return send_log;
-    } else if(memcmp(name, "clear_log?", 4) == 0) {
-      clear_log();
-      return generate_restart_page;
-#endif
-    } else if(memcmp(name, "reset_config?", 12) == 0) {
-      check_nvm(&nvm_data, 1);
-      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-      return generate_restart_page;
-    } else if(memcmp(name, "restart?", 8) == 0) {
-      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-      return generate_restart_page;
-    } else if(memcmp(name, "reboot?", 7) == 0) {
-      cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
-      return generate_restart_page;
-    } else if(memcmp(name, "halt?", 5) == 0) {
-      cetic_6lbr_restart_type = CETIC_6LBR_HALT;
-      return generate_restart_page;
-    } else {
-      return generate_404;
     }
+    return generate_network;
+  } else if(admin && memcmp(name, "nbr_rm?", 7) == 0) {
+    redirect = 1;
+    uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
+    return generate_network;
+  } else if(admin && memcmp(name, "config?", 7) == 0) {
+    if(update_config(name + 7)) {
+      return generate_config;
+    } else {
+      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+      return generate_restart_page;
+    }
+  } else if(admin && strcmp(name, "admin.html") == 0) {
+    return generate_admin;
+#if CONTIKI_TARGET_NATIVE
+  } else if(admin && memcmp(name, "log?", 4) == 0) {
+    return send_log;
+  } else if(admin && memcmp(name, "clear_log?", 4) == 0) {
+    clear_log();
+    return generate_restart_page;
+#endif
+  } else if(admin && memcmp(name, "reset_config?", 12) == 0) {
+    check_nvm(&nvm_data, 1);
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    return generate_restart_page;
+  } else if(memcmp(name, "restart?", 8) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    return generate_restart_page;
+  } else if(memcmp(name, "reboot?", 7) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
+    return generate_restart_page;
+  } else if(memcmp(name, "halt?", 5) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_HALT;
+    return generate_restart_page;
 #if CONTIKI_TARGET_NATIVE
   } else if (access(filename, R_OK) == 0) {
-      return send_file;
+    return send_file;
 #endif
   } else {
     return generate_404;
