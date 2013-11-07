@@ -128,16 +128,6 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void
 cetic_6lbr_init(void)
 {
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-  uip_ipaddr_t loc_fipaddr;
-
-  //DODAGID = link-local address used !
-  uip_create_linklocal_prefix(&loc_fipaddr);
-  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &loc_fipaddr);
-  LOG6LBR_INFO("Configured as DODAG Root\n");
-#endif
-
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
 
   uip_ipaddr_copy(&wsn_ip_local_addr, &local->ipaddr);
@@ -251,6 +241,12 @@ cetic_6lbr_init(void)
     uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
   }
 #endif
+#endif
+
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+  //DODAGID = link-local address used !
+  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+  LOG6LBR_INFO("Configured as DODAG Root\n");
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
