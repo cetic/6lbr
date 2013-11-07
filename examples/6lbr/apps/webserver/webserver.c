@@ -1406,11 +1406,12 @@ httpd_simple_get_script(const char *name)
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
   } else if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-    if(strcmp(name, "rpl-gr") == 0) {
+    if (0) {
 #if UIP_CONF_IPV6_RPL
+    } else if(strcmp(name, "rpl-gr") == 0) {
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
+      return generate_restart_page;
 #endif
-      return generate_rpl;
     } else if(memcmp(name, "route_rm?", 9) == 0) {
       redirect = 1;
       i = atoi(name + 9);
