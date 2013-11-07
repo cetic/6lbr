@@ -1412,11 +1412,11 @@ httpd_simple_get_script(const char *name)
     return generate_config;
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
-  } else if(admin && strcmp(name, "rpl-gr") == 0) {
 #if UIP_CONF_IPV6_RPL
+  } else if(admin && strcmp(name, "rpl-gr") == 0) {
 	rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    return generate_restart_page;
 #endif
-    return generate_rpl;
   } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
     redirect = 1;
     i = atoi(name + 9);
