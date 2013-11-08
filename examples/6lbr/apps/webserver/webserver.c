@@ -1415,7 +1415,7 @@ httpd_simple_get_script(const char *name)
   } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
     redirect = 1;
     i = atoi(name + 9);
-    for(r = uip_ds6_route_head(); r != NULL; r = list_item_next(r), --i) {
+    for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
       if(i == 0) {
         uip_ds6_route_rm(r);
         break;
