@@ -156,8 +156,6 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
   }                             //End manual configuration
 #endif
 
@@ -208,10 +206,6 @@ cetic_6lbr_init(void)
   }
   LOG6LBR_6ADDR(INFO, &eth_ip_addr, "Tentative global IPv6 address (ETH) ");
 
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
-#endif
-
   //Ugly hack : in order to set WSN local address as the default address
   //We must add it afterwards as uip_ds6_addr_add allocates addr from the end of the list
   uip_ds6_addr_rm(local);
@@ -246,6 +240,13 @@ cetic_6lbr_init(void)
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   //DODAGID = link-local address used !
   cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+#if CETIC_6LBR_SMARTBRIDGE
+  if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+  }
+#else
+  rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+#endif
   LOG6LBR_INFO("Configured as DODAG Root\n");
 #endif
 
