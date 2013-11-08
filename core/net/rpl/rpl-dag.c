@@ -1177,8 +1177,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if (instance->current_dag->rank == ROOT_RANK(instance)) {
-    PRINTF("RPL: DODAG Root, ignoring DIO \n");
+  if(instance->current_dag->rank == ROOT_RANK(instance) && instance->current_dag != dag) {
+    PRINTF("RPL: Root ignored DIO for different DAG\n");
     return;
   }
 
