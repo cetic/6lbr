@@ -635,10 +635,15 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   }
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><h3>Actions</h3>");
-    add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+    add("<form action=\"rpl-gr\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger global repair\"/></form><br />");
+    add("<form action=\"rpl-reset\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Reset DIO timer\"/></form><br />");
+    add("<form action=\"rpl-child\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger child DIO\"/></form><br />");
   } else {
-    add("<br /><h3>Actions (disabled)</h3>");
-    add("Trigger global repair<br />");
+    add("<br /><h3>Actions</h3>");
+    add("Disabled<br />");
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -1408,8 +1413,16 @@ httpd_simple_get_script(const char *name)
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
 #if UIP_CONF_IPV6_RPL
-  } else if(admin && strcmp(name, "rpl-gr") == 0) {
+  } else if(admin && strcmp(name, "rpl-gr?") == 0) {
 	rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    return generate_restart_page;
+  } else if(admin && strcmp(name, "rpl-reset?") == 0) {
+    rpl_reset_dio_timer(rpl_get_instance(RPL_DEFAULT_INSTANCE));
+    return generate_restart_page;
+  } else if(admin && strcmp(name, "rpl-child?") == 0) {
+    uip_ipaddr_t addr;
+    uip_create_linklocal_rplnodes_mcast(&addr);
+    dis_output(&addr);
     return generate_restart_page;
 #endif
   } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
