@@ -297,6 +297,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     PROCESS_PAUSE();
   }
 
+  //clean up any early packet
+  uip_len = 0;
   process_start(&tcpip_process, NULL);
 
   PROCESS_PAUSE();
