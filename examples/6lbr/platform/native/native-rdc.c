@@ -45,6 +45,7 @@
 #include "net/queuebuf.h"
 #include "net/netstack.h"
 #include "packetutils.h"
+#include "sys/ctimer.h"
 #include "native-slip.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
@@ -62,6 +63,12 @@ extern long slip_received;
 #define MAX_CALLBACKS 16
 static int callback_pos;
 
+#ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
+#define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
+#else
+#define NATIVE_RDC_SLIP_TIMEOUT (CLOCK_SECOND)
+#endif
+
 /* a structure for calling back when packet data is coming back
    from radio... */
 struct tx_callback {
@@ -69,6 +76,7 @@ struct tx_callback {
   void *ptr;
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+  struct ctimer timeout;
 };
 
 static struct tx_callback callbacks[MAX_CALLBACKS];
@@ -77,16 +85,28 @@ static struct tx_callback callbacks[MAX_CALLBACKS];
 void
 packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
 {
+  LOG6LBR_PRINTF(PACKET, RADIO_OUT, "sid ack: %d (%d, %d)\n", sessionid, status, tx);
   if(sessionid < MAX_CALLBACKS) {
     struct tx_callback *callback;
 
     callback = &callbacks[sessionid];
     packetbuf_clear();
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+    ctimer_stop(&callback->timeout);
     mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
   } else {
     LOG6LBR_ERROR("*** ERROR: too high session id %d\n", sessionid);
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+packet_timeout(void *ptr)
+{
+  struct tx_callback *callback = ptr;
+  LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout\n");
+  packetbuf_clear();
+  packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+  mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -99,6 +119,7 @@ setup_callback(mac_callback_t sent, void *ptr)
   callback->cback = sent;
   callback->ptr = ptr;
   packetbuf_attr_copyto(callback->attrs, callback->addrs);
+  ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
 
   callback_pos++;
   if(callback_pos >= MAX_CALLBACKS) {
@@ -137,7 +158,8 @@ send_packet(mac_callback_t sent, void *ptr)
       LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
     } else {
-      LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d\n", packetbuf_datalen());
+      sid = setup_callback(sent, ptr);
+      LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d)\n", packetbuf_datalen(), sid);
       if (LOG6LBR_COND(DUMP, RADIO_OUT)) {
         uint8_t *data = packetbuf_dataptr();
         int len = packetbuf_datalen();
@@ -158,8 +180,6 @@ send_packet(mac_callback_t sent, void *ptr)
     #endif
         printf("\n");
       }
-
-      sid = setup_callback(sent, ptr);
 
       buf[0] = '!';
       buf[1] = 'S';

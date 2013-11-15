@@ -226,6 +226,7 @@ after_fread:
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
       } else if(inbuf[0] == 'E' && is_sensible_string(inbuf, inbufptr) ) {
         LOG6LBR_WRITE(ERROR, GLOBAL, inbuf + 1, inbufptr - 1);
+        LOG6LBR_APPEND(ERROR, GLOBAL, "\n");
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
