@@ -4,6 +4,8 @@ all: $(PROJECT)
 
 CONTIKI?=../..
 
+PROJECTDIRS += apps/webserver apps/udp-client apps/shell apps/coap
+
 WITH_UIP6=1
 UIP_CONF_IPV6=1
 CFLAGS += -DUIP_CONF_IPV6=1
