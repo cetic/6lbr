@@ -21,8 +21,8 @@ function application_watchdog () {
 	LAST_TIMESTAMP=""
 	NBR_OF_RETRIES=$DEFAULT_NBR_OF_RETRIES
 	while ((1)); do
-		#Add one second to avoid being synchronized with 6LBR
-		sleep $((WATCHDOG_INTERVAL + 1))
+		#Avoid being synchronized with 6LBR
+		sleep $((WATCHDOG_INTERVAL * 3 / 2 + 1))
 		if [ `uname` = "Linux" ]; then
 			TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
 		else
