@@ -96,7 +96,7 @@ fi
 
 # Reliability
 if [ "$STOP_AFTER_CRASH" == "" ]; then
-	STOP_AFTER_CRASH="1"
+	STOP_AFTER_CRASH="0"
 fi
 
 if [ "$WATCHDOG_INTERVAL" == "" ]; then

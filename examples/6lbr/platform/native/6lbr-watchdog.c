@@ -62,7 +62,6 @@ PROCESS_THREAD(native_6lbr_watchdog, ev, data)
     PROCESS_YIELD();
     if(etimer_expired(&et)) {
       FILE *watchdog_file = fopen(watchdog_file_name, "w");
-      fprintf(watchdog_file, "%ld\n", time(NULL));
       fclose(watchdog_file);
       etimer_reset(&et);
     }

@@ -1,9 +1,44 @@
 #!/bin/bash
 
 ################################################################################
-# If this script is killed, kills all the child processes
+# Initialization
 
-trap 'JOBS=$(jobs -p); if [ $JOBS ]; then kill $JOBS; echo "6LBR killed" > /dev/stderr; fi' EXIT
+DEFAULT_NBR_OF_RETRIES=3
+PID_6LBR=0
+PID_WATCHDOG=0
+BIN=""
+PARAMS=""
+
+################################################################################
+# If this script is killed, kills child processes
+
+trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" > /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+
+################################################################################
+# Application Watchdog
+
+function application_watchdog () {
+	LAST_TIMESTAMP=""
+	NBR_OF_RETRIES=$DEFAULT_NBR_OF_RETRIES
+	while ((1)); do
+		#Add one second to avoid being synchronized with 6LBR
+		sleep $((WATCHDOG_INTERVAL + 1))
+		TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
+		if [ "$LAST_TIMESTAMP" != "$TIMESTAMP" ]; then
+			LAST_TIMESTAMP=$TIMESTAMP
+			NBR_OF_RETRIES=$DEFAULT_NBR_OF_RETRIES
+		else
+			NBR_OF_RETRIES=$((NBR_OF_RETRIES - 1))
+			if (( NBR_OF_RETRIES == 0 )); then
+				echo "6LBR watchdog failure, restarting..." >> /dev/stderr
+				if ((PID_6LBR != 0)); then
+					kill $PID_6LBR
+					break
+				fi
+			fi
+		fi
+	done
+}
 
 ################################################################################
 # Read config file
@@ -98,6 +133,25 @@ fi
 
 PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES -W $WATCHDOG_FILE -P $WATCHDOG_INTERVAL $EXTRA_PARAMS $*"
 
+if [ "$MODE" = 'ROUTER' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_router
+elif [ "$MODE" = 'SMART-BRIDGE' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_smart_bridge
+elif [ "$MODE" = 'RPL-RELAY' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_rpl_relay
+elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_full_transparent_bridge
+elif [ "$MODE" = 'NDP-ROUTER' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_ndp_router
+elif [ "$MODE" = '6LR' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_6lr
+elif [ "$MODE" = 'RPL-ROOT' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_rpl_root
+else
+	echo "Mode '$MODE' unknown, starting as router"
+	BIN=$BIN_6LBR/cetic_6lbr_router
+fi
+
 ################################################################################
 # Launch 6LBR in a loop
 
@@ -108,27 +162,26 @@ while ((1)); do
 	echo "********************************************************************************" > /dev/stderr
 	echo $TIMESTAMP > /dev/stderr
 	
-	if [ "$MODE" = 'ROUTER' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_router
-	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_smart_bridge
-	elif [ "$MODE" = 'RPL-RELAY' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_rpl_relay
-	elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_full_transparent_bridge
-	elif [ "$MODE" = 'NDP-ROUTER' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_ndp_router
-	elif [ "$MODE" = '6LR' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_6lr
-	elif [ "$MODE" = 'RPL-ROOT' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_rpl_root
-	else
-		echo "Mode '$MODE' unknown, starting as router"
-		BIN=$BIN_6LBR/cetic_6lbr_router
-	fi
 	echo "$BIN $PARAMS"
-	$BIN $PARAMS
+	$BIN $PARAMS &
+	PID_6LBR=$!
+	
+	if [ $WATCHDOG_INTERVAL != "0" ]; then
+		application_watchdog &
+		PID_WATCHDOG=$!
+	fi
+	
+	wait $PID_6LBR
 	ECODE=$?
+	PID_6LBR=0
+	
+	if ((PID_WATCHDOG != 0)); then
+		if kill -0 $PID_WATCHDOG 2> /dev/null; then
+			kill $PID_WATCHDOG
+			wait $PID_WATCHDOG
+		fi
+		PID_WATCHDOG=0
+	fi
 	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
         echo `date`" : $BIN failed, exit code: $ECODE" > /dev/stderr
