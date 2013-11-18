@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +29,14 @@
 
 /**
  * \file
- *         Header file for the Slip configuration
+ *         Header file for 6LBR watchdog for the native Linux platform
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SLIP_CONFIG_H_
-#define SLIP_CONFIG_H_
+#ifndef NATIVE_6LBR_WATCHDOG_H_
+#define NATIVE_6LBR_WATCHDOG_H_
 
-#include <stdint.h>
-#include <termios.h>
-
-extern int contiki_argc;
-extern char **contiki_argv;
-
-extern int slip_config_handle_arguments(int argc, char **argv);
-
-extern int slip_config_flowcontrol;
-extern int slip_config_timestamp;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern char const *default_nvm_file;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
-extern speed_t slip_config_b_rate;
-extern char const *slip_config_ifup_script;
-extern char const *slip_config_ifdown_script;
-extern char const *slip_config_www_root;
-extern int watchdog_interval;
-extern char const * watchdog_file_name;
+PROCESS_NAME(native_6lbr_watchdog);
 
 #endif

@@ -62,9 +62,8 @@
 #include "node-info.h"
 
 #if CONTIKI_TARGET_NATIVE
-extern int contiki_argc;
-extern char **contiki_argv;
-extern int slip_config_handle_arguments(int argc, char **argv);
+#include "6lbr-watchdog.h"
+#include "slip-config.h"
 #endif
 
 //Initialisation flags
@@ -283,6 +282,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
 #if CONTIKI_TARGET_NATIVE
   slip_config_handle_arguments(contiki_argc, contiki_argv);
+  if (watchdog_interval) {
+    process_start(&native_6lbr_watchdog, NULL);
+  } else {
+    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  }
 #endif
 
   LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");

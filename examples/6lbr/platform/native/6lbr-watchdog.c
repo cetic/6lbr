@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +29,47 @@
 
 /**
  * \file
- *         Header file for the Slip configuration
+ *         Basic watchdog for the native Linux platform
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SLIP_CONFIG_H_
-#define SLIP_CONFIG_H_
+#define LOG6LBR_MODULE "ETH"
 
-#include <stdint.h>
-#include <termios.h>
+#include "contiki.h"
+#include "log-6lbr.h"
+#include <stdio.h>
+#include <time.h>
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "6lbr-watchdog.h"
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+PROCESS(native_6lbr_watchdog, "6LBR native watchdog");
 
-extern int slip_config_flowcontrol;
-extern int slip_config_timestamp;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern char const *default_nvm_file;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
-extern speed_t slip_config_b_rate;
-extern char const *slip_config_ifup_script;
-extern char const *slip_config_ifdown_script;
-extern char const *slip_config_www_root;
-extern int watchdog_interval;
-extern char const * watchdog_file_name;
+int watchdog_interval = 60;
+char const * watchdog_file_name = "/var/log/6lbr.timestamp";
 
-#endif
+/*---------------------------------------------------------------------------*/
+
+PROCESS_THREAD(native_6lbr_watchdog, ev, data)
+{
+  static struct etimer et;
+
+  PROCESS_BEGIN();
+
+  LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", watchdog_interval);
+  etimer_set(&et, watchdog_interval);
+  while(1) {
+    PROCESS_YIELD();
+    if(etimer_expired(&et)) {
+      FILE *watchdog_file = fopen(watchdog_file_name, "w");
+      fprintf(watchdog_file, "%ld\n", time(NULL));
+      fclose(watchdog_file);
+      etimer_reset(&et);
+    }
+  }
+
+  PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
+
