@@ -12,7 +12,7 @@ PARAMS=""
 ################################################################################
 # If this script is killed, kills child processes
 
-trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" > /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
 
 ################################################################################
 # Application Watchdog
@@ -163,8 +163,8 @@ while ((1)); do
 	TIMESTAMP=`date`" : Starting 6LBR "
 	echo "********************************************************************************"
 	echo $TIMESTAMP
-	echo "********************************************************************************" > /dev/stderr
-	echo $TIMESTAMP > /dev/stderr
+	echo "********************************************************************************" >> /dev/stderr
+	echo $TIMESTAMP >> /dev/stderr
 	
 	echo "$BIN $PARAMS"
 	$BIN $PARAMS &
@@ -188,7 +188,7 @@ while ((1)); do
 	fi
 	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
-        echo `date`" : $BIN failed, exit code: $ECODE" > /dev/stderr
+        echo `date`" : $BIN failed, exit code: $ECODE" >> /dev/stderr
         if [ "$STOP_AFTER_CRASH" == "1" ]; then
 			break
 		fi
