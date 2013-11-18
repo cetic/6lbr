@@ -3,7 +3,7 @@
 ################################################################################
 # Initialization
 
-DEFAULT_NBR_OF_RETRIES=3
+DEFAULT_WATCHDOG_SCALE=3
 PID_6LBR=0
 PID_WATCHDOG=0
 BIN=""
@@ -19,26 +19,20 @@ trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/st
 
 function application_watchdog () {
 	LAST_TIMESTAMP=""
-	NBR_OF_RETRIES=$DEFAULT_NBR_OF_RETRIES
+	WATCHDOG_LIMIT=$((WATCHDOG_INTERVAL * DEFAULT_WATCHDOG_SCALE))
 	while ((1)); do
-		#Avoid being synchronized with 6LBR
-		sleep $((WATCHDOG_INTERVAL * 3 / 2 + 1))
+		sleep 1
 		if [ `uname` = "Linux" ]; then
 			TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
 		else
 			TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
 		fi
-		if [ "$LAST_TIMESTAMP" != "$TIMESTAMP" ]; then
-			LAST_TIMESTAMP=$TIMESTAMP
-			NBR_OF_RETRIES=$DEFAULT_NBR_OF_RETRIES
-		else
-			NBR_OF_RETRIES=$((NBR_OF_RETRIES - 1))
-			if (( NBR_OF_RETRIES == 0 )); then
-				echo "6LBR watchdog failure, restarting..." >> /dev/stderr
-				if ((PID_6LBR != 0)); then
-					kill $PID_6LBR
-					break
-				fi
+		TIME=`date +%s`
+		if (( TIME - TIMESTAMP > WATCHDOG_LIMIT )); then
+			echo "6LBR watchdog failure, restarting..." >> /dev/stderr
+			if ((PID_6LBR != 0)); then
+				kill $PID_6LBR
+				break
 			fi
 		fi
 	done
