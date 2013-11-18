@@ -96,7 +96,7 @@ if [ "$LOG_SERVICES" != "" ]; then
 	LOG_SERVICES="-S $LOG_SERVICES"
 fi
 
-PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES $EXTRA_PARAMS $*"
+PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES -W $WATCHDOG_FILE -P $WATCHDOG_INTERVAL $EXTRA_PARAMS $*"
 
 ################################################################################
 # Launch 6LBR in a loop

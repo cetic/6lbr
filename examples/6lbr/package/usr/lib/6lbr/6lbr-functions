@@ -94,8 +94,17 @@ if [ "$LOG_6LBR_ERR" == "" ]; then
 	LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
 fi
 
+# Reliability
 if [ "$STOP_AFTER_CRASH" == "" ]; then
 	STOP_AFTER_CRASH="1"
+fi
+
+if [ "$WATCHDOG_INTERVAL" == "" ]; then
+	WATCHDOG_INTERVAL="60"
+fi
+
+if [ "$WATCHDOG_FILE" == "" ]; then
+	WATCHDOG_FILE="/var/log/6lbr.timestamp"
 fi
 
 # function config_default
