@@ -3,10 +3,16 @@
 
 function config_default () {
 
+# Configuration location
+
+if [ "$ETC_6LBR" == "" ]; then
+	ETC_6LBR=/etc/6lbr
+fi
+
 # NVM and mode
 
 if [ "$NVM" = "" ]; then
-	NVM=/etc/6lbr/nvm.dat
+	NVM=$ETC_6LBR/nvm.dat
 fi
 
 if [ "$MODE" = "" ]; then
