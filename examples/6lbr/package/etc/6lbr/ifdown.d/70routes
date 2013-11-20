@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+if [ $MODE_6LBR != "tap"]; then
+	exit
+fi
+
+case $OS in
+	Linux)
+		netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
+		;;
+	Darwin)
+		;;
+	*)
+		echo Unknown OS
+esac
