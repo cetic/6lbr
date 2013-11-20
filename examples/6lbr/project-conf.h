@@ -211,7 +211,7 @@
 /*------------------------------------------------------------------*/
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM         200
+#define QUEUEBUF_CONF_NUM         256
 
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     200
@@ -230,6 +230,8 @@
 #define NETSTACK_CONF_MAC     csma_driver
 
 #define CSMA_CONF_MAX_NEIGHBOR_QUEUES 16
+
+#define CSMA_CONF_MAX_PACKET_PER_NEIGHBOR (QUEUEBUF_CONF_NUM/CSMA_CONF_MAX_NEIGHBOR_QUEUES)
 
 #define NATIVE_RDC_CONF_SLIP_TIMEOUT (CLOCK_SECOND)
 
