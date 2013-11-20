@@ -20,7 +20,7 @@ PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_client_process);
 #endif
 #if WITH_COAP
-PROCESS_NAME(rest_server_example);
+PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -37,7 +37,7 @@ start_apps(void)
 #endif
 
 #if WITH_COAP
-  process_start(&rest_server_example, NULL);
+  process_start(&coap_server_process, NULL);
 #endif
 }
 

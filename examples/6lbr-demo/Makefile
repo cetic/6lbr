@@ -8,9 +8,9 @@ WITH_RPL=1
 # Applications 
 
 WITH_SHELL=0
-WITH_UDPCLIENT=1
-WITH_WEBSERVER=1
-WITH_COAPSERVER=0
+WITH_UDPCLIENT=0
+WITH_WEBSERVER=0
+WITH_COAPSERVER=1
 
 # UDP client configuration
 
@@ -66,7 +66,7 @@ CFLAGS += -DREST=coap_rest_implementation
 CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-13
 APPS += erbium
-PROJECT_SOURCEFILES += er-example-server.c
+PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c
 endif
 
 ifneq ($(UDP_PERIOD),)
