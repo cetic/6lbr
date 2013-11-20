@@ -13,7 +13,7 @@ if [ "$BRIDGE" != "1" ]; then
 	exit
 fi
 
-if [ $MODE_6LBR != "tap"]; then
+if [ $MODE_6LBR != "tap" ]; then
 	exit
 fi
 

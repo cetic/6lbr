@@ -1,12 +1,12 @@
 #!/bin/bash
 
 . $CETIC_6LBR_CONF
-`dirname $0`/6lbr-functions
+. `dirname $0`/6lbr-functions
 
 config_default
 
 for i in `ls $ETC_6LBR/ifup.d`; do
-	file=$ETC_6LBR/$i
+	file=$ETC_6LBR/ifup.d/$i
 	if [ -x $file ]; then
 		$file $LIB_6LBR "$@"
 	fi

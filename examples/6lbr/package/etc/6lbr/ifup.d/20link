@@ -13,7 +13,7 @@ MODE_6LBR=$2
 DEV=$3
 OS=`uname`
 
-if [ $MODE_6LBR != "tap"]; then
+if [ $MODE_6LBR != "tap" ]; then
 	exit
 fi
 

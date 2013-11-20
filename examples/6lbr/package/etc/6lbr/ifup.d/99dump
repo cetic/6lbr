@@ -1,12 +1,12 @@
 #!/bin/bash
 
 . $CETIC_6LBR_CONF
-. `dirname $0`/6lbr-functions
+. $1/6lbr-functions
 
 config_default
 
-MODE_6LBR=$1
-DEV=$2
+MODE_6LBR=$2
+DEV=$3
 OS=`uname`
 
 if [ "$BRIDGE" = "1" ]; then
