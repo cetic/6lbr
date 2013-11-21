@@ -10,9 +10,13 @@ BIN=""
 PARAMS=""
 
 ################################################################################
-# If this script is killed, kills child processes
+#Signals management
 
+#If this script is killed, kills child processes
 trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+
+#Ignore sighup
+trap '' HUP
 
 ################################################################################
 # Application Watchdog
