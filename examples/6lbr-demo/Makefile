@@ -2,20 +2,20 @@ PROJECT?=6lbr-demo
 
 # Configuration
 
-RF_CHANNEL=26
-WITH_RPL=1
+RF_CHANNEL?=26
+WITH_RPL?=1
 
 # Applications 
 
-WITH_SHELL=0
-WITH_UDPCLIENT=0
-WITH_WEBSERVER=0
-WITH_COAPSERVER=1
+WITH_SHELL?=0
+WITH_UDPCLIENT?=0
+WITH_WEBSERVER?=0
+WITH_COAPSERVER?=1
 
 # UDP client configuration
 
-UDP_PERIOD=5
-WITH_UDP_CLIENT_AUTOSTART=1
+UDP_PERIOD?=5
+WITH_UDP_CLIENT_AUTOSTART?=1
 
 # End of user configuration section
 
@@ -23,7 +23,9 @@ all: $(PROJECT)
 
 CONTIKI?=../..
 
-PROJECTDIRS += apps/webserver apps/udp-client apps/shell apps/coap
+PROJECTDIR?=.
+
+PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client $(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
