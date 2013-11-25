@@ -4,7 +4,7 @@
 #include "contiki.h"
 #include "dev/light-sensor.h"
 
-#ifdef PLATFORM_HAS_LIGHT
+#if PLATFORM_HAS_LIGHT
 #ifdef REST_CONF_RES_LIGHT
 #define REST_RES_LIGHT REST_CONF_RES_LIGHT
 #else
@@ -30,19 +30,25 @@
 
 #if REST_RES_LIGHT_PERIODIC
 
-#define REST_RES_LIGHT_DEFINE() extern periodic_resource_t periodic_resource_light;
+#define REST_RES_LIGHT_DEFINE() \
+  extern periodic_resource_t periodic_resource_light_photo; \
+  extern periodic_resource_t periodic_resource_light_solar; \
 
 #define REST_RES_LIGHT_INIT() \
   SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_light);
+  rest_activate_periodic_resource(&periodic_resource_light_photo); \
+  rest_activate_periodic_resource(&periodic_resource_light_solar);
 
 #else
 
-#define REST_RES_LIGHT_DEFINE() extern resource_t resource_light;
+#define REST_RES_LIGHT_DEFINE() \
+  extern resource_t resource_light_photo; \
+  extern resource_t resource_light_solar;
 
 #define REST_RES_LIGHT_INIT() \
   SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_resource(&resource_light);
+  rest_activate_resource(&resource_light_photo); \
+  rest_activate_resource(&resource_light_solar);
 
 #endif
 

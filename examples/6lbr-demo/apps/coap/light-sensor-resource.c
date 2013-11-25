@@ -3,19 +3,24 @@
 
 #if REST_RES_LIGHT
 #if REST_RES_LIGHT_PERIODIC
-#define REST_RES_LIGHT_RESOURCE REST_PERIODIC_RESOURCE_TWO_INT
+#define REST_RES_LIGHT_RESOURCE REST_PERIODIC_RESOURCE_ONE_INT
 #else
-#define REST_RES_LIGHT_RESOURCE REST_RESOURCE_TWO_INT
+#define REST_RES_LIGHT_RESOURCE REST_RESOURCE_ONE_INT
 #endif
 #else
 #define REST_RES_LIGHT_RESOURCE(...)
 #endif
 
-REST_RES_LIGHT_RESOURCE(light,
+REST_RES_LIGHT_RESOURCE(light_photo,
     REST_RES_LIGHT_PERIOD,
-    "sensors/light",
-    "Photosynthetic and solar light",
-    "LightSensor",
-    "photosynthetic", light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC),
-    "solar", light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR))
+    SENSOR_PATH LIGHT_PHOTOSYNTHETIC_SENSOR_RES,
+    IF_SENSOR,
+    LIGHT_RAW_RT,
+    "photosynthetic", light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC))
 
+REST_RES_LIGHT_RESOURCE(light_solar,
+    REST_RES_LIGHT_PERIOD,
+    SENSOR_PATH LIGHT_SOLAR_SENSOR_RES,
+    IF_SENSOR,
+    LIGHT_RAW_RT,
+    "solar", light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR))

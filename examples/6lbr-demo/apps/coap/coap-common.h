@@ -9,6 +9,7 @@
 
 #include "erbium.h"
 #include "er-coap-13.h"
+#include "ipso-profile.h"
 
 #if ( defined REST_TYPE_TEXT_PLAIN && (defined REST_TYPE_APPLICATION_XML || defined REST_TYPE_APPLICATION_JSON) ) || \
     (defined REST_TYPE_APPLICATION_XML && defined REST_TYPE_APPLICATION_JSON)
@@ -36,7 +37,7 @@
 #ifdef REST_TYPE_APPLICATION_XML
 
 #define REST_FORMAT_ONE_INT(buffer, resource_name, sensor_name, sensor) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_name"=\"%u\"/>", (sensor_a))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "sensor_name"=\"%u\"/>", (sensor))
 
 #define REST_FORMAT_TWO_INT(buffer, resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%u\" "sensor_b_name"=\"%u\"/>", (sensor_a), (sensor_b))
@@ -50,7 +51,7 @@
 #ifdef REST_TYPE_APPLICATION_JSON
 
 #define REST_FORMAT_ONE_INT(buffer, resource_name, sensor_name, sensor) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"#resource_name"':{'"sensor_name"':%u,'}}", (sensor_a))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"sensor_name"':%u}", (sensor))
 
 #define REST_FORMAT_TWO_INT(buffer, resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"#resource_name"':{'"sensor_a_name"':%u,'"sensor_b_name"':%u}}", (sensor_a), (sensor_b))
@@ -62,7 +63,7 @@
 #endif
 
 
-#define REST_RESPONSE_ONE_INT(resource_name, sensor_name, sensor) { \
+#define REST_RESOURCE_RESPONSE_ONE_INT(resource_name, sensor_name, sensor) { \
   const uint16_t *accept = NULL; \
   int num = REST.get_header_accept(request, &accept); \
   if ((num==0) || (num && accept[0]==REST_TYPE)) \
@@ -74,6 +75,37 @@
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
     const char *msg = REST_TYPE_ERROR; \
     REST.set_response_payload(response, msg, strlen(msg)); \
+  } \
+}
+
+#define REST_ACTUATOR_RESPONSE_ONE_INT(resource_name, actuator_name, actuator_value, actuator_set) { \
+  const uint16_t *accept = NULL; \
+  int num = REST.get_header_accept(request, &accept); \
+  if (REST.get_method_type(request) & METHOD_GET) {\
+    if ((num==0) || (num && accept[0]==REST_TYPE)) \
+    { \
+      REST.set_header_content_type(response, REST_TYPE); \
+      REST_FORMAT_ONE_INT(buffer, resource_name, actuator_name, actuator_value); \
+      REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer)); \
+    } else { \
+      REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
+      const char *msg = REST_TYPE_ERROR; \
+      REST.set_response_payload(response, msg, strlen(msg)); \
+    } \
+  }  else {\
+    const uint8_t * payload; \
+    char * endstr; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    if (len) { \
+      int value = strtol((char const *)payload, &endstr, 10); \
+      if ( ! *endstr ) { \
+          success = actuator_set(value); \
+      } \
+    } \
+    if (!success) { \
+      REST.set_response_status(response, REST.status.BAD_REQUEST); \
+    } \
   } \
 }
 
@@ -144,7 +176,14 @@
   void \
   resource_name##_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    REST_RESPONSE_ONE_INT(resource_name, sensor_name, sensor); \
+    REST_RESOURCE_RESPONSE_ONE_INT(resource_name, sensor_name, sensor); \
+  }
+
+#define REST_ACTUATOR_HANDLER_ONE_INT(resource_name, sensor_name, sensor, actuator) \
+  void \
+  resource_name##_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    REST_ACTUATOR_RESPONSE_ONE_INT(resource_name, sensor_name, sensor, actuator); \
   }
 
 #define REST_RESOURCE_PERIODIC_HANDLER_ONE_INT(resource_name, sensor_name, sensor) \
@@ -183,32 +222,36 @@
   }
 
 
-#define REST_RESOURCE_ONE_INT(resource_name, ignore, resource_path, resource_title, resource_type, sensor_name, sensor) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\""); \
+#define REST_RESOURCE_ONE_INT(resource_name, ignore, resource_path, resource_if, resource_type, sensor_name, sensor) \
+  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";poll"); \
   REST_RESOURCE_HANDLER_ONE_INT(resource_name, sensor_name, sensor)
 
-#define REST_PERIODIC_RESOURCE_ONE_INT(resource_name, resource_period, resource_path, resource_title, resource_type, sensor_name, sensor) \
-  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\";obs", resource_period); \
+#define REST_ACTUATOR_ONE_INT(resource_name, ignore, resource_path, resource_if, resource_type, sensor_name, sensor, actuator) \
+  RESOURCE(resource_name, METHOD_GET | METHOD_PUT, resource_path, "if=\""resource_if"\";rt=\""resource_type"\""); \
+  REST_ACTUATOR_HANDLER_ONE_INT(resource_name, sensor_name, sensor, actuator)
+
+#define REST_PERIODIC_RESOURCE_ONE_INT(resource_name, resource_period, resource_path, resource_if, resource_type, sensor_name, sensor) \
+  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs", resource_period); \
   REST_RESOURCE_HANDLER_ONE_INT(resource_name, sensor_name, sensor) \
   REST_RESOURCE_PERIODIC_HANDLER_ONE_INT(resource_name, sensor_name, sensor) \
 
-#define REST_EVENT_RESOURCE_ONE_INT(resource_name, ignore, resource_path, resource_title, resource_type, sensor_name, sensor) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\";obs"); \
+#define REST_EVENT_RESOURCE_ONE_INT(resource_name, ignore, resource_path, resource_if, resource_type, sensor_name, sensor) \
+  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs"); \
   REST_RESOURCE_HANDLER_ONE_INT(resource_name, sensor_name, sensor) \
   REST_RESOURCE_EVENT_HANDLER_ONE_INT(resource_name, sensor_name, sensor) \
 
 
-#define REST_RESOURCE_TWO_INT(resource_name, ignore, resource_path, resource_title, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\""); \
+#define REST_RESOURCE_TWO_INT(resource_name, ignore, resource_path, resource_if, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
+  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";poll"); \
   REST_RESOURCE_HANDLER_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b)
 
-#define REST_PERIODIC_RESOURCE_TWO_INT(resource_name, resource_period, resource_path, resource_title, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\";obs", resource_period); \
+#define REST_PERIODIC_RESOURCE_TWO_INT(resource_name, resource_period, resource_path, resource_if, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
+  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs", resource_period); \
   REST_RESOURCE_HANDLER_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
   REST_RESOURCE_PERIODIC_HANDLER_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
 
-#define REST_EVENT_RESOURCE_TWO_INT(resource_name, ignore, resource_path, resource_title, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "title=\""resource_title"\";rt=\""resource_type"\";obs", resource_period); \
+#define REST_EVENT_RESOURCE_TWO_INT(resource_name, ignore, resource_path, resource_if, resource_type, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
+  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs", resource_period); \
   REST_RESOURCE_HANDLER_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
   REST_RESOURCE_EVENT_HANDLER_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
 

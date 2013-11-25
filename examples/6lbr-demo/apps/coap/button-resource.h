@@ -4,7 +4,7 @@
 #include "contiki.h"
 #include "dev/button-sensor.h"
 
-#ifdef PLATFORM_HAS_BUTTON
+#if PLATFORM_HAS_BUTTON
 #ifdef REST_CONF_RES_BUTTON
 #define REST_RES_BUTTON REST_CONF_RES_BUTTON
 #else
@@ -30,11 +30,18 @@
   SENSORS_ACTIVATE(button_sensor); \
   rest_activate_event_resource(&resource_button);
 
+#define REST_RES_BUTTON_EVENT_HANDLER(ev, data) \
+    if (ev == sensors_event && data == &button_sensor) { \
+      button_event_handler(&resource_button); \
+    }
+
 #else
 
 #define REST_RES_BUTTON_INIT() \
   SENSORS_ACTIVATE(button_sensor); \
   rest_activate_resource(&resource_button);
+
+#define REST_RES_BUTTON_EVENT_HANDLER(...)
 
 #endif
 
@@ -42,6 +49,7 @@
 
 #define REST_RES_BUTTON_DEFINE()
 #define REST_RES_BUTTON_INIT()
+#define REST_RES_BUTTON_EVENT_HANDLER(...)
 
 #endif
 

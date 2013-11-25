@@ -13,8 +13,8 @@
 
 REST_RES_BUTTON_RESOURCE(button,
     ,
-    "sensors/button",
+    GPIO_PATH GPIO_BUTTON_RES "0",
     "button",
-    "button",
-    "photosynthetic", button_sensor.value(0))
+    GPIO_BUTTON_RT,
+    "count", button_sensor.value(0))
 
