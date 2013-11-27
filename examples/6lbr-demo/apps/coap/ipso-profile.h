@@ -79,14 +79,14 @@
 
 // OTHER
 
-#define LIGHT_PHOTOSYNTHETIC_SENSOR_RES "photo"
-#define LIGHT_SOLAR_SENSOR_RES "solar"
-#define LIGHT_RAW_RT "raw"
+#define LIGHT_PHOTOSYNTHETIC_SENSOR_RES SENSOR_PATH "photo"
+#define LIGHT_SOLAR_SENSOR_RES SENSOR_PATH "solar"
 #define TEMPERATURE_SENSOR_RES SENSOR_PATH "temp"
 #define HUMIDITY_SENSOR_RES SENSOR_PATH "humidity"
 
-#define TEMPERATURE_RT "ucum:Cel"
-#define RELATIVE_HUMIDITY_RT "ucum:%RH"
+#define LIGHT_SENSOR_RT "ucum:lx"
+#define TEMPERATURE_SENSOR_RT "ucum:Cel"
+#define RELATIVE_HUMIDITY_SENSOR_RT "ucum:%RH"
 
 // Interface Description
 
