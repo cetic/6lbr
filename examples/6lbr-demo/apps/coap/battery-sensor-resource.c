@@ -14,7 +14,7 @@
 #if REST_RES_BATTERY_RAW
 #define REST_REST_BATTERY_VALUE REST_FORMAT_ONE_INT("v", battery_sensor.value(0))
 #else
-#define REST_REST_BATTERY_VALUE REST_FORMAT_ONE_DECIMAL("v", battery_sensor.value(0)/819, (10*battery_sensor.value(0)/819) % 10)
+#define REST_REST_BATTERY_VALUE REST_FORMAT_ONE_DECIMAL("v", battery_sensor.value(0), value / 819, (10 * value / 819) % 10)
 #endif
 
 REST_RES_BATTERY_RESOURCE(battery,
