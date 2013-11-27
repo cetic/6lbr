@@ -1,6 +1,7 @@
 #include "coap-common.h"
 #include "light-sensor-resource.h"
 #include "temp-sensor-resource.h"
+#include "humidity-sensor-resource.h"
 #include "battery-sensor-resource.h"
 #include "button-resource.h"
 #include "leds-resource.h"
@@ -12,6 +13,7 @@
 //Define all resources
 REST_RES_LIGHT_DEFINE();
 REST_RES_TEMP_DEFINE();
+REST_RES_HUMIDITY_DEFINE();
 REST_RES_BATTERY_DEFINE();
 REST_RES_BUTTON_DEFINE();
 REST_RES_LEDS_DEFINE();
@@ -33,6 +35,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   //Init all resources
   REST_RES_LIGHT_INIT();
   REST_RES_TEMP_INIT();
+  REST_RES_HUMIDITY_INIT();
   REST_RES_BATTERY_INIT();
   REST_RES_BUTTON_INIT();
   REST_RES_LEDS_INIT();

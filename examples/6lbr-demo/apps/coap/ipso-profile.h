@@ -83,8 +83,10 @@
 #define LIGHT_SOLAR_SENSOR_RES "solar"
 #define LIGHT_RAW_RT "raw"
 #define TEMPERATURE_SENSOR_RES SENSOR_PATH "temp"
+#define HUMIDITY_SENSOR_RES SENSOR_PATH "humidity"
 
 #define TEMPERATURE_RT "ucum:Cel"
+#define RELATIVE_HUMIDITY_RT "ucum:%RH"
 
 // Interface Description
 
