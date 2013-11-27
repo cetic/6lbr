@@ -2,6 +2,7 @@
 #define LIGHT_SENSOR_RESOURCE_H
 
 #include "contiki.h"
+
 #if PLATFORM_HAS_LIGHT
 #include "dev/light-sensor.h"
 #endif
@@ -26,6 +27,12 @@
 #define REST_RES_LIGHT_PERIOD REST_CONF_RES_LIGHT_PERIOD
 #else
 #define REST_RES_LIGHT_PERIOD (5*CLOCK_SECOND)
+#endif
+
+#if REST_CONF_RES_LIGHT_RAW
+#define REST_RES_LIGHT_RAW REST_CONF_RES_LIGHT_RAW
+#else
+#define REST_RES_LIGHT_RAW 0
 #endif
 
 #if REST_RES_LIGHT

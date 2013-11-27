@@ -11,9 +11,15 @@
 #define REST_RES_BATTERY_RESOURCE(...)
 #endif
 
+#if REST_RES_BATTERY_RAW
+#define REST_REST_BATTERY_VALUE REST_FORMAT_ONE_INT("v", battery_sensor.value(0))
+#else
+#define REST_REST_BATTERY_VALUE REST_FORMAT_ONE_DECIMAL("v", battery_sensor.value(0)/819, (10*battery_sensor.value(0)/819) % 10)
+#endif
+
 REST_RES_BATTERY_RESOURCE(battery,
     REST_RES_BATTERY_PERIOD,
     DEVICE_POWER_SUPPLY_RES "0" DEVICE_POWER_SUPPLY_VOLTAGE_RES,
     IF_SENSOR,
     DEVICE_POWER_SUPPLY_VOLTAGE_RT,
-    REST_FORMAT_ONE_DECIMAL("v", battery_sensor.value(0)/819, (10*battery_sensor.value(0)/819) % 10))
+    REST_REST_BATTERY_VALUE)

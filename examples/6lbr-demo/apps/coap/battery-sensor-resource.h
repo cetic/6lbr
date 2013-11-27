@@ -2,7 +2,10 @@
 #define BATTERY_SENSOR_RESOURCE_H
 
 #include "contiki.h"
+
+#if PLATFORM_HAS_BATTERY
 #include "dev/battery-sensor.h"
+#endif
 
 #if PLATFORM_HAS_BATTERY
 #ifdef REST_CONF_RES_BATTERY
@@ -24,6 +27,12 @@
 #define REST_RES_BATTERY_PERIOD REST_CONF_RES_BATTERY_PERIOD
 #else
 #define REST_RES_BATTERY_PERIOD (5*CLOCK_SECOND)
+#endif
+
+#ifdef REST_RES_BATTERY_RAW
+#define REST_RES_BATTERY_RAW REST_CONF_RES_BATTERY_RAW
+#else
+#define REST_RES_BATTERY_RAW 0
 #endif
 
 #if REST_RES_BATTERY
