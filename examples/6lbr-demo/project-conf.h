@@ -29,8 +29,26 @@
  * $Id: project-conf.h,v 1.1 2010/11/03 15:46:41 adamdunkels Exp $
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+#ifndef CETIC_6LBR_DEMO_PROJECT_CONF_H
+#define CETIC_6LBR_DEMO_PROJECT_CONF_H
+
+/* COAP Resources instanciation */
+
+/* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
+#define REST_CONF_RES_BATTERY 0
+#define REST_CONF_RES_BATTERY_PERIODIC 0
+#define REST_CONF_RES_BUTTON 1
+#define REST_CONF_RES_BUTTON_EVENT 0
+#define REST_CONF_RES_DEVICE_MODEL_SW 0
+#define REST_CONF_RES_HUMIDITY 0
+#define REST_CONF_RES_HUMIDITY_PERIODIC 0
+#define REST_CONF_RES_LED_R 1
+#define REST_CONF_RES_LED_G 0
+#define REST_CONF_RES_LED_B 0
+#define REST_CONF_RES_LIGHT 1
+#define REST_CONF_RES_LIGHT_PERIODIC 0
+#define REST_CONF_RES_TEMP 0
+#define REST_CONF_RES_TEMP_PERIODIC 0
 
 #if !UIP_CONF_IPV6_RPL
 #undef UIP_CONF_ROUTER
@@ -77,4 +95,4 @@
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   24
 
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* CETIC_6LBR_DEMO_PROJECT_CONF_H */
