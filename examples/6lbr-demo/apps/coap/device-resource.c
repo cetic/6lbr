@@ -1,0 +1,15 @@
+#include "coap-common.h"
+#include "device-resource.h"
+
+#if REST_RES_DEVICE_MODEL_SW
+#define REST_RES_DEVICE_MODEL_SW_RESOURCE REST_RESOURCE
+#else
+#define REST_RES_BATTERY_RESOURCE(...)
+#endif
+
+REST_RES_DEVICE_MODEL_SW_RESOURCE(device_model_sw,
+    ,
+    DEVICE_MODEL_SW_RES,
+    IF_RO_PARAMETER,
+    DEVICE_MODEL_SW_RT,
+    REST_FORMAT_ONE_STR("v", CONTIKI_VERSION_STRING))

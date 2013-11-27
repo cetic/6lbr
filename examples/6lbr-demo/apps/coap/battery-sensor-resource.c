@@ -1,0 +1,19 @@
+#include "coap-common.h"
+#include "battery-sensor-resource.h"
+
+#if REST_RES_BATTERY
+#if REST_RES_BATTERY_PERIODIC
+#define REST_RES_BATTERY_RESOURCE REST_PERIODIC_RESOURCE
+#else
+#define REST_RES_BATTERY_RESOURCE REST_RESOURCE
+#endif
+#else
+#define REST_RES_BATTERY_RESOURCE(...)
+#endif
+
+REST_RES_BATTERY_RESOURCE(battery,
+    REST_RES_BATTERY_PERIOD,
+    DEVICE_POWER_SUPPLY_RES "0" DEVICE_POWER_SUPPLY_VOLTAGE_RES,
+    IF_SENSOR,
+    DEVICE_POWER_SUPPLY_VOLTAGE_RT,
+    REST_FORMAT_ONE_DECIMAL("v", battery_sensor.value(0)/819, (10*battery_sensor.value(0)/819) % 10))
