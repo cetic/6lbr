@@ -1,15 +1,19 @@
 #include "coap-common.h"
 #include "light-sensor-resource.h"
+#include "battery-sensor-resource.h"
 #include "button-resource.h"
 #include "leds-resource.h"
+#include "device-resource.h"
 
 #define DEBUG 0
 #include "uip-debug.h"
 
 //Define all resources
 REST_RES_LIGHT_DEFINE();
+REST_RES_BATTERY_DEFINE();
 REST_RES_BUTTON_DEFINE();
 REST_RES_LEDS_DEFINE();
+REST_RES_DEVICE_MODEL_SW_DEFINE();
 
 PROCESS(coap_server_process, "Coap Server");
 
@@ -26,8 +30,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
 
   //Init all resources
   REST_RES_LIGHT_INIT();
+  REST_RES_BATTERY_INIT();
   REST_RES_BUTTON_INIT();
   REST_RES_LEDS_INIT();
+  REST_RES_DEVICE_MODEL_SW_INIT();
 
   while(1) {
     PROCESS_WAIT_EVENT();

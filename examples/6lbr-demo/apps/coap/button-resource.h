@@ -17,12 +17,13 @@
 #ifdef REST_CONF_RES_BUTTON_EVENT
 #define REST_RES_BUTTON_EVENT REST_CONF_RES_BUTTON_EVENT
 #else
-#define REST_RES_BUTTON_EVENT 1
+#define REST_RES_BUTTON_EVENT 0
 #endif
 
 #if REST_RES_BUTTON
 
-#define REST_RES_BUTTON_DEFINE() extern resource_t resource_button;
+#define REST_RES_BUTTON_DEFINE() extern resource_t resource_button; \
+  void button_event_handler(resource_t *r);
 
 #if REST_RES_BUTTON_EVENT
 

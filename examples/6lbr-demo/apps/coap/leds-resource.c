@@ -2,7 +2,7 @@
 #include "leds-resource.h"
 
 #if REST_RES_LEDS
-#define REST_RES_LEDS_RESOURCE REST_ACTUATOR_ONE_INT
+#define REST_RES_LEDS_RESOURCE REST_ACTUATOR
 #else
 #define REST_RES_LEDS_RESOURCE(...)
 #endif
@@ -51,7 +51,7 @@ REST_RES_LEDS_RESOURCE(led_r,
     LIGHT_PATH "r" LIGHT_CONTROL_RES,
     IF_ACTUATOR,
     LIGHT_CONTROL_RT,
-    "r", led_r_value(), led_r_set)
+    REST_FORMAT_ONE_INT("r", led_r_value()), led_r_set)
 /*
 REST_RES_LEDS_RESOURCE(led_g,
     ,

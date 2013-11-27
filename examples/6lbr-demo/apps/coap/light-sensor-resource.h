@@ -2,7 +2,9 @@
 #define LIGHT_SENSOR_RESOURCE_H
 
 #include "contiki.h"
+#if PLATFORM_HAS_LIGHT
 #include "dev/light-sensor.h"
+#endif
 
 #if PLATFORM_HAS_LIGHT
 #ifdef REST_CONF_RES_LIGHT
