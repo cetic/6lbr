@@ -22,10 +22,10 @@
 
 #if REST_RES_BUTTON
 
+#if REST_RES_BUTTON_EVENT
+
 #define REST_RES_BUTTON_DEFINE() extern resource_t resource_button; \
   void button_event_handler(resource_t *r);
-
-#if REST_RES_BUTTON_EVENT
 
 #define REST_RES_BUTTON_INIT() \
   SENSORS_ACTIVATE(button_sensor); \
@@ -37,6 +37,8 @@
     }
 
 #else
+
+#define REST_RES_BUTTON_DEFINE() extern resource_t resource_button;
 
 #define REST_RES_BUTTON_INIT() \
   SENSORS_ACTIVATE(button_sensor); \
