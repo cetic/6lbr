@@ -11,7 +11,8 @@
 #include "uip-debug.h"
 
 //Define all resources
-REST_RES_LIGHT_DEFINE();
+REST_RES_LIGHT_SOLAR_DEFINE();
+REST_RES_LIGHT_PHOTO_DEFINE();
 REST_RES_TEMP_DEFINE();
 REST_RES_HUMIDITY_DEFINE();
 REST_RES_BATTERY_DEFINE();
@@ -35,7 +36,8 @@ PROCESS_THREAD(coap_server_process, ev, data)
   rest_init_engine();
 
   //Init all resources
-  REST_RES_LIGHT_INIT();
+  REST_RES_LIGHT_SOLAR_INIT();
+  REST_RES_LIGHT_PHOTO_INIT();
   REST_RES_TEMP_INIT();
   REST_RES_HUMIDITY_INIT();
   REST_RES_BATTERY_INIT();
