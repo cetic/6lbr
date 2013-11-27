@@ -11,6 +11,12 @@
 #include "er-coap-13.h"
 #include "ipso-profile.h"
 
+#ifdef REST_CONF_DEFAULT_PERIOD
+#define REST_DEFAULT_PERIOD REST_CONF_DEFAULT_PERIOD
+#else
+#define REST_DEFAULT_PERIOD 10
+#endif
+
 #if ( defined REST_TYPE_TEXT_PLAIN && (defined REST_TYPE_APPLICATION_XML || defined REST_TYPE_APPLICATION_JSON) ) || \
     (defined REST_TYPE_APPLICATION_XML && defined REST_TYPE_APPLICATION_JSON)
 #error "Only one type of REST TYPE can be enabled"
@@ -195,7 +201,7 @@
   REST_ACTUATOR_HANDLER(resource_name, format, actuator)
 
 #define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_path, resource_if, resource_type, format) \
-  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_period); \
+  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, (resource_period * CLOCK_SECOND)); \
   REST_RESOURCE_HANDLER(resource_name, format) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name, format) \
 
