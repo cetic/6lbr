@@ -2,33 +2,64 @@
 #define LED_RESOURCE_H
 
 #include "contiki.h"
-#include "dev/leds.h"
 
 #if PLATFORM_HAS_LEDS
-#ifdef REST_CONF_RES_LEDS
-#define REST_RES_LEDS REST_CONF_RES_LEDS
-#else
-#define REST_RES_LEDS 1
-#endif
-#else
-#define REST_RES_LEDS 0
+#include "dev/leds.h"
 #endif
 
-#if REST_RES_LEDS
-#define REST_RES_LEDS_DEFINE() \
-  extern resource_t resource_led_r; \
-//  extern resource_t resource_led_g; \
-  extern resource_t resource_led_b;
+#if PLATFORM_HAS_LEDS
+#ifdef REST_CONF_RES_LED_R
+#define REST_RES_LED_R REST_CONF_RES_LED_R
+#else
+#define REST_RES_LED_R 1
+#endif
+#ifdef REST_CONF_RES_LED_G
+#define REST_RES_LED_G REST_CONF_RES_LED_G
+#else
+#define REST_RES_LED_G 1
+#endif
+#ifdef REST_CONF_RES_LED_B
+#define REST_RES_LED_B REST_CONF_RES_LED_B
+#else
+#define REST_RES_LED_B 1
+#endif
+#else
+#define REST_RES_LED_R 0
+#define REST_RES_LED_G 0
+#define REST_RES_LED_B 0
+#endif
 
-#define REST_RES_LEDS_INIT() \
-  rest_activate_resource(&resource_led_r); \
-//  rest_activate_resource(&resource_led_g); \
-  rest_activate_resource(&resource_led_b);
+#if REST_RES_LED_R
+
+#define REST_RES_LED_R_DEFINE() extern resource_t resource_led_r;
+#define REST_RES_LED_R_INIT() rest_activate_resource(&resource_led_r);
 
 #else
 
-#define REST_RES_LEDS_DEFINE()
-#define REST_RES_LEDS_INIT()
+#define REST_RES_LED_R_DEFINE()
+#define REST_RES_LED_R_INIT()
+
+#endif
+
+#if REST_RES_LED_G
+#define REST_RES_LED_G_DEFINE() extern resource_t resource_led_g;
+#define REST_RES_LED_G_INIT() rest_activate_resource(&resource_led_g);
+
+#else
+
+#define REST_RES_LED_G_DEFINE()
+#define REST_RES_LED_G_INIT()
+
+#endif
+
+#if REST_RES_LED_B
+#define REST_RES_LED_B_DEFINE() extern resource_t resource_led_b;
+#define REST_RES_LED_B_INIT() rest_activate_resource(&resource_led_b);
+
+#else
+
+#define REST_RES_LED_B_DEFINE()
+#define REST_RES_LED_B_INIT()
 
 #endif
 
