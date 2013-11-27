@@ -82,7 +82,9 @@
 #define LIGHT_PHOTOSYNTHETIC_SENSOR_RES "photo"
 #define LIGHT_SOLAR_SENSOR_RES "solar"
 #define LIGHT_RAW_RT "raw"
-#define TEMPERATURE_SENSOR_RES "temp"
+#define TEMPERATURE_SENSOR_RES SENSOR_PATH "temp"
+
+#define TEMPERATURE_RT "ucum:Cel"
 
 // Interface Description
 
