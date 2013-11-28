@@ -37,6 +37,9 @@
 #define REST_FORMAT_ONE_INT(resource_name, sensor) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u", (sensor))
 
+#define REST_FORMAT_ONE_LONG(resource_name, sensor) \
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (sensor))
+
 #define REST_FORMAT_ONE_DECIMAL(resource_name, sensor_value, sensor_int, sensor_float) \
  { \
     int value = (sensor_value); \
@@ -57,6 +60,9 @@
 
 #define REST_FORMAT_ONE_INT(buffer, resource_name, sensor_name, sensor) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "sensor_name"=\"%u\"/>", (sensor))
+
+#define REST_FORMAT_ONE_LONG(buffer, resource_name, sensor_name, sensor) \
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "sensor_name"=\"%lu\"/>", (sensor))
 
 #define REST_FORMAT_ONE_DECIMAL(buffer, resource_name, sensor_name, sensor_int, sensor_float) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "sensor_name"=\"%u.%u\"/>", (sensor_int), (sensor_float))
@@ -79,6 +85,9 @@
 
 #define REST_FORMAT_ONE_INT(buffer, resource_name, sensor_name, sensor) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"sensor_name"':%u}", (sensor))
+
+#define REST_FORMAT_ONE_LONG(buffer, resource_name, sensor_name, sensor) \
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"sensor_name"':%lu}", (sensor))
 
 #define REST_FORMAT_ONE_DECIMAL(buffer, resource_name, sensor_name, sensor_int, sensor_float) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"sensor_name"':%u.%u}", (sensor_int), (sensor_float))
