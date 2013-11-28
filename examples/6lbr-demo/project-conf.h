@@ -77,6 +77,12 @@
 #define REST_CONF_RES_TEMP_PERIODIC 0
 #endif
 
+/* COAP content type definition */
+
+#define REST_TYPE_TEXT_PLAIN
+//#define REST_TYPE_APPLICATION_XML
+//#define REST_TYPE_APPLICATION_JSON
+
 /* Disable .well-known/core filtering to save code */
 #undef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING      0
