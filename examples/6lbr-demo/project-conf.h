@@ -34,6 +34,10 @@
 
 /* COAP Resources instanciation */
 
+/* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
+/* Not sure why, set it to 64 */
+#define REST_MAX_CHUNK_SIZE     64
+
 /* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
 #ifdef CONTIKI_TARGET_SKY
 #define REST_CONF_RES_BATTERY 1
