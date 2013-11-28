@@ -39,6 +39,10 @@ if [ "$DEV_TAP" == "" ]; then
 	DEV_TAP="tap0"
 fi
 
+if [ "$DEV_TAP_MAC" == "" ]; then
+	DEV_TAP_MAC="02:a:b:c:d:e"
+fi
+
 # Bridge
 
 if [ "$DEV_BRIDGE" == "" ]; then

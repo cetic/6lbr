@@ -19,11 +19,15 @@ fi
 
 case $OS in
 	Linux)
-		ip link set $DEV address 02:a:b:c:d:e up
+		if [ $DEV_TAP_MAC != "-" ]; then
+			ip link set $DEV address $DEV_TAP_MAC up
+		fi
 		;;
 
 	Darwin)
-		ifconfig $DEV link 02:a:b:c:d:e
+		if [ $DEV_TAP_MAC != "-" ]; then
+			ifconfig $DEV link $DEV_TAP_MAC
+		fi
 		
 		#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
 		ip6 -d $DEV
