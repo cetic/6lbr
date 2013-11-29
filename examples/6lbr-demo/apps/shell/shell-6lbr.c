@@ -122,6 +122,8 @@ PROCESS_THREAD(shell_start_6lbr_process, ev, data)
   shell_output_str(&start6lbr_command,
 		   "Starting 6lbr apps...", "");
 
+  //clean up any early packet
+  uip_len = 0;
   process_start(&tcpip_process, NULL);
   start_apps();
 

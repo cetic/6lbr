@@ -28,6 +28,71 @@ def skipUnlessTrue(descriptor):
     #Not mentioned or true, run the test
     return lambda func: func
 
+def init_config():
+    #Class definition
+    config.backboneClass=getattr(config, 'backboneClass', NativeBridgeBB)
+    config.brClass=getattr(config, 'brClass', LocalNativeBR)
+    config.wsnClass=getattr(config, 'wsnClass', CoojaWsn)
+    config.moteClass=getattr(config, 'moteClass', LocalTelosMote)
+    config.platformClass=getattr(config, 'platformClass', Linux)
+    
+    #Common configuration
+    config.report_path=getattr(config, 'report_path', 'report')
+    config.channel=getattr(config, 'channel', 26)
+    config.wsn_prefix=getattr(config, 'wsn_prefix', '8888')
+    config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
+    config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
+    config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
+    config.ping_max_payload=getattr(config, 'ping_max_payload', 168) #SLIP can not receive more than three fragments at a time
+    config.ping_payload_step=getattr(config, 'ping_payload', 10)
+    config.ping_timeout=getattr(config, 'ping_timeout', 8)
+    config.udp_port=getattr(config, 'udp_port', 3000)
+    config.udp_interval=getattr(config, 'udp_interval', 10)
+    config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')
+    config.ping_repeat=getattr(config, 'ping_repeat', 100)
+    config.dio_int_doubling=getattr(config, 'dio_int_doubling', 8)
+
+    #Cooja configuration
+    config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
+    config.simulation_path=getattr(config, 'simulation_path', None)
+
+    #Native configuration
+    config.slip_radio=getattr(config, 'slip_radio', [])
+    config.motes = getattr(config, 'motes', [])
+    config.mote_baudrate=getattr(config, 'mote_baudrate', 115200)
+
+    #Local configuration
+    config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
+    
+    #Remote configuration
+    config.remote_br=getattr(config, 'remote_br', [])
+    config.ethernet_dev=getattr(config, 'ethernet_dev', 'eth0')
+    config.id_file=getattr(config, 'id_file', None)
+    config.remote_user=getattr(config, 'remote_user', 'root')
+
+    #Econotag configuration
+    config.econotag_br=getattr(config, 'econotag_br', [])
+    config.econotag_loader=getattr(config, 'econotag_loader', '../../../cpu/mc1322x/tools/mc1322x-load.pl')
+    config.econotag_bbmc=getattr(config, 'econotag_bbmc', '../../../cpu/mc1322x/tools/ftditools/bbmc')
+    config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
+    config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
+
+    #Test configuration 
+    config.ping_6lbr_timeout=getattr(config,'ping_6lbr_timeout',40)
+    config.mote_in_6lbr_timeout=getattr(config,'mote_in_6lbr_timeout',30)
+    config.ping_mote_timeout=getattr(config,'ping_mote_timeout',60)
+    config.no_ping_mote_timeout=getattr(config,'no_ping_mote_timeout',10)
+    config.ping_from_mote_timeout=getattr(config,'ping_from_mote_timeout',60)
+    config.external_host=getattr(config,'external_host','cccc::1')
+    config.ping_moved_mote_timeout=getattr(config,'ping_moved_mote_timeout',240)
+    config.ping_switched_mote_timeout=getattr(config,'ping_switched_mote_timeout',600)
+    config.mote_start_delay=getattr(config,'mote_start_delay',0)
+    config.dag_stabilisation_delay=getattr(config,'dag_stabilisation_delay',0)
+    config.long_dag_stabilisation_delay=getattr(config,'long_dag_stabilisation_delay',60)
+
+    #Testbed
+    config.supernode=getattr(config, 'supernode', '192.168.10.10') #CETIC's supernode1 ip on the testbed VLAN
+        
 class TestSupport:
     def __init__(self, test_name):
         self.test_name=test_name
@@ -192,72 +257,7 @@ class TestSupport:
                     except IOError:
                         pass
 
-class TestScenarios:
-    def init_config(self):
-        #Class definition
-        config.backboneClass=getattr(config, 'backboneClass', NativeBridgeBB)
-        config.brClass=getattr(config, 'brClass', LocalNativeBR)
-        config.wsnClass=getattr(config, 'wsnClass', CoojaWsn)
-        config.moteClass=getattr(config, 'moteClass', LocalTelosMote)
-        config.platformClass=getattr(config, 'platformClass', Linux)
-        
-        #Common configuration
-        config.report_path=getattr(config, 'report_path', 'report')
-        config.channel=getattr(config, 'channel', 26)
-        config.wsn_prefix=getattr(config, 'wsn_prefix', '8888')
-        config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
-        config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
-        config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
-        config.ping_max_payload=getattr(config, 'ping_max_payload', 184) #This makes a 232 bytes ip packet (limit is 240 bytes)
-        config.ping_payload_step=getattr(config, 'ping_payload', 10)
-        config.ping_timeout=getattr(config, 'ping_timeout', 8)
-        config.udp_port=getattr(config, 'udp_port', 3000)
-        config.udp_interval=getattr(config, 'udp_interval', 10)
-        config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')
-        config.ping_repeat=getattr(config, 'ping_repeat', 100)
-        config.dio_int_doubling=getattr(config, 'dio_int_doubling', 8)
-
-        #Cooja configuration
-        config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')
-        config.simulation_path=getattr(config, 'simulation_path', None)
-
-        #Native configuration
-        config.slip_radio=getattr(config, 'slip_radio', [])
-        config.motes = getattr(config, 'motes', [])
-        config.mote_baudrate=getattr(config, 'mote_baudrate', 115200)
-
-        #Local configuration
-        config.backbone_dev=getattr(config, 'backbone_dev', 'br0')
-        
-        #Remote configuration
-        config.remote_br=getattr(config, 'remote_br', [])
-        config.ethernet_dev=getattr(config, 'ethernet_dev', 'eth0')
-        config.id_file=getattr(config, 'id_file', None)
-        config.remote_user=getattr(config, 'remote_user', 'root')
-
-        #Econotag configuration
-        config.econotag_br=getattr(config, 'econotag_br', [])
-        config.econotag_loader=getattr(config, 'econotag_loader', '../../../cpu/mc1322x/tools/mc1322x-load.pl')
-        config.econotag_bbmc=getattr(config, 'econotag_bbmc', '../../../cpu/mc1322x/tools/ftditools/bbmc')
-        config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
-        config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
-
-        #Test configuration 
-        config.ping_6lbr_timeout=getattr(config,'ping_6lbr_timeout',40)
-        config.mote_in_6lbr_timeout=getattr(config,'mote_in_6lbr_timeout',30)
-        config.ping_mote_timeout=getattr(config,'ping_mote_timeout',60)
-        config.no_ping_mote_timeout=getattr(config,'no_ping_mote_timeout',10)
-        config.ping_from_mote_timeout=getattr(config,'ping_from_mote_timeout',60)
-        config.external_host=getattr(config,'external_host','cccc::1')
-        config.ping_moved_mote_timeout=getattr(config,'ping_moved_mote_timeout',240)
-        config.ping_switched_mote_timeout=getattr(config,'ping_switched_mote_timeout',600)
-        config.mote_start_delay=getattr(config,'mote_start_delay',0)
-        config.dag_stabilisation_delay=getattr(config,'dag_stabilisation_delay',0)
-        config.long_dag_stabilisation_delay=getattr(config,'long_dag_stabilisation_delay',60)
-
-        #Testbed
-        config.supernode=getattr(config, 'supernode', '192.168.10.10') #CETIC's supernode1 ip on the testbed VLAN
-    
+class TestScenarios:    
     def wait_mote_start(self):
         if config.mote_start_delay > 0:
             print >> sys.stderr, "Wait %d s before starting up mote" % config.mote_start_delay
@@ -276,7 +276,6 @@ class TestScenarios:
         print >> sys.stderr, "\n******** %s ********" % self.test_name
 
     def setUp(self):
-        self.init_config()
         self.test_name=self.__class__.__name__ + '.' + self._testMethodName
         self.multi_br=False
         self.bridge_mode=False
@@ -289,3 +288,5 @@ class TestScenarios:
         self.support.platform.udpsrv_stop()
         self.tear_down_network()
         self.support.tearDown()
+
+init_config()

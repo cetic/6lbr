@@ -61,6 +61,7 @@
 
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
+#include "sys/stat.h"
 #endif
 
 #include <stdio.h>              /* For printf() */
@@ -116,12 +117,15 @@ static const char *BODY =
   "<h1>6LBR</h1>"
   "<h2>6Lowpan Border Router</h2>"
   "<div id=\"barre_nav\">"
-  "<div class=\"menu-general\"><a href=\"/\">Info</a></div>"
-  "<div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div>"
-  "<div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div>"
-  "<div class=\"menu-general\"><a href=\"/network.html\">Network</a></div>"
-  "<div class=\"menu-general\"><a href=\"/config.html\">Config</a></div>"
-  "<div class=\"menu-general\"><a href=\"/statistics.html\">Statistics</a></div>"
+  "<div class=\"menu-general\">"
+  "<a href=\"/\">Info</a>"
+  "<a href=\"/sensors.html\">Sensors</a>"
+  "<a href=\"/rpl.html\">RPL</a>"
+  "<a href=\"/network.html\">Network</a>"
+  "<a href=\"/config.html\">Config</a>"
+  "<a href=\"/statistics.html\">Statistics</a>"
+  "<a href=\"/admin.html\">Administration</a>"
+  "</div>"
   "</div></div>\n";
 static const char *BOTTOM = "</div></body></html>";
 
@@ -259,6 +263,86 @@ PT_THREAD(send_file(struct httpd_state *s))
   }
   close(s->fd);
   PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(send_log(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char *  log_file = getenv("LOG_6LBR_OUT");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    s->fd = open(log_file, O_RDONLY);
+  } else {
+    s->fd = 0;
+  }
+  if (s->fd > 0) {
+    struct stat st;
+    fstat(s->fd, &st);
+    s->to_send = st.st_size;
+    SEND_STRING(&s->sout, "<pre>");
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+      s->to_send -= s->len;
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0 && s->to_send > 0);
+    close(s->fd);
+    SEND_STRING(&s->sout, "</pre>");
+  } else {
+    SEND_STRING(&s->sout, "Log not available");
+  }
+  PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(send_err(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char *  log_file = getenv("LOG_6LBR_ERR");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    s->fd = open(log_file, O_RDONLY);
+  } else {
+    s->fd = 0;
+  }
+  if (s->fd > 0) {
+    struct stat st;
+    fstat(s->fd, &st);
+    s->to_send = st.st_size;
+    SEND_STRING(&s->sout, "<pre>");
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+      s->to_send -= s->len;
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0 && s->to_send > 0);
+    close(s->fd);
+    SEND_STRING(&s->sout, "</pre>");
+  } else {
+    SEND_STRING(&s->sout, "Log not available");
+  }
+  PSOCK_END(&s->sout);
+}
+
+static
+void clear_log()
+{
+  char *  log_file = getenv("LOG_6LBR_OUT");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    fclose(stdin);
+    freopen(log_file, "w", stdin);
+  }
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -403,27 +487,39 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<div id=\"left_home\">");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Status</td><td>Last seen</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Status</td><td>Last seen</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
-      add("<tr><td><a href=http://[");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("]/>");
-      SEND_STRING(&s->sout, buf);       //TODO: why tunslip6 needs an output here, wpcapslip does not
-      reset_buf();
+      add("<tr><td>");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("</a></td>");
 
-      if(node_info_table[i].ipaddr.u8[8] == 0x02
+      if(0) {
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
          && node_info_table[i].ipaddr.u8[9] == 0x12
-         && node_info_table[i].ipaddr.u8[10] == 0x74) {
-        add("<td><a href=http://[");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("]/status.shtml>Crossbow Telos</a></td>");
+         && (node_info_table[i].ipaddr.u8[10] == 0x74 ||
+             node_info_table[i].ipaddr.u8[10] == 0x75)) {
+        add("<td>Moteiv Telos</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x1A
+         && node_info_table[i].ipaddr.u8[10] == 0x4C) {
+        add("<td>Crossbow Sky</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0xC3
+         && node_info_table[i].ipaddr.u8[9] == 0x0C
+         && node_info_table[i].ipaddr.u8[10] == 0x00) {
+        add("<td>Zolertia Z1</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x80
+         && node_info_table[i].ipaddr.u8[10] == 0xE1) {
+        add("<td>STMicro</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x12
+         && node_info_table[i].ipaddr.u8[10] == 0x4B) {
+        add("<td>TI</td>");
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02
                 && node_info_table[i].ipaddr.u8[9] == 0x50
                 && node_info_table[i].ipaddr.u8[10] == 0xC2
@@ -444,6 +540,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       } else {
         add("<td>Unknown</td>");
       }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+      add("<td><a href=http://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]/>web</a></td>");
+      add("<td><a href=coap://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]:5683/>coap</a></td>");
       add("<td>%s</td>", node_info_table[i].my_info);
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_lookup) / CLOCK_SECOND);
@@ -566,10 +670,15 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   }
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><h3>Actions</h3>");
-    add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+    add("<form action=\"rpl-gr\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger global repair\"/></form><br />");
+    add("<form action=\"rpl-reset\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Reset DIO timer\"/></form><br />");
+    add("<form action=\"rpl-child\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger child DIO\"/></form><br />");
   } else {
-    add("<br /><h3>Actions (disabled)</h3>");
-    add("Trigger global repair<br />");
+    add("<br /><h3>Actions</h3>");
+    add("Disabled<br />");
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -1065,7 +1174,59 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(generate_reboot(struct httpd_state *s))
+PT_THREAD(generate_admin(struct httpd_state *s))
+{
+#if BUF_USES_STACK
+  char buf[BUF_SIZE];
+#endif
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, TOP);
+  SEND_STRING(&s->sout, BODY);
+  reset_buf();
+  add_div_home("Administration");
+  add("<div id=\"left_home\">");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add("<h2>Administration</h2>");
+  add("<h3>Logs</h3>");
+  add("<form action=\"log\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
+  add("<form action=\"err\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Show error log file\"/></form><br />");
+  add("<form action=\"clear_log\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<h3>Restart</h3>");
+  add("<form action=\"restart\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Restart 6LBR\"/></form><br />");
+  add("<form action=\"reboot\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reboot 6LBR\"/></form><br />");
+
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<form action=\"halt\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Halt 6LBR\"/></form><br />");
+  add("<h3>Configuration</h3>");
+  add("<form action=\"reset_config\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset NVM to factory default\"/></form><br />");
+
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add_div_footer();
+  add("</div></div>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  SEND_STRING(&s->sout, BOTTOM);
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(generate_restart_page(struct httpd_state *s))
 {
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -1074,12 +1235,42 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout,
-              "<meta http-equiv=\"refresh\" content=\"2; url=/config.html\" />");
+              "<meta http-equiv=\"refresh\" content=\"2; url=/index.html\" />");
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home("Reboot");
+  switch (cetic_6lbr_restart_type) {
+  case CETIC_6LBR_NO_RESTART:
+    add_div_home("Done");
+    break;
+    case CETIC_6LBR_RESTART:
+      add_div_home("Restart");
+      break;
+    case CETIC_6LBR_REBOOT:
+      add_div_home("Reboot");
+      break;
+    case CETIC_6LBR_HALT:
+      add_div_home("Halt");
+      break;
+    default:
+      add_div_home("Error");
+  }
   add("<div id=\"left_home\">");
-  add("Restarting BR...<br />");
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_NO_RESTART:
+      add("Action done<br />");
+      break;
+    case CETIC_6LBR_RESTART:
+      add("Restarting BR...<br />");
+      break;
+    case CETIC_6LBR_REBOOT:
+      add("Rebooting BR...<br />");
+      break;
+    case CETIC_6LBR_HALT:
+      add("Halting BR...<br />");
+      break;
+    default:
+      add("Error...<br />");
+  }
   add
     ("<a href=\"/config.html\">Click here if the page is not refreshing</a><br /><br />");
   add("</div>");
@@ -1088,7 +1279,9 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 
   SEND_STRING(&s->sout, BOTTOM);
 
-  process_post(&cetic_6lbr_process, 0, NULL);
+  if ( cetic_6lbr_restart_type != CETIC_6LBR_NO_RESTART) {
+    process_post(&cetic_6lbr_process, 0, NULL);
+  }
 
   PSOCK_END(&s->sout);
 }
@@ -1240,12 +1433,10 @@ httpd_simple_get_script(const char *name)
 
   redirect = 0;
 
+  int admin = (nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0;
+
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
-#if CONTIKI_TARGET_NATIVE
-  } else if (access(filename, R_OK) == 0) {
-      return send_file;
-#endif
 #if CETIC_NODE_INFO
   } else if(strcmp(name, "sensors.html") == 0) {
     return generate_sensors;
@@ -1258,35 +1449,68 @@ httpd_simple_get_script(const char *name)
     return generate_config;
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
-  } else if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-    if(strcmp(name, "rpl-gr") == 0) {
 #if UIP_CONF_IPV6_RPL
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+  } else if(admin && strcmp(name, "rpl-gr?") == 0) {
+	rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    return generate_restart_page;
+  } else if(admin && strcmp(name, "rpl-reset?") == 0) {
+    rpl_reset_dio_timer(rpl_get_instance(RPL_DEFAULT_INSTANCE));
+    return generate_restart_page;
+  } else if(admin && strcmp(name, "rpl-child?") == 0) {
+    uip_ipaddr_t addr;
+    uip_create_linklocal_rplnodes_mcast(&addr);
+    dis_output(&addr);
+    return generate_restart_page;
 #endif
-      return generate_rpl;
-    } else if(memcmp(name, "route_rm?", 9) == 0) {
-      redirect = 1;
-      i = atoi(name + 9);
-      for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
-        if(i == 0) {
-          uip_ds6_route_rm(r);
-          break;
-        }
+  } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
+    redirect = 1;
+    i = atoi(name + 9);
+    for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
+      if(i == 0) {
+        uip_ds6_route_rm(r);
+        break;
       }
-      return generate_network;
-    } else if(memcmp(name, "nbr_rm?", 7) == 0) {
-      redirect = 1;
-      uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
-      return generate_network;
-    } else if(memcmp(name, "config?", 7) == 0) {
-      if(update_config(name + 7)) {
-        return generate_config;
-      } else {
-        return generate_reboot;
-      }
-    } else {
-      return generate_404;
     }
+    return generate_network;
+  } else if(admin && memcmp(name, "nbr_rm?", 7) == 0) {
+    redirect = 1;
+    uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
+    return generate_network;
+  } else if(admin && memcmp(name, "config?", 7) == 0) {
+    if(update_config(name + 7)) {
+      return generate_config;
+    } else {
+      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+      return generate_restart_page;
+    }
+  } else if(admin && strcmp(name, "admin.html") == 0) {
+    return generate_admin;
+#if CONTIKI_TARGET_NATIVE
+  } else if(admin && memcmp(name, "log?", 4) == 0) {
+    return send_log;
+  } else if(admin && memcmp(name, "err?", 4) == 0) {
+    return send_err;
+  } else if(admin && memcmp(name, "clear_log?", 4) == 0) {
+    clear_log();
+    return generate_restart_page;
+#endif
+  } else if(admin && memcmp(name, "reset_config?", 12) == 0) {
+    check_nvm(&nvm_data, 1);
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    return generate_restart_page;
+  } else if(memcmp(name, "restart?", 8) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    return generate_restart_page;
+  } else if(memcmp(name, "reboot?", 7) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
+    return generate_restart_page;
+  } else if(memcmp(name, "halt?", 5) == 0) {
+    cetic_6lbr_restart_type = CETIC_6LBR_HALT;
+    return generate_restart_page;
+#if CONTIKI_TARGET_NATIVE
+  } else if (access(filename, R_OK) == 0) {
+    return send_file;
+#endif
   } else {
     return generate_404;
   }

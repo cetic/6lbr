@@ -219,6 +219,10 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   if(dag != NULL) {
     version = dag->version;
     RPL_LOLLIPOP_INCREMENT(version);
+#if CETIC_6LBR
+    nvm_data.rpl_version_id = version;
+    store_nvm_config();
+#endif
     PRINTF("RPL: Dropping a joined DAG when setting this node as root");
     if(dag == dag->instance->current_dag) {
       dag->instance->current_dag = NULL;
@@ -294,6 +298,10 @@ rpl_repair_root(uint8_t instance_id)
 
   RPL_LOLLIPOP_INCREMENT(instance->current_dag->version);
   RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+#if CETIC_6LBR
+    nvm_data.rpl_version_id = instance->current_dag->version;
+    store_nvm_config();
+#endif
   rpl_reset_dio_timer(instance);
   return 1;
 }
@@ -1136,6 +1144,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	dag->version = dio->version;
 	RPL_LOLLIPOP_INCREMENT(dag->version);
 	rpl_reset_dio_timer(instance);
+#if CETIC_6LBR
+    nvm_data.rpl_version_id = dag->version;
+    store_nvm_config();
+#endif
       } else {
         PRINTF("RPL: Global Repair\n");
         if(dio->prefix_info.length != 0) {
@@ -1162,6 +1174,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(instance == NULL) {
     PRINTF("RPL: New instance detected: Joining...\n");
     rpl_join_instance(from, dio);
+    return;
+  }
+
+  if(instance->current_dag->rank == ROOT_RANK(instance) && instance->current_dag != dag) {
+    PRINTF("RPL: Root ignored DIO for different DAG\n");
     return;
   }
 

@@ -175,9 +175,15 @@ wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
   //Packet filtering
   //----------------
   if(uip_len == 0) {
-    LOG6LBR_ERROR("eth_output: uip_len = 0\n");
+    LOG6LBR_ERROR("wireless_output: uip_len = 0\n");
     return 0;
   }
+  if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
+      (rimeaddr_t *) & wsn_mac_addr)) {
+    LOG6LBR_ERROR("wireless_output: sending to self\n");
+    return 0;
+  }
+
 #if CETIC_6LBR_WSN_FILTER_RA
   //Filter out RA/RS towards WSN
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
@@ -334,6 +340,13 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
     LOG6LBR_ERROR("eth_output: uip_len = 0\n");
     return 0;
   }
+
+  if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
+      (rimeaddr_t *) & eth_mac64_addr)) {
+    LOG6LBR_ERROR("ethernet_output: sending to self\n");
+    return 0;
+  }
+
 #if CETIC_6LBR_ETH_FILTER_RPL
   //Filter out RPL (broadcast) traffic
   if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&

@@ -14,10 +14,15 @@
 
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
+#if WEBSERVER
 PROCESS_NAME(web_sense_process);
 PROCESS_NAME(webserver_nogui_process);
+#endif
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
+#endif
+#if WITH_COAP
+PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -31,6 +36,10 @@ start_apps(void)
 #if WEBSERVER
   process_start(&web_sense_process, NULL);
   process_start(&webserver_nogui_process, NULL);
+#endif
+
+#if WITH_COAP
+  process_start(&coap_server_process, NULL);
 #endif
 }
 

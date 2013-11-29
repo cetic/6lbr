@@ -1,0 +1,33 @@
+#!/bin/bash
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+case $MODE_6LBR in
+	raw)
+	;;
+	
+	tap)
+	case $OS in
+		Linux)
+			;;
+
+		Darwin)
+			;;
+
+		*)
+			echo Unknown OS
+			;;
+	esac
+	;;
+	
+	*)
+	echo "Unknown mode $MODE"
+	;;
+esac
