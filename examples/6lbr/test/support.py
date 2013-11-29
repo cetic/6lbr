@@ -113,7 +113,7 @@ class BRProxy:
     def is_running(self):
         pass
     
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
         pass
 
     def start_6lbr(self, log_stem, keep_nvm=False):
@@ -138,7 +138,7 @@ class LocalEconotagBR(BRProxy):
     def is_running(self):
         return self.process != None
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
         if mode=='ROUTER':
             self.bin='../bin_econotag/cetic_6lbr_router'
         if mode=='SMART-BRIDGE':
@@ -155,7 +155,7 @@ class LocalEconotagBR(BRProxy):
             os.makedirs(self.cfg_path)
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
@@ -210,7 +210,7 @@ class LocalNativeBR(BRProxy):
     def is_running(self):
         return self.process != None
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -255,7 +255,7 @@ class LocalNativeBR(BRProxy):
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
@@ -298,7 +298,7 @@ class RemoteNativeBR(BRProxy):
     def is_running(self):
         return self.running
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -324,7 +324,7 @@ class RemoteNativeBR(BRProxy):
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip

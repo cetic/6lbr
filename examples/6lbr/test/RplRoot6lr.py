@@ -12,7 +12,7 @@ class RplRoot6lr(config.scenarios, unittest.TestCase):
         self.rpl_root = self.support.add_6lbr(device={'dev': '/dev/null', 'iid': '-'})
         self.support.setUp()
         self.tb.set_mode('6LR', config.channel, accept_ra=False)
-        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False)
+        self.rpl_root.set_mode('RPL-ROOT', config.channel, iid='100', ra_daemon=True, addr_rewrite=False, default_router=self.support.backbone.create_address('1'))
 
     def set_up_network(self):
         sleep(10)

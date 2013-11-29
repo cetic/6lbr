@@ -10,7 +10,7 @@ class Router(config.scenarios, unittest.TestCase):
         self.support.wsn.prefix=config.wsn_prefix
         self.br = self.support.add_6lbr()
         self.support.setUp()
-        self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=True, accept_ra=False)
+        self.br.set_mode('ROUTER', config.channel, iid='100', ra_daemon=True, accept_ra=False, default_router=self.support.backbone.create_address('1'))
         
     def set_up_network(self):
         sleep(10)
