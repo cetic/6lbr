@@ -64,5 +64,6 @@ extern char const *slip_config_ifdown_script;
 extern char const *slip_config_www_root;
 extern int watchdog_interval;
 extern char const * watchdog_file_name;
+extern char const * ip_config_file_name;
 
 #endif

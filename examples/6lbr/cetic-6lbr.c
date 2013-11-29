@@ -64,6 +64,7 @@
 #if CONTIKI_TARGET_NATIVE
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
+#include <arpa/inet.h>
 #endif
 
 //Initialisation flags
@@ -267,6 +268,16 @@ cetic_6lbr_init(void)
   LOG6LBR_INFO("Starting as 6LR\n");
 #else
   LOG6LBR_INFO("Starting in UNKNOWN mode\n");
+#endif
+
+#if CONTIKI_TARGET_NATIVE
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+  }
 #endif
 }
 
