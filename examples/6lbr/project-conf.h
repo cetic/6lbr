@@ -216,8 +216,12 @@
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     200
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   200
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   200
 
 #define WEBSERVER_CONF_CFS_PATHLEN 1000
 
@@ -272,14 +276,24 @@
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     35
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   35
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   35
+
 #else
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     100
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   100
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   100
+
 #endif
 
 #define WEBSERVER_CONF_CFS_URLCONV	0
