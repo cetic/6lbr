@@ -77,19 +77,18 @@ nr-rpl-root-rpl-relay:
 
 nr-multi-smartbridge:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes MultiSmartBridge
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes MultiSmartBridge --log test_disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes MultiSmartBridge
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes MultiSmartBridge --log test_overlap.log
 
 nr-rpl-root-multi-rpl-relay:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes RplRootMultiRplRelay
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes RplRootMultiRplRelay --log test_disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes RplRootMultiRplRelay
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes RplRootMultiRplRelay --log test_overlap.log
 
 nr-rpl-multi-6lr:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr --log test_disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr
-	
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr --log test_overlap.log
