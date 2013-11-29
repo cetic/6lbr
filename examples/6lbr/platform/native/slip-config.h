@@ -43,6 +43,11 @@
 #include <stdint.h>
 #include <termios.h>
 
+extern int contiki_argc;
+extern char **contiki_argv;
+
+extern int slip_config_handle_arguments(int argc, char **argv);
+
 extern int slip_config_flowcontrol;
 extern int slip_config_timestamp;
 extern const char *slip_config_siodev;
@@ -57,5 +62,8 @@ extern speed_t slip_config_b_rate;
 extern char const *slip_config_ifup_script;
 extern char const *slip_config_ifdown_script;
 extern char const *slip_config_www_root;
+extern int watchdog_interval;
+extern char const * watchdog_file_name;
+extern char const * ip_config_file_name;
 
 #endif

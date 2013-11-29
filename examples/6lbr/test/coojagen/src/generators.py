@@ -95,7 +95,7 @@ def load_preset(preset_data_path):
 			xy = position.split(',')
 			x = xy[0]
 			y = xy[1]
-			currpoints.append({'x':int(x), 'y':int(y), 'z':0})
+			currpoints.append((int(x),int(y),0))
 		points.append(currpoints)
 
 	preset_data_file.close()

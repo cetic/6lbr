@@ -3,10 +3,16 @@
 
 function config_default () {
 
+# Configuration location
+
+if [ "$ETC_6LBR" == "" ]; then
+	ETC_6LBR=/etc/6lbr
+fi
+
 # NVM and mode
 
 if [ "$NVM" = "" ]; then
-	NVM=/etc/6lbr/nvm.dat
+	NVM=$ETC_6LBR/nvm.dat
 fi
 
 if [ "$MODE" = "" ]; then
@@ -31,6 +37,10 @@ fi
 
 if [ "$DEV_TAP" == "" ]; then
 	DEV_TAP="tap0"
+fi
+
+if [ "$DEV_TAP_MAC" == "" ]; then
+	DEV_TAP_MAC="02:a:b:c:d:e"
 fi
 
 # Bridge
@@ -94,8 +104,17 @@ if [ "$LOG_6LBR_ERR" == "" ]; then
 	LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
 fi
 
+# Reliability
 if [ "$STOP_AFTER_CRASH" == "" ]; then
-	STOP_AFTER_CRASH="1"
+	STOP_AFTER_CRASH="0"
+fi
+
+if [ "$WATCHDOG_INTERVAL" == "" ]; then
+	WATCHDOG_INTERVAL="60"
+fi
+
+if [ "$WATCHDOG_FILE" == "" ]; then
+	WATCHDOG_FILE="/var/log/6lbr.timestamp"
 fi
 
 # function config_default

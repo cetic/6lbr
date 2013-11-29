@@ -62,9 +62,9 @@
 #include "node-info.h"
 
 #if CONTIKI_TARGET_NATIVE
-extern int contiki_argc;
-extern char **contiki_argv;
-extern int slip_config_handle_arguments(int argc, char **argv);
+#include "6lbr-watchdog.h"
+#include "slip-config.h"
+#include <arpa/inet.h>
 #endif
 
 //Initialisation flags
@@ -89,6 +89,8 @@ uip_ipaddr_t eth_dft_router;
 
 //Misc
 unsigned long cetic_6lbr_startup;
+
+enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
@@ -126,16 +128,6 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void
 cetic_6lbr_init(void)
 {
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-  uip_ipaddr_t loc_fipaddr;
-
-  //DODAGID = link-local address used !
-  uip_create_linklocal_prefix(&loc_fipaddr);
-  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
-  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &loc_fipaddr);
-  LOG6LBR_INFO("Configured as DODAG Root\n");
-#endif
-
   uip_ds6_addr_t *local = uip_ds6_get_link_local(-1);
 
   uip_ipaddr_copy(&wsn_ip_local_addr, &local->ipaddr);
@@ -164,8 +156,6 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
   }                             //End manual configuration
 #endif
 
@@ -216,10 +206,6 @@ cetic_6lbr_init(void)
   }
   LOG6LBR_6ADDR(INFO, &eth_ip_addr, "Tentative global IPv6 address (ETH) ");
 
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
-#endif
-
   //Ugly hack : in order to set WSN local address as the default address
   //We must add it afterwards as uip_ds6_addr_add allocates addr from the end of the list
   uip_ds6_addr_rm(local);
@@ -251,6 +237,19 @@ cetic_6lbr_init(void)
 #endif
 #endif
 
+#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+  //DODAGID = link-local address used !
+  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+#if CETIC_6LBR_SMARTBRIDGE
+  if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+    rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+  }
+#else
+  rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+#endif
+  LOG6LBR_INFO("Configured as DODAG Root\n");
+#endif
+
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_LEARN_RPL_MAC
   LOG6LBR_INFO("Starting as RPL Relay\n");
@@ -270,6 +269,16 @@ cetic_6lbr_init(void)
 #else
   LOG6LBR_INFO("Starting in UNKNOWN mode\n");
 #endif
+
+#if CONTIKI_TARGET_NATIVE
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+  }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -284,6 +293,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
 #if CONTIKI_TARGET_NATIVE
   slip_config_handle_arguments(contiki_argc, contiki_argv);
+  if (watchdog_interval) {
+    process_start(&native_6lbr_watchdog, NULL);
+  } else {
+    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  }
 #endif
 
   LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
@@ -298,6 +312,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     PROCESS_PAUSE();
   }
 
+  //clean up any early packet
+  uip_len = 0;
   process_start(&tcpip_process, NULL);
 
   PROCESS_PAUSE();
@@ -322,8 +338,25 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   PROCESS_WAIT_EVENT();
   etimer_set(&reboot_timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT();
-  LOG6LBR_INFO("Exiting...\n");
-  exit(0);
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      LOG6LBR_INFO("Exiting...\n");
+      exit(0);
+      break;
+    case CETIC_6LBR_REBOOT:
+      LOG6LBR_INFO("Rebooting...\n");
+      system("reboot");
+      break;
+    case CETIC_6LBR_HALT:
+      LOG6LBR_INFO("Halting...\n");
+      system("halt");
+      break;
+    default:
+      //We should never end up here...
+      exit(1);
+  }
+  //We should never end up here...
+  exit(1);
 #endif
 
   PROCESS_END();

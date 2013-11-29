@@ -1,9 +1,47 @@
 #!/bin/bash
 
 ################################################################################
-# If this script is killed, kills all the child processes
+# Initialization
 
-trap 'JOBS=$(jobs -p); if [ $JOBS ]; then kill $JOBS; echo "6LBR killed" > /dev/stderr; fi' EXIT
+DEFAULT_WATCHDOG_SCALE=3
+PID_6LBR=0
+PID_WATCHDOG=0
+BIN=""
+PARAMS=""
+
+################################################################################
+#Signals management
+
+#If this script is killed, kills child processes
+trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+
+#Ignore sighup
+trap '' HUP
+
+################################################################################
+# Application Watchdog
+
+function application_watchdog () {
+	LAST_TIMESTAMP=""
+	WATCHDOG_LIMIT=$((WATCHDOG_INTERVAL * DEFAULT_WATCHDOG_SCALE))
+	while ((1)); do
+		sleep 1
+		if [ `uname` = "Linux" ]; then
+			TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
+		else
+			TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
+		fi
+		TIME=`date +%s`
+		if (( TIME - TIMESTAMP > WATCHDOG_LIMIT )); then
+			echo "6LBR watchdog failure, restarting..."
+			echo "6LBR watchdog failure, restarting..." >> /dev/stderr
+			if ((PID_6LBR != 0)); then
+				kill $PID_6LBR
+				break
+			fi
+		fi
+	done
+}
 
 ################################################################################
 # Read config file
@@ -46,6 +84,9 @@ if [ "$LOG_6LBR_ERR" != "-" ]; then
 	exec 2>> $LOG_6LBR_ERR
 fi
 
+export LOG_6LBR_OUT
+export LOG_6LBR_ERR
+
 ################################################################################
 # Build parameters list
 
@@ -85,6 +126,10 @@ IFUP="-U $IFUP"
 
 IFDOWN="-D $IFDOWN"
 
+if [ "$IP_CONFIG_FILE" != "" ]; then
+	IP_CONFIG_FILE="-C $IP_CONFIG_FILE"
+fi
+
 if [ "$LOG_LEVEL" != "" ]; then
 	LOG_LEVEL="-L $LOG_LEVEL"
 fi
@@ -93,7 +138,26 @@ if [ "$LOG_SERVICES" != "" ]; then
 	LOG_SERVICES="-S $LOG_SERVICES"
 fi
 
-PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES $EXTRA_PARAMS $*"
+PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES -W $WATCHDOG_FILE -P $WATCHDOG_INTERVAL $IP_CONFIG_FILE $EXTRA_PARAMS $*"
+
+if [ "$MODE" = 'ROUTER' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_router
+elif [ "$MODE" = 'SMART-BRIDGE' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_smart_bridge
+elif [ "$MODE" = 'RPL-RELAY' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_rpl_relay
+elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_full_transparent_bridge
+elif [ "$MODE" = 'NDP-ROUTER' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_ndp_router
+elif [ "$MODE" = '6LR' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_6lr
+elif [ "$MODE" = 'RPL-ROOT' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_rpl_root
+else
+	echo "Mode '$MODE' unknown, starting as router"
+	BIN=$BIN_6LBR/cetic_6lbr_router
+fi
 
 ################################################################################
 # Launch 6LBR in a loop
@@ -102,33 +166,32 @@ while ((1)); do
 	TIMESTAMP=`date`" : Starting 6LBR "
 	echo "********************************************************************************"
 	echo $TIMESTAMP
-	echo "********************************************************************************" > /dev/stderr
-	echo $TIMESTAMP > /dev/stderr
+	echo "********************************************************************************" >> /dev/stderr
+	echo $TIMESTAMP >> /dev/stderr
 	
-	if [ "$MODE" = 'ROUTER' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_router
-	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_smart_bridge
-	elif [ "$MODE" = 'RPL-RELAY' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_rpl_relay
-	elif [ "$MODE" = 'FULL-TRANSPARENT-BRIDGE' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_full_transparent_bridge
-	elif [ "$MODE" = 'NDP-ROUTER' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_ndp_router
-	elif [ "$MODE" = '6LR' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_6lr
-	elif [ "$MODE" = 'RPL-ROOT' ]; then
-		BIN=$BIN_6LBR/cetic_6lbr_rpl_root
-	else
-		echo "Mode '$MODE' unknown, starting as router"
-		BIN=$BIN_6LBR/cetic_6lbr_router
-	fi
 	echo "$BIN $PARAMS"
-	$BIN $PARAMS
+	$BIN $PARAMS &
+	PID_6LBR=$!
+	
+	if [ $WATCHDOG_INTERVAL != "0" ]; then
+		application_watchdog &
+		PID_WATCHDOG=$!
+	fi
+	
+	wait $PID_6LBR
 	ECODE=$?
+	PID_6LBR=0
+	
+	if ((PID_WATCHDOG != 0)); then
+		if kill -0 $PID_WATCHDOG 2> /dev/null; then
+			kill $PID_WATCHDOG
+			wait $PID_WATCHDOG
+		fi
+		PID_WATCHDOG=0
+	fi
 	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
-        echo `date`" : $BIN failed, exit code: $ECODE" > /dev/stderr
+        echo `date`" : $BIN failed, exit code: $ECODE" >> /dev/stderr
         if [ "$STOP_AFTER_CRASH" == "1" ]; then
 			break
 		fi

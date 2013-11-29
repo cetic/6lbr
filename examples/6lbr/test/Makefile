@@ -28,6 +28,9 @@ cooja-2br-grid: grid_2br_3x6.csc build-cooja config-cooja launch-cooja
 launch-cooja:
 	java -jar ${COOJADIR}/dist/cooja.jar -quickstart=`cat ${COOJAGEN}/output/LASTFILE`
 
+launch-cooja-nogui:
+	java -jar ${COOJADIR}/dist/cooja.jar -nogui=`cat ${COOJAGEN}/output/LASTFILE`
+
 %.csc: ${COOJAGEN}/examples/config_%.py
 	python2.7 gensimfile.py $<
 
@@ -54,39 +57,41 @@ non-regression: nr-router nr-smartbridge nr-rpl-root-6lr nr-ndp-router nr-rpl-ro
 
 nr-router:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes Router
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes Router --log nr-router.log
 
 nr-smartbridge:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes SmartBridge
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes SmartBridge --log nr-smartbridge.log
 
 nr-rpl-root-6lr:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes RplRoot6lr
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes RplRoot6lr --log nr-rpl-root-6lr.log
 
 nr-ndp-router:
 	$(MAKE) preset_1dag_1node.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes NdpRouter
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes NdpRouter --log nr-ndp-router.log
 
 nr-rpl-root-rpl-relay:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes RplRootRplRelay
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes RplRootRplRelay --log nr-rpl-root-rpl-relay.log
 
 nr-multi-smartbridge:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes MultiSmartBridge
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes MultiSmartBridge --log nr-multi-smartbridge-disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes MultiSmartBridge
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes MultiSmartBridge --log nr-multi-smartbridge-overlap.log
 
 nr-rpl-root-multi-rpl-relay:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes RplRootMultiRplRelay
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes RplRootMultiRplRelay --log nr-rpl-root-multi-rpl-relay-disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes RplRootMultiRplRelay
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes RplRootMultiRplRelay --log nr-rpl-root-multi-rpl-relay-overlap.log
 
 nr-rpl-multi-6lr:
 	$(MAKE) preset_2dags_20nodes_disjoint.csc
-	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr
+	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr --log nr-rpl-multi-6lr-disjoint.log
 	$(MAKE) grid_2br_3x6.csc
-	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr
-	
+	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr --log nr-rpl-multi-6lr-overlap.log
+
+nr-result:
+	find report -name 'nr-*.log' | xargs head -6 | grep -v SUMMARY

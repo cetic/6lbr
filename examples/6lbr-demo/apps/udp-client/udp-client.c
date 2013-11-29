@@ -35,7 +35,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_FULL
+#define DEBUG 0
 #include "net/uip-debug.h"
 
 #ifndef CETIC_6LBR_UDP_PERIOD
@@ -47,7 +47,7 @@
 
 static struct uip_udp_conn *client_conn = NULL;
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
-uip_ip6addr_t *dest_addr;
+uip_ip6addr_t dest_addr;
 uint8_t use_user_dest_addr = 0;
 uip_ip6addr_t user_dest_addr;
 uint16_t user_dest_port = 3000;
@@ -118,24 +118,24 @@ timeout_handler(void)
   static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
   int i;
-  uip_ipaddr_t *globaladdr = NULL;
-  uip_ipaddr_t newdest_addr;
+  uip_ip6addr_t *globaladdr = NULL;
+  //uip_ip6addr_t newdest_addr;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
   int has_dest=0;
 
   if ( use_user_dest_addr ) {
-	uip_ipaddr_copy(&newdest_addr, &user_dest_addr);
+	uip_ipaddr_copy(&dest_addr, &user_dest_addr);
 	has_dest=1;
   } else if((globaladdr = &uip_ds6_get_global(-1)->ipaddr) != NULL) {
 #if UIP_CONF_IPV6_RPL
     rpl_dag_t *dag = rpl_get_any_dag();
-    uip_ipaddr_copy(&newdest_addr, globaladdr);
-    memcpy(&newdest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
+    uip_ipaddr_copy(&dest_addr, globaladdr);
+    memcpy(&dest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
     has_dest = dag == NULL ? 0 : 1;
 #else
     uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
     if ( defrt != NULL ) {
-      uip_ipaddr_copy(&newdest_addr, defrt);
+      uip_ipaddr_copy(&dest_addr, defrt);
       has_dest=1;
     }
 #endif
@@ -144,11 +144,11 @@ timeout_handler(void)
   if (client_conn == NULL) {
     if (has_dest) {
         /* At least one prefix announced : building of the global address to reach using prefixes */
-        memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
+        //memcpy(&dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
         PRINTF("UDP-CLIENT: address destination: ");
         PRINT6ADDR(dest_addr);
         PRINTF("\n");
-        client_conn = udp_new(dest_addr, UIP_HTONS(dest_port), NULL);
+        client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
 
         udp_bind(client_conn, UIP_HTONS(3001));
 		PRINTF("Created a connection with the server ");
@@ -161,10 +161,10 @@ timeout_handler(void)
     }
   }
   if (client_conn != NULL) {
-    if(memcmp(&client_conn->ripaddr, &newdest_addr, sizeof(uip_ipaddr_t)) != 0) {
+    if(memcmp(&client_conn->ripaddr, &dest_addr, sizeof(uip_ipaddr_t)) != 0) {
       PRINTF("UPD-CLIENT : new address, connection changed\n");
-      memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
-      client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
+      //memcpy(&dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
+      client_conn = udp_new(&dest_addr, UIP_HTONS(3000), NULL);
       udp_bind(client_conn, UIP_HTONS(3001));
       PRINTF("Created a connection with the server ");
       PRINT6ADDR(&client_conn->ripaddr);
@@ -196,8 +196,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   PROCESS_BEGIN();
   PRINTF("UDP client process started\n");
-  dest_addr = malloc(sizeof(uip_ipaddr_t));
-  memset(dest_addr, 0, sizeof(uip_ipaddr_t));
+  memset(&dest_addr, 0, sizeof(uip_ipaddr_t));
 #if UDP_CLIENT_AUTOSTART
   udp_client_run=1;
 #endif

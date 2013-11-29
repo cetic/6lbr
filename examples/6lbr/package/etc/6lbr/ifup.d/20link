@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Sometimes the generated mac address has the translate bit set to 1
+# this can conflict with packet filter and sicslow-ethernet
+# We force the mac address of the tap interface to avoid such issue
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+if [ $MODE_6LBR != "tap" ]; then
+	exit
+fi
+
+case $OS in
+	Linux)
+		if [ $DEV_TAP_MAC != "-" ]; then
+			ip link set $DEV address $DEV_TAP_MAC up
+		fi
+		;;
+
+	Darwin)
+		if [ $DEV_TAP_MAC != "-" ]; then
+			ifconfig $DEV link $DEV_TAP_MAC
+		fi
+		
+		#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
+		ip6 -d $DEV
+		ip6 -u $DEV
+		
+		ifconfig $DEV inet6 up
+		;;
+
+	*)
+		echo Unknown OS
+		;;
+esac

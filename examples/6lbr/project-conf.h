@@ -211,20 +211,33 @@
 /*------------------------------------------------------------------*/
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM         200
+#define QUEUEBUF_CONF_NUM         256
 
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     200
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   200
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   200
 
 #define WEBSERVER_CONF_CFS_PATHLEN 1000
 
 #define WEBSERVER_CONF_CFS_URLCONV 1
 
+//Use the whole uip buffer
+#undef UIP_CONF_TCP_MSS
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
+
+#define CSMA_CONF_MAX_NEIGHBOR_QUEUES 16
+
+#define CSMA_CONF_MAX_PACKET_PER_NEIGHBOR (QUEUEBUF_CONF_NUM/CSMA_CONF_MAX_NEIGHBOR_QUEUES)
+
+#define NATIVE_RDC_CONF_SLIP_TIMEOUT (CLOCK_SECOND)
 
 #undef UIP_CONF_STATISTICS
 #define UIP_CONF_STATISTICS         1
@@ -261,16 +274,26 @@
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     35
+#define UIP_CONF_DS6_NBR_NBU     30
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   35
+#define UIP_CONF_DS6_ROUTE_NBU   30
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   30
+
 #else
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     100
 
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU   100
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   100
+
 #endif
 
 #define WEBSERVER_CONF_CFS_URLCONV	0
