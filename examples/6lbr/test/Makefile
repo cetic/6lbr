@@ -92,3 +92,6 @@ nr-rpl-multi-6lr:
 	python2.7 run_tests.py --scenarios MultiBrDisjointScenarios --modes Multi6lr --log nr-rpl-multi-6lr-disjoint.log
 	$(MAKE) grid_2br_3x6.csc
 	python2.7 run_tests.py --scenarios MultiBrOverlapScenarios --modes Multi6lr --log nr-rpl-multi-6lr-overlap.log
+
+nr-result:
+	find report -name 'nr-*.log' | xargs head -6 | grep -v SUMMARY
