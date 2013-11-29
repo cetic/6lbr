@@ -155,7 +155,7 @@ class LocalEconotagBR(BRProxy):
             os.makedirs(self.cfg_path)
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
@@ -255,7 +255,7 @@ class LocalNativeBR(BRProxy):
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
@@ -324,7 +324,7 @@ class RemoteNativeBR(BRProxy):
         conf.close()
         net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
-        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --default-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
+        test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
         if iid:
             params += " --eth-ip=%s" % self.ip
