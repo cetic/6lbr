@@ -33,6 +33,7 @@ function application_watchdog () {
 		fi
 		TIME=`date +%s`
 		if (( TIME - TIMESTAMP > WATCHDOG_LIMIT )); then
+			echo "6LBR watchdog failure, restarting..."
 			echo "6LBR watchdog failure, restarting..." >> /dev/stderr
 			if ((PID_6LBR != 0)); then
 				kill $PID_6LBR
