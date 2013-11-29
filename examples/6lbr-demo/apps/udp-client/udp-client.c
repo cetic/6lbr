@@ -135,7 +135,7 @@ timeout_handler(void)
 #else
     uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
     if ( defrt != NULL ) {
-      uip_ipaddr_copy(&newdest_addr, defrt);
+      uip_ipaddr_copy(&dest_addr, defrt);
       has_dest=1;
     }
 #endif
