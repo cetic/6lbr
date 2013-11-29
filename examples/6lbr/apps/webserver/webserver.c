@@ -301,6 +301,41 @@ PT_THREAD(send_log(struct httpd_state *s))
 }
 
 static
+PT_THREAD(send_err(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char *  log_file = getenv("LOG_6LBR_ERR");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    s->fd = open(log_file, O_RDONLY);
+  } else {
+    s->fd = 0;
+  }
+  if (s->fd > 0) {
+    struct stat st;
+    fstat(s->fd, &st);
+    s->to_send = st.st_size;
+    SEND_STRING(&s->sout, "<pre>");
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+      s->to_send -= s->len;
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0 && s->to_send > 0);
+    close(s->fd);
+    SEND_STRING(&s->sout, "</pre>");
+  } else {
+    SEND_STRING(&s->sout, "Log not available");
+  }
+  PSOCK_END(&s->sout);
+}
+
+static
 void clear_log()
 {
   char *  log_file = getenv("LOG_6LBR_OUT");
@@ -1158,6 +1193,8 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   add("<h3>Logs</h3>");
   add("<form action=\"log\" method=\"get\">");
   add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
+  add("<form action=\"err\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Show error log file\"/></form><br />");
   add("<form action=\"clear_log\" method=\"get\">");
   add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
   SEND_STRING(&s->sout, buf);
@@ -1451,6 +1488,8 @@ httpd_simple_get_script(const char *name)
 #if CONTIKI_TARGET_NATIVE
   } else if(admin && memcmp(name, "log?", 4) == 0) {
     return send_log;
+  } else if(admin && memcmp(name, "err?", 4) == 0) {
+    return send_err;
   } else if(admin && memcmp(name, "clear_log?", 4) == 0) {
     clear_log();
     return generate_restart_page;
