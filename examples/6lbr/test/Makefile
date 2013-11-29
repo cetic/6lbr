@@ -61,7 +61,7 @@ nr-router:
 
 nr-smartbridge:
 	$(MAKE) preset_1dag_10nodes.csc
-	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes SmartBridge -log nr-smartbridge.log
+	python2.7 run_tests.py --scenarios NonRegressionScenarios --modes SmartBridge --log nr-smartbridge.log
 
 nr-rpl-root-6lr:
 	$(MAKE) preset_1dag_10nodes.csc
