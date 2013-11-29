@@ -244,6 +244,7 @@ class LocalNativeBR(BRProxy):
 
         print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=../package/usr/lib/6lbr"
+        print >>conf, "ETC_6LBR=../package/etc/6lbr"
         print >>conf, "BIN_6LBR=../bin"
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
