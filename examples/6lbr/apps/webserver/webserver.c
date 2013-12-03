@@ -1450,19 +1450,19 @@ httpd_simple_get_script(const char *name)
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
 #if UIP_CONF_IPV6_RPL
-  } else if(admin && strcmp(name, "rpl-gr?") == 0) {
+  } else if(admin && strncmp(name, "rpl-gr", 6) == 0) {
 	rpl_repair_root(RPL_DEFAULT_INSTANCE);
     return generate_restart_page;
-  } else if(admin && strcmp(name, "rpl-reset?") == 0) {
+  } else if(admin && strncmp(name, "rpl-reset", 9) == 0) {
     rpl_reset_dio_timer(rpl_get_instance(RPL_DEFAULT_INSTANCE));
     return generate_restart_page;
-  } else if(admin && strcmp(name, "rpl-child?") == 0) {
+  } else if(admin && strncmp(name, "rpl-child", 9) == 0) {
     uip_ipaddr_t addr;
     uip_create_linklocal_rplnodes_mcast(&addr);
     dis_output(&addr);
     return generate_restart_page;
 #endif
-  } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
+  } else if(admin && memcmp(name, "route_rm", 8) == 0) {
     redirect = 1;
     i = atoi(name + 9);
     for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
@@ -1472,7 +1472,7 @@ httpd_simple_get_script(const char *name)
       }
     }
     return generate_network;
-  } else if(admin && memcmp(name, "nbr_rm?", 7) == 0) {
+  } else if(admin && memcmp(name, "nbr_rm", 6) == 0) {
     redirect = 1;
     uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
     return generate_network;
@@ -1486,25 +1486,25 @@ httpd_simple_get_script(const char *name)
   } else if(admin && strcmp(name, "admin.html") == 0) {
     return generate_admin;
 #if CONTIKI_TARGET_NATIVE
-  } else if(admin && memcmp(name, "log?", 4) == 0) {
+  } else if(admin && memcmp(name, "log", 3) == 0) {
     return send_log;
-  } else if(admin && memcmp(name, "err?", 4) == 0) {
+  } else if(admin && memcmp(name, "err", 3) == 0) {
     return send_err;
-  } else if(admin && memcmp(name, "clear_log?", 4) == 0) {
+  } else if(admin && memcmp(name, "clear_log", 9) == 0) {
     clear_log();
     return generate_restart_page;
 #endif
-  } else if(admin && memcmp(name, "reset_config?", 12) == 0) {
+  } else if(admin && memcmp(name, "reset_config", 12) == 0) {
     check_nvm(&nvm_data, 1);
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     return generate_restart_page;
-  } else if(memcmp(name, "restart?", 8) == 0) {
+  } else if(memcmp(name, "restart", 7) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     return generate_restart_page;
-  } else if(memcmp(name, "reboot?", 7) == 0) {
+  } else if(memcmp(name, "reboot", 6) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
     return generate_restart_page;
-  } else if(memcmp(name, "halt?", 5) == 0) {
+  } else if(memcmp(name, "halt", 4) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_HALT;
     return generate_restart_page;
 #if CONTIKI_TARGET_NATIVE
