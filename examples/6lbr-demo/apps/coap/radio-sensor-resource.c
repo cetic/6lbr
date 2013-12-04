@@ -24,7 +24,7 @@
 #if REST_RES_RADIO_LQI_RAW
 #define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", radio_sensor.value(RADIO_SENSOR_LAST_PACKET))
 #else
-#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", (radio_sensor.value(RADIO_SENSOR_LAST_PACKET) - 50) * 255 / 110)
+#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", (radio_sensor.value(RADIO_SENSOR_LAST_PACKET) - 50) * 100 / (110-50))
 #endif
 
 #if REST_RES_RADIO_RSSI_RAW
