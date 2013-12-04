@@ -95,6 +95,9 @@
 #undef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING      0
 
+/* Report LQI and RSSI only for parent node */
+#define UDP_CLIENT_STORE_RADIO_INFO 1
+
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
 

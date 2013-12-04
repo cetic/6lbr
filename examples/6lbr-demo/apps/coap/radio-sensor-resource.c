@@ -1,6 +1,11 @@
 #include "coap-common.h"
 #include "radio-sensor-resource.h"
 
+#if UDP_CLIENT_STORE_RADIO_INFO
+extern int udp_client_lqi;
+extern int udp_client_rssi;
+#endif
+
 #if REST_RES_RADIO_LQI
 #if REST_RES_RADIO_LQI_PERIODIC
 #define REST_RES_RADIO_LQI_RESOURCE REST_PERIODIC_RESOURCE
@@ -21,16 +26,24 @@
 #define REST_RES_RADIO_RSSI_RESOURCE(...)
 #endif
 
-#if REST_RES_RADIO_LQI_RAW
-#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", radio_sensor.value(RADIO_SENSOR_LAST_PACKET))
+#if UDP_CLIENT_STORE_RADIO_INFO
+#define RADIO_LQI_VALUE_SOURCE udp_client_lqi
+#define RADIO_RSSI_VALUE_SOURCE udp_client_rssi
 #else
-#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", (radio_sensor.value(RADIO_SENSOR_LAST_PACKET) - 50) * 100 / (110-50))
+#define RADIO_LQI_VALUE_SOURCE radio_sensor.value(RADIO_SENSOR_LAST_PACKET)
+#define RADIO_RSSI_VALUE_SOURCE radio_sensor.value(RADIO_SENSOR_LAST_VALUE)
+#endif
+
+#if REST_RES_RADIO_LQI_RAW
+#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", RADIO_LQI_VALUE_SOURCE)
+#else
+#define RADIO_LQI_VALUE REST_FORMAT_ONE_INT("lqi", (RADIO_LQI_VALUE_SOURCE - 50) * 100 / (110-50))
 #endif
 
 #if REST_RES_RADIO_RSSI_RAW
-#define RADIO_RSSI_VALUE REST_FORMAT_ONE_INT("rssi", radio_sensor.value(RADIO_SENSOR_LAST_VALUE))
+#define RADIO_RSSI_VALUE REST_FORMAT_ONE_INT("rssi", RADIO_RSSI_VALUE_SOURCE)
 #else
-#define RADIO_RSSI_VALUE REST_FORMAT_ONE_INT("rssi", (radio_sensor.value(RADIO_SENSOR_LAST_VALUE) - 45))
+#define RADIO_RSSI_VALUE REST_FORMAT_ONE_INT("rssi", (RADIO_RSSI_VALUE_SOURCE - 45))
 #endif
 
 REST_RES_RADIO_RSSI_RESOURCE(radio_rssi,
