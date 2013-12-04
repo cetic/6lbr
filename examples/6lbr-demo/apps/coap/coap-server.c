@@ -3,6 +3,7 @@
 #include "temp-sensor-resource.h"
 #include "humidity-sensor-resource.h"
 #include "battery-sensor-resource.h"
+#include "radio-sensor-resource.h"
 #include "button-resource.h"
 #include "leds-resource.h"
 #include "device-resource.h"
@@ -22,6 +23,8 @@ REST_RES_LED_G_DEFINE();
 REST_RES_LED_B_DEFINE();
 REST_RES_DEVICE_MODEL_SW_DEFINE();
 REST_RES_DEVICE_UPTIME_DEFINE();
+REST_RES_RADIO_LQI_DEFINE();
+REST_RES_RADIO_RSSI_DEFINE();
 
 PROCESS(coap_server_process, "Coap Server");
 
@@ -48,6 +51,8 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_LED_B_INIT();
   REST_RES_DEVICE_MODEL_SW_INIT();
   REST_RES_DEVICE_UPTIME_INIT();
+  REST_RES_RADIO_LQI_INIT();
+  REST_RES_RADIO_RSSI_INIT();
 
   while(1) {
     PROCESS_WAIT_EVENT();

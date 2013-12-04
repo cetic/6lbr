@@ -69,7 +69,8 @@ CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-13
 APPS += erbium
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
-	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c
+	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
+	radio-sensor-resource.c
 endif
 
 ifneq ($(UDP_PERIOD),)

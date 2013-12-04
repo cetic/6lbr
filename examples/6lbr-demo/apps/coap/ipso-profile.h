@@ -85,10 +85,16 @@
 #define LIGHT_SOLAR_SENSOR_RES SENSOR_PATH "solar"
 #define TEMPERATURE_SENSOR_RES SENSOR_PATH "temp"
 #define HUMIDITY_SENSOR_RES SENSOR_PATH "humidity"
+#define RADIO_SENSOR_PATH SENSOR_PATH "radio"
+#define RADIO_LQI_SENSOR_RES RADIO_SENSOR_PATH "/lqi"
+#define RADIO_RSSI_SENSOR_RES RADIO_SENSOR_PATH "/rssi"
 
 #define LIGHT_SENSOR_RT "ucum:lx"
 #define TEMPERATURE_SENSOR_RT "ucum:Cel"
 #define RELATIVE_HUMIDITY_SENSOR_RT "ucum:%RH"
+#define DBM_RT "ucum:dBm"
+#define PERCENT_RT "ucum:%"
+#define RAW_RT "raw"
 
 // Interface Description
 
