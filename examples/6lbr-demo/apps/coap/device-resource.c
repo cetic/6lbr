@@ -25,4 +25,4 @@ REST_RES_DEVICE_UPTIME_RESOURCE(device_uptime,
     DEVICE_UPTIME_RES,
     IF_SENSOR,
     DEVICE_UPTIME_RT,
-    REST_FORMAT_ONE_LONG("uptime", clock_seconds()))
+    REST_FORMAT_ONE_ULONG("uptime", clock_seconds()))
