@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+# command line stub for
+# https://launchpad.net/python-msp430-tools
+
+import z1
+z1.main()
