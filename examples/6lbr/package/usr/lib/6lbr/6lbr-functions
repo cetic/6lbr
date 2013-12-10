@@ -72,7 +72,7 @@ fi
 # Global configuration and setup scripts
 
 if [ "$LIB_6LBR" == "" ]; then
-	LIB_6LBR=`dirname $0`/../lib/6lbr
+	LIB_6LBR=`dirname $BASH_SOURCE`
 fi
 
 
