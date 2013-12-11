@@ -3,4 +3,8 @@
 CONTIKI_TARGET_SOURCEFILES += contiki-z1-platform.c 
 CLEAN += *.z1 
 
+ifndef SMALL
+SMALL=1
+endif
+
 include $(CONTIKI)/platform/z1/Makefile.common
