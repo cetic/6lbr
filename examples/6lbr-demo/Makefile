@@ -81,6 +81,29 @@ ifneq ($(WITH_UDP_CLIENT_AUTOSTART),0)
 CFLAGS += -DUDP_CLIENT_AUTOSTART=1
 endif
 
+# Platform specific configuration
+
+MSP430_20BITS=1
+
+SMALL=1
+
+ifeq ($(TARGET),sky)
+MSP430_20BITS=0
+endif
+
+CFLAGS+=-DMSP430_20BITS=$(MSP430_20BITS)
+
+ifneq ($(MSP430_20BITS), 0)
+ifeq ($(TARGET),z1)
+CFLAGS+=-mmemory-model=medium
+LDFLAGS+=-mmemory-model=medium
+endif
+ifeq ($(TARGET),wismote)
+CFLAGS+=-D__MSP430F5437__ -mmemory-model=huge -mcode-region=far -mdata-region=far
+LDFLAGS+=-D__MSP430F5437__ -Wl,-Ttext=0x8000 -mmemory-model=huge -mcode-region=far -mdata-region=far
+endif
+endif
+
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c 
