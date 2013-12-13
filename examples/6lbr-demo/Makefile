@@ -11,6 +11,7 @@ WITH_SHELL?=0
 WITH_UDPCLIENT?=1
 WITH_WEBSERVER?=0
 WITH_COAPSERVER?=1
+WITH_TINYDTLS?=0
 
 # UDP client configuration
 
@@ -79,6 +80,12 @@ endif
 
 ifneq ($(WITH_UDP_CLIENT_AUTOSTART),0)
 CFLAGS += -DUDP_CLIENT_AUTOSTART=1
+endif
+
+ifneq ($(WITH_TINYDTLS), 0)
+APPS += tinydtls
+CFLAGS += -DSHA2_USE_INTTYPES_H -DWITH_TINYDTLS=1 -DLITTLE_ENDIAN=3412 -DBYTE_ORDER=LITTLE_ENDIAN -DWITH_CONTIKI=1
+PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 endif
 
 # Platform specific configuration

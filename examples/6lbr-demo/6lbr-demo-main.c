@@ -12,6 +12,10 @@
 #include "shell-6lbr.h"
 #endif
 
+#if WITH_TINYDTLS
+#include "dtls.h"
+#endif
+
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
 #if WEBSERVER
@@ -46,6 +50,10 @@ start_apps(void)
 PROCESS_THREAD(demo_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
+
+#if WITH_TINYDTLS
+  dtls_init();
+#endif
 
 #if SHELL
 #ifdef CONTIKI_TARGET_Z1
