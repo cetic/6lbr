@@ -131,7 +131,7 @@ int main(void) {
   #if DEBUG_ANNOTATE
 	print_netstack();
   #endif
-#if ! CETIC_6LBR
+#if ! SLIP_RADIO
 	process_start(&tcpip_process, NULL);
 #endif
   #if DEBUG_ANNOTATE
