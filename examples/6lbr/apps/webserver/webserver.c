@@ -526,6 +526,12 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
                 && node_info_table[i].ipaddr.u8[11] == 0xA8
                 && (node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0) {
         add("<td>Redwire Econotag I</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+                && node_info_table[i].ipaddr.u8[9] == 0x05
+                && node_info_table[i].ipaddr.u8[10] == 0x0C
+                && node_info_table[i].ipaddr.u8[11] == 0x2A
+                && node_info_table[i].ipaddr.u8[12] == 0x8C) {
+        add("<td>Redwire Econotag I</td>");
       } else if(node_info_table[i].ipaddr.u8[8] == 0xEE
                 && node_info_table[i].ipaddr.u8[9] == 0x47
                 && node_info_table[i].ipaddr.u8[10] == 0x3C) {
