@@ -58,7 +58,7 @@ uint16_t user_dest_port = 3000;
 uint8_t udp_client_run = 0;
 clock_time_t udp_interval = CETIC_6LBR_UDP_PERIOD * CLOCK_SECOND;
 
-#if UDP_CLIENT_STORE_RADIO_INFO
+#if PLATFORM_HAS_RADIO && UDP_CLIENT_STORE_RADIO_INFO
 int udp_client_lqi = 0;
 int udp_client_rssi = 0;
 #endif
@@ -75,7 +75,7 @@ tcpip_handler(void)
     str = uip_appdata;
     str[uip_datalen()] = '\0';
     printf("Response from the server: '%s'\n", str);
-#if UDP_CLIENT_STORE_RADIO_INFO
+#if PLATFORM_HAS_RADIO && UDP_CLIENT_STORE_RADIO_INFO
     udp_client_lqi = radio_sensor.value(RADIO_SENSOR_LAST_PACKET);
     udp_client_rssi = radio_sensor.value(RADIO_SENSOR_LAST_VALUE);
 #endif
