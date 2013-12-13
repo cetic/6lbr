@@ -12,6 +12,10 @@
 #include "shell-6lbr.h"
 #endif
 
+#ifdef CONTIKI_TARGET_ECONOTAG
+#include "maca.h"
+#endif
+
 #if WITH_TINYDTLS
 #include "dtls.h"
 #endif
@@ -50,6 +54,10 @@ start_apps(void)
 PROCESS_THREAD(demo_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
+
+#ifdef CONTIKI_TARGET_ECONOTAG
+  set_channel(RF_CHANNEL - 11);
+#endif
 
 #if WITH_TINYDTLS
   dtls_init();
