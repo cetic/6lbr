@@ -20,6 +20,10 @@
 #include "dtls.h"
 #endif
 
+#if WITH_DTLS_ECHO
+#include "dtls-echo.h"
+#endif
+
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
 #if WEBSERVER
@@ -48,6 +52,10 @@ start_apps(void)
 
 #if WITH_COAP
   process_start(&coap_server_process, NULL);
+#endif
+
+#if WITH_DTLS_ECHO
+  process_start(&dtls_echo_server_process, NULL);
 #endif
 }
 

@@ -12,6 +12,7 @@ WITH_UDPCLIENT?=1
 WITH_WEBSERVER?=0
 WITH_COAPSERVER?=1
 WITH_TINYDTLS?=0
+WITH_DTLSECHO?=0
 
 # UDP client configuration
 
@@ -26,7 +27,7 @@ CONTIKI?=../..
 
 PROJECTDIR?=.
 
-PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client $(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap
+PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client $(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap $(PROJECTDIR)/apps/dtls-echo
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
@@ -85,7 +86,13 @@ endif
 ifneq ($(WITH_TINYDTLS), 0)
 APPS += tinydtls
 CFLAGS += -DSHA2_USE_INTTYPES_H -DWITH_TINYDTLS=1 -DLITTLE_ENDIAN=3412 -DBYTE_ORDER=LITTLE_ENDIAN -DWITH_CONTIKI=1
+CFLAGS += -DUIP_CONF_TCP=0
 PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
+endif
+
+ifneq ($(WITH_DTLSECHO), 0)
+CFLAGS += -DWITH_DTLS_ECHO=1
+PROJECT_SOURCEFILES += dtls-echo.c
 endif
 
 # Platform specific configuration
