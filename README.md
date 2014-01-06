@@ -1,19 +1,11 @@
-The Contiki Operating System
-============================
+#6LowPan ND
+Implementation of Neighbor Discovery Optimization for IPv6 over Low-Power 
+Wireless Personal Area Networks on Contiki operating system (fork).
+Integration is based on [RFC6775](http://tools.ietf.org/html/rfc6775) to optimize ivp6 ND on tiny OS.
 
-[![Build Status](https://secure.travis-ci.org/contiki-os/contiki.png)](http://travis-ci.org/contiki-os/contiki)
+This repository is a fork of Contiki with addition
+* 
 
-Contiki is an open source operating system that runs on tiny low-power
-microcontrollers and makes it possible to develop applications that
-make efficient use of the hardware while providing standardized
-low-power wireless communication for a range of hardware platforms.
-
-Contiki is used in numerous commercial and non-commercial systems,
-such as city sound monitoring, street lights, networked electrical
-power meters, industrial monitoring, radiation monitoring,
-construction site monitoring, alarm systems, remote house monitoring,
-and so on.
-
-For more information, see the Contiki website:
-
-[http://contiki-os.org](http://contiki-os.org)
+##Source
+* contiki OS: [http://contiki-os.org](http://contiki-os.org)
+* fork : [https://github.com/contiki-os/contiki](https://github.com/contiki-os/contiki)
