@@ -1073,6 +1073,10 @@ void
 rpl_recalculate_ranks(void)
 {
   rpl_parent_t *p;
+  rpl_instance_t *instance;
+  rpl_instance_t *end;
+  int i;
+  int updated = 0;
 
   /*
    * We recalculate ranks when we receive feedback from the system rather
@@ -1083,6 +1087,7 @@ rpl_recalculate_ranks(void)
   while(p != NULL) {
     if(p->dag != NULL && p->dag->instance && p->updated) {
       p->updated = 0;
+      updated = 1;
       PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
         PRINTF("RPL: A parent was dropped\n");
@@ -1090,6 +1095,19 @@ rpl_recalculate_ranks(void)
     }
     p = nbr_table_next(rpl_parents, p);
   }
+  if (!updated) {
+    for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+        instance < end; ++instance) {
+      if(instance->used) {
+        for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
+          if(instance->dag_table[i].used && instance->dag_table[i].preferred_parent != NULL) {
+            rpl_process_parent_event(instance, instance->dag_table[i].preferred_parent);
+          }
+        }
+      }
+    }
+  }
+
 }
 /*---------------------------------------------------------------------------*/
 int
