@@ -43,7 +43,7 @@ def init_config():
     config.wsn_second_prefix=getattr(config, 'wsn_second_prefix', '9999')
     config.eth_prefix=getattr(config, 'eth_prefix', 'bbbb')
     config.ping_payload=getattr(config, 'ping_payload', 8) #Default is 54
-    config.ping_max_payload=getattr(config, 'ping_max_payload', 184) #This makes a 232 bytes ip packet (limit is 240 bytes)
+    config.ping_max_payload=getattr(config, 'ping_max_payload', 168) #SLIP can not receive more than three fragments at a time
     config.ping_payload_step=getattr(config, 'ping_payload', 10)
     config.ping_timeout=getattr(config, 'ping_timeout', 8)
     config.udp_port=getattr(config, 'udp_port', 3000)

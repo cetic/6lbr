@@ -138,6 +138,26 @@ tcpip_get_outputfunc(void)
   return outputfunc;
 }
 
+#else
+
+static uint8_t (* outputfunc)(void);
+uint8_t
+tcpip_output(void)
+{
+  if(outputfunc != NULL) {
+    return outputfunc();
+  }
+  UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+  return 0;
+}
+
+void
+tcpip_set_outputfunc(uint8_t (*f)(void))
+{
+  outputfunc = f;
+}
+#endif
+
 static inputfunc_t inputfunc;
 
 void
@@ -160,26 +180,6 @@ tcpip_get_inputfunc(void)
 {
   return inputfunc;
 }
-
-#else
-
-static uint8_t (* outputfunc)(void);
-uint8_t
-tcpip_output(void)
-{
-  if(outputfunc != NULL) {
-    return outputfunc();
-  }
-  UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
-  return 0;
-}
-
-void
-tcpip_set_outputfunc(uint8_t (*f)(void))
-{
-  outputfunc = f;
-}
-#endif
 
 #if UIP_CONF_IP_FORWARD
 unsigned char tcpip_is_forwarding; /* Forwarding right now? */

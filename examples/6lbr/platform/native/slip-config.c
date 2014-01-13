@@ -65,6 +65,7 @@ uint8_t ethernet_has_fcs = 0;
 const char *slip_config_ifup_script = NULL;
 const char *slip_config_ifdown_script = NULL;
 char const *slip_config_www_root = "../www";
+char const *ip_config_file_name = NULL;
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -80,7 +81,7 @@ slip_config_handle_arguments(int argc, char **argv)
   int baudrate = 115200;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
@@ -166,6 +167,17 @@ slip_config_handle_arguments(int argc, char **argv)
 
     case 'v':
       printf("Warning: -v option is deprecated, use -L and -S instead\n");
+      break;
+    case 'P':
+      watchdog_interval = atoi(optarg);
+      break;
+
+    case 'W':
+      watchdog_file_name = optarg;
+      break;
+
+    case 'C':
+      ip_config_file_name = optarg;
       break;
 
     case '?':

@@ -117,7 +117,7 @@ class PerformanceSingleBrScenarios(base.TestScenarios):
             self.assertTrue(self.support.wait_ping_6lbr(config.ping_6lbr_timeout), "6LBR is not responding to new prefix")
             print >> sys.stderr, "RPL Global Repair... (by %s)" % self.support.host.ip
             os.environ['http_proxy']=''
-            httpresponse = urllib2.urlopen("http://[%s]/rpl-gr"%self.support.brList[-1].ip)
+            httpresponse = urllib2.urlopen("http://[%s]/rpl-gr?"%self.support.brList[-1].ip)
             self.assertTrue(httpresponse.getcode() == 200, "Fail to trigger the RPL global repair")
         timemoteping2 = time.time()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")

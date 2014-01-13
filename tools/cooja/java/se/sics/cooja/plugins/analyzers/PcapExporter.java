@@ -16,9 +16,10 @@ public class PcapExporter {
     
     public void openPcap(File pcapFile) throws IOException {
     	if ( out != null ) {
-    		closePcap();
+            closePcap();
     	}
     	if ( pcapFile == null ) {
+            /* pcap file not specified, use default file name */
             pcapFile = new File("radiolog-" + System.currentTimeMillis() + ".pcap");
     	}
     	out = new DataOutputStream(new FileOutputStream(pcapFile));
@@ -40,6 +41,7 @@ public class PcapExporter {
 
     public void exportPacketData(byte[] data) throws IOException {
         if (out == null) {
+            /* pcap file never set, open default */
             openPcap(null);
         }
         try {

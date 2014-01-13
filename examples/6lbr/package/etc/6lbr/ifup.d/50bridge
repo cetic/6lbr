@@ -1,0 +1,54 @@
+#!/bin/bash
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+if [ "$BRIDGE" != "1" ]; then
+	exit
+fi
+
+if [ $MODE_6LBR != "tap" ]; then
+	exit
+fi
+
+case $OS in
+	Linux)
+		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
+			echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
+			brctl addbr $DEV_BRIDGE
+			brctl setfd $DEV_BRIDGE 0
+			if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
+				echo "6lbr-ifup: attach device $DEV_ETH"
+				brctl addif $DEV_BRIDGE $DEV_ETH
+				ip addr flush dev $DEV_ETH
+			fi
+			ip link set $DEV_BRIDGE up
+		else
+			echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+		fi
+		ip addr flush dev $DEV
+		brctl addif $DEV_BRIDGE $DEV
+		;;
+
+	Darwin)
+		#TODO: add condition of brctl output as done on line 24 for Linux
+		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]]; then
+			echo "6lbr-ifup: Create bridge $DEV_BRIDGE and attach device $DEV_ETH"
+			ifconfig $DEV_BRIDGE create
+			ifconfig $DEV_BRIDGE up addm $DEV_ETH
+		else
+			echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+		fi
+		ifconfig $DEV_BRIDGE addm $DEV
+		;;
+
+	*)
+		echo Unknown OS
+		;;
+esac

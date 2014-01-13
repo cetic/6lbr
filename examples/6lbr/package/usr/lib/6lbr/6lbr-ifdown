@@ -5,49 +5,9 @@
 
 config_default
 
-MODE_6LBR=$1
-DEV=$2
-OS=`uname`
-
-case $MODE_6LBR in
-	raw)
-	;;
-	
-	tap)
-	case $OS in
-		Linux)
-			if [ "$BRIDGE" = "1" ]; then
-				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
-					echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
-					ip link set $DEV_BRIDGE down
-					ip addr flush dev $DEV_BRIDGE
-					ip addr flush dev $DEV
-					brctl delbr $DEV_BRIDGE
-				else
-					echo "6lbr-ifdown: Remove interface $DEV"
-					brctl delif $DEV_BRIDGE $DEV
-				fi
-			fi
-			ip link set $DEV down
-			netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
-			;;
-		Darwin)
-			if [ "$BRIDGE" = "1" ]; then
-				if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
-					echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
-					ifconfig $DEV_BRIDGE destroy
-				else
-					echo "6lbr-ifdown: Remove interface $DEV"
-					ifconfig $DEV_BRIDGE delm $DEV
-				fi
-			fi
-			;;
-		*)
-			echo Unknown OS
-	esac
-	;;
-	
-	*)
-	echo "Unknown mode $MODE"
-	;;
-esac
+for i in `ls $ETC_6LBR/ifdown.d`; do
+	file=$ETC_6LBR/ifdown.d/$i
+	if [ -x $file ]; then
+		$file $LIB_6LBR "$@"
+	fi
+done

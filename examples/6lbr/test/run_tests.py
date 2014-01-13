@@ -19,6 +19,8 @@ parser.add_argument('--modes', metavar='<mode name>', dest='modes', action='appe
                    help='Modes to run')
 parser.add_argument('--scenarios', metavar='<test scenarios name>', dest='scenarios',
                    help='Test scenarios to be executed')
+parser.add_argument('--log', metavar='<test log file name>', dest='log', default='test.log',
+                   help='Test log file name')
 
 args = parser.parse_args()
 
@@ -32,7 +34,7 @@ for mode in args.modes:
     setattr(sys.modules['__main__'], mode, getattr(mode_module, mode))
     
 ut=unittest.main(argv=[sys.argv[0]], exit=False, verbosity=1)
-result=open(os.path.join(config.report_path, 'test.log'), "w")
+result=open(os.path.join(config.report_path, args.log), "w")
 print >> result, "SUMMARY\n"
 print >> result, "Tests run: %d" % ut.result.testsRun
 print >> result, "Tests skipped: %d" % len(ut.result.skipped)

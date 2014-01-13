@@ -62,9 +62,9 @@
 #include "node-info.h"
 
 #if CONTIKI_TARGET_NATIVE
-extern int contiki_argc;
-extern char **contiki_argv;
-extern int slip_config_handle_arguments(int argc, char **argv);
+#include "6lbr-watchdog.h"
+#include "slip-config.h"
+#include <arpa/inet.h>
 #endif
 
 //Initialisation flags
@@ -269,6 +269,16 @@ cetic_6lbr_init(void)
 #else
   LOG6LBR_INFO("Starting in UNKNOWN mode\n");
 #endif
+
+#if CONTIKI_TARGET_NATIVE
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+  }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -283,6 +293,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
 #if CONTIKI_TARGET_NATIVE
   slip_config_handle_arguments(contiki_argc, contiki_argv);
+  if (watchdog_interval) {
+    process_start(&native_6lbr_watchdog, NULL);
+  } else {
+    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  }
 #endif
 
   LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");

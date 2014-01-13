@@ -93,8 +93,8 @@ public class RadioLoggerHeadless extends VisPlugin {
         try {
             pcapExporter.exportPacketData(radioPacket.getPacketData());
         } catch (IOException e) {
-            System.err.println("Could not export pcap data");
-            e.printStackTrace();
+          System.err.println("Could not export pcap data");
+          e.printStackTrace();
         }
       }
     });
@@ -105,36 +105,37 @@ public class RadioLoggerHeadless extends VisPlugin {
       radioMedium.deleteRadioMediumObserver(radioMediumObserver);
     }
   }
+
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-	    System.err.println("RadioLogger.setConfigXML()");
-	    for (Element element : configXML) {
-	        String name = element.getName();
-	        if (name.equals("pcap_file")) {
-	          pcapFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
-	          try {
-		          pcapExporter.openPcap(pcapFile);
-	          } catch (IOException e) {
-	              e.printStackTrace();
-	          }
-	        }
-	      }
-	    return true;
-	  }
+    System.err.println("RadioLogger.setConfigXML()");
+    for (Element element : configXML) {
+      String name = element.getName();
+      if (name.equals("pcap_file")) {
+        pcapFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        try {
+          pcapExporter.openPcap(pcapFile);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    return true;
+  }
 
-	  public Collection<Element> getConfigXML() {
-		    System.err.println("RadioLogger.getConfigXML()");
-		    ArrayList<Element> config = new ArrayList<Element>();
-		    Element element;
+  public Collection<Element> getConfigXML() {
+    System.err.println("RadioLogger.getConfigXML()");
+    ArrayList<Element> config = new ArrayList<Element>();
+    Element element;
 
-		    if (pcapFile != null) {
-		      element = new Element("pcap_file");
-		      File file = simulation.getGUI().createPortablePath(pcapFile);
-		      element.setText(pcapFile.getPath().replaceAll("\\\\", "/"));
-		      element.setAttribute("EXPORT", "copy");
-		      config.add(element);
-		    }
+    if (pcapFile != null) {
+      element = new Element("pcap_file");
+      File file = simulation.getGUI().createPortablePath(pcapFile);
+      element.setText(pcapFile.getPath().replaceAll("\\\\", "/"));
+      element.setAttribute("EXPORT", "discard");
+      config.add(element);
+    }
 
-		    return config;
-	  }
+    return config;
+  }
 
 }

@@ -12,15 +12,29 @@
 #include "shell-6lbr.h"
 #endif
 
+#ifdef CONTIKI_TARGET_ECONOTAG
+#include "maca.h"
+#endif
+
+#if WITH_TINYDTLS
+#include "dtls.h"
+#endif
+
+#if WITH_DTLS_ECHO
+#include "dtls-echo.h"
+#endif
+
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
+#if WEBSERVER
 PROCESS_NAME(web_sense_process);
 PROCESS_NAME(webserver_nogui_process);
+#endif
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
 #endif
 #if WITH_COAP
-PROCESS_NAME(rest_server_example);
+PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -37,13 +51,25 @@ start_apps(void)
 #endif
 
 #if WITH_COAP
-  process_start(&rest_server_example, NULL);
+  process_start(&coap_server_process, NULL);
+#endif
+
+#if WITH_DTLS_ECHO
+  process_start(&dtls_echo_server_process, NULL);
 #endif
 }
 
 PROCESS_THREAD(demo_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
+
+#ifdef CONTIKI_TARGET_ECONOTAG
+  set_channel(RF_CHANNEL - 11);
+#endif
+
+#if WITH_TINYDTLS
+  dtls_init();
+#endif
 
 #if SHELL
 #ifdef CONTIKI_TARGET_Z1

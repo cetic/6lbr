@@ -302,6 +302,41 @@ PT_THREAD(send_log(struct httpd_state *s))
 }
 
 static
+PT_THREAD(send_err(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char *  log_file = getenv("LOG_6LBR_ERR");
+  if ( log_file && strcmp(log_file, "-") != 0 ) {
+    s->fd = open(log_file, O_RDONLY);
+  } else {
+    s->fd = 0;
+  }
+  if (s->fd > 0) {
+    struct stat st;
+    fstat(s->fd, &st);
+    s->to_send = st.st_size;
+    SEND_STRING(&s->sout, "<pre>");
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+      s->to_send -= s->len;
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0 && s->to_send > 0);
+    close(s->fd);
+    SEND_STRING(&s->sout, "</pre>");
+  } else {
+    SEND_STRING(&s->sout, "Log not available");
+  }
+  PSOCK_END(&s->sout);
+}
+
+static
 void clear_log()
 {
   char *  log_file = getenv("LOG_6LBR_OUT");
@@ -492,6 +527,12 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
                 && node_info_table[i].ipaddr.u8[11] == 0xA8
                 && (node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0) {
         add("<td>Redwire Econotag I</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+                && node_info_table[i].ipaddr.u8[9] == 0x05
+                && node_info_table[i].ipaddr.u8[10] == 0x0C
+                && node_info_table[i].ipaddr.u8[11] == 0x2A
+                && node_info_table[i].ipaddr.u8[12] == 0x8C) {
+        add("<td>Redwire Econotag I</td>");
       } else if(node_info_table[i].ipaddr.u8[8] == 0xEE
                 && node_info_table[i].ipaddr.u8[9] == 0x47
                 && node_info_table[i].ipaddr.u8[10] == 0x3C) {
@@ -636,10 +677,15 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   }
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><h3>Actions</h3>");
-    add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+    add("<form action=\"rpl-gr\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger global repair\"/></form><br />");
+    add("<form action=\"rpl-reset\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Reset DIO timer\"/></form><br />");
+    add("<form action=\"rpl-child\" method=\"get\">");
+    add("<input type=\"submit\" value=\"Trigger child DIO\"/></form><br />");
   } else {
-    add("<br /><h3>Actions (disabled)</h3>");
-    add("Trigger global repair<br />");
+    add("<br /><h3>Actions</h3>");
+    add("Disabled<br />");
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -1158,6 +1204,8 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   add("<h3>Logs</h3>");
   add("<form action=\"log\" method=\"get\">");
   add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
+  add("<form action=\"err\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Show error log file\"/></form><br />");
   add("<form action=\"clear_log\" method=\"get\">");
   add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
   SEND_STRING(&s->sout, buf);
@@ -1413,11 +1461,19 @@ httpd_simple_get_script(const char *name)
   } else if(strcmp(name, "statistics.html") == 0) {
     return generate_statistics;
 #if UIP_CONF_IPV6_RPL
-  } else if(admin && strcmp(name, "rpl-gr") == 0) {
+  } else if(admin && strncmp(name, "rpl-gr", 6) == 0) {
 	rpl_repair_root(RPL_DEFAULT_INSTANCE);
     return generate_restart_page;
+  } else if(admin && strncmp(name, "rpl-reset", 9) == 0) {
+    rpl_reset_dio_timer(rpl_get_instance(RPL_DEFAULT_INSTANCE));
+    return generate_restart_page;
+  } else if(admin && strncmp(name, "rpl-child", 9) == 0) {
+    uip_ipaddr_t addr;
+    uip_create_linklocal_rplnodes_mcast(&addr);
+    dis_output(&addr);
+    return generate_restart_page;
 #endif
-  } else if(admin && memcmp(name, "route_rm?", 9) == 0) {
+  } else if(admin && memcmp(name, "route_rm", 8) == 0) {
     redirect = 1;
     i = atoi(name + 9);
     for(r = uip_ds6_route_head(); r != NULL; r = list_item_next(r), --i) {
@@ -1427,7 +1483,7 @@ httpd_simple_get_script(const char *name)
       }
     }
     return generate_network;
-  } else if(admin && memcmp(name, "nbr_rm?", 7) == 0) {
+  } else if(admin && memcmp(name, "nbr_rm", 6) == 0) {
     redirect = 1;
     //TODO: merge-contiki-1.1.2 disabled this for now, see #7082
     //uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
@@ -1442,23 +1498,25 @@ httpd_simple_get_script(const char *name)
   } else if(admin && strcmp(name, "admin.html") == 0) {
     return generate_admin;
 #if CONTIKI_TARGET_NATIVE
-  } else if(admin && memcmp(name, "log?", 4) == 0) {
+  } else if(admin && memcmp(name, "log", 3) == 0) {
     return send_log;
-  } else if(admin && memcmp(name, "clear_log?", 4) == 0) {
+  } else if(admin && memcmp(name, "err", 3) == 0) {
+    return send_err;
+  } else if(admin && memcmp(name, "clear_log", 9) == 0) {
     clear_log();
     return generate_restart_page;
 #endif
-  } else if(admin && memcmp(name, "reset_config?", 12) == 0) {
+  } else if(admin && memcmp(name, "reset_config", 12) == 0) {
     check_nvm(&nvm_data, 1);
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     return generate_restart_page;
-  } else if(memcmp(name, "restart?", 8) == 0) {
+  } else if(memcmp(name, "restart", 7) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     return generate_restart_page;
-  } else if(memcmp(name, "reboot?", 7) == 0) {
+  } else if(memcmp(name, "reboot", 6) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
     return generate_restart_page;
-  } else if(memcmp(name, "halt?", 5) == 0) {
+  } else if(memcmp(name, "halt", 4) == 0) {
     cetic_6lbr_restart_type = CETIC_6LBR_HALT;
     return generate_restart_page;
 #if CONTIKI_TARGET_NATIVE
