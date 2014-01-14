@@ -18,27 +18,27 @@ class SimMoteType:
 
 	def text_from_template(self):
 		text ="""    <motetype>
-      se.sics.cooja.mspmote.SkyMoteType
+      org.contikios.cooja.mspmote.SkyMoteType
       <identifier>SHORTNAME</identifier>
       <description>DESCRIPTION</description>
       <source EXPORT="discard">FIRMWAREPATH</source>
       <commands EXPORT="discard">make FIRMWARE.sky TARGET=sky MAKEARGS</commands>
       <firmware EXPORT="copy">FIRMWAREBIN</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>\r\n"""
 		text = text.replace('FIRMWAREPATH', self.fw_folder + os.path.sep + self.maketarget + '.c')
 		text = text.replace('FIRMWAREBIN', self.fw_folder + os.path.sep + self.maketarget + '.sky')
@@ -67,11 +67,11 @@ class SimMote:
 		text = """    <mote>
       <breakpoints />
       <interface_config>
-	se.sics.cooja.mspmote.interfaces.MspMoteID
+	org.contikios.cooja.mspmote.interfaces.MspMoteID
 	<id>NODE_ID</id>
       </interface_config>
       <interface_config>
-	se.sics.cooja.interfaces.Position
+	org.contikios.cooja.interfaces.Position
 	<x>XPOS</x>
 	<y>YPOS</y>
 	<z>ZPOS</z>
@@ -174,7 +174,7 @@ class Sim():
 
 	def udgm_set_range(self, mote_range):
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+2)
 			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%f</transmitting_range>\r\n" % mote_range)
 		
@@ -183,7 +183,7 @@ class Sim():
 
 	def udgm_set_interference_range(self, interference_range):
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+3)
 			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%f</interference_range>\r\n" % interference_range)
 		
@@ -192,7 +192,7 @@ class Sim():
 
 	def udgm_set_rx_tx_ratios(self, rx, tx):
 		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      se.sics.cooja.radiomediums.UDGM\r\n':
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%f</success_ratio_tx>\r\n" % tx)
@@ -211,7 +211,7 @@ class Sim():
 		radiomedium_open_index = self.simfile_lines.index('    <radiomedium>\r\n')
 		radiomedium_close_index = self.simfile_lines.index('    </radiomedium>\r\n')
 		remove_n_at(radiomedium_open_index+1, radiomedium_close_index - radiomedium_open_index -1, self.simfile_lines)
-		self.simfile_lines.insert(radiomedium_open_index+1, '      se.sics.cooja.radiomediums.DirectedGraphMedium\r\n')
+		self.simfile_lines.insert(radiomedium_open_index+1, '      org.contikios.cooja.radiomediums.DirectedGraphMedium\r\n')
 
 		ptr = radiomedium_open_index+2
 
@@ -311,7 +311,7 @@ def dgrm_generate(src,dst,prr,rssi,delay):
 	template = """      <edge>
 	<source>SRC</source>
 	<dest>
-	  se.sics.cooja.radiomediums.DGRMDestinationRadio
+	  org.contikios.cooja.radiomediums.DGRMDestinationRadio
 	  <radio>DST</radio>
 	  <ratio>PRR</ratio>
 	  <signal>RSSI</signal>
