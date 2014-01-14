@@ -50,8 +50,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __QUEUEBUF_H__
-#define __QUEUEBUF_H__
+#ifndef QUEUEBUF_H_
+#define QUEUEBUF_H_
 
 #include "net/packetbuf.h"
 
@@ -110,7 +110,7 @@ void queuebuf_debug_print(void);
 
 int queuebuf_freeslots(void);
 
-#endif /* __QUEUEBUF_H__ */
+#endif /* QUEUEBUF_H_ */
 
 /** @} */
 /** @} */

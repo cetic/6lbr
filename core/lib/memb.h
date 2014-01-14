@@ -60,8 +60,8 @@
  *
  */
 
-#ifndef __MEMB_H__
-#define __MEMB_H__
+#ifndef MEMB_H_
+#define MEMB_H_
 
 #include "sys/cc.h"
 
@@ -135,4 +135,4 @@ int  memb_count(struct memb *m);
 /** @} */
 /** @} */
 
-#endif /* __MEMB_H__ */
+#endif /* MEMB_H_ */

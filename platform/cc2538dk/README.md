@@ -60,7 +60,7 @@ The platform has been developed and tested under Windows XP, Mac OS X 10.7 and U
 
 Install a Toolchain
 -------------------
-The toolchain used to build contiki is arm-gcc (Sourcery CodeBench), also used by other arm-based Contiki ports. If you are using Instant Contiki, you will have this pre-installed in your system. To find out if this is the case, try this:
+The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you will have a version pre-installed in your system. To find out if this is the case, try this:
 
     $ arm-none-eabi-gcc -v
     Using built-in specs.
@@ -72,12 +72,13 @@ The toolchain used to build contiki is arm-gcc (Sourcery CodeBench), also used b
     Thread model: single
     gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66)
 
-If the toolchain is not installed, download and install one of the following two versions:
+If the toolchain is not installed, download and install one of the following versions:
 
-* Sourcery Codebench Lite for ARM processors from the URL below. Make sure to select the EABI Release. <http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/>
+* GNU Tools for ARM Embedded Processors. Works nicely on OS X. <https://launchpad.net/gcc-arm-embedded>
 * Alternatively, you can use this older version for Linux. At the time of writing, this is the version used by Contiki's regression tests. <https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2>
+* Lastly: Sourcery Codebench Lite for ARM processors from the URL below. Make sure to select the EABI Release. <http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/>
 
-The former is newer. The latter has been in use for a longer period of time and the Contiki code has been tested with it more extensively. The CC2538DK port code has been developed and tested with both.
+The first one is newer. The second has been in use for a longer period of time and the Contiki code has been tested with it more extensively.
 
 Drivers
 -------
@@ -387,7 +388,7 @@ The Low-Power module uses a simple heuristic to determine the best power mode, d
 In a nutshell, the algorithm first answers the following questions:
 
 * Is the RF off?
-* Is the USB PLL off?
+* Are all registered peripherals permitting PM1+?
 * Is the Sleep Timer scheduled to fire an interrupt?
 
 If the answer to any of the above question is "No", the SoC will enter PM0. If the answer to all questions is "Yes", the SoC will enter one of PMs 0/1/2 depending on the expected Deep Sleep duration and subject to user configuration and application requirements.
@@ -409,7 +410,6 @@ LPM is highly related to the operations of the Radio Duty Cycling (RDC) driver o
 
 * With ContikiMAC, PMs 0/1/2 are supported subject to user configuration.
 * When NullRDC is in use, the radio will be always on. As a result, the algorithm discussed above will always choose PM0 and will never attempt to drop to PM1/2.
-* The LPP driver is also supported but in order to use it, one needs to set `LPM_CONF_MAX_PM` to 0. Setting a higher value will result in "Sleep Forever" situations. This is inefficient and as a result LPP is not recommended for situations requiring low energy consumption. The main reason for this behaviour is a [bug in LPP][lpp-rf-off-bug]. Once this has been resolved, simple modifications to the LPM module will be implemented to support all three PMs under LPP.
 
 Build headless nodes
 --------------------
@@ -457,4 +457,3 @@ More Reading
 [cc2538]: http://www.ti.com/product/cc2538     "CC2538"
 [uniflash]: http://processors.wiki.ti.com/index.php/Category:CCS_UniFlash "UniFlash"
 [pandoc]: http://johnmacfarlane.net/pandoc/ "Pandoc - a universal document converter"
-[lpp-rf-off-bug]: https://github.com/contiki-os/contiki/issues/104 "LPP RF off() bug"

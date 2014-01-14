@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
@@ -78,5 +78,9 @@
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA           1
 
+<<<<<<< HEAD
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* __PROJECT_CONF_H__ */
+=======
+#endif /* PROJECT_CONF_H_ */
+>>>>>>> contiki/master
