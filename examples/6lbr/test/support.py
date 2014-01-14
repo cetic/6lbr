@@ -427,6 +427,7 @@ class CoojaWsn(Wsn):
                 self.motelist.append(newmote)
             line = self.cooja.stdout.readline()
         print >> sys.stderr, "Cooja simulation started"
+        self.cooja.stdout.close()
 
         sleep(2)
 	
@@ -461,9 +462,8 @@ class CoojaWsn(Wsn):
                 self.get_test_mote().serialport.close()
                 for mote in self.motelist:
                     mote.tearDown()
-                    self.cooja.stdout.flush()
-                    self.cooja.wait()
-                    time.sleep(1)
+                self.cooja.wait()
+                time.sleep(1)
                 print >> sys.stderr, "Cooja Thread Killed"
             except serial.SerialException:
                 print >> sys.stderr, "Serial error, Cooja Thread already killed ?"
