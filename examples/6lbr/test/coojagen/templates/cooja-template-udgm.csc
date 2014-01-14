@@ -117,6 +117,7 @@ more information: https://github.com/cetic/6lbr/wiki/6LBR-Test-Environment</note
     <plugin_config>
       <script>
 TIMEOUT(999999999999);&#xD;
+sim.setSpeedLimit(1);&#xD;
 &#xD;
 while (true) {&#xD;
   log.log(time + ":" + id + ":" + msg + "\n");&#xD;
