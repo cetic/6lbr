@@ -39,20 +39,20 @@ import java.util.ArrayList;
 import java.io.File;
 import org.jdom.Element;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.Plugin;
-import se.sics.cooja.PluginType;
-import se.sics.cooja.RadioConnection;
-import se.sics.cooja.RadioMedium;
-import se.sics.cooja.RadioPacket;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
-import se.sics.cooja.interfaces.Radio;
-//import se.sics.cooja.plugins.analyzers.PacketAnalyser;
-import se.sics.cooja.plugins.analyzers.PcapExporter;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Cooja;
+import org.contikios.cooja.Plugin;
+import org.contikios.cooja.PluginType;
+import org.contikios.cooja.RadioConnection;
+import org.contikios.cooja.RadioMedium;
+import org.contikios.cooja.RadioPacket;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.VisPlugin;
+import org.contikios.cooja.interfaces.Radio;
+//import org.contikios.cooja.plugins.analyzers.PacketAnalyser;
+import org.contikios.cooja.plugins.analyzers.PcapExporter;
 
-import se.sics.cooja.util.StringUtils;
+import org.contikios.cooja.util.StringUtils;
 
 /**
  * Radio Logger which exports a pcap file only.
@@ -72,8 +72,8 @@ public class RadioLoggerHeadless extends VisPlugin {
   private PcapExporter pcapExporter;
   private File pcapFile;
 
-  public RadioLoggerHeadless(final Simulation simulationToControl, final GUI gui) {
-    super("Radio messages", gui, false);
+  public RadioLoggerHeadless(final Simulation simulationToControl, final Cooja cooja) {
+    super("Radio messages", cooja, false);
     System.err.println("Starting headless radio logger");
     try {
         pcapExporter = new PcapExporter();
@@ -111,7 +111,7 @@ public class RadioLoggerHeadless extends VisPlugin {
     for (Element element : configXML) {
       String name = element.getName();
       if (name.equals("pcap_file")) {
-        pcapFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        pcapFile = simulation.getCooja().restorePortablePath(new File(element.getText()));
         try {
           pcapExporter.openPcap(pcapFile);
           } catch (IOException e) {
@@ -129,7 +129,7 @@ public class RadioLoggerHeadless extends VisPlugin {
 
     if (pcapFile != null) {
       element = new Element("pcap_file");
-      File file = simulation.getGUI().createPortablePath(pcapFile);
+      File file = simulation.getCooja().createPortablePath(pcapFile);
       element.setText(pcapFile.getPath().replaceAll("\\\\", "/"));
       element.setAttribute("EXPORT", "discard");
       config.add(element);
