@@ -53,7 +53,19 @@ serial2pty:
 radiologger-headless:	
 	pushd ${COOJADIR}/apps/radiologger-headless; ant jar; popd
 
-non-regression: nr-router nr-smartbridge nr-rpl-root-6lr nr-ndp-router nr-rpl-root-rpl-relay nr-multi-smartbridge nr-rpl-root-multi-rpl-relay nr-rpl-multi-6lr
+clean-cooja-firmwares:
+	cd ${COOJAGEN}/firmwares/6lbr-demo && $(MAKE) TARGET=sky clean
+	cd ${COOJAGEN}/firmwares/6lbr-demo-delay && $(MAKE) TARGET=sky clean
+	cd ${COOJAGEN}/firmwares/6lbr-demo-ndp && $(MAKE) TARGET=sky clean
+	cd ${CONTIKIDIR}/examples/ipv6/slip-radio && $(MAKE) TARGET=sky clean
+
+build-cooja-firmwares:
+	cd ${COOJAGEN}/firmwares/6lbr-demo && $(MAKE) TARGET=sky
+	cd ${COOJAGEN}/firmwares/6lbr-demo-delay && $(MAKE) TARGET=sky
+	cd ${COOJAGEN}/firmwares/6lbr-demo-ndp && $(MAKE) TARGET=sky
+	cd ${CONTIKIDIR}/examples/ipv6/slip-radio && $(MAKE) TARGET=sky
+
+non-regression: nr-router nr-smartbridge nr-rpl-root-6lr nr-ndp-router nr-rpl-root-rpl-relay nr-multi-smartbridge nr-rpl-root-multi-rpl-relay nr-rpl-multi-6lr nr-result
 
 nr-router:
 	$(MAKE) preset_1dag_10nodes.csc
