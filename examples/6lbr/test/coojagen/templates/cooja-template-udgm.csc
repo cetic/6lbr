@@ -135,8 +135,10 @@ while (true) {&#xD;
     pos.setCoordinates(xpos,ypos, pos.getZCoordinate());&#xD;
   }&#xD;
   &#xD;
-  if(msg.contains("killcooja"))&#xD;
+  if(msg.contains("killcooja")){&#xD;
+    log.log("Killing Cooja\n");&#xD;
     log.testOK();&#xD;
+  }&#xD;
   YIELD();&#xD;
 }</script>
       <active>false</active>
