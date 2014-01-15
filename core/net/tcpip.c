@@ -607,10 +607,10 @@ tcpip_ipv6_output(void)
     if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
       nexthop = &UIP_IP_BUF->destipaddr;
     } else {
-      uip_ds6_route_t* route;
+      uip_ds6_route_t *route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
-      
+
       /* No route was found - we send to the default route instead. */
       if(route == NULL) {
 #if CETIC_6LBR_SMARTBRIDGE
