@@ -34,12 +34,8 @@
  */
 
 #include "dev/watchdog.h"
-<<<<<<< HEAD
-#include "crm.h"
-=======
 #include <mc1322x.h>
 #include <board.h>
->>>>>>> contiki/master
 
 /*---------------------------------------------------------------------------*/
 void
