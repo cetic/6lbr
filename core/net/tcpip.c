@@ -659,16 +659,14 @@ tcpip_ipv6_output(void)
         if(nexthop == NULL) {
 #if UIP_CONF_IPV6_RPL
           /* If we are running RPL, and if we are the root of the
-             network, we'll trigger a global repair berfore we remove
+             network, we'll trigger a DIO before we remove
              the route. */
           rpl_dag_t *dag;
           rpl_instance_t *instance;
 
           dag = (rpl_dag_t *)route->state.dag;
           if(dag != NULL) {
-            instance = dag->instance;
-
-            rpl_repair_root(instance->instance_id);
+            rpl_reset_dio_timer(dag->instance);
           }
 #endif /* UIP_CONF_RPL */
           uip_ds6_route_rm(route);
