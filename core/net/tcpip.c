@@ -41,6 +41,7 @@
 #include "contiki-net.h"
 #include "net/uip-split.h"
 #include "net/uip-packetqueue.h"
+#include "net/rpl/rpl-private.h"
 
 #if UIP_CONF_IPV6
 #include "net/uip-nd6.h"
@@ -662,7 +663,6 @@ tcpip_ipv6_output(void)
              network, we'll trigger a DIO before we remove
              the route. */
           rpl_dag_t *dag;
-          rpl_instance_t *instance;
 
           dag = (rpl_dag_t *)route->state.dag;
           if(dag != NULL) {
