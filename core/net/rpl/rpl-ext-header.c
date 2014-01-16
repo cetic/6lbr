@@ -100,6 +100,7 @@ rpl_verify_header(int uip_ext_opt_offset)
       PRINTF("RPL: initiate global repair\n");
       rpl_repair_root(instance->instance_id);
     }
+    RPL_STAT(rpl_stats.forward_errors++);
 
     /* Remove the forwarding error flag and return 0 to let the packet
        be forwarded again. */
@@ -130,6 +131,7 @@ rpl_verify_header(int uip_ext_opt_offset)
 	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
 	   sender_closer);
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
+      RPL_STAT(rpl_stats.loop_errors++);
       PRINTF("RPL: Rank error signalled in RPL option!\n");
       /* We should try to repair it, not implemented for the moment */
       rpl_reset_dio_timer(instance);
@@ -137,6 +139,7 @@ rpl_verify_header(int uip_ext_opt_offset)
       return 0;
     }
     PRINTF("RPL: Single error tolerated\n");
+    RPL_STAT(rpl_stats.loop_warnings++);
     UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
     return 0;
   }
