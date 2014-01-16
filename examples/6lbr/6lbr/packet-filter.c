@@ -57,7 +57,7 @@
 
 extern const rimeaddr_t rimeaddr_null;
 
-static int eth_output(uip_lladdr_t * src, uip_lladdr_t * dest);
+static int eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest);
 
 /*---------------------------------------------------------------------------*/
 
@@ -168,7 +168,7 @@ wireless_input(void)
 }
 
 uint8_t
-wireless_output(uip_lladdr_t * src, uip_lladdr_t * dest)
+wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
   int ret;
 
@@ -326,7 +326,7 @@ eth_input(void)
 }
 
 static int
-eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
+eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
   if(IS_BROADCAST_ADDR(dest)) {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "eth_output: broadcast\n");
@@ -428,7 +428,7 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_6LR
 
 static uint8_t
-bridge_output(uip_lladdr_t * dest)
+bridge_output(const uip_lladdr_t * dest)
 {
   int isBroadcast = IS_BROADCAST_ADDR(dest);
   if(!isBroadcast) {
@@ -455,7 +455,7 @@ bridge_output(uip_lladdr_t * dest)
 #if CETIC_6LBR_ROUTER
 #if UIP_CONF_IPV6_RPL
 static uint8_t
-bridge_output(uip_lladdr_t * dest)
+bridge_output(const uip_lladdr_t * dest)
 {
   int ethernetDest = 0;
   if(uip_len == 0) {
@@ -494,7 +494,7 @@ bridge_output(uip_lladdr_t * dest)
 }
 #else
 static uint8_t
-bridge_output(uip_lladdr_t * dest)
+bridge_output(const uip_lladdr_t * dest)
 {
   int isBroadcast = IS_BROADCAST_ADDR(dest);
   int wsnDest = 0;

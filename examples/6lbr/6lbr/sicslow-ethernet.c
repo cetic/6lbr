@@ -94,11 +94,6 @@
 #define MSB(u16)     (((uint8_t  *)&(u16))[1])  //!< Most significant byte of \a u16.
 #endif
 
-uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet,
-                                     uip_lladdr_t * lowpan);
-uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
-uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
-
 #define PREFIX_BUFFER_SIZE 32
 
 uint8_t prefixCounter = 0;
@@ -305,7 +300,7 @@ mac_translateIcmpLinkLayer(lltype_t target)
  * \param lowpan     Pointer to 802.15.4 address
  */
 uint8_t
-mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
+mac_createSicslowpanLongAddr(const uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
 #if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
   //Special case - if the address is our address, we just copy over what we know to be
@@ -371,7 +366,7 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
  * \param lowpan     Pointer to 802.15.4 address
  */
 uint8_t
-mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
+mac_createEthernetAddr(uint8_t * ethernet, const uip_lladdr_t * lowpan)
 {
 #if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
   //Special case - if the address is our address, we just copy over what we know to be

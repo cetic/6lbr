@@ -76,13 +76,10 @@ extern uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
 
 int8_t mac_translateIcmpLinkLayer(lltype_t target);
 int8_t mac_translateIPLinkLayer(lltype_t target);
-void mac_LowpanToEthernet(uip_lladdr_t * lowpan, uint8_t * ethHeader);
-void mac_ethernetToLowpan(uint8_t * ethHeader);
-void mac_ethernetSetup(void);
 
-uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet,
+uint8_t mac_createSicslowpanLongAddr(const uint8_t * ethernet,
                                      uip_lladdr_t * lowpan);
-uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
+uint8_t mac_createEthernetAddr(uint8_t * ethernet, const uip_lladdr_t * lowpan);
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
 
 #endif
