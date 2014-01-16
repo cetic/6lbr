@@ -1168,6 +1168,12 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   PRINT_RPL_STAT( malformed_msgs, "Invalid packets");
   PRINT_RPL_STAT( resets, "DIO timer resets");
   PRINT_RPL_STAT( parent_switch, "Parent switch");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PRINT_RPL_STAT( forward_errors, "Forward errors");
+  PRINT_RPL_STAT( loop_errors, "Loop errors");
+  PRINT_RPL_STAT( loop_warnings, "Loop warnings");
+  PRINT_RPL_STAT( root_repairs, "Root repairs");
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
