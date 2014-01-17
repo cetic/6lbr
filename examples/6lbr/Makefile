@@ -52,7 +52,7 @@ endif
 
 ifneq ($(WITH_WEBSERVER),0)
 CFLAGS += -DWEBSERVER=1
-PROJECT_SOURCEFILES += webserver.c httpd-simple.c 
+PROJECT_SOURCEFILES += webserver.c httpd-simple.c node-config.c
 endif
 
 ifneq ($(WITH_WEBSERVER_LITE),0)

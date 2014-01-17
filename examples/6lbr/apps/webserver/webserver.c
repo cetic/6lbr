@@ -63,6 +63,7 @@
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
 #include "sys/stat.h"
+#include "node-config.h"
 #endif
 
 #include <stdio.h>              /* For printf() */
@@ -808,6 +809,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
     }
+#if CONTIKI_TARGET_NATIVE
+    add("%s ", node_config_get_name(uip_ds6_nbr_get_ll(nbr)));
+#endif
     ipaddr_add(&nbr->ipaddr);
     add(" ");
     lladdr_add(uip_ds6_nbr_get_ll(nbr));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,26 @@
  */
 
 /**
+ * \file
+ *         6LBR Node config
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "contiki.h"
-#include "contiki-lib.h"
+#ifndef NODE_CONFIG_H_
+#define NODE_CONFIG_H_
+
 #include "contiki-net.h"
 
-#include "cetic-6lbr.h"
-#include "nvm-config.h"
-#include "slip-cmds.h"
-#include "native-rdc.h"
-#include "node-config.h"
+struct node_config {
+  struct node_config * next;
+  uip_lladdr_t mac_address;
+  char const * name;
+};
 
-void
-platform_init(void)
-{
-  process_start(&border_router_cmd_process, NULL);
-  node_config_init();
-}
+typedef struct node_config node_config_t;
 
-void
-platform_set_wsn_mac(rimeaddr_t * mac_addr)
-{
-  rimeaddr_set_node_addr(mac_addr);
-  slip_set_mac(mac_addr);
-}
+void node_config_init(void);
+char const *  node_config_get_name(uip_lladdr_t const * node_addr);
+
+#endif /* NODE_CONFIG_H_ */
