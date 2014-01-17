@@ -43,7 +43,7 @@
 #include "string.h"
 #include "errno.h"
 
-static char const * unknown_name = "<Unknown>";
+static char const * unknown_name = "(Unknown)";
 LIST(node_config_list);
 
 void node_config_init(void) {
