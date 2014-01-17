@@ -43,6 +43,7 @@
 #include "string.h"
 #include "errno.h"
 
+static char const * unknown_name = "<Unknown>";
 LIST(node_config_list);
 
 void node_config_init(void) {
@@ -84,5 +85,5 @@ char const *  node_config_get_name(uip_lladdr_t const * node_addr) {
       return node_config->name;
     }
   }
-  return "<Unknown>";
+  return unknown_name;
 }
