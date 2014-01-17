@@ -48,6 +48,9 @@ struct node_config {
 typedef struct node_config node_config_t;
 
 void node_config_init(void);
+node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr);
+node_config_t * node_config_find(uip_lladdr_t const * node_addr);
 char const *  node_config_get_name(uip_lladdr_t const * node_addr);
+char const *  node_config_get_name_from_ip(uip_ipaddr_t const * ipaddr);
 
 #endif /* NODE_CONFIG_H_ */

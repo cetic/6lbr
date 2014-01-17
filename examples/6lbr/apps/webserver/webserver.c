@@ -497,8 +497,9 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
+      add("%s (", node_config_get_name_from_ip(&node_info_table[i].ipaddr));
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("</a></td>");
+      add(")</a></td>");
 
       if(0) {
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02

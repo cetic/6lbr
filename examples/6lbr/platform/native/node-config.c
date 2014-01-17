@@ -78,12 +78,29 @@ void node_config_init(void) {
   }
 }
 
-char const *  node_config_get_name(uip_lladdr_t const * node_addr) {
+node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
+  uip_lladdr_t ll_addr;
+  memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
+  ll_addr.addr[0] ^= 0x02;
+  return node_config_find(&ll_addr);
+}
+
+node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
   node_config_t *  node_config;
   for (node_config = list_head(node_config_list); node_config != NULL; node_config = list_item_next(node_config)) {
     if ( memcmp(node_addr, &node_config->mac_address, sizeof(uip_lladdr_t)) == 0 ) {
-      return node_config->name;
+      return node_config;
     }
   }
-  return unknown_name;
+  return NULL;
+}
+
+char const *  node_config_get_name(uip_lladdr_t const * node_addr) {
+  node_config_t *  node_config = node_config_find(node_addr);
+  return node_config ? node_config->name : unknown_name;
+}
+
+char const *  node_config_get_name_from_ip(uip_ipaddr_t const * ipaddr) {
+  node_config_t *  node_config = node_config_find_from_ip(ipaddr);
+  return node_config ? node_config->name : unknown_name;
 }
