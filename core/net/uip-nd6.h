@@ -136,6 +136,15 @@
 #define UIP_ND6_OPT_MTU                 5
 /** @} */
 
+/** \name 6LoWPAN ND ption types */
+/** @{ */
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_OPT_ARO                 33
+#define UIP_ND6_OPT_6CO                 34
+#define UIP_ND6_OPT_ABRO                35
+#endif /* CONF_6LOWPAN_ND */
+/** @} */
+
 /** \name ND6 option types */
 /** @{ */
 #define UIP_ND6_OPT_TYPE_OFFSET         0
@@ -148,6 +157,10 @@
 #define UIP_ND6_NS_LEN                  20
 #define UIP_ND6_RA_LEN                  12
 #define UIP_ND6_RS_LEN                  4
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_ARO_LEN                 2*8
+#define UIP_ND6_ABRO_LEN                3*8
+#endif /* CONF_6LOWPAN_ND */  
 /** @} */
 
 
@@ -157,6 +170,13 @@
 #define UIP_ND6_OPT_PREFIX_INFO_LEN    32
 #define UIP_ND6_OPT_MTU_LEN            8
 
+/* 6LoWPAN ND assignement */
+#if CONF_6LOWPAN_ND
+/* ARO value of status field */
+#define UIP_ND6_ARO_STATUS_SUCESS       0
+#define UIP_ND6_ARO_STATUS_DUPLICATE    1
+#define UIP_ND6_ARO_STATUS_CACHE_FULL   2
+#endif /* CONF_6LOWPAN_ND */
 
 /* Length of TLLAO and SLLAO options, it is L2 dependant */
 #if UIP_CONF_LL_802154
@@ -195,7 +215,7 @@
 /**
  * \brief A neighbor solicitation constant part
  *
- * Possible option is: SLLAO
+ * Possible option is: SLLAO, ARO
  */
 typedef struct uip_nd6_ns {
   uint32_t reserved;
@@ -205,7 +225,7 @@ typedef struct uip_nd6_ns {
 /**
  * \brief A neighbor advertisement constant part.
  *
- * Possible option is: TLLAO
+ * Possible option is: TLLAO, ARO
  */
 typedef struct uip_nd6_na {
   uint8_t flagsreserved;
@@ -225,7 +245,7 @@ typedef struct uip_nd6_rs {
 /**
  * \brief A router advertisement constant part
  *
- * Possible options are: SLLAO, MTU, Prefix Information
+ * Possible options are: SLLAO, MTU, Prefix Information, 6CO, ABRO
  */
 typedef struct uip_nd6_ra {
   uint8_t cur_ttl;
@@ -277,6 +297,39 @@ typedef struct uip_nd6_opt_mtu {
   uint16_t reserved;
   uint32_t mtu;
 } uip_nd6_opt_mtu;
+
+#if CONF_6LOWPAN_ND
+/** \brief ND option address registration */
+typedef struct uip_nd6_opt_aro {
+  uint8_t type;
+  uint8_t len;
+  uint8_t status;
+  uint8_t reserved1;
+  uint16_t reserved2;
+  uint16_t lifetime;
+  uip_ipaddr_t eui64;
+} uip_nd6_opt_aro;
+
+/** \brief ND option 6LoWPAN context */
+typedef struct uip_nd6_opt_6co {
+  uint8_t type;
+  uint8_t len;
+  uint8_t contlen;
+  uint8_t res_c_cid;
+  uint16_t reserved;
+  uint16_t lifetime;
+  uip_ipaddr_t prefix;
+} uip_nd6_opt_6co;
+
+/** \brief ND option 6LoWPAN authoritative border router  */
+typedef struct uip_nd6_opt_abro {
+  uint8_t type;
+  uint8_t len;
+  uint16_t verlow;
+  uint16_t verhigh;
+  uip_ipaddr_t address;
+} uip_nd6_opt_abro;
+#endif /* CONF_6LOWPAN_ND */
 
 /** \struct Redirected header option */
 typedef struct uip_nd6_opt_redirected_hdr {
@@ -546,6 +599,48 @@ uip_appserver_addr_get(uip_ipaddr_t *ipaddr);
  *    |                              MTU                              |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
+ * ARO option
+ *    0                   1                   2                   3
+ *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |     Type      |   Length = 2  |    Status     |    Reserved   | 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |            Reserved           |     Registration Lifetime     | 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |                                                               | 
+ *    +                            EUI-64                             + 
+ *    |                                                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * 6LoWPAN Context Option
+ *    0                   1                   2                   3
+ *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |     Type      |    Length     |Context Length | Res |C|  CID  | 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |            Reserved           |         Valid Lifetime        |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    .                                                               . 
+ *    .                         Context Prefix                        .
+ *    .                                                               .
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *
+ * Authoritative Border Router Option
+ *    0                   1                   2                   3
+ *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |     Type      |   Length = 3  |         Version Low           | 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |         Version High          |        Valide Lifetime        | 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |                                                               |
+ *    +                                                               +
+ *    |                                                               | 
+ *    +                         6LBR Address                          +
+ *    |                                                               |
+ *    +                                                               + 
+ *    |                                                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
  * Redirected header option
  *
