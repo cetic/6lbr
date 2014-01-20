@@ -37,6 +37,7 @@
 #include "uip-ds6.h"
 #include "uip-ds6-route.h"
 #include "string.h"
+#include "stdlib.h"
 
 #if CETIC_NODE_INFO
 
@@ -73,9 +74,37 @@ node_info_add(uip_ipaddr_t * ipaddr)
       (uip_ds6_element_t **) & node) == FREESPACE) {
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
-    node->last_lookup = clock_time();
   }
+  return node;
+}
 
+node_info_t *
+node_info_update(uip_ipaddr_t * ipaddr, char * info)
+{
+  node_info_t *node = NULL;
+  char *  sep;
+  node = node_info_lookup(ipaddr);
+  if (node == NULL) {
+    node = node_info_add(ipaddr);
+  }
+  if ( node != NULL ) {
+    node->last_lookup = clock_time();
+    sep = index(info, '|');
+    if (sep != NULL && sep - info > 0) {
+      *sep = 0;
+      node->sequence = atoi(info);
+      info = sep + 1;
+      if (*info == ' ') {
+        info++;
+      }
+      if (uiplib_ipaddrconv(info, &node->ip_parent) == 0) {
+        uip_create_unspecified(&node->ip_parent);
+      }
+    } else {
+      node->sequence = 0;
+      uip_create_unspecified(&node->ip_parent);
+    }
+  }
   return node;
 }
 

@@ -491,7 +491,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<div id=\"left_home\">");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Status</td><td>Last seen</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Last seen</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -564,8 +564,15 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       add("<td><a href=coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/>coap</a></td>");
-      add("<td>%s</td>", node_info_table[i].my_info);
-      add("<td>%d</td>",
+      add("<td>%d</td><td>", node_info_table[i].sequence);
+      if (node_config_loaded) {
+        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
+        ipaddr_add(&node_info_table[i].ip_parent);
+        add(")");
+      } else {
+        ipaddr_add(&node_info_table[i].ip_parent);
+      }
+      add("</td><td>%d</td>",
           (clock_time() - node_info_table[i].last_lookup) / CLOCK_SECOND);
       add("</tr>");
       SEND_STRING(&s->sout, buf);
@@ -578,17 +585,44 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 
   add
     ("<center>"
-     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{_%04x;",
+     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
+  node_config_t *  my_config = node_config_find(&uip_lladdr);
+  if (my_config) {
+    add("%s;", node_config_get_name(my_config));
+  } else {
+   add("_%04x;",
      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+  }
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
-      int l = strlen(node_info_table[i].my_info);
-
-      if(l > 4) {
-        add("_%04hx->_%s;",
-            (node_info_table[i].ipaddr.u8[14] << 8) +
-            node_info_table[i].ipaddr.u8[15],
-            &node_info_table[i].my_info[l - 4]);
+      if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
+        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
+        if ( node_config ) {
+          if ( parent_node_config ) {
+            add("%s->%s;",
+                node_config_get_name(node_config),
+                node_config_get_name(parent_node_config));
+          } else {
+            add("%s->_%04hx;",
+                node_config_get_name(node_config),
+                (node_info_table[i].ip_parent.u8[14] << 8) +
+                node_info_table[i].ip_parent.u8[15]);
+          }
+        } else {
+          if (parent_node_config) {
+            add("_%04hx->%s;",
+                (node_info_table[i].ipaddr.u8[14] << 8) +
+                node_info_table[i].ipaddr.u8[15],
+                node_config_get_name(parent_node_config));
+          } else {
+            add("_%04hx->_%04hx;",
+                (node_info_table[i].ipaddr.u8[14] << 8) +
+                node_info_table[i].ipaddr.u8[15],
+                (node_info_table[i].ip_parent.u8[14] << 8) +
+                node_info_table[i].ip_parent.u8[15]);
+          }
+        }
       }
     }
   }

@@ -61,15 +61,7 @@ tcpip_handler(void)
     LOG6LBR_6ADDR(DEBUG, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
 
 #if CETIC_NODE_INFO
-    node_info_t *node = node_info_lookup(&UIP_IP_BUF->srcipaddr);
-
-    if(node == NULL) {
-      node = node_info_add(&UIP_IP_BUF->srcipaddr);
-    }
-    if(node != NULL) {
-      node->last_lookup = clock_time();
-      strncpy(node->my_info, (char *)uip_appdata, sizeof(node->my_info) - 1);
-    }
+    node_info_update(&UIP_IP_BUF->srcipaddr, (char *)uip_appdata);
 #endif
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
