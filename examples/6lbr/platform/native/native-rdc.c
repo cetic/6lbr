@@ -67,7 +67,7 @@ int callback_count;
 #ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
 #define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
 #else
-#define NATIVE_RDC_SLIP_TIMEOUT (CLOCK_SECOND)
+#define NATIVE_RDC_SLIP_TIMEOUT (2*CLOCK_SECOND)
 #endif
 
 /* a structure for calling back when packet data is coming back
