@@ -93,12 +93,16 @@ packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
     struct tx_callback *callback;
 
     callback = &callbacks[sessionid];
-    callback_count--;
-    callback->isused = 0;
-    packetbuf_clear();
-    packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
-    ctimer_stop(&callback->timeout);
-    mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+    if (callback->isused) {
+      callback_count--;
+      callback->isused = 0;
+      packetbuf_clear();
+      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+      ctimer_stop(&callback->timeout);
+      mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+    } else {
+      LOG6LBR_ERROR("br-rdc: ack received for unknown packet (%d)\n", callback->sid);
+    }
   } else {
     LOG6LBR_ERROR("*** ERROR: too high session id %d\n", sessionid);
   }
@@ -108,12 +112,16 @@ static void
 packet_timeout(void *ptr)
 {
   struct tx_callback *callback = ptr;
-  callback_count--;
-  callback->isused = 0;
-  LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
-  packetbuf_clear();
-  packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
-  mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+  if (callback->isused) {
+    callback_count--;
+    callback->isused = 0;
+    LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
+    packetbuf_clear();
+    packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+    mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+  } else {
+    LOG6LBR_ERROR("br-rdc: ack timeout for already acked packet (%d)\n", callback->sid);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
