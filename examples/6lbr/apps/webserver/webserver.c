@@ -499,9 +499,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
-      add("%s (", node_config_get_name_from_ip(&node_info_table[i].ipaddr));
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add(")</a></td>");
+      if ( node_config_loaded ) {
+        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add(")</a></td>");
+      } else {
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("</a></td>");
+      }
 
       if(0) {
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02
@@ -813,7 +818,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
       add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
     }
 #if CONTIKI_TARGET_NATIVE
-    add("%s ", node_config_get_name(uip_ds6_nbr_get_ll(nbr)));
+    if ( node_config_loaded ) {
+      add("%s : ", node_config_get_name(node_config_find(uip_ds6_nbr_get_ll(nbr))));
+    }
 #endif
     ipaddr_add(&nbr->ipaddr);
     add(" ");
@@ -833,13 +840,25 @@ PT_THREAD(generate_network(struct httpd_state *s))
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"route_rm?%d\">del</a>] ", i);
     }
-    ipaddr_add(&r->ipaddr);
-    add("/%u (via ", r->length);
-    ipaddr_add(uip_ds6_route_nexthop(r));
-    if(1 || (r->state.lifetime < 600)) {
-      add(") %lu s\n", r->state.lifetime);
+    if ( node_config_loaded ) {
+      add("%s (", node_config_get_name(node_config_find_from_ip(&r->ipaddr)));
+      ipaddr_add(&r->ipaddr);
+      add("/%u) via ", r->length);
     } else {
-      add(")\n");
+      ipaddr_add(&r->ipaddr);
+      add("/%u via ", r->length);
+    }
+    if ( node_config_loaded ) {
+      add("%s (", node_config_get_name(node_config_find_from_ip(uip_ds6_route_nexthop(r))));
+      ipaddr_add(uip_ds6_route_nexthop(r));
+      add(") ");
+    } else {
+      ipaddr_add(uip_ds6_route_nexthop(r));
+    }
+    if(1 || (r->state.lifetime < 600)) {
+      add("%lu s\n", r->state.lifetime);
+    } else {
+      add("\n");
     }
     SEND_STRING(&s->sout, buf);
     reset_buf();

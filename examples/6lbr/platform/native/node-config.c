@@ -43,6 +43,8 @@
 #include "string.h"
 #include "errno.h"
 
+uint8_t node_config_loaded = 0;
+
 static char const * unknown_name = "(Unknown)";
 LIST(node_config_list);
 
@@ -58,7 +60,7 @@ void node_config_init(void) {
   node_config_file = fopen("node_config.conf", "r");
   if ( node_config_file != NULL ) {
     do {
-      result = fscanf(node_config_file, "%s = %hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+      result = fscanf(node_config_file, "%s %hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
           name,
           &mac_address.addr[0], &mac_address.addr[1], &mac_address.addr[2], &mac_address.addr[3],
           &mac_address.addr[4], &mac_address.addr[5], &mac_address.addr[6], &mac_address.addr[7]);
@@ -73,6 +75,7 @@ void node_config_init(void) {
       }
     } while ( result == 9 );
     fclose(node_config_file);
+    node_config_loaded = 1;
   } else {
     LOG6LBR_ERROR("Can not open node_config.conf : %s\n", strerror(errno));
   }
@@ -95,12 +98,6 @@ node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
   return NULL;
 }
 
-char const *  node_config_get_name(uip_lladdr_t const * node_addr) {
-  node_config_t *  node_config = node_config_find(node_addr);
-  return node_config ? node_config->name : unknown_name;
-}
-
-char const *  node_config_get_name_from_ip(uip_ipaddr_t const * ipaddr) {
-  node_config_t *  node_config = node_config_find_from_ip(ipaddr);
+char const *  node_config_get_name(node_config_t const *  node_config) {
   return node_config ? node_config->name : unknown_name;
 }
