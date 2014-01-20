@@ -64,6 +64,8 @@
 #include "slip-config.h"
 #include "sys/stat.h"
 #include "node-config.h"
+#include "csma.h"
+#include "native-rdc.h"
 #endif
 
 #include <stdio.h>              /* For printf() */
@@ -1184,6 +1186,14 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   reset_buf();
 #else
   add("<h3>RPL statistics are deactivated</h3>");
+#endif
+#if NETSTACK_CONF_MAC == csma_driver
+  add("<h2>CSMA</h2>");
+  add("Allocated packets : %d<br />", csma_allocated_packets());
+  add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
+  add("Packet overflow : %d<br />", packet_overflow);
+  add("Neighbor overflow : %d<br />", neighbor_overflow);
+  add("Callback count : %d<br />", callback_count);
 #endif
 #endif
   add_div_footer();
