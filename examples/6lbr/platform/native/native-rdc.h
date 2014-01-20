@@ -48,5 +48,6 @@ extern void slip_set_mac(rimeaddr_t const * mac_addr);
 extern void slip_set_rf_channel(uint8_t channel);
 
 extern uint8_t mac_set;
+extern int callback_count;
 
 #endif

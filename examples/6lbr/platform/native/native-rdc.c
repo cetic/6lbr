@@ -62,7 +62,7 @@ extern long slip_received;
 
 #define MAX_CALLBACKS 16
 static int callback_pos;
-static int callback_count;
+int callback_count;
 
 #ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
 #define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
