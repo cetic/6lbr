@@ -137,8 +137,8 @@ timeout_handler(void)
   int has_dest=0;
 
   if ( use_user_dest_addr ) {
-	uip_ipaddr_copy(&dest_addr, &user_dest_addr);
-	has_dest=1;
+    uip_ipaddr_copy(&dest_addr, &user_dest_addr);
+    has_dest=1;
   } else if((globaladdr = &uip_ds6_get_global(-1)->ipaddr) != NULL) {
 #if UIP_CONF_IPV6_RPL
     rpl_dag_t *dag = rpl_get_any_dag();
