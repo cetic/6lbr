@@ -43,11 +43,11 @@ int
 cmd_handler_cc2420(const uint8_t *data, int len)
 {
   if(data[0] == '!') {
-    if(data[1] == 'C') {
+    if(data[1] == 'C' && len == 3) {
       printf("cc2420_cmd: setting channel: %d\n", data[2]);
       cc2420_set_channel(data[2]);
       return 1;
-    } else if(data[1] == 'M') {
+    } else if(data[1] == 'M' && len == 8) {
         printf("cc2420_cmd: Got MAC\n");
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
         rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
@@ -57,7 +57,7 @@ cmd_handler_cc2420(const uint8_t *data, int len)
         return 1;
       }
   } else if(data[0] == '?') {
-    if(data[1] == 'C') {
+    if(data[1] == 'C' && len == 2) {
       uint8_t buf[4];
       printf("cc2420_cmd: getting channel: %d\n", data[2]);
       buf[0] = '!';

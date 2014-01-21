@@ -133,14 +133,14 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
 	packet_pos = 0;
       }
       return 1;
-    } else if(data[1] == 'R') {
+    } else if(data[1] == 'R' && len == 2) {
       PRINTF("Rebooting\n");
       watchdog_reboot();
       return 1;
     }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
-    if(data[1] == 'M') {
+    if(data[1] == 'M' && len == 2) {
       /* this is just a test so far... just to see if it works */
       uip_buf[0] = '!';
       uip_buf[1] = 'M';

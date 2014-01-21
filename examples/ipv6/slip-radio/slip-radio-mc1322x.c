@@ -40,13 +40,13 @@ int
 cmd_handler_mc1322x(const uint8_t *data, int len)
 {
   if(data[0] == '!') {
-    if(data[1] == 'C') {
+    if(data[1] == 'C' && len == 3) {
       printf("mc1322x_cmd: setting channel: %d\n", data[2]);
       set_channel(data[2]-11);
       return 1;
     }
   } else if(data[0] == '?') {
-    if(data[1] == 'C') {
+    if(data[1] == 'C' && len == 2) {
       uint8_t buf[4];
       printf("mc1322x_cmd: getting channel: %d\n", data[2]);
       buf[0] = '!';
