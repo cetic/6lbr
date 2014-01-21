@@ -37,6 +37,7 @@
 #define LOG6LBR_MODULE "NODECFG"
 
 #include "node-config.h"
+#include "slip-config.h"
 #include "log-6lbr.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -57,27 +58,32 @@ void node_config_init(void) {
 
   list_init(node_config_list);
 
-  node_config_file = fopen("node_config.conf", "r");
-  if ( node_config_file != NULL ) {
-    do {
-      result = fscanf(node_config_file, "%s %hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-          name,
-          &mac_address.addr[0], &mac_address.addr[1], &mac_address.addr[2], &mac_address.addr[3],
-          &mac_address.addr[4], &mac_address.addr[5], &mac_address.addr[6], &mac_address.addr[7]);
-      if ( result == 9 ) {
-        node_config = (node_config_t *)malloc(sizeof(node_config_t));
-        node_config->name = strdup(name);
-        node_config->mac_address = mac_address;
-        LOG6LBR_LLADDR(DEBUG, &node_config->mac_address, "Adding node config for %s : ", node_config->name);
-        list_add(node_config_list, node_config);
-      } else if ( result != EOF ) {
-        LOG6LBR_WARN("Syntax error in node_config.conf : %d", result);
-      }
-    } while ( result == 9 );
-    fclose(node_config_file);
-    node_config_loaded = 1;
+  if (node_config_file_name) {
+    LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
+    node_config_file = fopen(node_config_file_name, "r");
+    if ( node_config_file != NULL ) {
+      do {
+        result = fscanf(node_config_file, "%s %hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+            name,
+            &mac_address.addr[0], &mac_address.addr[1], &mac_address.addr[2], &mac_address.addr[3],
+            &mac_address.addr[4], &mac_address.addr[5], &mac_address.addr[6], &mac_address.addr[7]);
+        if ( result == 9 ) {
+          node_config = (node_config_t *)malloc(sizeof(node_config_t));
+          node_config->name = strdup(name);
+          node_config->mac_address = mac_address;
+          LOG6LBR_LLADDR(DEBUG, &node_config->mac_address, "Adding node config for %s : ", node_config->name);
+          list_add(node_config_list, node_config);
+        } else if ( result != EOF ) {
+          LOG6LBR_WARN("Syntax error in node_config.conf : %d", result);
+        }
+      } while ( result == 9 );
+      fclose(node_config_file);
+      node_config_loaded = 1;
+    } else {
+      LOG6LBR_ERROR("Can not open %s : %s\n", node_config_file_name, strerror(errno));
+    }
   } else {
-    LOG6LBR_ERROR("Can not open node_config.conf : %s\n", strerror(errno));
+    LOG6LBR_INFO("No node_config.conf file specified\n");
   }
 }
 

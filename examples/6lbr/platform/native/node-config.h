@@ -46,7 +46,6 @@ struct node_config {
 };
 
 typedef struct node_config node_config_t;
-
 extern uint8_t node_config_loaded;
 
 void node_config_init(void);
