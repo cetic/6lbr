@@ -179,8 +179,8 @@ DEB=6lbr-$(VERSION)-$(PKG_VERSION)-deb
 IPK=6lbr-$(VERSION)-$(PKG_VERSION)-ipk
 
 install:
-	install -d /etc/6lbr /etc/6lbr/ifup.d /etc/6lbr/ifdown.d
-	cp -r package/etc/6lbr /etc/6lbr
+	install -d /etc/6lbr
+	cp -r package/etc/6lbr /etc
 	install -d /etc/init.d
 	install package/etc/init.d/* /etc/init.d
 	install -d /usr/bin
