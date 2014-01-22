@@ -352,12 +352,8 @@ rpl_invert_header(void)
 void
 rpl_insert_header(void)
 {
-  uint8_t uip_ext_opt_offset;
   if(default_instance != NULL) {
-    uip_ext_opt_offset = 2;
-    if(UIP_EXT_HDR_OPT_BUF->type == UIP_EXT_HDR_OPT_RPL) {
-      rpl_update_header_empty();
-    }
+    rpl_update_header_empty();
   }
 }
 /*---------------------------------------------------------------------------*/
