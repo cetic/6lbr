@@ -43,6 +43,7 @@
 #include <string.h>
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 
 #define MAX_PAYLOAD_LEN 120
 
@@ -65,12 +66,14 @@ tcpip_handler(void)
 #endif
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+    server_conn->rport = UIP_UDP_BUF->srcport;
     sprintf(buf, "Hello from the server! (%d)", ++seq_id);
     LOG6LBR_DEBUG("Responding with message: %s\n", buf);
 
     uip_udp_packet_send(server_conn, buf, strlen(buf));
     /* Restore server connection to allow data from any node */
     memset(&server_conn->ripaddr, 0, sizeof(server_conn->ripaddr));
+    server_conn->rport = 0;
   }
 }
 
@@ -79,7 +82,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   PROCESS_BEGIN();
   LOG6LBR_INFO("UDP server started\n");
 
-  server_conn = udp_new(NULL, UIP_HTONS(3001), NULL);
+  server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, UIP_HTONS(3000));
 
   while(1) {
