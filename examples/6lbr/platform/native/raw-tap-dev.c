@@ -121,12 +121,15 @@ cleanup(void)
 {
   if(slip_config_ifdown_script != NULL) {
     if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
-      ssystem("%s %s %s", slip_config_ifdown_script,
+      LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", slip_config_ifdown_script);
+      ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
               strerror(errno));
     }
+  } else {
+    LOG6LBR_INFO("No 6lbr-ifup script specified\n");
   }
 #if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&rimeaddr_null);
@@ -148,12 +151,15 @@ ifconf(const char *tundev)
 {
   if(slip_config_ifup_script != NULL) {
     if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
-      ssystem("%s %s %s", slip_config_ifup_script,
+      LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", slip_config_ifup_script);
+      ssystem("%s %s %s 2>&1", slip_config_ifup_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
               strerror(errno));
     }
+  } else {
+    LOG6LBR_INFO("No 6lbr-down script specified\n");
   }
 }
 /*---------------------------------------------------------------------------*/
