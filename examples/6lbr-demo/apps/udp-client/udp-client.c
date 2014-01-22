@@ -82,23 +82,6 @@ tcpip_handler(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-print_local_addresses(void)
-{
-  int i;
-  uint8_t state;
-
-  PRINTF("Client IPv6 addresses: ");
-  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
-       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTF("\n");
-    }
-  }
-}
-/*---------------------------------------------------------------------------*/
 char *
 add_ipaddr(char * buf, const uip_ipaddr_t *addr)
 {
@@ -132,7 +115,6 @@ timeout_handler(void)
   char buf[MAX_PAYLOAD_LEN];
   int i;
   uip_ip6addr_t *globaladdr = NULL;
-  //uip_ip6addr_t newdest_addr;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
   int has_dest=0;
 
@@ -156,52 +138,55 @@ timeout_handler(void)
 #endif
   }
 
-  if (client_conn == NULL) {
-    if (has_dest) {
-        /* At least one prefix announced : building of the global address to reach using prefixes */
-        //memcpy(&dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
-        PRINTF("UDP-CLIENT: address destination: ");
-        PRINT6ADDR(dest_addr);
-        PRINTF("\n");
-        client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
+  if (has_dest) {
+    if (client_conn == NULL) {
+      PRINTF("UDP-CLIENT: address destination: ");
+      PRINT6ADDR(dest_addr);
+      PRINTF("\n");
+      client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
 
-        udp_bind(client_conn, UIP_HTONS(3001));
-		PRINTF("Created a connection with the server ");
-		PRINT6ADDR(&client_conn->ripaddr);
-		PRINTF(" local/remote port %u/%u\n",
-		UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-		print_local_addresses();
+      if (client_conn != NULL) {
+        PRINTF("Created a connection with the server ");
+        PRINT6ADDR(&client_conn->ripaddr);
+        PRINTF(" local/remote port %u/%u\n",
+          UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+      } else {
+        PRINTF("Could not open connection\n");
+      }
     } else {
-      PRINTF("No address configured yet\n");
+      if(memcmp(&client_conn->ripaddr, &dest_addr, sizeof(uip_ipaddr_t)) != 0) {
+        PRINTF("UPD-CLIENT : new address, connection updated\n");
+        uip_udp_remove(client_conn);
+        client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
+        if (client_conn != NULL) {
+          PRINTF("Created a connection with the server ");
+          PRINT6ADDR(&client_conn->ripaddr);
+          PRINTF(" local/remote port %u/%u\n",
+            UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+        } else {
+          PRINTF("Could not open connection\n");
+        }
+      }
     }
-  }
-  if (client_conn != NULL) {
-    if(memcmp(&client_conn->ripaddr, &dest_addr, sizeof(uip_ipaddr_t)) != 0) {
-      PRINTF("UPD-CLIENT : new address, connection changed\n");
-      //memcpy(&dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
-      client_conn = udp_new(&dest_addr, UIP_HTONS(3000), NULL);
-      udp_bind(client_conn, UIP_HTONS(3001));
-      PRINTF("Created a connection with the server ");
-      PRINT6ADDR(&client_conn->ripaddr);
-      PRINTF(" local/remote port %u/%u\n",
-      UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-      print_local_addresses();
-    }
-    if ( udp_client_run ) {
-      PRINTF("Client sending to: ");
-      PRINT6ADDR(&client_conn->ripaddr);
-      i = sprintf(buf, "%d | ", ++seq_id);
+    if (client_conn != NULL) {
+      if ( udp_client_run ) {
+        PRINTF("Client sending to: ");
+        PRINT6ADDR(&client_conn->ripaddr);
+        i = sprintf(buf, "%d | ", ++seq_id);
 #if UIP_CONF_IPV6_RPL
-      rpl_dag_t *dag = rpl_get_any_dag();
-      add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        rpl_dag_t *dag = rpl_get_any_dag();
+        add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
 #endif
-      PRINTF(" (msg: %s)\n", buf);
-      #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
-      uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
-      #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
-      uip_udp_packet_send(client_conn, buf, strlen(buf));
-      #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+        PRINTF(" (msg: %s)\n", buf);
+        #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
+        uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
+        #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+        uip_udp_packet_send(client_conn, buf, strlen(buf));
+        #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+      }
     }
+  } else {
+    PRINTF("No address configured\n");
   }
 }
 /*---------------------------------------------------------------------------*/
