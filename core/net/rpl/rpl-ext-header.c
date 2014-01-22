@@ -373,7 +373,7 @@ rpl_invert_header(void)
 void
 rpl_insert_header(void)
 {
-  if(default_instance != NULL) {
+  if(default_instance != NULL && !uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     rpl_update_header_empty();
   }
 }
