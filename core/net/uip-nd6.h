@@ -124,6 +124,14 @@
 #define UIP_ND6_DELAY_FIRST_PROBE_TIME 5
 #define UIP_ND6_MIN_RANDOM_FACTOR(x)   (x / 2)
 #define UIP_ND6_MAX_RANDOM_FACTOR(x)   ((x) + (x) / 2)
+
+#if CONF_6LOWPAN_ND
+#ifdef UIP_CONF_ND6_REGISTER_LIFETIME
+#define UIP_ND6_REGISTER_LIFETIME       UIP_CONF_ND6_REGISTER_LIFETIME
+#else /* default value is 1h */
+#define UIP_ND6_REGISTER_LIFETIME      60 /* in unit of 60s */
+#endif
+#endif /* CONF_6LOWPAN_ND */
 /** @} */
 
 
@@ -136,7 +144,7 @@
 #define UIP_ND6_OPT_MTU                 5
 /** @} */
 
-/** \name 6LoWPAN ND ption types */
+/** \name 6LoWPAN ND option types */
 /** @{ */
 #if CONF_6LOWPAN_ND
 #define UIP_ND6_OPT_ARO                 33
@@ -389,6 +397,12 @@ uip_nd6_ns_input(void);
  */
 void
 uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
+
+#if CONF_6LOWPAN_ND
+//TODO: description (if lifetime<0 -> NO ARO msg)
+void
+uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, uint16_t lifetime);
+#endif /* CONF_6LOWPAN_ND */
 
 /**
  * \brief Process a Neighbor Advertisement

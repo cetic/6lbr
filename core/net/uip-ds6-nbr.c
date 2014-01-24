@@ -240,7 +240,11 @@ uip_ds6_neighbor_periodic(void)
       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
         nbr->nscount++;
         PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
+      #if CONF_6LOWPAN_ND
+        uip_nd6_ns_output_aro(NULL, NULL, &nbr->ipaddr, UIP_ND6_REGISTER_LIFETIME);
+      #else
         uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+      #endif
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;

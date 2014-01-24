@@ -76,7 +76,7 @@
 
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG DEBUG_FULL
 #include "net/uip-debug.h"
 
 #if UIP_LOGGING
@@ -123,6 +123,13 @@ static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix info
 static uip_ipaddr_t ipaddr;
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
+#if CONF_6LOWPAN_ND
+//TODO comment and difference between host and router
+//TODO need all 3 in static ?
+static uip_nd6_opt_aro *nd6_opt_addr_register;
+static uip_nd6_opt_6co *nd6_opt_6lowpan_context;
+static uip_nd6_opt_abro *nd6_opt_auth_br;
+#endif /* CONF_6LOWPAN_ND */
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
@@ -139,6 +146,19 @@ create_llao(uint8_t *llao, uint8_t type) {
   memset(&llao[UIP_ND6_OPT_DATA_OFFSET + UIP_LLADDR_LEN], 0,
          UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
 }
+
+#if CONF_6LOWPAN_ND
+//TODO: needed ? , create_other_msg
+/* create a aro */
+//TODO: delocate to ns_output to efficancy (no call of function)
+create_aro(uint8_t *aro, uint8_t lifetime) {
+  ((uip_nd6_opt_aro*) aro)->type = UIP_ND6_OPT_ARO;
+  ((uip_nd6_opt_aro*) aro)->len = 2;
+  ((uip_nd6_opt_aro*) aro)->status = (uint8_t) 0; /* MUST be set to 0 in NS messages */
+  ((uip_nd6_opt_aro*) aro)->lifetime = uip_htons(lifetime);
+  memcpy(&(((uip_nd6_opt_aro*) aro)->eui64), &uip_lladdr, UIP_LLADDR_LEN);
+}
+#endif /* CONF_6LOWPAN_ND */
 
 /*------------------------------------------------------------------*/
 
@@ -369,6 +389,15 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
 
     uip_len =
       UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
+#if CONF_6LOWPAN_ND
+    if(lifetime >= 0) {
+      /* add aro option if lifetime is defined */
+      UIP_IP_BUF->len[1] += UIP_ND6_ARO_LEN;
+      create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN + UIP_ND6_ARO_LEN],
+                  lifetime);
+      uip_len += UIP_ND6_ARO_LEN;
+    }
+#endif /* CONF_6LOWPAN_ND */
   } else {
     uip_create_unspecified(&UIP_IP_BUF->srcipaddr);
     UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_NS_LEN;
