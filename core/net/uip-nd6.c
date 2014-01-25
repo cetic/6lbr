@@ -346,8 +346,18 @@ discard:
 
 
 /*------------------------------------------------------------------*/
+#if !CONF_6LOWPAN_ND
 void
 uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
+#else
+void
+uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
+{
+  uip_nd6_ns_output_aro(src, dest, tgt, -1); 
+}
+void
+uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, uint16_t lifetime)
+#endif /* CONF_6LOWPAN_ND */
 {
   uip_ext_len = 0;
   UIP_IP_BUF->vtc = 0x60;
