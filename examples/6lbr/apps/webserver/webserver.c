@@ -564,7 +564,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/>coap</a></td>");
       if(node_info_table[i].messages_count > 0) {
-      add("<td>%d</td><td>", node_info_table[i].sequence);
+        add("<td>%d</td><td>", node_info_table[i].sequence);
         if (node_config_loaded) {
           add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
           ipaddr_add(&node_info_table[i].ip_parent);
@@ -572,8 +572,11 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
         } else {
           ipaddr_add(&node_info_table[i].ip_parent);
         }
+        add("</td>");
+      } else {
+        add("<td></td><td></td>");
       }
-      add("</td><td>%d</td>",
+      add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
       add("</tr>");
       SEND_STRING(&s->sout, buf);
