@@ -32,9 +32,11 @@
  */
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "mc1322x.h"
 #include "cmd.h"
 #include <stdio.h>
+#include <string.h>
 
 int
 cmd_handler_mc1322x(const uint8_t *data, int len)
@@ -44,7 +46,17 @@ cmd_handler_mc1322x(const uint8_t *data, int len)
       printf("mc1322x_cmd: setting channel: %d\n", data[2]);
       set_channel(data[2]-11);
       return 1;
-    }
+    } else if(data[1] == 'M' && len == 8) {
+        printf("mc1322x_cmd: Got MAC\n");
+        memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
+        linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+        uint64_t eui = ((uint64_t)uip_lladdr.addr[0] << 56) + ((uint64_t)uip_lladdr.addr[1] << 48) +
+            ((uint64_t)uip_lladdr.addr[2] << 40) + ((uint64_t)uip_lladdr.addr[3] << 32) +
+            ((uint64_t)uip_lladdr.addr[4] << 24) + ((uint64_t)uip_lladdr.addr[5] << 16) +
+            ((uint64_t)uip_lladdr.addr[6] << 8) + ((uint64_t)uip_lladdr.addr[7]);
+        contiki_maca_set_mac_address(eui);
+        return 1;
+      }
   } else if(data[0] == '?') {
     if(data[1] == 'C' && len == 2) {
       uint8_t buf[4];
