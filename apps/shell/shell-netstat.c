@@ -113,7 +113,7 @@ PROCESS_THREAD(shell_netstat_process, ev, data)
   int i;
   struct uip_conn *conn;
   PROCESS_BEGIN();
-
+#if UIP_CONF_TCP
   for(i = 0; i < UIP_CONNS; ++i) {
     conn = &uip_conns[i];
     snprintf(buf, BUFLEN,
@@ -131,6 +131,7 @@ PROCESS_THREAD(shell_netstat_process, ev, data)
 	     (uip_stopped(conn))? '!':' ');
     shell_output_str(&netstat_command, "TCP ", buf);
   }
+#endif
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
