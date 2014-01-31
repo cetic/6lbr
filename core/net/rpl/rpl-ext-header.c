@@ -46,6 +46,7 @@
 #include "net/tcpip.h"
 #include "net/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/packetbuf.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -165,12 +166,13 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 rpl_update_header_empty(void)
 {
   rpl_instance_t *instance;
   int uip_ext_opt_offset;
   int last_uip_ext_len;
+  rpl_parent_t *parent;
 
   last_uip_ext_len = uip_ext_len;
   uip_ext_len = 0;
@@ -183,12 +185,12 @@ rpl_update_header_empty(void)
     if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
       PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
     if(instance == NULL || !instance->used || !instance->current_dag->joined) {
       PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect instance\n");
-      return;
+      return 0;
     }
     break;
   default:
@@ -196,11 +198,11 @@ rpl_update_header_empty(void)
     if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     set_rpl_opt(uip_ext_opt_offset);
     uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
-    return;
+    return 0;
   }
 
   switch(UIP_EXT_HDR_OPT_BUF->type) {
@@ -216,6 +218,15 @@ rpl_update_header_empty(void)
       if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
         UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
         PRINTF("RPL forwarding error\n");
+        /* We should send back the packet to the originating parent */
+        /* But it is not feasible yet, so we send a no-path dao instead */
+        PRINTF("RPL generate No-Path DAO\n");
+        parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        if (parent != NULL) {
+          dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
+        }
+        /* Drop packet */
+        return 1;
       }
     } else {
       /* Set the down extension flag correctly as described in Section
@@ -234,11 +245,11 @@ rpl_update_header_empty(void)
     }
 
     uip_ext_len = last_uip_ext_len;
-    return;
+    return 0;
   default:
     PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
     uip_ext_len = last_uip_ext_len;
-    return;
+    return 0;
   }
 }
 /*---------------------------------------------------------------------------*/
