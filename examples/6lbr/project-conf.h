@@ -272,14 +272,14 @@
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     30
+#define UIP_CONF_DS6_NBR_NBU     25
 
 //Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   30
+#define UIP_CONF_DS6_ROUTE_NBU   25
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   30
+#define UIP_CONF_MAX_ROUTES   25
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
@@ -304,6 +304,7 @@
 /* Do not change lines below */
 
 #define LOG6LBR_TIMESTAMP           0
+#define LOG6LBR_STATIC              1
 
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver

@@ -71,7 +71,7 @@ void
 eth_drv_send(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_OUT)) {
+  LOG6LBR_COND_FUNC(DUMP, ETH_OUT,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
     printf("0000");
@@ -94,7 +94,7 @@ eth_drv_send(void)
     }
 #endif
     printf("\n");
-  }
+  )
 
   disable_int(enc28j60PacketSend
               (uip_len + sizeof(struct uip_eth_hdr), uip_buf));
@@ -104,7 +104,7 @@ void
 eth_drv_input(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_IN)) {
+  LOG6LBR_COND_FUNC(DUMP, ETH_IN,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
     printf("0000");
@@ -127,7 +127,8 @@ eth_drv_input(void)
     }
 #endif
     printf("\n");
-  }
+  )
+
   eth_input();
 }
 
