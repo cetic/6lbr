@@ -127,10 +127,9 @@ rpl_verify_header(int uip_ext_opt_offset)
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
       RPL_STAT(rpl_stats.loop_errors++);
       PRINTF("RPL: Rank error signalled in RPL option!\n");
-      /* We should try to repair it, not implemented for the moment */
+      /* Packet must be dropped and dio trickle timer reset, see RFC6550 - 11.2.2.2 */
       rpl_reset_dio_timer(instance);
-      /* Forward the packet anyway. */
-      return 0;
+      return 1;
     }
     PRINTF("RPL: Single error tolerated\n");
     RPL_STAT(rpl_stats.loop_warnings++);
