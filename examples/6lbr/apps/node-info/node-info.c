@@ -39,8 +39,6 @@
 #include "string.h"
 #include "stdlib.h"
 
-#if CETIC_NODE_INFO
-
 node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
 static struct uip_ds6_notification node_info_route_notification;
@@ -50,7 +48,11 @@ node_info_route_notification_cb(int event,
                                 uip_ipaddr_t * route,
                                 uip_ipaddr_t * nexthop, int num_routes)
 {
-  if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
+  if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
+    node_info_t *node = NULL;
+    node = node_info_add(route);
+    node->last_seen = clock_time();
+ } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
     node_info_rm(route);
   }
 }
@@ -72,6 +74,7 @@ node_info_add(uip_ipaddr_t * ipaddr)
      ((uip_ds6_element_t *) node_info_table, UIP_DS6_ROUTE_NB,
       sizeof(node_info_t), ipaddr, 128,
       (uip_ds6_element_t **) & node) == FREESPACE) {
+    memset(node, 0, sizeof(node_info_t));
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
   }
@@ -88,7 +91,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     node = node_info_add(ipaddr);
   }
   if ( node != NULL ) {
-    node->last_lookup = clock_time();
+    node->last_seen = clock_time();
+    node->last_message = clock_time();
+    node->messages_count++;
     sep = index(info, '|');
     if (sep != NULL && sep - info > 0) {
       *sep = 0;
@@ -106,6 +111,16 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     }
   }
   return node;
+}
+
+void
+node_info_node_seen(uip_ipaddr_t * ipaddr)
+{
+  node_info_t *node = NULL;
+  node = node_info_lookup(ipaddr);
+  if ( node != NULL ) {
+    node->last_seen = clock_time();
+  }
 }
 
 void
@@ -130,5 +145,3 @@ node_info_lookup(uip_ipaddr_t * ipaddr)
   }
   return NULL;
 }
-
-#endif

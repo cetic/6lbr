@@ -78,6 +78,10 @@
 
 #include <string.h>
 
+#if CETIC_NODE_INFO
+#include "node-info.h"
+#endif
+
 #if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* For Debug, logging, statistics                                            */
@@ -1151,6 +1155,9 @@ uip_process(uint8_t flag)
     }
   }
 
+#if CETIC_NODE_INFO
+  node_info_node_seen(&UIP_IP_BUF->destipaddr);
+#endif
 
   /* TBD Some Parameter problem messages */
 #if ! CETIC_6LBR_SMARTBRIDGE

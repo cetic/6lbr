@@ -42,8 +42,11 @@
 typedef struct node_info {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
-  clock_time_t last_lookup;
-  //char my_info[64];             // Full IPv6 address + 32 bits sequence counter + margin
+  clock_time_t last_seen;
+
+  //6lbr-demo udp info
+  uint32_t messages_count;
+  clock_time_t last_message;
   uint16_t  sequence;
   uip_ipaddr_t ip_parent;
 } node_info_t;
@@ -62,5 +65,8 @@ node_info_t *node_info_lookup(uip_ipaddr_t * ipaddr);
 
 node_info_t *
 node_info_update(uip_ipaddr_t * ipaddr, char * info);
+
+void
+node_info_node_seen(uip_ipaddr_t * ipaddr);
 
 #endif

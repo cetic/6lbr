@@ -467,7 +467,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
-#if CETIC_NODE_INFO
 static
 PT_THREAD(generate_sensors(struct httpd_state *s))
 {
@@ -564,16 +563,18 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       add("<td><a href=coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/>coap</a></td>");
+      if(node_info_table[i].messages_count > 0) {
       add("<td>%d</td><td>", node_info_table[i].sequence);
-      if (node_config_loaded) {
-        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
-        ipaddr_add(&node_info_table[i].ip_parent);
-        add(")");
-      } else {
-        ipaddr_add(&node_info_table[i].ip_parent);
+        if (node_config_loaded) {
+          add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
+          ipaddr_add(&node_info_table[i].ip_parent);
+          add(")");
+        } else {
+          ipaddr_add(&node_info_table[i].ip_parent);
+        }
       }
       add("</td><td>%d</td>",
-          (clock_time() - node_info_table[i].last_lookup) / CLOCK_SECOND);
+          (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
       add("</tr>");
       SEND_STRING(&s->sout, buf);
       reset_buf();
@@ -648,7 +649,6 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 
   PSOCK_END(&s->sout);
 }
-#endif
 /*---------------------------------------------------------------------------*/
 
 static
@@ -1522,10 +1522,8 @@ httpd_simple_get_script(const char *name)
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
-#if CETIC_NODE_INFO
   } else if(strcmp(name, "sensors.html") == 0) {
     return generate_sensors;
-#endif
   } else if(strcmp(name, "rpl.html") == 0) {
     return generate_rpl;
   } else if(strcmp(name, "network.html") == 0) {
