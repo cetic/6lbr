@@ -81,5 +81,9 @@
 #undef UART1_CONF_TX_WITH_INTERRUPT
 #define UART1_CONF_TX_WITH_INTERRUPT     1
 
+#define UART1_CONF_TXBUFSIZE             512
+
+#define UART1_CONF_RXBUFSIZE             512
+
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* PROJECT_CONF_H_ */
