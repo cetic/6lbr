@@ -849,7 +849,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
 
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-      add("[<a href=\"nbr_rm?%d\">del</a>] ", i);
+      add("[<a href=\"nbr_rm?");
+      ipaddr_add(&nbr->ipaddr);
+      add("\">del</a>] ");
     }
 #if CONTIKI_TARGET_NATIVE
     if ( node_config_loaded ) {
@@ -872,7 +874,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   for(r = uip_ds6_route_head(), i = 0; r != NULL;
       r = uip_ds6_route_next(r), ++i) {
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-      add("[<a href=\"route_rm?%d\">del</a>] ", i);
+      add("[<a href=\"route_rm?");
+      ipaddr_add(&r->ipaddr);
+      add("\">del</a>] ");
     }
     if ( node_config_loaded ) {
       add("%s (", node_config_get_name(node_config_find_from_ip(&r->ipaddr)));
@@ -1508,9 +1512,10 @@ update_config(const char *name)
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
-  static uip_ds6_route_t *r;
+  static uip_ds6_route_t *route;
+  static uip_ds6_nbr_t *neighbor;
+  static uip_ipaddr_t ipaddr;
   static char filename[HTTPD_PATHLEN];
-  static int i;
 
   strcpy(filename, slip_config_www_root);
   strcat(filename, "/");
@@ -1547,18 +1552,21 @@ httpd_simple_get_script(const char *name)
 #endif
   } else if(admin && memcmp(name, "route_rm", 8) == 0) {
     redirect = 1;
-    i = atoi(name + 9);
-    for(r = uip_ds6_route_head(); r != NULL; r = list_item_next(r), --i) {
-      if(i == 0) {
-        uip_ds6_route_rm(r);
-        break;
+    if(uiplib_ipaddrconv(name + 9, &ipaddr) != 0) {
+      route = uip_ds6_route_lookup(&ipaddr);
+      if(route) {
+        uip_ds6_route_rm(route);
       }
     }
     return generate_network;
   } else if(admin && memcmp(name, "nbr_rm", 6) == 0) {
     redirect = 1;
-    //TODO: merge-contiki-1.1.2 disabled this for now, see #7082
-    //uip_ds6_nbr_rm(&uip_ds6_nbr_cache[atoi(name + 7)]);
+    if(uiplib_ipaddrconv(name + 7, &ipaddr) != 0) {
+      neighbor = uip_ds6_nbr_lookup(&ipaddr);
+      if (neighbor) {
+        uip_ds6_nbr_rm(neighbor);
+      }
+    }
     return generate_network;
   } else if(admin && memcmp(name, "config?", 7) == 0) {
     if(update_config(name + 7)) {
