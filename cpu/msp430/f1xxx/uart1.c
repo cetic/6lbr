@@ -58,14 +58,24 @@ static volatile uint8_t transmitting;
 #endif /* UART1_CONF_RX_WITH_DMA */
 
 #if TX_WITH_INTERRUPT
+
+#ifdef UART1_CONF_TXBUFSIZE
+#define TXBUFSIZE UART1_CONF_TXBUFSIZE
+#else /* UART1_CONF_TXBUFSIZE */
 #define TXBUFSIZE 128
+#endif /* UART1_CONF_TXBUFSIZE */
 
 static struct ringbuf txbuf;
 static uint8_t txbuf_data[TXBUFSIZE];
 #endif /* TX_WITH_INTERRUPT */
 
 #if RX_WITH_DMA
+
+#ifdef UART1_CONF_RXBUFSIZE
+#define RXBUFSIZE UART1_CONF_RXBUFSIZE
+#else /* UART1_CONF_RX_WITH_DMA */
 #define RXBUFSIZE 128
+#endif /* UART1_CONF_RX_WITH_DMA */
 
 static uint8_t rxbuf[RXBUFSIZE];
 static uint16_t last_size;
