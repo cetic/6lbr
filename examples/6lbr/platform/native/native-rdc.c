@@ -129,9 +129,12 @@ setup_callback(mac_callback_t sent, void *ptr)
 {
   struct tx_callback *callback;
   if ( callback_count < MAX_CALLBACKS) {
+    callback_pos++;
+    if(callback_pos >= MAX_CALLBACKS) {
+      callback_pos = 0;
+    }
     while (callbacks[callback_pos].isused) {
       callback_pos++;
-
       if(callback_pos >= MAX_CALLBACKS) {
         callback_pos = 0;
       }
@@ -211,7 +214,6 @@ send_packet(mac_callback_t sent, void *ptr)
 
         /* Copy packet data */
         memcpy(&buf[3 + size], packetbuf_hdrptr(), packetbuf_totlen());
-
         write_to_slip(buf, packetbuf_totlen() + size + 3);
       } else {
         LOG6LBR_INFO("native-rdc queue full\n");
