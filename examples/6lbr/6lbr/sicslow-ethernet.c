@@ -59,19 +59,17 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include "uip.h"
-#include "uip_arp.h"            //For ethernet header structure
-
-#include "net/rime.h"
-#include "sicslowpan.h"
-#include "sicslow-ethernet.h"
-
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/sicslowpan.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "sicslow-ethernet.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
@@ -123,9 +121,6 @@ mac_translateIPLinkLayer(lltype_t target)
   }
   return 0;
 }
-
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
 
 typedef struct {
   uint8_t type;

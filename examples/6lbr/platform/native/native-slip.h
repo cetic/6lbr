@@ -40,7 +40,7 @@
 #define NATIVE_SLIP_H_
 
 #include "contiki.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include <stdio.h>
 
 int slip_config_handle_arguments(int argc, char **argv);

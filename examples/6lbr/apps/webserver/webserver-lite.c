@@ -34,13 +34,13 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
-#include "net/uip-ds6-route.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-ds6-route.h"
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
 
@@ -62,7 +62,7 @@
 #include <ctype.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
@@ -211,6 +211,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 {
   static int i;
   static int j;
+  static uip_ds6_nbr_t *nbr;
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
 
@@ -409,30 +410,31 @@ PT_THREAD(generate_index(struct httpd_state *s))
   reset_buf();
 
   add("</pre><h2>Neighbors</h2><pre>");
-  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      add(" ");
-      lladdr_add(&uip_ds6_nbr_cache[i].lladdr);
-      add(" ");
-      add_network_cases(uip_ds6_nbr_cache[i].state);
-      add("\n");
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
-    }
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    ipaddr_add(&nbr->ipaddr);
+    add(" ");
+    lladdr_add(uip_ds6_nbr_get_ll(nbr));
+    add(" ");
+    add_network_cases(nbr->state);
+    add("\n");
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
   }
+
   add("</pre><h2>Routes</h2><pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  for(r = uip_ds6_route_list_head(), i = 0; r != NULL;
-      r = list_item_next(r), ++i) {
+  for(r = uip_ds6_route_head(), i = 0; r != NULL;
+      r = uip_ds6_route_next(r), ++i) {
     ipaddr_add(&r->ipaddr);
-    add("/%u (via ", r->length);
-    ipaddr_add(&r->nexthop);
+    add("/%u via ", r->length);
+    ipaddr_add(uip_ds6_route_nexthop(r));
     if(1 || (r->state.lifetime < 600)) {
-      add(") %lu s\n", r->state.lifetime);
+      add("%lu s\n", r->state.lifetime);
     } else {
-      add(")\n");
+      add("\n");
     }
     SEND_STRING(&s->sout, buf);
     reset_buf();

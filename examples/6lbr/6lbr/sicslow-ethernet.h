@@ -51,10 +51,6 @@
 #ifndef SICSLOW_ETHERNET_H
 #define SICSLOW_ETHERNET_H
 
-#if !RF230BB
-#include "sicslowmac.h"
-#endif
-
 typedef enum {
   ll_802154_type,
   ll_8023_type

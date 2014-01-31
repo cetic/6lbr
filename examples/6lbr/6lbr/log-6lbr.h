@@ -37,7 +37,7 @@
 #ifndef LOG_6LBR_H
 #define LOG_6LBR_H
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include <stdio.h>
 
 #ifndef LOG6LBR_TIMESTAMP

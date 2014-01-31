@@ -50,8 +50,8 @@ platform_init(void)
 }
 
 void
-platform_set_wsn_mac(rimeaddr_t * mac_addr)
+platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
-  rimeaddr_set_node_addr(mac_addr);
+  linkaddr_set_node_addr(mac_addr);
   slip_set_mac(mac_addr);
 }

@@ -33,7 +33,7 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "cmd.h"
 #include <stdio.h>
 #include <string.h>
@@ -50,10 +50,10 @@ cmd_handler_cc2420(const uint8_t *data, int len)
     } else if(data[1] == 'M' && len == 8) {
         printf("cc2420_cmd: Got MAC\n");
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
-        rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
-        uint16_t shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
-          rimeaddr_node_addr.u8[1];
-        cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, rimeaddr_node_addr.u8);
+        linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+        uint16_t shortaddr = (linkaddr_node_addr.u8[0] << 8) +
+          linkaddr_node_addr.u8[1];
+        cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, linkaddr_node_addr.u8);
         return 1;
       }
   } else if(data[0] == '?') {

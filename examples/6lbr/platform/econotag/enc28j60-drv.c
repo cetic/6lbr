@@ -37,9 +37,8 @@
 #include "enc28j60.h"
 #include "enc28j60-drv.h"
 #include "contiki-net.h"
-#include "net/uip-neighbor.h"
-#include "net/uip-ds6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-nd6.h"
 #include "string.h"
 #include "sicslow-ethernet.h"
 

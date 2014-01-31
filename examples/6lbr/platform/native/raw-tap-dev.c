@@ -37,8 +37,8 @@
 
 #define LOG6LBR_MODULE "TAP"
 
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -129,7 +129,7 @@ cleanup(void)
     }
   }
 #if !CETIC_6LBR_ONE_ITF
-  slip_set_mac(&rimeaddr_null);
+  slip_set_mac(&linkaddr_null);
   slip_flushbuf(slipfd);
 #endif
 }

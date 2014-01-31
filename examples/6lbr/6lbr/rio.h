@@ -39,7 +39,7 @@
 #ifndef UIP_DS6_RIO_H_
 #define UIP_DS6_RIO_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 /* Route information list (RFC4191) */
 #define UIP_DS6_ROUTE_INFO_NBS 0

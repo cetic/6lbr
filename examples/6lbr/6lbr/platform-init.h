@@ -39,6 +39,6 @@ void
 platform_init(void);
 
 void
-platform_set_wsn_mac(rimeaddr_t * mac_addr);
+platform_set_wsn_mac(linkaddr_t * mac_addr);
 
 #endif

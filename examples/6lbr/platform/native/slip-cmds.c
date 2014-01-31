@@ -46,7 +46,7 @@
 #include "slip-cmds.h"
 #include "dev/serial-line.h"
 #include "net/rpl/rpl.h"
-#include "net/uiplib.h"
+#include "net/ip/uiplib.h"
 #include <string.h>
 #include <stdlib.h>
 #include "log-6lbr.h"

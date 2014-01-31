@@ -47,7 +47,7 @@
 void
 platform_init(void)
 {
-  rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
+  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
   LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   eth_mac_addr_ready = 1;
@@ -55,7 +55,7 @@ platform_init(void)
 }
 
 void
-platform_set_wsn_mac(rimeaddr_t * mac_addr)
+platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
-  rimeaddr_set_node_addr(mac_addr);
+  linkaddr_set_node_addr(mac_addr);
 }

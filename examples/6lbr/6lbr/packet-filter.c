@@ -41,9 +41,8 @@
 #define LOG6LBR_MODULE "PF"
 
 #include "contiki-net.h"
-#include "net/uip-neighbor.h"
-#include "net/uip-ds6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-nd6.h"
 #include "string.h"
 #include "sicslow-ethernet.h"
 #include "rpl-private.h"
@@ -55,7 +54,7 @@
 
 #include "eth-drv.h"
 
-extern const rimeaddr_t rimeaddr_null;
+extern const linkaddr_t linkaddr_null;
 
 static int eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest);
 
@@ -76,7 +75,7 @@ static inputfunc_t tcpip_inputfunc;
 
 #define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == CETIC_6LBR_ETH_EXT_A && (a)->addr[4] == CETIC_6LBR_ETH_EXT_B )
 #define IS_EUI64_ADDR(a) ((a) != NULL && ((a)->addr[3] != CETIC_6LBR_ETH_EXT_A || (a)->addr[4] != CETIC_6LBR_ETH_EXT_B ))
-#define IS_BROADCAST_ADDR(a) ((a)==NULL || rimeaddr_cmp((rimeaddr_t *)(a), &rimeaddr_null) != 0)
+#define IS_BROADCAST_ADDR(a) ((a)==NULL || linkaddr_cmp((linkaddr_t *)(a), &linkaddr_null) != 0)
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_LEARN_RPL_MAC
 static int rpl_mac_known = 0;
@@ -111,9 +110,9 @@ wireless_input(void)
     uip_len = 0;
     return;
   }
-  if (rimeaddr_cmp
+  if (linkaddr_cmp
 	  (packetbuf_addr(PACKETBUF_ADDR_SENDER),
-	   & rimeaddr_node_addr) != 0) {
+	   & linkaddr_node_addr) != 0) {
     LOG6LBR_WARN("WSN packet received with RplRoot address, another TB is within range, dropping it\n");
     //Drop packet
     uip_len = 0;
@@ -129,9 +128,9 @@ wireless_input(void)
     processFrame = 1;
   } else {                      //unicast
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_IN, (uip_lladdr_t *) packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "wireless_input: dest: ");
-    if(rimeaddr_cmp
+    if(linkaddr_cmp
        (packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-        (rimeaddr_t *) & wsn_mac_addr) != 0) {
+        (linkaddr_t *) & wsn_mac_addr) != 0) {
       processFrame = 1;         //For us
     } else {                    //For another host
 #if CETIC_6LBR_TRANSPARENTBRIDGE
@@ -178,8 +177,8 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     LOG6LBR_ERROR("wireless_output: uip_len = 0\n");
     return 0;
   }
-  if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
-      (rimeaddr_t *) & wsn_mac_addr)) {
+  if(dest && linkaddr_cmp((linkaddr_t *) & dest,
+      (linkaddr_t *) & wsn_mac_addr)) {
     LOG6LBR_ERROR("wireless_output: sending to self\n");
     return 0;
   }
@@ -197,7 +196,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   if(wireless_outputfunc != NULL) {
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
-      platform_set_wsn_mac((rimeaddr_t *)src);
+      platform_set_wsn_mac((linkaddr_t *)src);
 	}
 #endif
 	LOG6LBR_PRINTF(PACKET, PF_OUT, "wireless_output: sending packet\n");
@@ -205,7 +204,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
       //Restore node address
-	  platform_set_wsn_mac((rimeaddr_t *) & wsn_mac_addr);
+	  platform_set_wsn_mac((linkaddr_t *) & wsn_mac_addr);
 	}
 #endif
   } else {
@@ -240,7 +239,7 @@ eth_input(void)
   if((BUF->dest.addr[0] == 0x33) && (BUF->dest.addr[1] == 0x33)) {
     forwardFrame = 1;
     processFrame = 1;
-    rimeaddr_copy((rimeaddr_t *) & destAddr, &rimeaddr_null);
+    linkaddr_copy((linkaddr_t *) & destAddr, &linkaddr_null);
   } else if((BUF->dest.addr[0] == 0xFF)
             && (BUF->dest.addr[1] == 0xFF)
             && (BUF->dest.addr[2] == 0xFF)
@@ -290,7 +289,7 @@ eth_input(void)
       uint8_t *buffer = UIP_ICMP_PAYLOAD;
       uint16_t rank = (uint16_t)buffer[2] << 8 | buffer[2 + 1];
       if ( rank == RPL_MIN_HOPRANKINC ) {
-    	platform_set_wsn_mac((rimeaddr_t *) &srcAddr);
+    	platform_set_wsn_mac((linkaddr_t *) &srcAddr);
         rpl_mac_known=1;
       }
     }
@@ -299,7 +298,7 @@ eth_input(void)
       uip_len = 0;
       return;
     }
-    if(rimeaddr_cmp((rimeaddr_t *) &srcAddr, &rimeaddr_node_addr) != 0) {
+    if(linkaddr_cmp((linkaddr_t *) &srcAddr, &linkaddr_node_addr) != 0) {
       //Only forward RplRoot packets
       LOG6LBR_LLADDR_PRINTF(PACKET, PF_IN, &destAddr, "eth_input: Forwarding frame to ");
       wireless_output(NULL, &destAddr);
@@ -316,7 +315,7 @@ eth_input(void)
   //RPL uses source packet address to populate its neighbor table
   //In this two modes RPL packets are incoming from Eth interface
   mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
-  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *) &srcAddr);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *) &srcAddr);
 #endif
     send_to_uip();
   } else {
@@ -341,8 +340,8 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     return 0;
   }
 
-  if(dest && rimeaddr_cmp((rimeaddr_t *) & dest,
-      (rimeaddr_t *) & eth_mac64_addr)) {
+  if(dest && linkaddr_cmp((linkaddr_t *) & dest,
+      (linkaddr_t *) & eth_mac64_addr)) {
     LOG6LBR_ERROR("ethernet_output: sending to self\n");
     return 0;
   }

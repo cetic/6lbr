@@ -489,7 +489,7 @@ print_nvm(void)
 #define update_nvm_action 1002
 
 #define channel_option 2000
-#define rime_addr_option 2001
+#define link_addr_option 2001
 #define wsn_net_prefix_option 2002
 #define wsn_net_prefix_len_option 2003
 #define wsn_ip_addr_option 2004
@@ -548,7 +548,7 @@ static struct option long_options[] = {
   {"update", no_argument, 0, update_nvm_action},
 
   {"channel", required_argument, 0, channel_option},
-  {"wsn-mac", required_argument, 0, rime_addr_option},
+  {"wsn-mac", required_argument, 0, link_addr_option},
   {"wsn-prefix", required_argument, 0, wsn_net_prefix_option},
   {"wsn-prefix-len", required_argument, 0, wsn_net_prefix_len_option},
   {"wsn-ip", required_argument, 0, wsn_ip_addr_option},

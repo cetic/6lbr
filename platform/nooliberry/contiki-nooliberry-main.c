@@ -145,9 +145,9 @@ init_lowlevel(void)
   }
 
   /* Set addresses BEFORE starting tcpip process */
-  rimeaddr_t addr;
+  linkaddr_t addr;
 
-  memset(&addr, 0, sizeof(rimeaddr_t));
+  memset(&addr, 0, sizeof(linkaddr_t));
   memcpy((void *)&addr.u8, &mac_address, 8);
 
 #if UIP_CONF_IPV6
@@ -161,7 +161,7 @@ init_lowlevel(void)
 #else /* CHANNEL_802_15_4 */
   rf230_set_channel(26);
 #endif /* CHANNEL_802_15_4 */
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
 
   //calibrate_rc_osc_32k(); //CO: Had to comment this out
 

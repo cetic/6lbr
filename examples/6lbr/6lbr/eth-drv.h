@@ -36,7 +36,7 @@
 #define ETH_DRV_H_
 
 #include "contiki.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #define UIP_8023_ADDR_LEN 6
 

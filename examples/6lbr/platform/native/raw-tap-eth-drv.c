@@ -37,7 +37,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "string.h"
 
 #include "log-6lbr.h"
@@ -165,7 +165,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   eth_mac_addr[5] += 1;
   mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
-  rimeaddr_set_node_addr((rimeaddr_t *) &wsn_mac_addr);
+  linkaddr_set_node_addr((linkaddr_t *) &wsn_mac_addr);
   LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
 #endif
   ethernet_ready = 1;

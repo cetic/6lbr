@@ -164,7 +164,7 @@ send_packet(mac_callback_t sent, void *ptr)
   uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
   int sid;
 
-  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
@@ -314,14 +314,14 @@ void
 slip_got_mac(const uint8_t * data)
 {
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-  rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
-  rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
+  linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
   mac_set = 1;
 }
 
 void
-slip_set_mac(rimeaddr_t const * mac_addr)
+slip_set_mac(linkaddr_t const * mac_addr)
 {
 	uint8_t buffer[10];
 	int i;
