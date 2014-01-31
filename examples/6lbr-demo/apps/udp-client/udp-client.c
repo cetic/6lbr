@@ -177,7 +177,11 @@ timeout_handler(void)
         i = sprintf(buf, "%d | ", ++seq_id);
 #if UIP_CONF_IPV6_RPL
         rpl_dag_t *dag = rpl_get_any_dag();
-        add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        if(dag && dag->instance->def_route) {
+          add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        } else {
+          sprintf(buf + i, "(null)");
+        }
 #endif
         PRINTF(" (msg: %s)\n", buf);
         #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
@@ -186,6 +190,8 @@ timeout_handler(void)
         uip_udp_packet_send(client_conn, buf, strlen(buf));
         #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
       }
+    } else {
+      PRINTF("No connection created\n");
     }
   } else {
     PRINTF("No address configured\n");
