@@ -60,7 +60,7 @@ uint16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
 #endif
 
 /* Must be at least one byte larger than UIP_BUFSIZE! */
-#define RX_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN + 16)
+#define RX_BUFSIZE (5*(UIP_BUFSIZE - UIP_LLH_LEN + 16))
 
 enum {
   STATE_TWOPACKETS = 0,	/* We have 2 packets and drop incoming data. */
