@@ -141,7 +141,7 @@ timeout_handler(void)
   if (has_dest) {
     if (client_conn == NULL) {
       PRINTF("UDP-CLIENT: address destination: ");
-      PRINT6ADDR(dest_addr);
+      PRINT6ADDR(&dest_addr);
       PRINTF("\n");
       client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
 
@@ -155,7 +155,9 @@ timeout_handler(void)
       }
     } else {
       if(memcmp(&client_conn->ripaddr, &dest_addr, sizeof(uip_ipaddr_t)) != 0) {
-        PRINTF("UPD-CLIENT : new address, connection updated\n");
+        PRINTF("UDP-CLIENT: new address destination: ");
+        PRINT6ADDR(&dest_addr);
+        PRINTF("\n");
         uip_udp_remove(client_conn);
         client_conn = udp_new(&dest_addr, UIP_HTONS(dest_port), NULL);
         if (client_conn != NULL) {
