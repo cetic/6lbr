@@ -36,6 +36,8 @@
  */
 
 #include "cmd.h"
+#include "stdio.h"
+#include "string.h"
 
 #ifndef CMD_CONF_OUTPUT
 #define CMD_OUTPUT slip_cmd_input
@@ -60,7 +62,9 @@ cmd_input(const uint8_t *data, int data_len)
   }
 
   /* Unknown command */
-  cmd_send((uint8_t *)"EUnknown command", 16);
+  char text[30];
+  sprintf(text, "EUnknown command %x%x (%d)", data[0], data[1], data_len);
+  cmd_send((uint8_t *)text, strlen(text));
 }
 /*---------------------------------------------------------------------------*/
 void
