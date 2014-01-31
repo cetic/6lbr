@@ -44,11 +44,20 @@
 #define LOG6LBR_TIMESTAMP 1
 #endif
 
+#ifndef LOG6LBR_STATIC
+#define LOG6LBR_STATIC 0
+#endif
+
 //From "uip-debug.h"
 extern void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
 extern void uip_debug_lladdr_print(const uip_lladdr_t *addr);
 extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
 
+#define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }
+#define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
+#define _PRINTF_ETHADDR(addr, ...) { printf(__VA_ARGS__); log6lbr_ethaddr_print(addr); printf("\n"); }
+
+#if !LOG6LBR_STATIC
 /* Log level compatible with log4cxx */
 enum Log6lbr_Level {
   Log6lbr_Level_FATAL = 0,
@@ -70,13 +79,13 @@ enum Log6lbr_Service {
   Log6lbr_Service_ETH_OUT   = 0x00000004,
   Log6lbr_Service_RADIO_IN  = 0x00000008,
   Log6lbr_Service_RADIO_OUT = 0x00000010,
-  Log6lbr_Service_TAP_IN    = 0x00000012,
-  Log6lbr_Service_TAP_OUT   = 0x00000014,
-  Log6lbr_Service_SLIP_IN   = 0x00000018,
-  Log6lbr_Service_SLIP_OUT  = 0x00000020,
-  Log6lbr_Service_PF_IN     = 0x00000022,
-  Log6lbr_Service_PF_OUT    = 0x00000024,
-  Log6lbr_Service_SLIP_DBG  = 0x00000028,
+  Log6lbr_Service_TAP_IN    = 0x00000020,
+  Log6lbr_Service_TAP_OUT   = 0x00000040,
+  Log6lbr_Service_SLIP_IN   = 0x00000080,
+  Log6lbr_Service_SLIP_OUT  = 0x00000100,
+  Log6lbr_Service_PF_IN     = 0x00000200,
+  Log6lbr_Service_PF_OUT    = 0x00000400,
+  Log6lbr_Service_SLIP_DBG  = 0x00000800,
 
   Log6lbr_Service_ALL       = -1,
   Log6lbr_Service_DEFAULT   = Log6lbr_Service_ALL
@@ -96,11 +105,12 @@ extern void log6lbr_timestamp();
 #define _LOG6LBR_ADD_TIMESTAMP
 #endif
 
-#define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }
-#define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
-#define _PRINTF_ETHADDR(addr, ...) { printf(__VA_ARGS__); log6lbr_ethaddr_print(addr); printf("\n"); }
-
 #define LOG6LBR_COND(level, service) (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 )
+
+#define LOG6LBR_COND_FUNC(level, service, func) {\
+  if (Log6lbr_Level_##level <= Log6lbr_level && (Log6lbr_Service_##service & Log6lbr_services) != 0 ) {\
+    func\
+  }
 
 #define _LOG6LBR_LEVEL_F(level, service, func, ...) { \
   if (LOG6LBR_COND(level, service)) { \
@@ -116,6 +126,144 @@ extern void log6lbr_timestamp();
   } \
   }
 
+#else
+
+#define LOG6LBR_LEVEL_FATAL 0
+#define LOG6LBR_LEVEL_ERROR 10
+#define LOG6LBR_LEVEL_WARN 20
+#define LOG6LBR_LEVEL_INFO 30
+#define LOG6LBR_LEVEL_DEBUG 40
+#define LOG6LBR_LEVEL_PACKET 50
+#define LOG6LBR_LEVEL_DUMP 60
+#define LOG6LBR_LEVEL_TRACE 70
+
+#define LOG6LBR_LEVEL_ALL 127
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_ALL
+
+#define LOG6LBR_SERVICE_GLOBAL    0x00000001
+#define LOG6LBR_SERVICE_ETH_IN    0x00000002
+#define LOG6LBR_SERVICE_ETH_OUT   0x00000004
+#define LOG6LBR_SERVICE_RADIO_IN  0x00000008
+#define LOG6LBR_SERVICE_RADIO_OUT 0x00000010
+#define LOG6LBR_SERVICE_TAP_IN    0x00000020
+#define LOG6LBR_SERVICE_TAP_OUT   0x00000040
+#define LOG6LBR_SERVICE_SLIP_IN   0x00000080
+#define LOG6LBR_SERVICE_SLIP_OUT  0x00000100
+#define LOG6LBR_SERVICE_PF_IN     0x00000200
+#define LOG6LBR_SERVICE_PF_OUT    0x00000400
+#define LOG6LBR_SERVICE_SLIP_DBG  0x00000800
+
+#define LOG6LBR_SERVICE_ALL       0xFFFFFFFF
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
+
+#if LOG6LBR_TIMESTAMP
+extern void log6lbr_timestamp();
+#define _LOG6LBR_ADD_TIMESTAMP log6lbr_timestamp();
+#else
+#define _LOG6LBR_ADD_TIMESTAMP
+#endif
+
+#define _LOG6LBR_LEVEL_F_REAL(level, func, ...) { \
+    _LOG6LBR_ADD_TIMESTAMP \
+    printf( #level ": " LOG6LBR_MODULE ": " ); \
+    func(__VA_ARGS__); \
+  }
+
+#define _LOG6LBR_LEVEL_A_REAL(func, ...) { \
+    func(__VA_ARGS__); \
+  }
+
+#ifndef LOG6LBR_LEVEL
+#define LOG6LBR_LEVEL LOG6LBR_LEVEL_DEFAULT
+#endif
+
+#ifndef LOG6LBR_SERVICE
+#define LOG6LBR_SERVICE LOG6LBR_SERVICE_DEFAULT
+#endif
+
+#if LOG6LBR_LEVEL_FATAL <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_FATAL(a) a
+#else
+#define _LEVEL_FILTER_FATAL(...)
+#endif
+#if LOG6LBR_LEVEL_ERROR <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_ERROR(a) a
+#else
+#define _LEVEL_FILTER_ERROR(...)
+#endif
+#if LOG6LBR_LEVELl_WARN <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_WARN(a) a
+#else
+#define _LEVEL_FILTER_WARN(...)
+#endif
+#if LOG6LBR_LEVEL_INFO <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_INFO(a) a
+#else
+#define _LEVEL_FILTER_INFO(...)
+#endif
+#if LOG6LBR_LEVEL_DEBUG <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_DEBUG(a) a
+#else
+#define _LEVEL_FILTER_DEBUG(...)
+#endif
+#if LOG6LBR_LEVEL_PACKET <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_PACKET(a) a
+#else
+#define _LEVEL_FILTER_PACKET(...)
+#endif
+#if LOG6LBR_LEVELl_DUMP <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_DUMP(a) a
+#else
+#define _LEVEL_FILTER_DUMP(...)
+#endif
+#if LOG6LBR_LEVEL_TRACE <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_TRACE(a) a
+#else
+#define _LEVEL_FILTER_TRACE(...)
+#endif
+
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_GLOBAL
+#define _SERVICE_FILTER_GLOBAL(a) a
+#else
+#define _SERVICE_FILTER_GLOBAL(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_ETH_IN
+#define _SERVICE_FILTER_ETH_IN(a) a
+#else
+#define _SERVICE_FILTER_ETH_IN(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_ETH_OUT
+#define _SERVICE_FILTER_ETH_OUT(a) a
+#else
+#define _SERVICE_FILTER_ETH_OUT(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_RADIO_IN
+#define _SERVICE_FILTER_RADIO_IN(a) a
+#else
+#define _SERVICE_FILTER_RADIO_IN(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_RADIO_OUT
+#define _SERVICE_FILTER_RADIO_OUT(a) a
+#else
+#define _SERVICE_FILTER_RADIO_OUT(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_PF_IN
+#define _SERVICE_FILTER_PF_IN(a) a
+#else
+#define _SERVICE_FILTER_PF_IN(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_PF_OUT
+#define _SERVICE_FILTER_PF_OUT(a) a
+#else
+#define _SERVICE_FILTER_PF_OUT(...)
+#endif
+
+#define _LOG6LBR_LEVEL_F(level, service, func, ...) _SERVICE_FILTER_##service(_LEVEL_FILTER_##level(_LOG6LBR_LEVEL_F_REAL(level, func, __VA_ARGS__)))
+#define _LOG6LBR_LEVEL_A(level, service, func, ...) _SERVICE_FILTER_##service(_LEVEL_FILTER_##level(_LOG6LBR_LEVEL_A_REAL(func, __VA_ARGS__)))
+
+#define LOG6LBR_COND_FUNC(level, service, func) _SERVICE_FILTER_##service(_LEVEL_FILTER_##level(func))
+
+#endif
 
 #define LOG6LBR_PRINTF(level, service, ...) _LOG6LBR_LEVEL_F(level, service, printf, __VA_ARGS__)
 #define LOG6LBR_6ADDR_PRINTF(level, service, addr, ...) _LOG6LBR_LEVEL_F(level, service, _PRINTF_6ADDR, addr, __VA_ARGS__)
