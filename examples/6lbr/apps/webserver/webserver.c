@@ -892,12 +892,12 @@ PT_THREAD(generate_network(struct httpd_state *s))
     if ( node_config_loaded ) {
       add("%s (", node_config_get_name(node_config_find_from_ip(uip_ds6_route_nexthop(r))));
       ipaddr_add(uip_ds6_route_nexthop(r));
-      add(") ");
+      add(")");
     } else {
       ipaddr_add(uip_ds6_route_nexthop(r));
     }
     if(1 || (r->state.lifetime < 600)) {
-      add("%lu s\n", r->state.lifetime);
+      add(" %lu s\n", r->state.lifetime);
     } else {
       add("\n");
     }
