@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "shell.h"
 #include "dev/watchdog.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "contiki-net.h"
 
 #ifdef CONTIKI_TARGET_Z1
