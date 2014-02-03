@@ -78,6 +78,25 @@ send_to_peer(struct dtls_context_t *ctx,
   return len;
 }
 
+#if DTLS_VERSION_0_4_0
+int
+get_key(struct dtls_context_t *ctx,
+        const session_t *session,
+        const unsigned char *id, size_t id_len,
+        const dtls_key_t **result) {
+
+  static const dtls_key_t psk = {
+    .type = DTLS_KEY_PSK,
+    .key.psk.id = (unsigned char *)"Client_identity",
+    .key.psk.id_length = 15,
+    .key.psk.key = (unsigned char *)"secretPSK",
+    .key.psk.key_length = 9
+  };
+
+  *result = &psk;
+  return 0;
+}
+#else
 int
 get_psk_key(struct dtls_context_t *ctx, 
 	    const session_t *session, 
@@ -94,6 +113,7 @@ get_psk_key(struct dtls_context_t *ctx,
   *result = &psk;
   return 0;
 }
+#endif
 
 PROCESS(dtls_echo_server_process, "DTLS echo server process");
 /*---------------------------------------------------------------------------*/
@@ -117,7 +137,11 @@ init_dtls() {
     .write = send_to_peer,
     .read  = read_from_peer,
     .event = NULL,
+#if DTLS_VERSION_0_4_0
+    .get_key = get_key
+#else
     .get_psk_key = get_psk_key
+#endif
   };
 
   server_conn = udp_new(NULL, 0, NULL);
