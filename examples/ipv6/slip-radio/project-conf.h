@@ -63,8 +63,16 @@
 #define NETSTACK_CONF_MAC     nullmac_driver
 
 #undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_noframer_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 /*#define NETSTACK_CONF_RDC     contikimac_driver*/
+
+#if CONTIKI_TARGET_ECONOTAG
+#undef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK_HW     1
+#else
+#undef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK     1
+#endif
 
 #undef NETSTACK_CONF_NETWORK
 #define NETSTACK_CONF_NETWORK slipnet_driver
