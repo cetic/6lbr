@@ -71,7 +71,7 @@ static FILE *inslip;
 
 /* for statistics */
 uint32_t slip_sent = 0;
-long slip_received = 0;
+uint32_t slip_received = 0;
 uint32_t slip_message_sent = 0;
 uint32_t slip_message_received = 0;
 
