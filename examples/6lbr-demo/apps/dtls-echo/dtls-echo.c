@@ -102,6 +102,7 @@ dtls_handle_read(dtls_context_t *ctx) {
   session_t session;
 
   if(uip_newdata()) {
+    memset(&session, 0, sizeof(session));
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
     session.size = sizeof(session.addr) + sizeof(session.port);
