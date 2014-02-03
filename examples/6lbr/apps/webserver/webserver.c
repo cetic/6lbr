@@ -81,6 +81,11 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[];
 
 extern rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 
+extern uint32_t slip_sent;
+extern uint32_t slip_received;
+extern uint32_t slip_message_sent;
+extern uint32_t slip_message_received;
+
 static int redirect;
 
 /*---------------------------------------------------------------------------*/
@@ -1254,8 +1259,20 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Packet overflow : %d<br />", packet_overflow);
   add("Neighbor overflow : %d<br />", neighbor_overflow);
   add("Callback count : %d<br />", callback_count);
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #endif
 #endif
+  add("<h2>SLIP</h2>");
+  add("Messages sent : %d<br />", slip_message_sent);
+  add("Messages received : %d<br />", slip_message_received);
+  add("Bytes sent : %d<br />", slip_sent);
+  add("Bytes received : %d<br />", slip_received);
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
   add_div_footer();
   add("</div></div>");
   SEND_STRING(&s->sout, buf);
