@@ -35,7 +35,7 @@
 
 #include "config.h"
 
-#include "net/uip-debug.h"
+#include "uip-debug.h"
 
 #include "debug.h"
 #include "dtls.h"
@@ -55,8 +55,7 @@ read_from_peer(struct dtls_context_t *ctx,
 	       session_t *session, uint8 *data, size_t len) {
   size_t i;
   for (i = 0; i < len; i++)
-    PRINTF("%c", data[i]);
-
+    printf("%c", data[i]);
   dtls_write(ctx, session, data, len);
   return 0;
 }
@@ -120,8 +119,6 @@ init_dtls() {
     .get_psk_key = get_psk_key
   };
 
-  PRINTF("DTLS server started\n");
-
   server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, UIP_HTONS(20220));
 
@@ -130,6 +127,8 @@ init_dtls() {
   dtls_context = dtls_new_context(server_conn);
   if (dtls_context)
     dtls_set_handler(dtls_context, &cb);
+
+  printf("DTLS server started\n");
 }
 
 /*---------------------------------------------------------------------------*/
