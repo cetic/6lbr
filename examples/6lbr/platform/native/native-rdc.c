@@ -57,9 +57,6 @@
 
 uint8_t mac_set;
 
-extern long slip_sent;
-extern long slip_received;
-
 #define MAX_CALLBACKS 16
 static int callback_pos;
 int callback_count;
