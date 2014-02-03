@@ -60,73 +60,32 @@ CMD_HANDLERS(border_router_cmd_handler);
 /*---------------------------------------------------------------------------*/
 PROCESS(border_router_cmd_process, "Border router cmd process");
 /*---------------------------------------------------------------------------*/
-/* TODO: the below code needs some way of identifying from where the command */
-/* comes. In this case it can be from stdin or from SLIP.                    */
-/*---------------------------------------------------------------------------*/
 static int
 border_router_cmd_handler(const uint8_t * data, int len)
 {
-  /* handle global repair, etc here */
   if(data[0] == '!') {
     LOG6LBR_TRACE("Got configuration message of type %c\n", data[1]);
-    if(data[1] == 'G' && command_context == CMD_CONTEXT_STDIO) {
-      /* This is supposed to be from stdin */
-      LOG6LBR_DEBUG("Performing Global Repair...\n");
-      //rpl_repair_root(RPL_DEFAULT_INSTANCE);
-      return 1;
+    if(0) {
     } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
-      /* We need to know that this is from the slip-radio here. */
       LOG6LBR_DEBUG("Setting MAC address\n");
       slip_got_mac(&data[2]);
       return 1;
     } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
-      /* We need to know that this is from the slip-radio here. */
       LOG6LBR_DEBUG("Channel is:%d\n", data[2]);
       return 1;
-    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_STDIO) {
-      /* send on! */
-      uint8_t buf[3];
-
-      buf[0] = '!';
-      buf[1] = 'C';
-      buf[2] = atoi((const char *)(data + 2));
-      write_to_slip(buf, 3);
-      return 1;
     } else if(data[1] == 'R' && command_context == CMD_CONTEXT_RADIO) {
-      /* We need to know that this is from the slip-radio here. */
       LOG6LBR_DEBUG("Packet data report for sid:%d st:%d tx:%d\n",
              data[2], data[3], data[4]);
       packet_sent(data[2], data[3], data[4]);
       return 1;
     } else if(data[1] == 'D' && command_context == CMD_CONTEXT_RADIO) {
-      /* We need to know that this is from the slip-radio here... */
       LOG6LBR_DEBUG("Sensor data received\n");
       //border_router_set_sensors((const char *)&data[2], len - 2);
       return 1;
     }
   } else if(data[0] == '?') {
     LOG6LBR_DEBUG("Got request message of type %c\n", data[1]);
-    if(data[1] == 'M' && command_context == CMD_CONTEXT_STDIO) {
-      uint8_t buf[20];
-      char *hexchar = "0123456789abcdef";
-      int j;
-
-      /* this is just a test so far... just to see if it works */
-      buf[0] = '!';
-      buf[1] = 'M';
-      for(j = 0; j < 8; j++) {
-        buf[2 + j * 2] = hexchar[uip_lladdr.addr[j] >> 4];
-        buf[3 + j * 2] = hexchar[uip_lladdr.addr[j] & 15];
-      }
-      cmd_send(buf, 18);
-      return 1;
-    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_STDIO) {
-      /* send on! */
-      write_to_slip(data, len);
-      return 1;
-    } else if(data[1] == 'S') {
-      slip_print_stat();
-      return 1;
+    if(0) {
     }
   }
   return 0;
