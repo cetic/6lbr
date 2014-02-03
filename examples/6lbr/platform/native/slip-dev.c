@@ -128,7 +128,7 @@ connect_to_server(const char *host, const char *port)
   }
 
   if(p == NULL) {
-    LOG6LBR_ERROR("can't connect to ``%s:%s''", host, port);
+    LOG6LBR_ERROR("can't connect to %s:%s", host, port);
     return -1;
   }
 
@@ -492,7 +492,7 @@ slip_init(void)
     }
     slipfd = connect_to_server(slip_config_host, slip_config_port);
     if(slipfd == -1) {
-      LOG6LBR_FATAL("can't connect to ``%s:%s''\n", slip_config_host,
+      LOG6LBR_FATAL("can't connect to %s:%s\n", slip_config_host,
           slip_config_port);
       exit(1);
     }
@@ -504,7 +504,7 @@ slip_init(void)
     }
     slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
-      LOG6LBR_FATAL( "can't open siodev ``/dev/%s'' : %s\n", slip_config_siodev, strerror(errno));
+      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", slip_config_siodev, strerror(errno));
       exit(1);
     }
 
@@ -530,10 +530,10 @@ slip_init(void)
   select_set_callback(slipfd, &slip_callback);
 
   if(slip_config_host != NULL) {
-    LOG6LBR_INFO("********SLIP opened to ``%s:%s''\n", slip_config_host,
+    LOG6LBR_INFO("SLIP opened to %s:%s\n", slip_config_host,
            slip_config_port);
   } else {
-    LOG6LBR_INFO("********SLIP started on ``/dev/%s''\n", slip_config_siodev);
+    LOG6LBR_INFO("SLIP started on /dev/%s\n", slip_config_siodev);
     stty_telos(slipfd);
   }
 

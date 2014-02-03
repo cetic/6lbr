@@ -321,7 +321,7 @@ tun_init()
 
   select_set_callback(tunfd, &tun_select_callback);
 
-  LOG6LBR_INFO("opened device ``/dev/%s''\n", slip_config_tundev);
+  LOG6LBR_INFO("opened device /dev/%s\n", slip_config_tundev);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
