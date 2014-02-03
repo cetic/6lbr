@@ -70,8 +70,10 @@ int devopen(const char *dev, int flags);
 static FILE *inslip;
 
 /* for statistics */
-long slip_sent = 0;
+uint32_t slip_sent = 0;
 long slip_received = 0;
+uint32_t slip_message_sent = 0;
+uint32_t slip_message_received = 0;
 
 int slipfd = 0;
 
@@ -206,6 +208,7 @@ after_fread:
   switch (c) {
   case SLIP_END:
     if(inbufptr > 0) {
+      slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       if (LOG6LBR_COND(DUMP, SLIP_IN)) {
         printf("         ");
@@ -343,6 +346,7 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
   const uint8_t *p = inbuf;
   int i;
 
+  slip_message_sent++;
 
   LOG6LBR_PRINTF(PACKET, SLIP_OUT, "write: %d\n", len);
 

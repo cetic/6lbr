@@ -289,13 +289,6 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-slip_print_stat()
-{
-  printf("bytes received over SLIP: %ld\n", slip_received);
-  printf("bytes sent over SLIP: %ld\n", slip_sent);
-}
-/*---------------------------------------------------------------------------*/
-void
 slip_reboot(void)
 {
   LOG6LBR_INFO("Reset SLIP Radio\n");
