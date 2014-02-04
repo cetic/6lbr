@@ -401,7 +401,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
+coap_send_message(context_t * ctx, session_t * session, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
 {
   /* Configure connection to reply to client */
   uip_ipaddr_copy(&udp_conn->ripaddr, addr);

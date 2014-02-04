@@ -58,6 +58,8 @@ typedef struct coap_observer {
   struct coap_observer *next; /* for LIST */
 
   const char *url;
+  context_t *ctx;
+  session_t *session;
   uip_ipaddr_t addr;
   uint16_t port;
   uint8_t token_len;

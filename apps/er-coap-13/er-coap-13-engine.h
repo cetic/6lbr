@@ -76,6 +76,7 @@ struct request_state_t {
 typedef void (*blocking_response_handler) (void* response);
 
 PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t ev,
+                                context_t *ctx, session_t *session,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request,
                                 blocking_response_handler request_callback));

@@ -76,7 +76,7 @@ static service_callback_t service_cbk = NULL;
 /*----------------------------------------------------------------------------*/
 static
 int
-coap_receive(void)
+coap_receive(context_t * ctx, session_t * session)
 {
   coap_error_code = NO_ERROR;
 
@@ -110,7 +110,7 @@ coap_receive(void)
       if (message->code >= COAP_GET && message->code <= COAP_DELETE)
       {
         /* Use transaction buffer for response to confirmable request. */
-        if ( (transaction = coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
+        if ( (transaction = coap_new_transaction(message->mid, ctx, session, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
         {
           uint32_t block_num = 0;
           uint16_t block_size = REST_MAX_CHUNK_SIZE;
@@ -284,7 +284,7 @@ coap_receive(void)
       /* Reuse input buffer for error message. */
       coap_init_message(message, reply_type, coap_error_code, message->mid);
       coap_set_payload(message, coap_error_message, strlen(coap_error_message));
-      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
+      coap_send_message(ctx, session, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
   } /* if (new data) */
 
@@ -506,7 +506,7 @@ PROCESS_THREAD(coap_receiver, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_receive();
+      coap_receive(NULL, NULL);
     } else if (ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();
@@ -525,6 +525,7 @@ void coap_blocking_request_callback(void *callback_data, void *response) {
 }
 /*----------------------------------------------------------------------------*/
 PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t ev,
+                                context_t *ctx, session_t *session,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request,
                                 blocking_response_handler request_callback)) {
@@ -544,7 +545,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
 
   do {
     request->mid = coap_get_mid();
-    if ((state->transaction = coap_new_transaction(request->mid, remote_ipaddr, remote_port)))
+    if ((state->transaction = coap_new_transaction(request->mid, ctx, session, remote_ipaddr, remote_port)))
     {
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
