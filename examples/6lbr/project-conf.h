@@ -319,7 +319,7 @@
 #endif
 
 /* Do not change lines below */
-#define CETIC_6LBR_VERSION		"1.2"
+#define CETIC_6LBR_VERSION		"1.2.1"
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF
 #define CETIC_6LBR_ETH_EXT_B	0xFF
