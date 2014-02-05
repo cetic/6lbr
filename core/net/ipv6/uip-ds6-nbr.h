@@ -63,6 +63,11 @@
 #define  NBR_STALE 2
 #define  NBR_DELAY 3
 #define  NBR_PROBE 4
+#if CONF_6LOWPAN_ND
+#define  NBR_GARBAGE_COLLECTIBLE 5
+#define  NBR_REGISTERED 6
+#define  NBR_TENTATIVE 7
+#endif /* CONF_6LOWPAN_ND */
 
 NBR_TABLE_DECLARE(ds6_neighbors);
 

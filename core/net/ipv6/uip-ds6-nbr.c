@@ -225,6 +225,17 @@ uip_ds6_neighbor_periodic(void)
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {
+#if CONF_6LOWPAN_ND
+    case NBR_GARBAGE_COLLECTIBLE:
+      //TODO
+      break;
+    case NBR_REGISTERED:
+      //TODO
+      break;
+    case NBR_TENTATIVE:
+      //TODO
+      break;
+#else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
         PRINTF("REACHABLE: moving to STALE (");
@@ -278,6 +289,7 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
 #endif /* UIP_ND6_SEND_NA */
+#endif /* CONF_6LOWPAN_ND */
     default:
       break;
     }
