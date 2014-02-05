@@ -42,7 +42,7 @@
 #include <stddef.h> /* for size_t */
 #include "contiki-net.h"
 #include "erbium.h"
-#include "sec-layer.h"
+#include "er-coap-13-communication.h"
 
 #ifndef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING           1

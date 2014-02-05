@@ -60,7 +60,6 @@
 /*-----------------------------------------------------------------------------------*/
 /*- Variables -----------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
-static struct uip_udp_conn *udp_conn = NULL;
 static uint16_t current_mid = 0;
 
 coap_status_t coap_error_code = NO_ERROR;
@@ -276,10 +275,7 @@ void
 coap_init_connection(uint16_t port)
 {
   /* new connection with remote host */
-  udp_conn = udp_new(NULL, 0, NULL);
-  udp_bind(udp_conn, port);
-  PRINTF("Listening on port %u\n", uip_ntohs(udp_conn->lport));
-
+  coap_init_communication_layer(port);
   /* Initialize transaction ID. */
   current_mid = random_rand();
 }
@@ -398,21 +394,6 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     );
 
   return (option - buffer) + coap_pkt->payload_len; /* packet length */
-}
-/*-----------------------------------------------------------------------------------*/
-void
-coap_send_message(context_t * ctx, session_t * session, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
-{
-  /* Configure connection to reply to client */
-  uip_ipaddr_copy(&udp_conn->ripaddr, addr);
-  udp_conn->rport = port;
-
-  uip_udp_packet_send(udp_conn, data, length);
-  PRINTF("-sent UDP datagram (%u)-\n", length);
-
-  /* Restore server connection to allow data from any node */
-  memset(&udp_conn->ripaddr, 0, sizeof(udp_conn->ripaddr));
-  udp_conn->rport = 0;
 }
 /*-----------------------------------------------------------------------------------*/
 coap_status_t

@@ -74,7 +74,6 @@ static service_callback_t service_cbk = NULL;
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-static
 int
 coap_receive(context_t * ctx, session_t * session)
 {
@@ -506,7 +505,7 @@ PROCESS_THREAD(coap_receiver, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_receive(NULL, NULL);
+      coap_handle_receive();
     } else if (ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();

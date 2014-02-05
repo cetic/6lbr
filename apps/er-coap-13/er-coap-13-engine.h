@@ -62,6 +62,9 @@ extern const struct rest_implementation coap_rest_implementation;
 
 void coap_receiver_init(void);
 
+int
+coap_receive(context_t * ctx, session_t * session);
+
 /*-----------------------------------------------------------------------------------*/
 /*- Client part ---------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
