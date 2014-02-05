@@ -154,6 +154,7 @@ create_llao(uint8_t *llao, uint8_t type) {
 //TODO: needed ? , create_other_msg
 /* create a aro */
 //TODO: delocate to ns_output to efficancy (no call of function)
+static void
 create_aro(uint8_t *aro, uint8_t status, uint8_t lifetime) {
   ((uip_nd6_opt_aro*) aro)->type = UIP_ND6_OPT_ARO;
   ((uip_nd6_opt_aro*) aro)->len = 2;
@@ -231,8 +232,8 @@ uip_nd6_ns_input(void)
             if(nbr->state == NBR_INCOMPLETE) {
               nbr->state = NBR_STALE;
             }
-          }
   #endif
+          }
         }
 #if UIP_CONF_IPV6_CHECKS
       }
@@ -496,7 +497,7 @@ uip_nd6_na_input(void)
      * Remove all trace in table because host use NA only with router
      * and ingore this message
      */
-    if(!isrouter) {
+    if(!is_router) {
       /* remove entry in routing table */
       defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
       if (defrt != NULL) {
@@ -589,7 +590,8 @@ uip_nd6_na_input(void)
         //if(defrt != NULL) {
         if (nd6_opt_aro->lifetime == 0) {
           /* if lifetime is 0, that means we must remove cache entry */
-          uip_ds6_defrt_rm(nbr);
+          uip_ds6_nbr_rm(nbr);
+          //TODO: check in defrt
         } else {
           addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
           switch(nd6_opt_aro->status) {
@@ -895,7 +897,7 @@ uip_nd6_rs_output(void)
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   UIP_STAT(++uip_stat.nd6.sent);
-  PRINTF("Sendin RS to");
+  PRINTF("Sending RS to");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF("from");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
