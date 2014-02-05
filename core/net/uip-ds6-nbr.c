@@ -51,7 +51,7 @@
 #include "net/packetbuf.h"
 #include "net/uip-ds6-nbr.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_FULL
 #include "net/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
@@ -241,7 +241,7 @@ uip_ds6_neighbor_periodic(void)
         nbr->nscount++;
         PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
       #if CONF_6LOWPAN_ND
-        uip_nd6_ns_output_aro(NULL, NULL, &nbr->ipaddr, UIP_ND6_REGISTER_LIFETIME);
+        uip_nd6_ns_output_aro(NULL, NULL, &nbr->ipaddr, ?? 0 ou UIP_ND6_REGISTER_LIFETIME);
       #else
         uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
       #endif
@@ -269,7 +269,11 @@ uip_ds6_neighbor_periodic(void)
       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
         nbr->nscount++;
         PRINTF("PROBE: NS %u\n", nbr->nscount);
+      #if CONF_6LOWPAN_ND
+        uip_nd6_ns_output_aro(NULL, &nbr->ipaddr, &nbr->ipaddr, ?? );
+      #else
         uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
+      #endif
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
