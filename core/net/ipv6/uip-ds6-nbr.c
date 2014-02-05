@@ -251,11 +251,7 @@ uip_ds6_neighbor_periodic(void)
       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
         nbr->nscount++;
         PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
-      #if CONF_6LOWPAN_ND
-        uip_nd6_ns_output_aro(NULL, NULL, &nbr->ipaddr, ?? 0 ou UIP_ND6_REGISTER_LIFETIME);
-      #else
         uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
-      #endif
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
@@ -280,17 +276,15 @@ uip_ds6_neighbor_periodic(void)
       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
         nbr->nscount++;
         PRINTF("PROBE: NS %u\n", nbr->nscount);
-      #if CONF_6LOWPAN_ND
-        uip_nd6_ns_output_aro(NULL, &nbr->ipaddr, &nbr->ipaddr, ?? );
-      #else
         uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
-      #endif
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
 #endif /* UIP_ND6_SEND_NA */
 #endif /* CONF_6LOWPAN_ND */
     default:
+      //TODO: remove
+      PRINTF("/!\\ ERROR: invalide cache type\n");
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
