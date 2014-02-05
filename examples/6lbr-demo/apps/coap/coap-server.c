@@ -1,3 +1,5 @@
+#include "contiki.h"
+
 #include "coap-common.h"
 #include "light-sensor-resource.h"
 #include "temp-sensor-resource.h"
