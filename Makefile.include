@@ -18,6 +18,26 @@ ifeq ($(UIP_CONF_IPV6),1)
   CFLAGS += -DUIP_CONF_IPV6=1
 endif
 
+# different device for 6LoWPAN-ND
+#TODO more clear
+ifeq ($(UIP_CONF_6LH), 1) # 6LoWPAN Host
+  CFLAGS += -DCONF_6LOWPAN_ND=1
+  CFLAGS += -DUIP_CONF_6LH=1
+  UIP_CONF_ROUTER=0
+else
+ifeq ($(UIP_CONF_6LR), 1) # 6LoWPAN Router
+  CFLAGS += -DCONF_6LOWPAN_ND=1
+  CFLAGS += -DUIP_CONF_6LR=1
+  UIP_CONF_ROUTER=1
+else
+ifeq ($(UIP_CONF_6LBR), 1) # 6LoWPAN Border Router
+  CFLAGS += -DCONF_6LOWPAN_ND=1
+  CFLAGS += -DUIP_CONF_6LBR=1
+  UIP_CONF_ROUTER=1
+endif
+endif
+endif
+
 ifeq ($(DEFINES),)
   -include Makefile.$(TARGET).defines
   ifneq ($(DEFINES),)
