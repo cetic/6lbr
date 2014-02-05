@@ -4,7 +4,7 @@
 #include "contiki.h"
 
 #if PLATFORM_HAS_SHT11
-#include "dev/sht11-sensor.h"
+#include "sht11-sensor.h"
 #endif
 
 #if PLATFORM_HAS_SHT11
