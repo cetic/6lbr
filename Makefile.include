@@ -20,9 +20,9 @@ endif
 
 # different device for 6LoWPAN-ND
 #TODO more clear
-ifeq ($(UIP_CONF_6LH), 1) # 6LoWPAN Host
+ifeq ($(UIP_CONF_6LN), 1) # 6LoWPAN Host/Node
   CFLAGS += -DCONF_6LOWPAN_ND=1
-  CFLAGS += -DUIP_CONF_6LH=1
+  CFLAGS += -DUIP_CONF_6LN=1
   UIP_CONF_ROUTER=0
 else
 ifeq ($(UIP_CONF_6LR), 1) # 6LoWPAN Router
