@@ -94,25 +94,4 @@ PROCESS_THREAD(test_aro, ev, data)
 
   PROCESS_END();
   printf("END PROCESS :() \n");
-	/*
-  uip_ipaddr_t *ipaddr;
-
-  PROCESS_BEGIN();
-
-  servreg_hack_init();
-
-  ipaddr = set_global_address();
-
-  create_rpl_dag(ipaddr);
-
-  servreg_hack_register(SERVICE_ID, ipaddr);
-
-  simple_udp_register(&unicast_connection, UDP_PORT,
-                      NULL, UDP_PORT, receiver);
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-  }
-  PROCESS_END();
-  */
 }
