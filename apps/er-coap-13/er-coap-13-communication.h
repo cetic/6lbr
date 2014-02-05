@@ -2,7 +2,12 @@
 #define _ER_COAP_13_COMMUNICATION_H_
 
 #include "contiki.h"
+
+#if WITH_DTLS_COAP
+#include "er-coap-13-dtls.h"
+#else
 #include "er-coap-13-udp.h"
+#endif
 
 void
 coap_init_communication_layer(uint16_t port);
