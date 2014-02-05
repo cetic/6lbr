@@ -3,7 +3,4 @@
 
 typedef struct uip_udp_conn context_t;
 
-struct _session_t;
-typedef struct _session_t session_t;
-
 #endif

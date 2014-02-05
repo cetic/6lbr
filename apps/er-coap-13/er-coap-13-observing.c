@@ -69,7 +69,6 @@ coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_
   {
     o->url = url;
     o->ctx = NULL;
-    o->session = NULL;
     uip_ipaddr_copy(&o->addr, addr);
     o->port = port;
     o->token_len = token_len;
@@ -186,7 +185,7 @@ coap_notify_observers(resource_t *resource, int32_t obs_counter, void *notificat
 
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers. */
 
-      if ( (transaction = coap_new_transaction(coap_get_mid(), obs->ctx, obs->session, &obs->addr, obs->port)) )
+      if ( (transaction = coap_new_transaction(coap_get_mid(), obs->ctx, &obs->addr, obs->port)) )
       {
         PRINTF("           Observer ");
         PRINT6ADDR(&obs->addr);

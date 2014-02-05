@@ -8,7 +8,7 @@ void
 coap_init_communication_layer(uint16_t port);
 
 void
-coap_send_message(context_t * ctx, session_t * session, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length);
+coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length);
 
 void
 coap_handle_receive();
