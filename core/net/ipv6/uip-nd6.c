@@ -77,7 +77,7 @@
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
 #include <stdio.h>
