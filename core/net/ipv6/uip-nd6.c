@@ -242,7 +242,7 @@ uip_nd6_ns_input(void)
     case UIP_ND6_OPT_ARO:
       nd6_opt_aro = (uip_nd6_opt_aro *)UIP_ND6_OPT_HDR_BUF;
     #if UIP_CONF_IPV6_CHECKS //TODO: check if is right
-      if(nd6_opt_aro->len != UIP) {
+      if(nd6_opt_aro->len != UIP_ND6_ARO_LEN) {
         nd6_opt_aro = NULL;
       }
     #endif
@@ -524,7 +524,9 @@ uip_nd6_na_input(void)
   /* Options processing: we handle TLLAO, and must ignore others */
   nd6_opt_offset = UIP_ND6_NA_LEN;
   nd6_opt_llao = NULL;
-  nd6_opt_ara = NULL;
+  #if CONF_6LOWPAN_ND
+  nd6_opt_aro = NULL;
+  #endif /* CONF_6LOWPAN_ND */
   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
 #if UIP_CONF_IPV6_CHECKS
     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
@@ -537,7 +539,7 @@ uip_nd6_na_input(void)
       nd6_opt_llao = (uint8_t *)UIP_ND6_OPT_HDR_BUF;
       break;
 #if CONF_6LOWPAN_ND
-    case UIP_ND6_OPT_ARO
+    case UIP_ND6_OPT_ARO:
       nd6_opt_aro = (uip_nd6_opt_aro *)UIP_ND6_OPT_HDR_BUF;
   #if UIP_CONF_IPV6_CHECKS
       if(nd6_opt_aro->len != 2 ||
@@ -592,12 +594,15 @@ uip_nd6_na_input(void)
           addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
           switch(nd6_opt_aro->status) {
           case UIP_ND6_ARO_STATUS_SUCESS:
+            //TODO
+          /*
             if(nbr->addr == addr) {
               nbr->state = NBR_REACHABLE;
               addr->state = ADDR_PREFERRED;
               stimer_set(&nrb->sendns, uip_ntohl(nd6_opt_aro-> lifetime)*60);
               //TODO ?
             }
+          */
             break;
           case UIP_ND6_ARO_STATUS_DUPLICATE:
             //TODO
