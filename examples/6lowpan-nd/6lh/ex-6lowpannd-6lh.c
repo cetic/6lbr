@@ -27,10 +27,10 @@
  */
 
 #include "contiki.h"
-#include "net/uip.h"
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
-#include "net/uip-debug.h"
+#include "net/ip/uip.h"
+#include "net/ip/uip-debug.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
 #include "sys/etimer.h"
 
 #include <stdio.h>
