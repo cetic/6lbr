@@ -39,8 +39,8 @@
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_aro, "Test process of 6LoWPAN ND (ARO)");
-AUTOSTART_PROCESSES(&test_aro);
+PROCESS(test_host, "Test process of 6LoWPAN ND (ARO)");
+AUTOSTART_PROCESSES(&test_host);
 
 /*---------------------------------------------------------------------------*/
 static uip_ipaddr_t *
@@ -67,19 +67,33 @@ set_global_address(void)
   return &ipaddr;
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_aro, ev, data)
+PROCESS_THREAD(test_host, ev, data)
 {
   uip_ipaddr_t *ipaddr;
-  static struct etimer periodic_timer;
+  //static struct etimer periodic_timer;
 
 	PROCESS_BEGIN();
 
-	printf("TEST ;) \n");
+#if UIP_CONF_6LN
+	printf("STARTING host (6LN)... \n");
+#else
+  printf("STARTING unknown device...\n");
+#endif
 
   ipaddr = set_global_address();
   uip_ds6_init();
+#ifdef UIP_CONF_ROUTER
+  printf("UIP_CONF_ROUTER:%d\n", UIP_CONF_ROUTER);
+#else
+  printf("NO UIP_CONF_ROUTER\n");
+#endif
 
 
+  uip_ds6_send_rs();
+  tcpip_ipv6_output();
+/* 
+ * ARO TEST
+ *
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
@@ -91,7 +105,7 @@ PROCESS_THREAD(test_aro, ev, data)
     tcpip_ipv6_output();
     etimer_set(&periodic_timer, SEND_INTERVAL);
   }
-
+*/
   PROCESS_END();
   printf("END PROCESS :() \n");
 }
