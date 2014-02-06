@@ -310,7 +310,7 @@ coap_get_rest_method(void *packet)
 /*----------------------------------------------------------------------------*/
 /*- Server part --------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-
+#if WITH_WELL_KNOWN_CORE
 /* The discover resource is automatically included for CoAP. */
 RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "ct=40");
 void
@@ -490,13 +490,16 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       *offset += preferred_size;
     }
 }
+#endif
 /*----------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_receiver, ev, data)
 {
   PROCESS_BEGIN();
   PRINTF("Starting CoAP-13 receiver...\n");
 
+#if WITH_WELL_KNOWN_CORE
   rest_activate_resource(&resource_well_known_core);
+#endif
 
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);

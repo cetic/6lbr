@@ -48,6 +48,10 @@
 #define COAP_LINK_FORMAT_FILTERING           1
 #endif
 
+#ifndef WITH_WELL_KNOWN_CORE
+#define WITH_WELL_KNOWN_CORE                 1
+#endif
+
 #define COAP_DEFAULT_PORT                    5683
 
 #ifndef COAP_SERVER_PORT
