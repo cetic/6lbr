@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,21 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: project-conf.h,v 1.1 2010/11/03 15:46:41 adamdunkels Exp $
+ */
+
+/**
+ * \file
+ *         6LBR-Demo Project Configuration
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
  */
 
 #ifndef CETIC_6LBR_DEMO_PROJECT_CONF_H
 #define CETIC_6LBR_DEMO_PROJECT_CONF_H
 
-/* COAP Resources instanciation */
+/*---------------------------------------------------------------------------*/
+/* COAP                                                                      */
+/*---------------------------------------------------------------------------*/
 
 /* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
 /* Not sure why, set it to 64 */
@@ -67,6 +74,9 @@
 #undef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING      0
 
+/* Uncomment to remove /.well-known/core resource to save code */
+//#define WITH_WELL_KNOWN_CORE            0
+
 #else
 
 #define REST_CONF_RES_BATTERY 1
@@ -99,11 +109,18 @@
 //#define REST_TYPE_APPLICATION_XML
 //#define REST_TYPE_APPLICATION_JSON
 
+/*---------------------------------------------------------------------------*/
+/* UDP-CLIENT                                                                */
+/*---------------------------------------------------------------------------*/
+
+#define CETIC_6LBR_NODE_INFO_PORT 3000
+
 /* Report LQI and RSSI only for parent node */
 #define UDP_CLIENT_STORE_RADIO_INFO 1
 
-#undef ENERGEST_CONF_ON
-#define ENERGEST_CONF_ON 0
+/*---------------------------------------------------------------------------*/
+/* UIP Buffers                                                               */
+/*---------------------------------------------------------------------------*/
 
 #if !UIP_CONF_IPV6_RPL
 #undef UIP_CONF_ROUTER
@@ -119,6 +136,10 @@
 #undef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  60
 
+/*---------------------------------------------------------------------------*/
+/* WEBSERVER                                                                 */
+/*---------------------------------------------------------------------------*/
+
 #undef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
 
@@ -126,7 +147,10 @@
 #undef WEBSERVER_CONF_CFS_PATHLEN
 #define WEBSERVER_CONF_CFS_PATHLEN 80
 
-//Temporary : When RDC is enabled the mote can not communicate with Econotag
+/*---------------------------------------------------------------------------*/
+/* RADIO                                                                     */
+/*---------------------------------------------------------------------------*/
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     		csma_driver
 
@@ -144,7 +168,9 @@
 #define NULLRDC_CONF_802154_AUTOACK	1
 #endif
 
-/* RPL & Neighbor Info */
+/*---------------------------------------------------------------------------*/
+/* RPL & Network                                                             */
+/*---------------------------------------------------------------------------*/
 
 #undef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			3
@@ -152,22 +178,9 @@
 #define RPL_MAX_DAG_PER_INSTANCE	2
 #define RPL_MAX_INSTANCES		1
 
-#if defined CONTIKI_TARGET_SKY || defined CONTIKI_TARGET_WISMOTE
+/* Z1 platform has limited RAM */
 
-#define RPL_CONF_MAX_PARENTS_PER_DAG	24
-#define NEIGHBOR_CONF_MAX_NEIGHBORS	24
-
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     24
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   24
-
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   24
-
-#else
+#if defined CONTIKI_TARGET_Z1
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    12
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     12
@@ -181,6 +194,40 @@
 
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   12
+
+#else
+
+#define RPL_CONF_MAX_PARENTS_PER_DAG    24
+#define NEIGHBOR_CONF_MAX_NEIGHBORS     24
+
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     24
+
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   24
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   24
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+/* Miscellaneous                                                             */
+/*---------------------------------------------------------------------------*/
+
+/* Disable ENERGEST to save code */
+
+#undef ENERGEST_CONF_ON
+#define ENERGEST_CONF_ON 0
+
+#ifdef CETIC_TESTBED
+
+#undef REST_CONF_RES_BATTERY
+#define REST_CONF_RES_BATTERY 0
+
+#undef REST_CONF_RES_LIGHT_SOLAR
+#define REST_CONF_RES_LIGHT_SOLAR 0
 
 #endif
 
