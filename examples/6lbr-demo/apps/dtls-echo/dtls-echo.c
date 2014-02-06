@@ -78,6 +78,9 @@ send_to_peer(struct dtls_context_t *ctx,
   return len;
 }
 
+/* This function is the "key store" for tinyDTLS. It is called to
+ * retrieve a key for the given identiy within this particular
+ * session. */
 #if DTLS_VERSION_0_4_0
 int
 get_key(struct dtls_context_t *ctx,
@@ -98,15 +101,14 @@ get_key(struct dtls_context_t *ctx,
 }
 #else
 int
-get_psk_key(struct dtls_context_t *ctx, 
-	    const session_t *session, 
-	    const unsigned char *id, size_t id_len, 
-	    const dtls_psk_key_t **result) {
-
+get_psk_key(struct dtls_context_t *ctx,
+            const session_t *session,
+            const unsigned char *id, size_t id_len,
+            const dtls_psk_key_t **result) {
   static const dtls_psk_key_t psk = {
-    .id = (unsigned char *)"Client_identity", 
+    .id = (unsigned char *)"Client_identity",
     .id_length = 15,
-    .key = (unsigned char *)"secretPSK", 
+    .key = (unsigned char *)"secretPSK",
     .key_length = 9
   };
 
@@ -122,11 +124,9 @@ dtls_handle_read(dtls_context_t *ctx) {
   session_t session;
 
   if(uip_newdata()) {
-    memset(&session, 0, sizeof(session));
+    dtls_session_init(&session);
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
-    session.size = sizeof(session.addr) + sizeof(session.port);
-    
     dtls_handle_message(ctx, &session, uip_appdata, uip_datalen());
   }
 }
@@ -140,7 +140,9 @@ init_dtls() {
 #if DTLS_VERSION_0_4_0
     .get_key = get_key
 #else
-    .get_psk_key = get_psk_key
+    .get_psk_key = get_psk_key,
+    .get_ecdsa_key = NULL,
+    .verify_ecdsa_key = NULL
 #endif
   };
 
