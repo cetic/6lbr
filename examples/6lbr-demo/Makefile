@@ -123,4 +123,17 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c 
 
+ifeq ($(CETIC_TESTBED),1)
+CFLAGS+=-DCETIC_TESTBED=1
+endif
+
+testbed:
+	$(MAKE) TARGET=sky clean
+	$(MAKE) TARGET=sky CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
+	$(MAKE) TARGET=z1 clean
+	$(MAKE) TARGET=z1 MSP430_20BITS=0 CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
+	cp 6lbr-demo.sky 6lbr-demo-1.3rc$(RC)-ch24.sky
+	cp 6lbr-demo.z1 6lbr-demo-1.3rc$(RC)-ch24.z1
+	scp 6lbr-demo-1.3rc$(RC)* root@192.168.99.15:/root/bin
+
 include $(CONTIKI)/Makefile.include
