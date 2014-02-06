@@ -7,3 +7,6 @@
 [submodule "tools/cooja/apps/radiologger-headless"]
 	path = tools/cooja/apps/radiologger-headless
 	url = https://github.com/cetic/cooja-radiologger-headless.git
+[submodule "apps/tinydtls"]
+	path = apps/tinydtls
+	url = ssh://git@git.cetic.be:61011/ioteam/tinydtls.git
