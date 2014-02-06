@@ -114,10 +114,9 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 {
   session_t session;
 
-  memset(&session, 0, sizeof(session));
+  dtls_session_init(&session);
   uip_ipaddr_copy(&session.addr, addr);
   session.port = port;
-  session.size = sizeof(session.addr) + sizeof(session.port);
 
   dtls_write(ctx, &session, data, length);
 }
