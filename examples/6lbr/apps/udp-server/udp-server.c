@@ -42,6 +42,10 @@
 
 #include <string.h>
 
+#ifndef CETIC_6LBR_NODE_INFO_PORT
+#define CETIC_6LBR_NODE_INFO_PORT 3000
+#endif
+
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 
@@ -83,7 +87,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   LOG6LBR_INFO("UDP server started\n");
 
   server_conn = udp_new(NULL, 0, NULL);
-  udp_bind(server_conn, UIP_HTONS(3000));
+  udp_bind(server_conn, UIP_HTONS(CETIC_6LBR_NODE_INFO_PORT));
 
   while(1) {
     PROCESS_YIELD();

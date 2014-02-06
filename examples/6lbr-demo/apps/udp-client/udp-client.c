@@ -46,6 +46,10 @@
 #define CETIC_6LBR_UDP_PERIOD 15
 #endif
 
+#ifndef CETIC_6LBR_NODE_INFO_PORT
+#define CETIC_6LBR_NODE_INFO_PORT 3000
+#endif
+
 #define SEND_INTERVAL    (CETIC_6LBR_UDP_PERIOD * CLOCK_SECOND)
 #define MAX_PAYLOAD_LEN    40
 
@@ -54,7 +58,7 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[];
 uip_ip6addr_t dest_addr;
 uint8_t use_user_dest_addr = 0;
 uip_ip6addr_t user_dest_addr;
-uint16_t user_dest_port = 3000;
+uint16_t user_dest_port = CETIC_6LBR_NODE_INFO_PORT;
 uint8_t udp_client_run = 0;
 clock_time_t udp_interval = CETIC_6LBR_UDP_PERIOD * CLOCK_SECOND;
 
@@ -115,7 +119,7 @@ timeout_handler(void)
   char buf[MAX_PAYLOAD_LEN];
   int i;
   uip_ip6addr_t *globaladdr = NULL;
-  uint16_t dest_port = use_user_dest_addr ? user_dest_port : 3000;
+  uint16_t dest_port = use_user_dest_addr ? user_dest_port : CETIC_6LBR_NODE_INFO_PORT;
   int has_dest=0;
 
   if ( use_user_dest_addr ) {
