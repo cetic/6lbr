@@ -115,8 +115,8 @@ CFLAGS+=-mmemory-model=medium
 LDFLAGS+=-mmemory-model=medium
 endif
 ifeq ($(TARGET),wismote)
-CFLAGS+=-D__MSP430F5437__ -mmemory-model=huge -mcode-region=far -mdata-region=far
-LDFLAGS+=-D__MSP430F5437__ -Wl,-Ttext=0x8000 -mmemory-model=huge -mcode-region=far -mdata-region=far
+TARGET_MEMORY_MODEL=huge
+LDFLAGS+=-Wl,-Ttext=0x8000
 endif
 endif
 
