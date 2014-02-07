@@ -34,6 +34,7 @@ ifeq ($(UIP_CONF_6LBR), 1) # 6LoWPAN Border Router
   CFLAGS += -DCONF_6LOWPAN_ND=1
   CFLAGS += -DUIP_CONF_6LBR=1
   CFLAGS += -DUIP_CONF_ROUTER=1
+  CFLAGS += -DUIP_CONF_6LR=1
 endif
 endif
 endif

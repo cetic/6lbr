@@ -39,7 +39,7 @@
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_host, "Test process of 6LoWPAN ND (ARO)");
+PROCESS(test_host, "Test process of 6LoWPAN ND host");
 AUTOSTART_PROCESSES(&test_host);
 
 /*---------------------------------------------------------------------------*/
@@ -70,7 +70,7 @@ set_global_address(void)
 PROCESS_THREAD(test_host, ev, data)
 {
   uip_ipaddr_t *ipaddr;
-  //static struct etimer periodic_timer;
+  static struct etimer periodic_timer;
 
 	PROCESS_BEGIN();
 
@@ -88,9 +88,15 @@ PROCESS_THREAD(test_host, ev, data)
   printf("NO UIP_CONF_ROUTER\n");
 #endif
 
-
-  uip_ds6_send_rs();
-  tcpip_ipv6_output();
+  etimer_set(&periodic_timer, SEND_INTERVAL);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    //SEND
+    uip_ds6_send_rs();
+    tcpip_ipv6_output();
+    etimer_set(&periodic_timer, SEND_INTERVAL);
+  }
 /* 
  * ARO TEST
  *

@@ -27,19 +27,35 @@
  */
 
 #include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/netstack.h"
 #include "sys/etimer.h"
 
 #include <stdio.h>
 #include <string.h>
 
+#include "dev/button-sensor.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+
+
+#define UDP_CLIENT_PORT 42424
+#define UDP_SERVER_PORT 42422
+
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
+ static struct uip_udp_conn *server_conn;
+
 /*---------------------------------------------------------------------------*/
-PROCESS(test_router, "Test process of 6LoWPAN ND (ARO)");
+PROCESS(test_router, "Test process of 6LoWPAN ND router");
 AUTOSTART_PROCESSES(&test_router);
 
 /*---------------------------------------------------------------------------*/
@@ -80,8 +96,37 @@ PROCESS_THREAD(test_router, ev, data)
   printf("STARTING unknown device...\n");
 #endif	
 
+/*
+#if UIP_ND6_SEND_RA
+  printf("---->%d\n", UIP_ND6_SEND_RA);
+#else
+  printf("MACRO no define\n");
+#endif
+*/
+
   ipaddr = set_global_address();
-  uip_ds6_init();
+  //uip_ds6_init();
+
+
+  server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
+  if(server_conn == NULL) {
+    PRINTF("No UDP connection available, exiting the process!\n");
+    PROCESS_EXIT();
+  }
+  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
+
+  PRINTF("Created a server connection with remote address ");
+  PRINT6ADDR(&server_conn->ripaddr);
+  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+         UIP_HTONS(server_conn->rport));
+
+  while(1) {
+    PROCESS_YIELD();
+    if (ev == sensors_event && data == &button_sensor) {
+      PRINTF("------> TEST EVENT <-------\n");
+    }
+  }
+
 
   PROCESS_END();
   printf("END PROCESS :() \n");
