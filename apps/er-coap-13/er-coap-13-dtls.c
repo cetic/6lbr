@@ -12,6 +12,27 @@
 #define DEBUG DEBUG_NONE
 #include "uip-debug.h"
 
+/*---------------------------------------------------------------------------*/
+
+#if defined DTLS_CONF_IDENTITY_HINT && defined DTLS_CONF_IDENTITY_HINT_LENGTH
+#define DTLS_IDENTITY_HINT DTLS_CONF_IDENTITY_HINT
+#define DTLS_IDENTITY_HINT_LENGTH DTLS_CONF_IDENTITY_HINT_LENGTH
+#else
+#define DTLS_IDENTITY_HINT "Client_identity"
+#define DTLS_IDENTITY_HINT_LENGTH 15
+#endif
+
+#if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
+#define DTLS_PSK_KEY DTLS_CONF_PSK_KEY
+#define DTLS_PSK_KEY_LENGTH DTLS_CONF_PSK_KEY_LENGTH
+#else
+#warning "DTLS: Using default secret key !"
+#define DTLS_PSK_KEY "secretPSK"
+#define DTLS_PSK_KEY_LENGTH 9
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 static struct uip_udp_conn *server_conn;
 
 static dtls_context_t *dtls_context;
@@ -34,10 +55,10 @@ get_key(struct dtls_context_t *ctx,
 
   static const dtls_key_t psk = {
     .type = DTLS_KEY_PSK,
-    .key.psk.id = (unsigned char *)"Client_identity",
-    .key.psk.id_length = 15,
-    .key.psk.key = (unsigned char *)"secretPSK",
-    .key.psk.key_length = 9
+    .key.psk.id = (unsigned char *)DTLS_IDENTITY_HINT,
+    .key.psk.id_length = DTLS_IDENTITY_HINT_LENGTH,
+    .key.psk.key = (unsigned char *)DTLS_PSK_KEY,
+    .key.psk.key_length = DTLS_PSK_KEY_LENGTH
   };
 
   *result = &psk;
@@ -51,10 +72,10 @@ get_psk_key(struct dtls_context_t *ctx,
             const dtls_psk_key_t **result) {
 
   static const dtls_psk_key_t psk = {
-    .id = (unsigned char *)"Client_identity",
-    .id_length = 15,
-    .key = (unsigned char *)"secretPSK",
-    .key_length = 9
+    .id = (unsigned char *)DTLS_IDENTITY_HINT,
+    .id_length = DTLS_IDENTITY_HINT_LENGTH,
+    .key = (unsigned char *)DTLS_PSK_KEY,
+    .key_length = DTLS_PSK_KEY_LENGTH
   };
 
   *result = &psk;
