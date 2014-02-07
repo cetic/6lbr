@@ -115,6 +115,7 @@ void uip_log(char *msg);
 #define UIP_ND6_OPT_MTU_BUF ((uip_nd6_opt_mtu *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #if UIP_CONF_6LR
 #define UIP_ND6_OPT_ABRO_BUF ((uip_nd6_opt_abro *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+#define UIP_ND6_OPT_6CO_BUF ((uip_nd6_opt_6co *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #endif /* UIP_CONF_6LR */
 /** @} */
 
@@ -127,9 +128,10 @@ static uip_nd6_opt_aro *nd6_opt_aro;    /**  Pointer to aro option in uip_buf */
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
-static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
+static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #if CONF_6LOWPAN_ND
+static uip_ds6_context_pref_t *context_pref; /**  Pointer to a context prefix list entry */
 //TODO comment and difference between host and router
 //TODO need all 3 in static ?
 static uip_nd6_opt_aro *nd6_opt_addr_register;
@@ -247,7 +249,7 @@ uip_nd6_ns_input(void)
     case UIP_ND6_OPT_ARO:
       nd6_opt_aro = (uip_nd6_opt_aro *)UIP_ND6_OPT_HDR_BUF;
     #if UIP_CONF_IPV6_CHECKS //TODO: check if is right
-      if(nd6_opt_aro->len != UIP_ND6_ARO_LEN) {
+      if(nd6_opt_aro->len != UIP_ND6_OPT_ARO_LEN) {
         nd6_opt_aro = NULL;
       }
     #endif
@@ -357,11 +359,11 @@ create_na:
 #if UIP_CONF_6LR //TODO: also UIP_CONF_6LBR
   if(nd6_opt_aro != NULL) {
       /* add aro option if aro in NS is defined */
-      UIP_IP_BUF->len[1] += UIP_ND6_ARO_LEN;
+      UIP_IP_BUF->len[1] += UIP_ND6_OPT_ARO_LEN;
       //TODO statut sended ? (ex: NUD, cahce full)
-      create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN + UIP_ND6_ARO_LEN],
+      create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN + UIP_ND6_OPT_ARO_LEN],
                   UIP_ND6_ARO_STATUS_SUCESS, nd6_opt_aro->lifetime);
-      uip_len += UIP_ND6_ARO_LEN;
+      uip_len += UIP_ND6_OPT_ARO_LEN;
     }
 #endif /* UIP_CONF_6LR */
 
@@ -439,10 +441,10 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
 #if CONF_6LOWPAN_ND
     if(lifetime >= 0) {
       /* add aro option if lifetime is defined */
-      UIP_IP_BUF->len[1] += UIP_ND6_ARO_LEN;
-      create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN + UIP_ND6_ARO_LEN],
+      UIP_IP_BUF->len[1] += UIP_ND6_OPT_ARO_LEN;
+      create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN + UIP_ND6_OPT_ARO_LEN],
                   (uint8_t) 0, lifetime);
-      uip_len += UIP_ND6_ARO_LEN;
+      uip_len += UIP_ND6_OPT_ARO_LEN;
     }
 #endif /* CONF_6LOWPAN_ND */
   } else {
@@ -817,7 +819,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
 
-#if !UIP_CONF_ROUTER
   /* Prefix list */
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
@@ -834,7 +835,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
     }
   }
-#endif /* !UIP_CONF_ROUTER */
 
   /* Source link-layer option */
   create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
@@ -858,18 +858,41 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   /* Authoritative Border Router Option */
   //TODO: maybe do iteration over all BR (can be more than 1) avalable in case of 6LR
   UIP_ND6_OPT_ABRO_BUF->type = UIP_ND6_OPT_ABRO;
-  UIP_ND6_OPT_ABRO_BUF->len = 3;
+  UIP_ND6_OPT_ABRO_BUF->len = UIP_ND6_OPT_ABRO_LEN / 8;
   UIP_ND6_OPT_ABRO_BUF->verlow = uip_htons(uip_ds6_if.abro_version & 0xffff);
   UIP_ND6_OPT_ABRO_BUF->verhigh = uip_htons(uip_ds6_if.abro_version >> 16);
   UIP_ND6_OPT_ABRO_BUF->lifetime = uip_htons(uip_ds6_if.abro_lifetime);
   #if UIP_CONF_6LBR
+  //TODO: compatibilty type return by uip_ds6_get_global
   uip_ds6_select_src(&UIP_ND6_OPT_ABRO_BUF->address, uip_ds6_get_global(ADDR_PREFERRED));
   #else
   uip_ipaddr_copy(&UIP_ND6_OPT_ABRO_BUF->address, ??);
   #endif
-  nd6_opt_offset += UIP_ND6_ABRO_LEN;
-  uip_len += UIP_ND6_ABRO_LEN;
-  UIP_IP_BUF->len[1] += UIP_ND6_ABRO_LEN;
+  nd6_opt_offset += UIP_ND6_OPT_ABRO_LEN;
+  uip_len += UIP_ND6_OPT_ABRO_LEN;
+  UIP_IP_BUF->len[1] += UIP_ND6_OPT_ABRO_LEN;
+
+  /* 6LoWPAN Context Option */
+  for(context_pref = uip_ds6_context_pref_list;
+      context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
+      context_pref++) {
+    if((context_pref->isused) && (context_pref->advertise)) {
+      //TODO: remove temp variable len
+      int len = context_pref->length<64 ? 3:2;
+      UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
+      UIP_ND6_OPT_6CO_BUF->len = len;
+      UIP_ND6_OPT_6CO_BUF->contlen = context_pref->length;
+      //TODO: compression prefix with c and cid
+      UIP_ND6_OPT_6CO_BUF->res_c_cid = 0x1f & context_pref->c_cid;
+      UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
+      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->lifetime);
+      uip_ipaddr_copy(&(UIP_ND6_OPT_6CO_BUF->prefix), &(context_pref->ipaddr));
+      nd6_opt_offset += len * 8;
+      uip_len += len * 8;
+      UIP_IP_BUF->len[1] += len * 8;
+    }
+  }
+
 #endif /* UIP_CONF_6LR */
 
   /*ICMP checksum */

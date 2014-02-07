@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define SEND_INTERVAL   (1 * CLOCK_SECOND)
+#define SEND_INTERVAL   (30 * CLOCK_SECOND)
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_host, "Test process of 6LoWPAN ND host");

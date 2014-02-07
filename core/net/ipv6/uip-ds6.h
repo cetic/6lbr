@@ -76,6 +76,17 @@
 #endif
 #define UIP_DS6_PREFIX_NB UIP_DS6_PREFIX_NBS + UIP_DS6_PREFIX_NBU
 
+/* Context Prefix list */
+#if CONF_6LOWPAN_ND
+#define UIP_DS6_CONTEXT_PREF_NBS  1
+#ifndef UIP_CONF_DS6_CONTEXT_PREF_NBU
+#define UIP_DS6_CONTEXT_PREF_NBU  2
+#else
+#define UIP_DS6_CONTEXT_PREF_NBU UIP_CONF_DS6_CONTEXT_PREF_NBU
+#endif
+#define UIP_DS6_CONTEXT_PREF_NB UIP_DS6_CONTEXT_PREF_NBS + UIP_DS6_CONTEXT_PREF_NBU
+#endif /* CONF_6LOWPAN_ND */
+
 /* Unicast address list*/
 #define UIP_DS6_ADDR_NBS 1
 #ifndef UIP_CONF_DS6_ADDR_NBU
@@ -162,6 +173,21 @@ typedef struct uip_ds6_prefix {
 } uip_ds6_prefix_t;
 #endif /*UIP_CONF_ROUTER */
 
+#if CONF_6LOWPAN_ND
+/** \brief A Context prefix list entry */
+typedef struct uip_ds6_context_pref {
+  uint8_t isused;
+  uip_ipaddr_t ipaddr;
+#if UIP_CONF_ROUTER
+  uint8_t advertise;
+#endif /*UIP_CONF_ROUTER */
+  uint8_t length;
+  uint8_t c_cid;
+  uint16_t lifetime;
+} uip_ds6_context_pref_t;
+#endif /* CONF_6LOWPAN_ND */
+
+
 /** * \brief Unicast address structure */
 typedef struct uip_ds6_addr {
   uint8_t isused;
@@ -234,6 +260,9 @@ extern struct etimer uip_ds6_timer_periodic;
 
 #if UIP_CONF_ROUTER
 extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
+#if CONF_6LOWPAN_ND
+extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
+#endif /* CONF_6LOWPAN_ND */
 #else /* UIP_CONF_ROUTER */
 extern struct etimer uip_ds6_timer_rs;
 #endif /* UIP_CONF_ROUTER */
@@ -271,6 +300,23 @@ void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
 uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);
 uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
+
+
+#if CONF_6LOWPAN_ND
+/** \name Context prefix list basic routines */
+/** @{ */
+#if UIP_CONF_ROUTER
+uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
+                                                 uint8_t advertise, uint8_t c_cid,
+                                                 uint16_t lifetime);
+#else /* UIP_CONF_ROUTER */
+uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
+                                                 uint8_t c_cid, uint16_t lifetime);
+#endif /* UIP_CONF_ROUTER */
+void uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix);
+uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr,
+                                                    uint8_t ipaddrlen);
+#endif /* CONF_6LOWPAN_ND */
 
 /** @} */
 

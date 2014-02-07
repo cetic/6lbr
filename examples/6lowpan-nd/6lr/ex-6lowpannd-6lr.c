@@ -83,6 +83,25 @@ set_global_address(void)
   return &ipaddr;
 }
 /*---------------------------------------------------------------------------*/
+void
+set_prefix_address(void)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_prefix_add(&ipaddr, 64, 1, 0xc0, 86400, 14400);
+
+}
+/*---------------------------------------------------------------------------*/
+void
+set_context_prefix_address(void)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_context_pref_add(&ipaddr, 64, 1, 0x0, 10);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
@@ -105,7 +124,8 @@ PROCESS_THREAD(test_router, ev, data)
 */
 
   ipaddr = set_global_address();
-  //uip_ds6_init();
+  //set_prefix_address();
+  set_context_prefix_address();
 
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);

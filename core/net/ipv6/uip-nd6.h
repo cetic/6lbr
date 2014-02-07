@@ -164,11 +164,7 @@
 #define UIP_ND6_NA_LEN                  20
 #define UIP_ND6_NS_LEN                  20
 #define UIP_ND6_RA_LEN                  12
-#define UIP_ND6_RS_LEN                  4
-#if CONF_6LOWPAN_ND
-#define UIP_ND6_ARO_LEN                 2*8
-#define UIP_ND6_ABRO_LEN                3*8
-#endif /* CONF_6LOWPAN_ND */  
+#define UIP_ND6_RS_LEN                  4  
 /** @} */
 
 
@@ -177,6 +173,10 @@
 #define UIP_ND6_OPT_HDR_LEN            2
 #define UIP_ND6_OPT_PREFIX_INFO_LEN    32
 #define UIP_ND6_OPT_MTU_LEN            8
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_OPT_ARO_LEN            2*8
+#define UIP_ND6_OPT_ABRO_LEN           3*8
+#endif /* CONF_6LOWPAN_ND */
 
 /* 6LoWPAN ND assignement */
 #if CONF_6LOWPAN_ND

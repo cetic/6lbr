@@ -70,6 +70,9 @@ static uint8_t rscount;                                         /** \brief numbe
 /** @{ */
 uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
+#if CONF_6LOWPAN_ND
+uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];  /** \brief Prefix list */
+#endif /* CONF_6LOWPAN_ND */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
 uint8_t uip_ds6_addr_size;
@@ -85,6 +88,9 @@ static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
 static uip_ds6_aaddr_t *locaaddr;
 static uip_ds6_prefix_t *locprefix;
+#if CONF_6LOWPAN_ND
+static uip_ds6_context_pref_t *loccontext;
+#endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
 void
@@ -100,6 +106,9 @@ uip_ds6_init(void)
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
   memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
+#if CONF_6LOWPAN_ND
+  memset(uip_ds6_context_pref_list, 0, sizeof(uip_ds6_context_pref_list));
+#endif /* CONF_6LOWPAN_ND */
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
 
@@ -323,6 +332,106 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
   }
   return 0;
 }
+
+/*---------------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_ROUTER
+#if DEBUG
+//TODO: remove
+void 
+print_context_pref(void)
+{
+  int i;
+  PRINTF("------ CONTEXT TABLE ------\n");
+  PRINTF("prefix  | adv | use | c | cid | lifetime (min)\n");
+  for(i = 0; i< UIP_DS6_CONTEXT_PREF_NB; i++) {
+    loccontext = &uip_ds6_context_pref_list[i];
+    PRINT6ADDR(&loccontext->ipaddr);
+    PRINTF("/%u | %x | %x | %x | %x | %d\n",
+       loccontext->length, loccontext->advertise, loccontext->isused, loccontext->c_cid & 0x10, 
+       loccontext->c_cid & 0x0f, loccontext->lifetime);
+  }
+}
+#endif /* DEBUG */
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_context_pref_t *
+uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
+                         uint8_t advertise, uint8_t c_cid,
+                         uint16_t lifetime)
+{
+  if(uip_ds6_list_loop
+     ((uip_ds6_element_t *)uip_ds6_context_pref_list, UIP_DS6_CONTEXT_PREF_NB,
+      sizeof(uip_ds6_context_pref_t), ipaddr, length,
+      (uip_ds6_element_t **)&loccontext) == FREESPACE) {
+    loccontext->isused = 1;
+    uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
+    loccontext->length = length;
+    loccontext->advertise = advertise;
+    loccontext->c_cid = c_cid;
+    loccontext->lifetime = lifetime;
+    PRINTF("Adding context prefix ");
+    PRINT6ADDR(&loccontext->ipaddr);
+    PRINTF(" length %u, c %x, cid %x, lifetime %dmin\n",
+       length, c_cid & 0x10, c_cid & 0x0f,lifetime);
+    return loccontext;
+  } else {
+    PRINTF("No more space in Context Prefix list\n");
+  }
+  return NULL;
+}
+#else /* UIP_CONF_ROUTER */
+uip_ds6_context_pref_t *
+uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
+                         uint8_t c_cid, uint16_t lifetime)
+{
+  if(uip_ds6_list_loop
+     ((uip_ds6_element_t *)uip_ds6_context_pref_list, UIP_DS6_CONTEXT_PREF_NB,
+      sizeof(uip_ds6_context_pref_t), ipaddr, length,
+      (uip_ds6_element_t **)&loccontext) == FREESPACE) {
+    loccontext->isused = 1;
+    uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
+    loccontext->length = length;
+    loccontext->c_cid = c_cid;
+    loccontext->lifetime = lifetime;
+    PRINTF("Adding context prefix ");
+    PRINT6ADDR(&loccontext->ipaddr);
+    PRINTF(" length %u, c %x, cid %x, lifetime %dmin\n",
+       length, c_cid & 0x10, c_cid & 0x0f,lifetime);
+    return loccontext;
+  } else {
+    PRINTF("No more space in Context Prefix list\n");
+  }
+  return NULL;
+}
+#endif /* UIP_CONF_ROUTER */
+
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix)
+{
+  if(prefix != NULL) {
+    prefix->isused = 0;
+  }
+  return;
+}
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_context_pref_t *
+uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr,
+                            uint8_t ipaddrlen)
+{
+  if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_context_pref_list,
+           UIP_DS6_CONTEXT_PREF_NB, sizeof(uip_ds6_context_pref_t),
+           ipaddr, ipaddrlen,
+           (uip_ds6_element_t **)&loccontext) == FOUND) {
+    return loccontext;
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+#endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_addr_t *
