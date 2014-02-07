@@ -150,6 +150,7 @@ create_llao(uint8_t *llao, uint8_t type) {
          UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
 }
 
+/*------------------------------------------------------------------*/
 #if CONF_6LOWPAN_ND
 //TODO: needed ? , create_other_msg
 /* create a aro */
