@@ -9,4 +9,4 @@
 	url = https://github.com/cetic/cooja-radiologger-headless.git
 [submodule "apps/tinydtls"]
 	path = apps/tinydtls
-	url = http://git.cetic.be/ioteam/tinydtls.git
+	url = https://github.com/cetic/tinydtls.git
