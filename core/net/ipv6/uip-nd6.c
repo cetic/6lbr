@@ -113,6 +113,9 @@ void uip_log(char *msg);
 #define UIP_ND6_OPT_HDR_BUF  ((uip_nd6_opt_hdr *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #define UIP_ND6_OPT_PREFIX_BUF ((uip_nd6_opt_prefix_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #define UIP_ND6_OPT_MTU_BUF ((uip_nd6_opt_mtu *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+#if UIP_CONF_6LR
+#define UIP_ND6_OPT_ABRO_BUF ((uip_nd6_opt_abro *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+#endif /* UIP_CONF_6LR */
 /** @} */
 
 static uint8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
@@ -850,6 +853,24 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   nd6_opt_offset += UIP_ND6_OPT_MTU_LEN;
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+
+#if UIP_CONF_6LR
+  /* Authoritative Border Router Option */
+  //TODO: maybe do iteration over all BR (can be more than 1) avalable in case of 6LR
+  UIP_ND6_OPT_ABRO_BUF->type = UIP_ND6_OPT_ABRO;
+  UIP_ND6_OPT_ABRO_BUF->len = 3;
+  UIP_ND6_OPT_ABRO_BUF->verlow = uip_htons(uip_ds6_if.abro_version & 0xffff);
+  UIP_ND6_OPT_ABRO_BUF->verhigh = uip_htons(uip_ds6_if.abro_version >> 16);
+  UIP_ND6_OPT_ABRO_BUF->lifetime = uip_htons(uip_ds6_if.abro_lifetime);
+  #if UIP_CONF_6LBR
+  uip_ds6_select_src(&UIP_ND6_OPT_ABRO_BUF->address, uip_ds6_get_global(ADDR_PREFERRED));
+  #else
+  uip_ipaddr_copy(&UIP_ND6_OPT_ABRO_BUF->address, ??);
+  #endif
+  nd6_opt_offset += UIP_ND6_ABRO_LEN;
+  uip_len += UIP_ND6_ABRO_LEN;
+  UIP_IP_BUF->len[1] += UIP_ND6_ABRO_LEN;
+#endif /* UIP_CONF_6LR */
 
   /*ICMP checksum */
   UIP_ICMP_BUF->icmpchksum = 0;

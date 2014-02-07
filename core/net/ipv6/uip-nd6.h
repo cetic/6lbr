@@ -335,6 +335,7 @@ typedef struct uip_nd6_opt_abro {
   uint8_t len;
   uint16_t verlow;
   uint16_t verhigh;
+  uint16_t lifetime;
   uip_ipaddr_t address;
 } uip_nd6_opt_abro;
 #endif /* CONF_6LOWPAN_ND */

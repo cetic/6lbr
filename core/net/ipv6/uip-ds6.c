@@ -110,6 +110,14 @@ uip_ds6_init(void)
   uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
   uip_ds6_if.retrans_timer = UIP_ND6_RETRANS_TIMER;
   uip_ds6_if.maxdadns = UIP_ND6_DEF_MAXDADNS;
+#if UIP_CONF_6LR
+  //TODO: increment this value when prefix or context information changes
+  uip_ds6_if.abro_version = 0;
+  #if UIP_CONF_6LBR
+  //TODO: make function to modify this value
+  uip_ds6_if.abro_lifetime = 0x0; /* default value of 10,000 ( ~one week) */
+  #endif /* UIP_CONF_6LBR */
+#endif /* UIP_CONF_6LR */
 
   /* Create link local address, prefix, multicast addresses, anycast addresses */
   uip_create_linklocal_prefix(&loc_fipaddr);

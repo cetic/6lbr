@@ -213,6 +213,12 @@ typedef struct uip_ds6_netif {
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
   uip_ds6_aaddr_t aaddr_list[UIP_DS6_AADDR_NB];
   uip_ds6_maddr_t maddr_list[UIP_DS6_MADDR_NB];
+#if UIP_CONF_6LR
+  uint32_t abro_version;
+  #if UIP_CONF_6LBR
+  uint8_t abro_lifetime;        /* in 60sec */
+  #endif /* UIP_CONF_6LBR */
+#endif /* UIP_CONF_6LR */
 } uip_ds6_netif_t;
 
 /** \brief Generic type for a DS6, to use a common loop though all DS */
