@@ -41,9 +41,7 @@
 /* COAP                                                                      */
 /*---------------------------------------------------------------------------*/
 
-/* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
-/* Not sure why, set it to 64 */
-#define REST_MAX_CHUNK_SIZE     64
+#define COAP_SERVER_PORT 5683
 
 /* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
 #if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
@@ -109,6 +107,10 @@
 //#define REST_TYPE_APPLICATION_XML
 //#define REST_TYPE_APPLICATION_JSON
 
+/* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
+/* Not sure why, set it to 64 */
+#define REST_MAX_CHUNK_SIZE     64
+
 /*---------------------------------------------------------------------------*/
 /* UDP-CLIENT                                                                */
 /*---------------------------------------------------------------------------*/
@@ -117,6 +119,23 @@
 
 /* Report LQI and RSSI only for parent node */
 #define UDP_CLIENT_STORE_RADIO_INFO 1
+
+/*---------------------------------------------------------------------------*/
+/* DTLS                                                                      */
+/*---------------------------------------------------------------------------*/
+
+#define DTLS_PEER_MAX 3
+
+#define DTLS_CONF_CONN_TIMEOUT 10
+
+//#define DTLS_CONF_PSK_KEY "secretPSK"
+//#define DTLS_CONF_PSK_KEY_LENGTH 9
+
+/*---------------------------------------------------------------------------*/
+/* DTLS ECHO                                                                 */
+/*---------------------------------------------------------------------------*/
+
+#define DTLS_ECHO_PORT 20220
 
 /*---------------------------------------------------------------------------*/
 /* UIP Buffers                                                               */
