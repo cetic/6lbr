@@ -136,11 +136,9 @@ coap_handle_receive()
   session_t session;
 
   if(uip_newdata()) {
-    printf("Got: %d\n", uip_datalen());
-    memset(&session, 0, sizeof(session));
+    dtls_session_init(&session);
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
-    session.size = sizeof(session.addr) + sizeof(session.port);
 
     dtls_handle_message(dtls_context, &session, uip_appdata, uip_datalen());
   }
