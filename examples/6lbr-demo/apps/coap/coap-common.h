@@ -32,7 +32,7 @@
 
 #define REST_TYPE_ERROR "Supporting content-type: text/plain"
 
-#define REST_FORMAT_CT
+#define REST_FORMAT_CT ";ct=0"
 
 #define REST_FORMAT_ONE_INT(resource_name, sensor) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (sensor))
