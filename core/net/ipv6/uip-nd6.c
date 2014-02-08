@@ -132,6 +132,7 @@ static uip_ipaddr_t ipaddr;
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #if CONF_6LOWPAN_ND
 static uip_ds6_context_pref_t *context_pref; /**  Pointer to a context prefix list entry */
+static uip_nd6_opt_6co *nd6_opt_context_prefix; /**  Pointer to context prefix information option in uip_buf */
 //TODO comment and difference between host and router
 //TODO need all 3 in static ?
 static uip_nd6_opt_aro *nd6_opt_addr_register;
@@ -1112,8 +1113,49 @@ uip_nd6_ra_input(void)
         /* End of autonomous flag related processing */
       }
       break;
+  #if CONF_6LOWPAN_ND
+    case UIP_ND6_OPT_6CO:
+      nd6_opt_context_prefix = (uip_nd6_opt_6co *) UIP_ND6_OPT_HDR_BUF;
+      //TODO: use cid and c flag to match and NOT prefix
+      context_pref = uip_ds6_context_pref_lookup(&nd6_opt_context_prefix->prefix,
+                                                 nd6_opt_context_prefix->len);
+      //TODO: do all thing with c and cid
+      if (context_pref == NULL) {
+        /* New entry must in context prefix table */
+        if (nd6_opt_context_prefix->lifetime != 0) {
+        #if UIP_CONF_ROUTER
+          //TODO: advertise ?
+          context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
+                                                  nd6_opt_context_prefix->len,
+                                                  1, nd6_opt_context_prefix->res_c_cid & 0x1f,
+                                                  nd6_opt_context_prefix->lifetime);
+        #else /* UIP_CONF_ROUTER */
+          context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
+                                                  nd6_opt_context_prefix->len,
+                                                  nd6_opt_context_prefix->res_c_cid & 0x1f,
+                                                  nd6_opt_context_prefix->lifetime);
+        #endif /* UIP_CONF_ROUTER */
+          stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
+        }
+      } else {
+        /* Update entry already in table */
+        if (nd6_opt_context_prefix->lifetime == 0) {
+          /* context entry MUST be removed immediately */
+          uip_ds6_context_pref_rm(context_pref);
+        } else {
+          /* update lifetime */
+          context_pref->lifetime = uip_ntohs(nd6_opt_context_prefix->lifetime);
+          stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
+          PRINTF("Updating timer of prefix ");
+          PRINT6ADDR(&context_pref->ipaddr);
+          PRINTF("/%d new value %lu\n", nd6_opt_context_prefix->len, 
+            (unsigned long)(context_pref->lifetime*60));
+        }
+      }
+      break;
+  #endif /* CONF_6LOWPAN_ND */
     default:
-      PRINTF("ND option not supported in RA");
+      PRINTF("ND option not supported in RA\n");
       break;
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
