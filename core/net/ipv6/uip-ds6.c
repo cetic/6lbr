@@ -756,6 +756,17 @@ uip_ds6_send_ra_sollicited(void)
   }
 }
 
+#if CONF_6LOWPAN_ND
+void
+uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest)
+{
+  //TODO: send with rand time ?
+  uip_nd6_ra_output(dest);
+  //TODO: good idea to write this line here ?
+  tcpip_ipv6_output();
+}
+#endif /* CONF_6LOWPAN_ND */
+
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_send_ra_periodic(void)

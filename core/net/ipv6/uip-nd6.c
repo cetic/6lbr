@@ -775,7 +775,11 @@ uip_nd6_rs_input(void)
   }
 
   /* Schedule a sollicited RA */
+  #if CONF_6LOWPAN_ND
+  uip_ds6_send_ra_unicast_sollicited(&UIP_IP_BUF->srcipaddr);
+  #else /* CONF_6LOWPAN_ND */
   uip_ds6_send_ra_sollicited();
+  #endif /* CONF_6LOWPAN_ND */
 
 discard:
   uip_len = 0;

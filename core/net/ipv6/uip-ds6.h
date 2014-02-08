@@ -378,7 +378,10 @@ void uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst);
 #if UIP_ND6_SEND_RA
 /** \brief Send a RA as an asnwer to a RS */
 void uip_ds6_send_ra_sollicited(void);
-
+#if CONF_6LOWPAN_ND
+/** \brief Send a unicast RA as an asnwer to a RS */
+void uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest);
+#endif /* CONF_6LOWPAN_ND */
 /** \brief Send a periodic RA */
 void uip_ds6_send_ra_periodic(void);
 #endif /* UIP_ND6_SEND_RA */
