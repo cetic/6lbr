@@ -146,6 +146,15 @@
 #define FOUND 0
 #define FREESPACE 1
 #define NOSPACE 2
+
+/** \brief Genereal timer delay */
+#if UIP_ND6_SEND_RA
+#ifndef UIP_CONF_DS6_RA_FREQUENCY
+#define UIP_DS6_RA_FREQUENCY 2
+#else
+#define UIP_DS6_RA_FREQUENCY UIP_CONF_DS6_RA_FREQUENCY
+#endif
+#endif /* UIP_ND6_SEND_RA */ 
 /*--------------------------------------------------*/
 
 #if UIP_CONF_IPV6_QUEUE_PKT
