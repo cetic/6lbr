@@ -36,7 +36,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#define SEND_INTERVAL   (30 * CLOCK_SECOND)
+#define UDP_CLIENT_PORT 42424
+#define UDP_SERVER_PORT 42422
+
+#define SEND_INTERVAL   (5 * CLOCK_SECOND)
+
+static struct uip_udp_conn *client_conn;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_host, "Test process of 6LoWPAN ND host");
@@ -81,12 +86,23 @@ PROCESS_THREAD(test_host, ev, data)
 #endif
 
   ipaddr = set_global_address();
-  uip_ds6_init();
+  
 #ifdef UIP_CONF_ROUTER
   printf("UIP_CONF_ROUTER:%d\n", UIP_CONF_ROUTER);
 #else
   printf("NO UIP_CONF_ROUTER\n");
 #endif
+
+  client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
+  if(client_conn == NULL) {
+    PRINTF("No UDP connection available, exiting the process!\n");
+    PROCESS_EXIT();
+  }
+
+/*
+  //SEND
+  uip_ds6_send_rs();
+  tcpip_ipv6_output();
 
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
@@ -97,6 +113,8 @@ PROCESS_THREAD(test_host, ev, data)
     tcpip_ipv6_output();
     etimer_set(&periodic_timer, SEND_INTERVAL);
   }
+*/
+
 /* 
  * ARO TEST
  *

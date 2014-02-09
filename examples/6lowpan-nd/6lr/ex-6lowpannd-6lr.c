@@ -99,7 +99,7 @@ set_context_prefix_address(void)
   static uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_context_pref_add(&ipaddr, 64, 1, 0x0, 10);
+  uip_ds6_context_pref_add(&ipaddr, 64, 1, 0x0, 2);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_router, ev, data)
@@ -124,7 +124,7 @@ PROCESS_THREAD(test_router, ev, data)
 */
 
   ipaddr = set_global_address();
-  //set_prefix_address();
+  set_prefix_address();
   set_context_prefix_address();
 
 
