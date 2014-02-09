@@ -57,13 +57,25 @@
 #define UIP_ND6_INFINITE_LIFETIME       0xFFFFFFFF
 /** @} */
 
+#if !CONF_6LOWPAN_ND
 /** \name RFC 4861 Host constant */
 /** @{ */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
 #define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
 /** @} */
+#else /* CONF_6LOWPAN_ND */
 
+/** \name RFC 6775 Host constant */
+/** @{ */
+#define UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL 60
+#define UIP_ND6_MAX_RTR_SOLICITATION_DELAY UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL
+#define UIP_ND6_RTR_SOLICITATION_INTERVAL  10
+#define UIP_ND6_MAX_RTR_SOLICITATIONS    3
+/** @} */
+#endif /* CONF_6LOWPAN_ND */
+
+//TODO: check constant for 6LR and 6LBR
 /** \name RFC 4861 Router constants */
 /** @{ */
 #ifndef UIP_CONF_ND6_SEND_RA
@@ -454,6 +466,9 @@ void uip_nd6_ra_output(uip_ipaddr_t *dest);
  * SHOULD be included otherwise
  */
 void uip_nd6_rs_output(void);
+#if CONF_6LOWPAN_ND
+void uip_nd6_rs_unicast_output(uip_ipaddr_t* ipaddr);
+#endif /* CONF_6LOWPAN_ND */
 
 /**
  *

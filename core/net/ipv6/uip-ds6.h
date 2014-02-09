@@ -147,12 +147,23 @@
 #define FREESPACE 1
 #define NOSPACE 2
 
+/** \brief Possible states for context prefix states */
+#define CONTEXT_PREF_ST_FREE 0
+#define CONTEXT_PREF_ST_USED 1
+#define CONTEXT_PREF_ST_SENDING 2
+#define CONTEXT_PREF_ST_RECEIVEONLY 3
+
 /** \brief Genereal timer delay */
 #if UIP_ND6_SEND_RA
 #ifndef UIP_CONF_DS6_RA_FREQUENCY
 #define UIP_DS6_RA_FREQUENCY 2
 #else
 #define UIP_DS6_RA_FREQUENCY UIP_CONF_DS6_RA_FREQUENCY
+#endif
+#ifndef UIP_CONF_DS6_RS_MINLIFETIME_RETRAN
+#define UIP_DS6_RS_MINLIFETIME_RETRAN 60 //TODO: default value 60sec ?
+#else
+#define UIP_DS6_RS_MINLIFETIME_RETRAN UIP_CONF_DS6_RS_MINLIFETIME_RETRAN
 #endif
 #endif /* UIP_ND6_SEND_RA */ 
 /*--------------------------------------------------*/
@@ -182,19 +193,28 @@ typedef struct uip_ds6_prefix {
 } uip_ds6_prefix_t;
 #endif /*UIP_CONF_ROUTER */
 
-#if CONF_6LOWPAN_ND
+
 /** \brief A Context prefix list entry */
+#if UIP_CONF_6LR
 typedef struct uip_ds6_context_pref {
-  uint8_t isused;
+  uint8_t state;
   uip_ipaddr_t ipaddr;
-#if UIP_CONF_ROUTER
   uint8_t advertise;
-#endif /*UIP_CONF_ROUTER */
   uint8_t length;
   uint8_t c_cid;
   uint16_t lifetime;
 } uip_ds6_context_pref_t;
-#endif /* CONF_6LOWPAN_ND */
+#endif /* UIP_CONF_6LR */
+#if UIP_CONF_6LN
+typedef struct uip_ds6_context_pref {
+  uint8_t state;
+  uip_ipaddr_t ipaddr;
+  uint8_t length;
+  uint8_t c_cid;
+  struct stimer lifetime;
+  uint16_t router_lifetime;
+} uip_ds6_context_pref_t;
+#endif /*UIP_CONF_6LN */
 
 
 /** * \brief Unicast address structure */
@@ -320,7 +340,8 @@ uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t l
                                                  uint16_t lifetime);
 #else /* UIP_CONF_ROUTER */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                                 uint8_t c_cid, uint16_t lifetime);
+                                                 uint8_t c_cid, uint16_t lifetime,
+                                                 uint16_t router_lifetime);
 #endif /* UIP_CONF_ROUTER */
 void uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix);
 uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr,
@@ -388,6 +409,12 @@ void uip_ds6_send_ra_periodic(void);
 #else /* UIP_CONF_ROUTER */
 /** \brief Send periodic RS to find router */
 void uip_ds6_send_rs(void);
+#if CONF_6LOWPAN_ND
+/** \brief Send unicast RS to refresh lifetime const */
+void uip_ds6_send_unicast_rs(void);
+/** \brief Indicate  */
+void uip_ds6_received_ra(void);
+#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
 
 /** \brief Compute the reachable time based on base reachable time, see RFC 4861*/

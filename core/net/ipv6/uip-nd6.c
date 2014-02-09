@@ -458,11 +458,11 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   UIP_STAT(++uip_stat.nd6.sent);
-  PRINTF("Sending NS to");
+  PRINTF("Sending NS to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("with target address");
+  PRINTF(" with target address");
   PRINT6ADDR(tgt);
   PRINTF("\n");
   return;
@@ -881,7 +881,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   for(context_pref = uip_ds6_context_pref_list;
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
-    if((context_pref->isused) && (context_pref->advertise)) {
+    if((context_pref->state == CONTEXT_PREF_ST_USED) && (context_pref->advertise)) {
       //TODO: remove temp variable len
       int len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
@@ -905,9 +905,9 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   UIP_STAT(++uip_stat.nd6.sent);
-  PRINTF("Sending RA to");
+  PRINTF("Sending RA to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   return;
@@ -917,15 +917,33 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 
 #if !UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
+void 
+uip_nd6_rs_output(void)
+{
+  uip_nd6_rs_unicast_output(NULL);
+}
+void
+uip_nd6_rs_unicast_output(uip_ipaddr_t* ipaddr)
+#else /* CONF_6LOWPAN_ND */
 void
 uip_nd6_rs_output(void)
+#endif /* CONF_6LOWPAN_ND */
 {
   UIP_IP_BUF->vtc = 0x60;
   UIP_IP_BUF->tcflow = 0;
   UIP_IP_BUF->flow = 0;
   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
   UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+#if CONF_6LOWPAN_ND
+  if(ipaddr == NULL) {
+    uip_create_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr);
+  } else {
+    uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, ipaddr);
+  }
+#else
   uip_create_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr);
+#endif /* CONF_6LOWPAN_ND */
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
   UIP_ICMP_BUF->type = ICMP6_RS;
   UIP_ICMP_BUF->icode = 0;
@@ -947,9 +965,9 @@ uip_nd6_rs_output(void)
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   UIP_STAT(++uip_stat.nd6.sent);
-  PRINTF("Sending RS to");
+  PRINTF("Sending RS to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   return;
@@ -1128,14 +1146,14 @@ uip_nd6_ra_input(void)
           context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
                                                   nd6_opt_context_prefix->len,
                                                   1, nd6_opt_context_prefix->res_c_cid & 0x1f,
-                                                  nd6_opt_context_prefix->lifetime);
+                                                  uip_ntohs(nd6_opt_context_prefix->lifetime));
         #else /* UIP_CONF_ROUTER */
           context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
                                                   nd6_opt_context_prefix->len,
                                                   nd6_opt_context_prefix->res_c_cid & 0x1f,
-                                                  nd6_opt_context_prefix->lifetime);
+                                                  uip_ntohs(nd6_opt_context_prefix->lifetime),
+                                                  UIP_ND6_RA_BUF->router_lifetime);
         #endif /* UIP_CONF_ROUTER */
-          stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
         }
       } else {
         /* Update entry already in table */
@@ -1144,14 +1162,20 @@ uip_nd6_ra_input(void)
           uip_ds6_context_pref_rm(context_pref);
         } else {
           /* update lifetime */
+        #if UIP_CONF_ROUTER
           context_pref->lifetime = uip_ntohs(nd6_opt_context_prefix->lifetime);
-          stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
+        #else /* UIP_CONF_ROUTER */
+          if(nd6_opt_context_prefix->lifetime != 0) {
+            context_pref->state = CONTEXT_PREF_ST_USED;
+            stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
+          }
+        #endif /* UIP_CONF_ROUTER */
           PRINTF("Updating timer of prefix ");
           PRINT6ADDR(&context_pref->ipaddr);
-          PRINTF("/%d new value %lu\n", nd6_opt_context_prefix->len, 
-            (unsigned long)(context_pref->lifetime*60));
+          PRINTF("/%d \n", nd6_opt_context_prefix->len);
         }
       }
+      //TODO: using of 6CO
       break;
   #endif /* CONF_6LOWPAN_ND */
     default:
@@ -1160,6 +1184,10 @@ uip_nd6_ra_input(void)
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
+
+#if CONF_6LOWPAN_ND
+  uip_ds6_received_ra();
+#endif /* CONF_6LOWPAN_ND */
 
   defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
   if(UIP_ND6_RA_BUF->router_lifetime != 0) {
