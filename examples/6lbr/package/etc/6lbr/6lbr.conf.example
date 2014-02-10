@@ -31,6 +31,10 @@
 #RAW_ETH=0
 #DEV_TAP=tap0
 
+#The following parameter contains the mac address of the TAP interface, by default
+#it is 02:a:b:c:d:e. Set it to '-' to use the generated mac address instead.
+#DEV_TAP_MAC="02:a:b:c:d:e"
+
 ################################################################################
 #Bridge configuration
 # If activated, the CETIC 6LBR will use an Ethernet Bridge and connect DEV_TAP
@@ -112,6 +116,19 @@
 
 #LOG_SERVICES=ffffffff
 
+################################################################################
+# Watchdog
+
+#This parameter is the interval between two updates of the watchdog timestamp
+#file
+#WATCHDOG_INTERVAL=60
+
+#This parameter is the timestamp file of the watchdog
+#WATCHDOG_FILE=/var/log/6lbr.timestamp
+
+#This parameter control the behaviour of the 6LBR run script; when set to 0, 6LBR
+#is restarted even after an abnormal exit.
+#STOP_AFTER_CRASH=0
 
 ################################################################################
 #Extra parameters
@@ -120,11 +137,9 @@
 #This parameter can be used to specify additional parameters to the CETIC 6LBR
 #EXTRA_PARAMS=
 
-#6LBR is not restarted when it exit abnormally, set this value to 0 if you want
-#to restart it anyway (The error condition is logged in the error log)
-
-#STOP_AFTER_CRASH=1
-
+#This parameter contains the file in which 6LBR writes the global address of its
+#Ethernet interface, by default it is not activated.
+#IP_CONFIG_FILE=
 
 ################################################################################
 # Cooja support
