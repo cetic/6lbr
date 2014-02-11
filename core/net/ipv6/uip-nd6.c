@@ -162,12 +162,12 @@ create_llao(uint8_t *llao, uint8_t type) {
 /* create a aro */
 //TODO: delocate to ns_output to efficancy (no call of function)
 static void
-create_aro(uint8_t *aro, uint8_t status, uint8_t lifetime) {
+create_aro(uint8_t *aro, uint8_t status, uint8_t lifetime, uip_ipaddr_t* lladdr) {
   ((uip_nd6_opt_aro*) aro)->type = UIP_ND6_OPT_ARO;
   ((uip_nd6_opt_aro*) aro)->len = 2;
   ((uip_nd6_opt_aro*) aro)->status = status;
   ((uip_nd6_opt_aro*) aro)->lifetime = uip_htons(lifetime);
-  memcpy(&(((uip_nd6_opt_aro*) aro)->eui64), &uip_lladdr, UIP_LLADDR_LEN);
+  memcpy(&(((uip_nd6_opt_aro*) aro)->eui64), lladdr, UIP_LLADDR_LEN);
 }
 #endif /* CONF_6LOWPAN_ND */
 
@@ -217,29 +217,21 @@ uip_nd6_ns_input(void)
       } else {
 #endif /*UIP_CONF_IPV6_CHECKS */
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
-  #if CONF_6LOWPAN_ND && !UIP_CONF_ROUTER //TODO: remplace by 6LoWPAN-HOST
-  //TODO: check
-        if(nbr != NULL) {
-  #else
         if(nbr == NULL) {
           uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
 			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			  0, NBR_STALE);
         } else {
-  #endif
           uip_lladdr_t *lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		    lladdr, UIP_LLADDR_LEN) != 0) {
             memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		   UIP_LLADDR_LEN);
             nbr->state = NBR_STALE;
-  #if !CONF_6LOWPAN_ND || UIP_CONF_ROUTER
-  //TODO: check
           } else {
             if(nbr->state == NBR_INCOMPLETE) {
               nbr->state = NBR_STALE;
             }
-  #endif
           }
         }
 #if UIP_CONF_IPV6_CHECKS
@@ -250,7 +242,7 @@ uip_nd6_ns_input(void)
     case UIP_ND6_OPT_ARO:
       nd6_opt_aro = (uip_nd6_opt_aro *)UIP_ND6_OPT_HDR_BUF;
     #if UIP_CONF_IPV6_CHECKS //TODO: check if is right
-      if(nd6_opt_aro->len != UIP_ND6_OPT_ARO_LEN) {
+      if(nd6_opt_aro->len != UIP_ND6_OPT_ARO_LEN/8) {
         nd6_opt_aro = NULL;
       }
     #endif
@@ -351,22 +343,23 @@ create_na:
   create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
               UIP_ND6_OPT_TLLAO);
 
-  UIP_ICMP_BUF->icmpchksum = 0;
-  UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
-
   uip_len =
     UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
 
-#if UIP_CONF_6LR //TODO: also UIP_CONF_6LBR
+#if UIP_CONF_6LR
   if(nd6_opt_aro != NULL) {
       /* add aro option if aro in NS is defined */
       UIP_IP_BUF->len[1] += UIP_ND6_OPT_ARO_LEN;
-      //TODO statut sended ? (ex: NUD, cahce full)
+      //TODO statut sended ? (ex: NUD, cache full)
       create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN + UIP_ND6_OPT_ARO_LEN],
-                  UIP_ND6_ARO_STATUS_SUCESS, nd6_opt_aro->lifetime);
+                 UIP_ND6_ARO_STATUS_SUCESS, uip_htons(nd6_opt_aro->lifetime),
+                 &nd6_opt_aro->eui64);
       uip_len += UIP_ND6_OPT_ARO_LEN;
     }
 #endif /* UIP_CONF_6LR */
+
+  UIP_ICMP_BUF->icmpchksum = 0;
+  UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   UIP_STAT(++uip_stat.nd6.sent);
   PRINTF("Sending NA to ");
@@ -444,7 +437,7 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
       /* add aro option if lifetime is defined */
       UIP_IP_BUF->len[1] += UIP_ND6_OPT_ARO_LEN;
       create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN + UIP_ND6_OPT_ARO_LEN],
-                  (uint8_t) 0, lifetime);
+                  (uint8_t) 0, lifetime, &uip_lladdr);
       uip_len += UIP_ND6_OPT_ARO_LEN;
     }
 #endif /* CONF_6LOWPAN_ND */
@@ -462,7 +455,7 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF(" with target address");
+  PRINTF(" with target address ");
   PRINT6ADDR(tgt);
   PRINTF("\n");
   return;
@@ -479,11 +472,11 @@ uip_nd6_na_input(void)
   uint8_t is_solicited;
   uint8_t is_override;
 
-  PRINTF("Received NA from");
+  PRINTF("Received NA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("with target address");
+  PRINTF(" with target address ");
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NA_BUF->tgtipaddr));
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
@@ -550,10 +543,11 @@ uip_nd6_na_input(void)
     case UIP_ND6_OPT_ARO:
       nd6_opt_aro = (uip_nd6_opt_aro *)UIP_ND6_OPT_HDR_BUF;
   #if UIP_CONF_IPV6_CHECKS
-      if(nd6_opt_aro->len != 2 ||
+      if(nd6_opt_aro->len != UIP_ND6_OPT_ARO_LEN/8 ||
         memcmp(&nd6_opt_aro->eui64, &uip_lladdr, UIP_LLADDR_LEN) != 0) {
         /* silently ignored */
         nd6_opt_aro = NULL;
+        PRINTF("ARO silently ignored\n");
       }
   #endif
       break;
@@ -586,10 +580,6 @@ uip_nd6_na_input(void)
         memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
                UIP_LLADDR_LEN);
     }
-    if(nbr->state == NBR_INCOMPLETE) {
-      if(nd6_opt_llao == NULL) {
-        goto discard;
-      }
   #if CONF_6LOWPAN_ND
       if(nd6_opt_aro != NULL) {
         //TODO defrt or nbr ?
@@ -600,18 +590,20 @@ uip_nd6_na_input(void)
           uip_ds6_nbr_rm(nbr);
           //TODO: check in defrt
         } else {
-          addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
+          //addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
           switch(nd6_opt_aro->status) {
           case UIP_ND6_ARO_STATUS_SUCESS:
-            //TODO
-          /*
-            if(nbr->addr == addr) {
-              nbr->state = NBR_REACHABLE;
-              addr->state = ADDR_PREFERRED;
-              stimer_set(&nrb->sendns, uip_ntohl(nd6_opt_aro-> lifetime)*60);
-              //TODO ?
-            }
-          */
+            //TODO compare addr in nce and addr of this interface
+            //if(nbr->addr == addr) {
+            /*PRINTF("--->");
+            PRINT6ADDR(&nbr->ipaddr);
+            PRINTF("<->");
+            PRINT6ADDR(&addr->ipaddr);
+            PRINTF("\n");*/
+            nbr->state = NBR_REGISTERED;
+            nbr->nscount = 0;
+            addr->state = ADDR_PREFERRED;
+            stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
             break;
           case UIP_ND6_ARO_STATUS_DUPLICATE:
             //TODO
@@ -625,7 +617,11 @@ uip_nd6_na_input(void)
         }
         //}
       }
-  #endif /* CONF_6LOWPAN_ND */
+  #else /* CONF_6LOWPAN_ND */
+    if(nbr->state == NBR_INCOMPLETE) {
+      if(nd6_opt_llao == NULL) {
+        goto discard;
+      }
       memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 	     UIP_LLADDR_LEN);
       if(is_solicited) {
@@ -671,6 +667,7 @@ uip_nd6_na_input(void)
       }
       nbr->isrouter = is_router;
     }
+  #endif /* CONF_6LOWPAN_ND */
   }
 #if UIP_CONF_IPV6_QUEUE_PKT
   /* The nbr is now reachable, check if we had buffered a pkt for it */
@@ -702,11 +699,11 @@ void
 uip_nd6_rs_input(void)
 {
 
-  PRINTF("Received RS from");
+  PRINTF("Received RS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("\n");
+  PRINTF(" \n");
   UIP_STAT(++uip_stat.nd6.recv);
 
 
@@ -978,11 +975,11 @@ uip_nd6_rs_output(void)
 void
 uip_nd6_ra_input(void)
 {
-  PRINTF("Received RA from");
+  PRINTF("Received RA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("\n");
+  PRINTF(" \n");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_IPV6_CHECKS
@@ -1022,6 +1019,15 @@ uip_nd6_ra_input(void)
       PRINTF("Processing SLLAO option in RA\n");
       nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+    #if CONF_6LOWPAN_ND
+      if(nbr == NULL) {
+        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                              (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+            1, NBR_TENTATIVE);
+      } else {
+        //TODO: refresh timer in nbr, or rm entry
+      }
+    #else /* CONF_6LOWPAN_ND */
       if(nbr == NULL) {
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
@@ -1039,6 +1045,7 @@ uip_nd6_ra_input(void)
         }
         nbr->isrouter = 1;
       }
+    #endif /* CONF_6LOWPAN_ND */
       break;
     case UIP_ND6_OPT_MTU:
       PRINTF("Processing MTU option in RA\n");

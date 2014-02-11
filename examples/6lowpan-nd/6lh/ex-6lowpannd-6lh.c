@@ -85,7 +85,7 @@ PROCESS_THREAD(test_host, ev, data)
   printf("STARTING unknown device...\n");
 #endif
 
-  ipaddr = set_global_address();
+  //ipaddr = set_global_address();
   
 #ifdef UIP_CONF_ROUTER
   printf("UIP_CONF_ROUTER:%d\n", UIP_CONF_ROUTER);

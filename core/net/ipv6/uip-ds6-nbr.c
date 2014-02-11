@@ -231,9 +231,35 @@ uip_ds6_neighbor_periodic(void)
       break;
     case NBR_REGISTERED:
       //TODO
+      if(stimer_expired(&nbr->reachable)) {
+        PRINTF("REGISTERED: remove entry (");
+        PRINT6ADDR(&nbr->ipaddr);
+        PRINTF(")\n");
+        uip_ds6_nbr_rm(nbr);
+      } else {
+        //TODO: send well before nb become inreachable
+        //PRINTF("REGISTERED: must send ns\n");
+      }
       break;
     case NBR_TENTATIVE:
       //TODO
+      if (nbr->isrouter) {
+        if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
+          uip_ds6_nbr_rm(nbr);
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          //TODO: -1 in arg ? -> check if add is a tentative
+          uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
+                                UIP_ND6_REGISTER_LIFETIME);
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+      } else if(stimer_expired(&nbr->reachable)) {
+        /* TENTATIVE_NCE_LIFETIME expired */
+        PRINTF("TENTATIVE: timeout, remove entry (");
+        PRINT6ADDR(&nbr->ipaddr);
+        PRINTF(")\n");
+        uip_ds6_nbr_rm(nbr);
+      }
       break;
 #else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
@@ -284,7 +310,7 @@ uip_ds6_neighbor_periodic(void)
 #endif /* CONF_6LOWPAN_ND */
     default:
       //TODO: remove
-      PRINTF("/!\\ ERROR: invalide cache type\n");
+      //PRINTF("/!\\ ERROR: invalide cache type\n");
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
