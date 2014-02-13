@@ -980,8 +980,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
 
 #define INPUT_FLAG_CB(name, nvm_name, flag, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
-    add("<input type=\"checkbox\" name=\""name"\" value=\"1\" %s> " text "<br />", \
-	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+      add(text " : <br />" \
+            "<input type=\"radio\" name=\""name"\" value=\"1\" %s> on ", \
+            (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+          add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> off <br />", \
+        (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
   } else { \
     add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? "on" : "off" ); \
   }
