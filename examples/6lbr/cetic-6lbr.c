@@ -157,7 +157,6 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-    uip_ds6_prefix_add(&wsn_net_prefix, wsn_net_prefix_len, 0);
   }                             //End manual configuration
 #endif
 
