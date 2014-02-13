@@ -140,6 +140,7 @@ cetic_6lbr_init(void)
   {
     memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
            sizeof(nvm_data.wsn_net_prefix));
+    wsn_net_prefix_len = nvm_data.wsn_net_prefix_len;
     if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)  //Address auto configuration
     {
       uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
@@ -156,6 +157,7 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
+    uip_ds6_prefix_add(&wsn_net_prefix, wsn_net_prefix_len, 0);
   }                             //End manual configuration
 #endif
 
