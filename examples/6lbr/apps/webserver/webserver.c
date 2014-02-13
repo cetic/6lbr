@@ -359,6 +359,10 @@ static
 PT_THREAD(generate_index(struct httpd_state *s))
 {
   static int i;
+#if CONTIKI_TARGET_NATIVE
+#define HOSTNAME_LEN 200
+  char hostname[HOSTNAME_LEN];
+#endif
 
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -377,6 +381,10 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add_div_home("Info");
   add("<div id=\"left_home\">");
   add("<h2>Info</h2>");
+#if CONTIKI_TARGET_NATIVE
+  gethostname(hostname, HOSTNAME_LEN);
+  add("Hostname : %s<br />", hostname);
+#endif
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
   add("Mode : ");
 #if CETIC_6LBR_SMARTBRIDGE
