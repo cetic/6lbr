@@ -72,6 +72,9 @@ uip_ds6_netif_t uip_ds6_if;                                       /** \brief The
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
 #if CONF_6LOWPAN_ND
 uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];  /** \brief Prefix list */
+#if UIP_CONF_6LBR
+uint8_t uip_ds6_context_pref_list_index;
+#endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
@@ -109,6 +112,9 @@ uip_ds6_init(void)
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
 #if CONF_6LOWPAN_ND
   memset(uip_ds6_context_pref_list, 0, sizeof(uip_ds6_context_pref_list));
+#if UIP_CONF_6LBR
+  uip_ds6_context_pref_list_index = 0;
+#endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
@@ -222,15 +228,15 @@ uip_ds6_periodic(void)
       if (loccontext->state != CONTEXT_PREF_ST_FREE) {
         if(stimer_expired(&loccontext->lifetime)) {
           /* Valid lifetime expired */
-          if(loccontext->state  == CONTEXT_PREF_ST_RECEIVEONLY) {
+          if(loccontext->state  == CONTEXT_PREF_ST_UNCOMPRESSONLY) {
             uip_ds6_context_pref_rm(loccontext);
           } else {
             /* receive-only mode for a period of twice the default Router Lifetime */
-            loccontext->state = CONTEXT_PREF_ST_RECEIVEONLY;
+            loccontext->state = CONTEXT_PREF_ST_UNCOMPRESSONLY;
             stimer_set(&loccontext->lifetime, 2*loccontext->router_lifetime);
           }
         } else if(stimer_remaining(&loccontext->lifetime) < UIP_DS6_RS_MINLIFETIME_RETRAN && 
-                  loccontext->state == CONTEXT_PREF_ST_USED) {
+                  loccontext->state == CONTEXT_PREF_ST_COMPRESS) {
           flag_rs_ra |= 0x1;
           loccontext->state = CONTEXT_PREF_ST_SENDING;
         }
@@ -380,7 +386,6 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 /*---------------------------------------------------------------------------*/
 #if CONF_6LOWPAN_ND
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_ROUTER
 #if DEBUG
 //TODO: remove
 void 
@@ -388,60 +393,72 @@ print_context_pref(void)
 {
   int i;
   PRINTF("------ CONTEXT TABLE ------\n");
-  PRINTF("prefix  | adv | st | c | cid | lifetime (min)\n");
+  PRINTF("prefix  | st | cid");
+  #if UIP_CONF_ROUTER
+  PRINTF("| lifetime (min)\n");
+  #else
+  PRINTF("\n");
+  #endif
   for(i = 0; i< UIP_DS6_CONTEXT_PREF_NB; i++) {
     loccontext = &uip_ds6_context_pref_list[i];
     PRINT6ADDR(&loccontext->ipaddr);
-    PRINTF("/%u | %x | %x | %x | %x | %d\n",
-       loccontext->length, loccontext->advertise, loccontext->state, loccontext->c_cid & 0x10, 
-       loccontext->c_cid & 0x0f, loccontext->lifetime);
+  #if UIP_CONF_ROUTER
+    PRINTF("/%u | %x | %x | %d\n",
+       loccontext->length, loccontext->state, 
+       loccontext->cid, loccontext->vlifetime);
+  #else
+    PRINTF("/%u | %x | %x\n",
+       loccontext->length, loccontext->state, 
+       loccontext->cid);
+  #endif
   }
 }
 #endif /* DEBUG */
-
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_6LBR
 uip_ds6_context_pref_t *
-uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                         uint8_t advertise, uint8_t c_cid,
-                         uint16_t lifetime)
+uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime)
 {
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *)uip_ds6_context_pref_list, UIP_DS6_CONTEXT_PREF_NB,
-      sizeof(uip_ds6_context_pref_t), ipaddr, length,
-      (uip_ds6_element_t **)&loccontext) == FREESPACE) {
-    loccontext->state = CONTEXT_PREF_ST_USED;
-    uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
-    loccontext->length = length;
-    loccontext->advertise = advertise;
-    loccontext->c_cid = c_cid;
-    loccontext->lifetime = lifetime;
-    PRINTF("Adding context prefix ");
-    PRINT6ADDR(&loccontext->ipaddr);
-    PRINTF(" length %u, c %x, cid %x, lifetime %dmin\n",
-       length, c_cid & 0x10, c_cid & 0x0f,lifetime);
-    return loccontext;
-  } else {
-    PRINTF("No more space in Context Prefix list\n");
+  uint8_t cid;
+  cid = ((uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1) & UIP_ND6_6CO_FLAG_CID;
+  uip_ds6_context_pref_list_index++;
+  /* install a new context */
+  loccontext = &uip_ds6_context_pref_list[cid-1];
+  if(loccontext != CONTEXT_PREF_ST_FREE) {
+    PRINTF("Crushing because Context Prefix is already in the list\n");
   }
-  return NULL;
+  loccontext->state = CONTEXT_PREF_ST_COMPRESS;
+  uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
+  loccontext->length = length;
+  loccontext->vlifetime = lifetime;
+  loccontext->cid = (uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1;
+  //TODO: modify version un abro
+  uip_ds6_if.abro_version++;
+  PRINTF("Adding context prefix ");
+  PRINT6ADDR(&loccontext->ipaddr);
+  PRINTF(" length %u, cid %x, lifetime %dmin\n",
+     length, cid, lifetime);
+  return loccontext;
 }
-#else /* UIP_CONF_ROUTER */
+#else /* UIP_CONF_6LBR */
+/*---------------------------------------------------------------------------*/
 uip_ds6_context_pref_t *
 uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                          uint8_t c_cid, uint16_t lifetime, 
                          uint16_t router_lifetime)
 {
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *)uip_ds6_context_pref_list, UIP_DS6_CONTEXT_PREF_NB,
-      sizeof(uip_ds6_context_pref_t), ipaddr, length,
-      (uip_ds6_element_t **)&loccontext) == FREESPACE) {
-    loccontext->state = CONTEXT_PREF_ST_USED;
+  loccontext = &uip_ds6_context_pref_list[(c_cid & UIP_ND6_6CO_FLAG_CID)-1];
+  if(loccontext->state == CONTEXT_PREF_ST_FREE) {
+    loccontext->state = c_cid & UIP_ND6_6CO_FLAG_C ? CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_UNCOMPRESSONLY;
     uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
     loccontext->length = length;
-    loccontext->c_cid = c_cid;
+    loccontext->cid = c_cid & UIP_ND6_6CO_FLAG_CID;
     if(lifetime != 0) {
       stimer_set(&(loccontext->lifetime), lifetime * 60);
     }
+  #if UIP_CONF_6LR
+    loccontext->vlifetime = lifetime;
+  #endif /* UIP_CONF_6LR */
     loccontext->router_lifetime = router_lifetime;
     PRINTF("Adding context prefix ");
     PRINT6ADDR(&loccontext->ipaddr);
@@ -453,7 +470,7 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
   }
   return NULL;
 }
-#endif /* UIP_CONF_ROUTER */
+#endif /* UIP_CONF_6LBR */
 
 /*---------------------------------------------------------------------------*/
 void 
@@ -467,16 +484,25 @@ uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_context_pref_t *
-uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr,
-                            uint8_t ipaddrlen)
+uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr)
 {
-  if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_context_pref_list,
-           UIP_DS6_CONTEXT_PREF_NB, sizeof(uip_ds6_context_pref_t),
-           ipaddr, ipaddrlen,
-           (uip_ds6_element_t **)&loccontext) == FOUND) {
-    return loccontext;
+  for(loccontext = uip_ds6_context_pref_list;
+      loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
+      loccontext++) {
+    if(loccontext->state != CONTEXT_PREF_ST_FREE &&
+       uip_ipaddr_prefixcmp(ipaddr, &loccontext->ipaddr, loccontext->length)) {
+      return loccontext;
+    }
   }
   return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_context_pref_t *
+uip_ds6_context_pref_lookup_by_cid(uint8_t cid)
+{
+  loccontext = &uip_ds6_context_pref_list[cid-1];
+  return loccontext->state == CONTEXT_PREF_ST_FREE ? NULL : loccontext;
 }
 /*---------------------------------------------------------------------------*/
 #endif /* CONF_6LOWPAN_ND */
@@ -505,7 +531,12 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
                                CLOCK_SECOND));
     locaddr->dadnscount = 0;
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
+//TODO
+//#if CONF_6LOWPAN_ND
+//    locaddr->state = ADDR_TENTATIVE;
+//#else /* CONF_6LOWPAN_ND */
     locaddr->state = ADDR_PREFERRED;
+//#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     uip_create_solicited_node(ipaddr, &loc_fipaddr);
     uip_ds6_maddr_add(&loc_fipaddr);

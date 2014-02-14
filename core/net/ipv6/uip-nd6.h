@@ -96,9 +96,24 @@
 
 #define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
 #define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
+#if !CONF_6LOWPAN_ND
 #define UIP_ND6_MIN_DELAY_BETWEEN_RAS       3   /*seconds*/
+#endif /* !CONF_6LOWPAN_ND */
 //#define UIP_ND6_MAX_RA_DELAY_TIME           0.5 /*seconds*/
 #define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
+/** @} */
+
+/** \name RFC 6775 Router constant */
+#if UIP_CONF_6LR
+#define UIP_ND6_MAX_RTR_ADVERTISEMENTS      3
+#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       10 /*seconds*/
+#define UIP_ND6_MAX_RA_DELAY_TIME           2  /*seconds*/
+#define UIP_ND6_TENTATIVE_NCE_LIFETIME      20 /*seconds*/
+#define UIP_ND6_MULTIHOP_HOPLIMIT           64
+#endif /* UIP_CONF_6LR */
+#if UIP_CONF_6LBR
+#define UIP_ND6_MIN_CONTEXT_CHANGE_DELAY    3000 /*seconds*/
+#endif /* UIP_CONF_6LBR */
 /** @} */
 
 #ifndef UIP_CONF_ND6_DEF_MAXDADNS
@@ -225,6 +240,14 @@
 #define UIP_ND6_NA_FLAG_OVERRIDE        0x20
 #define UIP_ND6_RA_FLAG_ONLINK          0x80
 #define UIP_ND6_RA_FLAG_AUTONOMOUS      0x40
+/** @} */
+
+/** \name 6LoWPAN Context Option flags masks */
+/** @{ */
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_6CO_FLAG_C        0x10
+#define UIP_ND6_6CO_FLAG_CID      0x0f
+#endif /* CONF_6LOWPAN_ND */
 /** @} */
 
 /**

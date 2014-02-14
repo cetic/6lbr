@@ -78,13 +78,11 @@
 
 /* Context Prefix list */
 #if CONF_6LOWPAN_ND
-#define UIP_DS6_CONTEXT_PREF_NBS  1
-#ifndef UIP_CONF_DS6_CONTEXT_PREF_NBU
-#define UIP_DS6_CONTEXT_PREF_NBU  2
+#ifndef UIP_CONF_DS6_CONTEXT_PREF_NB
+#define UIP_DS6_CONTEXT_PREF_NB  1
 #else
-#define UIP_DS6_CONTEXT_PREF_NBU UIP_CONF_DS6_CONTEXT_PREF_NBU
+#define UIP_DS6_CONTEXT_PREF_NB UIP_CONF_DS6_CONTEXT_PREF_NB
 #endif
-#define UIP_DS6_CONTEXT_PREF_NB UIP_DS6_CONTEXT_PREF_NBS + UIP_DS6_CONTEXT_PREF_NBU
 #endif /* CONF_6LOWPAN_ND */
 
 /* Unicast address list*/
@@ -148,10 +146,15 @@
 #define NOSPACE 2
 
 /** \brief Possible states for context prefix states */
+#if CONF_6LOWPAN_ND
 #define CONTEXT_PREF_ST_FREE 0
-#define CONTEXT_PREF_ST_USED 1
-#define CONTEXT_PREF_ST_SENDING 2
-#define CONTEXT_PREF_ST_RECEIVEONLY 3
+#define CONTEXT_PREF_ST_COMPRESS 1
+#define CONTEXT_PREF_ST_UNCOMPRESSONLY 2
+#define CONTEXT_PREF_ST_SENDING 3
+#define CONTEXT_PREF_USE_COMPRESS(X) (X==CONTEXT_PREF_ST_COMPRESS || X==CONTEXT_PREF_ST_SENDING)
+#define CONTEXT_PREF_USE_UNCOMPRESS(X) (X!=CONTEXT_PREF_ST_FREE)
+#endif /* CONF_6LOWPAN_ND */
+
 
 /** \brief Genereal timer delay */
 #if UIP_ND6_SEND_RA
@@ -204,26 +207,21 @@ typedef struct uip_ds6_prefix {
 
 
 /** \brief A Context prefix list entry */
-#if UIP_CONF_6LR
-typedef struct uip_ds6_context_pref {
-  uint8_t state;
-  uip_ipaddr_t ipaddr;
-  uint8_t advertise;
-  uint8_t length;
-  uint8_t c_cid;
-  uint16_t lifetime;
-} uip_ds6_context_pref_t;
-#endif /* UIP_CONF_6LR */
-#if UIP_CONF_6LN
+#if CONF_6LOWPAN_ND
 typedef struct uip_ds6_context_pref {
   uint8_t state;
   uip_ipaddr_t ipaddr;
   uint8_t length;
-  uint8_t c_cid;
+  uint8_t cid;
+#if UIP_CONF_ROUTER
+  uint16_t vlifetime;
+#endif /* UIP_CONF_ROUTER */
+#if !UIP_CONF_6LBR
   struct stimer lifetime;
   uint16_t router_lifetime;
+#endif /* !UIP_CONF_6LBR */
 } uip_ds6_context_pref_t;
-#endif /*UIP_CONF_6LN */
+#endif /* CONF_6LOWPAN_ND */
 
 
 /** * \brief Unicast address structure */
@@ -343,18 +341,17 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 #if CONF_6LOWPAN_ND
 /** \name Context prefix list basic routines */
 /** @{ */
-#if UIP_CONF_ROUTER
-uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                                 uint8_t advertise, uint8_t c_cid,
+#if UIP_CONF_6LBR
+uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, 
                                                  uint16_t lifetime);
-#else /* UIP_CONF_ROUTER */
+#else /* UIP_CONF_6LBR */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                                  uint8_t c_cid, uint16_t lifetime,
                                                  uint16_t router_lifetime);
-#endif /* UIP_CONF_ROUTER */
+#endif /* UIP_CONF_6LBR */
 void uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix);
-uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr,
-                                                    uint8_t ipaddrlen);
+uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr);
+uip_ds6_context_pref_t *uip_ds6_context_pref_lookup_by_cid(uint8_t cid);
 #endif /* CONF_6LOWPAN_ND */
 
 /** @} */

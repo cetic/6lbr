@@ -66,7 +66,7 @@ set_global_address(void)
   int i;
   uint8_t state;
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
@@ -88,7 +88,7 @@ set_prefix_address(void)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_prefix_add(&ipaddr, 64, 1, 0xc0, 86400, 14400);
 
 }
@@ -98,8 +98,8 @@ set_context_prefix_address(void)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_context_pref_add(&ipaddr, 64, 1, 0x0, 2);
+  uip_ip6addr(&ipaddr, 0xbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_context_pref_add(&ipaddr, 16, 2);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_router, ev, data)

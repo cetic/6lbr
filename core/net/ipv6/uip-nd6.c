@@ -270,6 +270,11 @@ uip_nd6_ns_input(void)
         uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
         uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
         flags = UIP_ND6_NA_FLAG_OVERRIDE;
+    #if UIP_CONF_6LR
+       nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_REACHABLE);
+        stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
+    #endif /* UIP_CONF_6LR */
         goto create_na;
       } else {
           /** \todo if I sent a NS before him, I win */
@@ -751,22 +756,37 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
+    #if UIP_CONF_6LR
+        //TODO: state reachable ? != RFC (tentative)
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_REACHABLE);
+    #else /* UIP_CONF_6LR */ 
         uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+    #endif /* UIP_CONF_6LR */
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
             uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
           uip_ds6_nbr_t nbr_data = *nbr;
           uip_ds6_nbr_rm(nbr);
+    #if UIP_CONF_6LR
+          //TODO: state reachable ? != RFC (tentative)
+          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_REACHABLE);
+    #else /* UIP_CONF_6LR */ 
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                                 (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+    #endif /* UIP_CONF_6LR */
           nbr->reachable = nbr_data.reachable;
           nbr->sendns = nbr_data.sendns;
           nbr->nscount = nbr_data.nscount;
         }
         nbr->isrouter = 0;
       }
+    #if UIP_CONF_6LR
+      stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
+    #endif /* UIP_CONF_6LR */
 #if UIP_CONF_IPV6_CHECKS
     }
 #endif /*UIP_CONF_IPV6_CHECKS */
@@ -878,16 +898,17 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   for(context_pref = uip_ds6_context_pref_list;
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
-    if((context_pref->state == CONTEXT_PREF_ST_USED) && (context_pref->advertise)) {
+    //TODO: no more addvertise
+    if((context_pref->state != CONTEXT_PREF_ST_FREE)) {
       //TODO: remove temp variable len
       int len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
       UIP_ND6_OPT_6CO_BUF->contlen = context_pref->length;
-      //TODO: compression prefix with c and cid
-      UIP_ND6_OPT_6CO_BUF->res_c_cid = 0x1f & context_pref->c_cid;
+      UIP_ND6_OPT_6CO_BUF->res_c_cid = context_pref->cid | 
+                (CONTEXT_PREF_USE_COMPRESS(context_pref->state)? UIP_ND6_6CO_FLAG_C : 0);
       UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
-      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->lifetime);
+      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->vlifetime);
       uip_ipaddr_copy(&(UIP_ND6_OPT_6CO_BUF->prefix), &(context_pref->ipaddr));
       nd6_opt_offset += len * 8;
       uip_len += len * 8;
@@ -1141,26 +1162,15 @@ uip_nd6_ra_input(void)
   #if CONF_6LOWPAN_ND
     case UIP_ND6_OPT_6CO:
       nd6_opt_context_prefix = (uip_nd6_opt_6co *) UIP_ND6_OPT_HDR_BUF;
-      //TODO: use cid and c flag to match and NOT prefix
-      context_pref = uip_ds6_context_pref_lookup(&nd6_opt_context_prefix->prefix,
-                                                 nd6_opt_context_prefix->len);
-      //TODO: do all thing with c and cid
+      context_pref = uip_ds6_context_pref_lookup_by_cid(
+              nd6_opt_context_prefix->res_c_cid & UIP_ND6_6CO_FLAG_CID);
       if (context_pref == NULL) {
         /* New entry must in context prefix table */
         if (nd6_opt_context_prefix->lifetime != 0) {
-        #if UIP_CONF_ROUTER
-          //TODO: advertise ?
           context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
-                                                  nd6_opt_context_prefix->len,
-                                                  1, nd6_opt_context_prefix->res_c_cid & 0x1f,
-                                                  uip_ntohs(nd6_opt_context_prefix->lifetime));
-        #else /* UIP_CONF_ROUTER */
-          context_pref = uip_ds6_context_pref_add(&nd6_opt_context_prefix->prefix, 
-                                                  nd6_opt_context_prefix->len,
-                                                  nd6_opt_context_prefix->res_c_cid & 0x1f,
-                                                  uip_ntohs(nd6_opt_context_prefix->lifetime),
-                                                  UIP_ND6_RA_BUF->router_lifetime);
-        #endif /* UIP_CONF_ROUTER */
+                    nd6_opt_context_prefix->contlen,
+                    nd6_opt_context_prefix->res_c_cid & (UIP_ND6_6CO_FLAG_C | UIP_ND6_6CO_FLAG_CID),
+                    uip_ntohs(nd6_opt_context_prefix->lifetime), UIP_ND6_RA_BUF->router_lifetime);
         }
       } else {
         /* Update entry already in table */
@@ -1169,20 +1179,16 @@ uip_nd6_ra_input(void)
           uip_ds6_context_pref_rm(context_pref);
         } else {
           /* update lifetime */
-        #if UIP_CONF_ROUTER
-          context_pref->lifetime = uip_ntohs(nd6_opt_context_prefix->lifetime);
-        #else /* UIP_CONF_ROUTER */
           if(nd6_opt_context_prefix->lifetime != 0) {
-            context_pref->state = CONTEXT_PREF_ST_USED;
+            context_pref->state = nd6_opt_context_prefix->res_c_cid & UIP_ND6_6CO_FLAG_C ? 
+                                    CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_UNCOMPRESSONLY;
             stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
           }
-        #endif /* UIP_CONF_ROUTER */
           PRINTF("Updating timer of prefix ");
           PRINT6ADDR(&context_pref->ipaddr);
           PRINTF("/%d \n", nd6_opt_context_prefix->len);
         }
       }
-      //TODO: using of 6CO
       break;
   #endif /* CONF_6LOWPAN_ND */
     default:

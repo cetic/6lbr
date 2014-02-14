@@ -236,12 +236,14 @@ uip_ds6_neighbor_periodic(void)
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
         uip_ds6_nbr_rm(nbr);
+    #if UIP_CONF_6LN
       } else {
         //TODO: send well before nb become inreachable
         if(stimer_remaining(&nbr->reachable) <= UIP_DS6_NS_MINLIFETIME_RETRAN) {
           PRINTF("REGISTERED: move to TENTATIVE\n");
           nbr->state = NBR_TENTATIVE;
         }
+    #endif /* UIP_CONF_6LN */
       }
       break;
     case NBR_TENTATIVE:
@@ -256,15 +258,6 @@ uip_ds6_neighbor_periodic(void)
                                 UIP_ND6_REGISTER_LIFETIME);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
-  #if UIP_CONF_6LR
-      //TODO ?
-      } else if(stimer_expired(&nbr->reachable)) {
-        /* TENTATIVE_NCE_LIFETIME expired */
-        PRINTF("TENTATIVE: timeout, remove entry (");
-        PRINT6ADDR(&nbr->ipaddr);
-        PRINTF(")\n");
-        uip_ds6_nbr_rm(nbr);
-  #endif /* UIP_CONF_6LR */
       }
       break;
 #else /* CONF_6LOWPAN_ND */
