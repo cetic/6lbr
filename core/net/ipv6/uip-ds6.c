@@ -531,12 +531,7 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
                                CLOCK_SECOND));
     locaddr->dadnscount = 0;
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
-//TODO
-//#if CONF_6LOWPAN_ND
-//    locaddr->state = ADDR_TENTATIVE;
-//#else /* CONF_6LOWPAN_ND */
     locaddr->state = ADDR_PREFERRED;
-//#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     uip_create_solicited_node(ipaddr, &loc_fipaddr);
     uip_ds6_maddr_add(&loc_fipaddr);
@@ -877,8 +872,9 @@ uip_ds6_send_ra_periodic(void)
 void
 uip_ds6_send_rs(void)
 {
-  //TODO: tranfert this variable in static ?
+#if CONF_6LOWPAN_ND
   uint16_t r;
+#endif /* CONF_6LOWPAN_ND */
   
 #if CONF_6LOWPAN_ND
   if((uip_ds6_defrt_choose() == NULL || !(flag_rs_ra & 0x2))
@@ -900,7 +896,7 @@ uip_ds6_send_rs(void)
     uip_nd6_rs_output();
     rscount++;
     r = (random_rand() % ((2<<(rscount<10 ? 10 : rscount))-1) - 1) * UIP_ND6_RTR_SOLICITATION_INTERVAL;
-    r = r<UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL ? r : UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL;
+    r = r < UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL ? r : UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL;
     etimer_set(&uip_ds6_timer_rs, r* CLOCK_SECOND);
 #endif /* CONF_6LOWPAN_ND */
   } else {
@@ -919,7 +915,7 @@ uip_ds6_send_unicast_rs(void)
   if(uip_ds6_defrt_choose() == NULL) {
     uip_ds6_send_rs();
   } else {
-    //TODO: send only one unicast then broadcast RS ?
+    //TODO: send only ONE unicast then broadcast RS ?
     PRINTF("Sending unicast RS\n");
     uip_nd6_rs_unicast_output(uip_ds6_defrt_choose());
     rscount=0;
