@@ -248,6 +248,11 @@ uip_ds6_neighbor_periodic(void)
       break;
     case NBR_TENTATIVE:
       //TODO
+      /* TODO  
+      Hosts that receive RA messages from multiple default routers SHOULD
+      attempt to register with more than one of them in order to increase
+      the robustness of the network.
+      */
       if (nbr->isrouter) {
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);

@@ -98,7 +98,7 @@ set_context_prefix_address(void)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_context_pref_add(&ipaddr, 16, 2);
 }
 /*---------------------------------------------------------------------------*/
