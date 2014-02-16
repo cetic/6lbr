@@ -49,7 +49,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_FULL
 #include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
@@ -648,6 +648,17 @@ tcpip_ipv6_output(void)
     }
 #endif /* UIP_CONF_IPV6_RPL */
     nbr = uip_ds6_nbr_lookup(nexthop);
+#if CONF_6LOWPAN_ND
+    //TODO: profil of 6LR and 6LBR
+    if(nbr == NULL) {
+      PRINTF("tcpip_ipv6_output: Impossible to find nexthop in nbr");
+      return;
+    } else {
+      tcpip_output(uip_ds6_nbr_get_ll(nbr));
+      uip_len = 0;
+      return;
+    }
+#else /* CONF_6LOWPAN_ND */
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
@@ -722,6 +733,7 @@ tcpip_ipv6_output(void)
       uip_len = 0;
       return;
     }
+#endif /* CONF_6LOWPAN_ND */
     return;
   }
   /* Multicast IP destination address. */
