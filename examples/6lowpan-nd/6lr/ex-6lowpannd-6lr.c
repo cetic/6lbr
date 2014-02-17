@@ -47,8 +47,8 @@
 
 
 
-#define UDP_CLIENT_PORT 42424
-#define UDP_SERVER_PORT 42422
+#define UDP_CLIENT_PORT 8765
+#define UDP_SERVER_PORT 5678
 
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
@@ -106,6 +106,7 @@ PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
   static struct etimer periodic_timer;
+  char *appdata;
 
 	PROCESS_BEGIN();
  
@@ -130,20 +131,26 @@ PROCESS_THREAD(test_router, ev, data)
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
   if(server_conn == NULL) {
-    PRINTF("No UDP connection available, exiting the process!\n");
+    printf("No UDP connection available, exiting the process!\n");
     PROCESS_EXIT();
   }
   udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
 
-  PRINTF("Created a server connection with remote address ");
+  printf("Created a server connection with remote address ");
   PRINT6ADDR(&server_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+  printf(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
   while(1) {
     PROCESS_YIELD();
-    if (ev == sensors_event && data == &button_sensor) {
-      PRINTF("------> TEST EVENT <-------\n");
+    if(ev == tcpip_event) {
+      if(uip_newdata()) {
+        appdata = (char *)uip_appdata;
+        appdata[uip_datalen()] = 0;
+        printf("DATA recv '%s'\n", appdata);
+      }
+    }else if (ev == sensors_event && data == &button_sensor) {
+      printf("------> TEST EVENT <-------\n");
     }
   }
 

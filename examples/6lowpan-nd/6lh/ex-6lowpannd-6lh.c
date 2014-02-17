@@ -32,45 +32,67 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "sys/etimer.h"
+#include "apps/shell/shell.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#define UDP_CLIENT_PORT 42424
-#define UDP_SERVER_PORT 42422
+ #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 
-#define SEND_INTERVAL   (5 * CLOCK_SECOND)
+#define UDP_CLIENT_PORT 8765
+#define UDP_SERVER_PORT 5678
+#define MAX_PAYLOAD_LEN   30
+
+#define SEND_INTERVAL   (20 * CLOCK_SECOND)
+
+#define BUFLEN 100
 
 static struct uip_udp_conn *client_conn;
 
 /*---------------------------------------------------------------------------*/
+
+PROCESS(shell_send_process, "sendbr");
+SHELL_COMMAND(udp_send_cmd,
+        "sendbr",
+        "sendbr: Send a packet udp to border router",
+        &shell_send_process);
+
 PROCESS(test_host, "Test process of 6LoWPAN ND host");
 AUTOSTART_PROCESSES(&test_host);
 
 /*---------------------------------------------------------------------------*/
-static uip_ipaddr_t *
-set_global_address(void)
+static void
+send_packet(uint8_t num)
 {
-  static uip_ipaddr_t ipaddr;
-  int i;
-  uint8_t state;
+  static int seq_id;
+  static uip_ipaddr_t server_ipaddr;
+  char buf[MAX_PAYLOAD_LEN];
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  uip_ip6addr(&server_ipaddr, 0xbbbb, 0, 0, 0, 0x0212, 0x7400+num, num, (0x100*num)+num);
 
-  printf("IPv6 addresses: ");
-  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
-       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
-      printf("\n");
-    }
-  }
-
-  return &ipaddr;
+  seq_id++;
+  printf("DATA 'Hello %d' send to %d ",
+         server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1], seq_id);
+  PRINT6ADDR(&server_ipaddr);
+  sprintf(buf, "Hello %d from the client", seq_id);
+  uip_udp_packet_sendto(client_conn, buf, strlen(buf),
+                        &server_ipaddr, UIP_HTONS(UDP_SERVER_PORT));
 }
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_send_process, ev, data)
+{
+  char buf[BUFLEN];
+  int i, v;
+  PROCESS_BEGIN();
+
+  printf("---------- SHELL_COMMAND: sendbr ----------\n");
+  send_packet(1);
+
+  PROCESS_END();
+}
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_host, ev, data)
 {
@@ -84,8 +106,6 @@ PROCESS_THREAD(test_host, ev, data)
 #else
   printf("STARTING unknown device...\n");
 #endif
-
-  //ipaddr = set_global_address();
   
 #ifdef UIP_CONF_ROUTER
   printf("UIP_CONF_ROUTER:%d\n", UIP_CONF_ROUTER);
@@ -93,43 +113,30 @@ PROCESS_THREAD(test_host, ev, data)
   printf("NO UIP_CONF_ROUTER\n");
 #endif
 
+  //TODO: pq ca marche pas ?
+  //shell_register_command(&udp_send_cmd);
+
   client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
   if(client_conn == NULL) {
-    PRINTF("No UDP connection available, exiting the process!\n");
+    printf("No UDP connection available, exiting the process!\n");
     PROCESS_EXIT();
   }
+  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT)); 
 
-/*
-  //SEND
-  uip_ds6_send_rs();
-  tcpip_ipv6_output();
+  printf("Created a connection with the server ");
+  PRINT6ADDR(&client_conn->ripaddr);
+  printf(" local/remote port %u/%u\n",
+  UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     etimer_reset(&periodic_timer);
     //SEND
-    uip_ds6_send_rs();
-    tcpip_ipv6_output();
+    send_packet(2);
     etimer_set(&periodic_timer, SEND_INTERVAL);
   }
-*/
 
-/* 
- * ARO TEST
- *
-  etimer_set(&periodic_timer, SEND_INTERVAL);
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-    etimer_reset(&periodic_timer);
-    //SEND NS every x second
-    printf("ARO send...\n");
-    //uip_nd6_ns_output(NULL, NULL, ipaddr);
-    uip_nd6_ns_output_aro(NULL, NULL, ipaddr, 60);
-    tcpip_ipv6_output();
-    etimer_set(&periodic_timer, SEND_INTERVAL);
-  }
-*/
   PROCESS_END();
   printf("END PROCESS :() \n");
 }
