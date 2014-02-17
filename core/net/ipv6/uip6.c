@@ -1415,14 +1415,12 @@ uip_process(uint8_t flag)
 #endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
     break;
   case ICMP6_RA:
-#if UIP_CONF_ROUTER
+#if !UIP_CONF_ROUTER || UIP_CONF_6LR
+    uip_nd6_ra_input();
+#else /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
     UIP_STAT(++uip_stat.icmp.drop);
     uip_len = 0;
-#else /* UIP_CONF_ROUTER */
-#if !UIP_CONF_6LBR
-    uip_nd6_ra_input();
-#endif /* !UIP_CONF_6LBR */
-#endif /* UIP_CONF_ROUTER */
+#endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR*/
     break;
 #if UIP_CONF_IPV6_RPL
   case ICMP6_RPL:

@@ -471,13 +471,13 @@ eventhandler(process_event_t ev, process_data_t data)
           uip_ds6_periodic();
           tcpip_ipv6_output();
         }*/
-#if !UIP_CONF_ROUTER
+#if !UIP_CONF_ROUTER || UIP_CONF_6LR
         if(data == &uip_ds6_timer_rs &&
            etimer_expired(&uip_ds6_timer_rs)) {
           uip_ds6_send_rs();
           tcpip_ipv6_output();
         }
-#endif /* !UIP_CONF_ROUTER */
+#endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
         if(data == &uip_ds6_timer_periodic &&
            etimer_expired(&uip_ds6_timer_periodic)) {
           uip_ds6_periodic();

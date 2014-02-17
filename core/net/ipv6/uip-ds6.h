@@ -192,10 +192,10 @@ typedef struct uip_ds6_prefix {
   uint8_t length;
   uint8_t advertise;
   uint32_t vlifetime_val;
-#if UIP_CONF_6LR
+#if UIP_CONF_6L_ROUTER
   struct stimer vlifetime;
   uint8_t isinfinite;
-#endif /* UIP_CONF_6LR */
+#endif /* UIP_CONF_6L_ROUTER */
   uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
 } uip_ds6_prefix_t;
@@ -279,12 +279,10 @@ typedef struct uip_ds6_netif {
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
   uip_ds6_aaddr_t aaddr_list[UIP_DS6_AADDR_NB];
   uip_ds6_maddr_t maddr_list[UIP_DS6_MADDR_NB];
-#if UIP_CONF_6LR
+#if UIP_CONF_6L_ROUTER
   uint32_t abro_version;
-  #if UIP_CONF_6LBR
   uint8_t abro_lifetime;        /* in 60sec */
-  #endif /* UIP_CONF_6LBR */
-#endif /* UIP_CONF_6LR */
+#endif /* UIP_CONF_6L_ROUTER */
 } uip_ds6_netif_t;
 
 /** \brief Generic type for a DS6, to use a common loop though all DS */
@@ -303,9 +301,10 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
 #if CONF_6LOWPAN_ND
 extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
 #endif /* CONF_6LOWPAN_ND */
-#else /* UIP_CONF_ROUTER */
-extern struct etimer uip_ds6_timer_rs;
 #endif /* UIP_CONF_ROUTER */
+#if !UIP_CONF_ROUTER || UIP_CONF_6LR
+extern struct etimer uip_ds6_timer_rs;
+#endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
 
 
 /*---------------------------------------------------------------------------*/
@@ -327,15 +326,15 @@ uint8_t uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
 
 /** \name Prefix list basic routines */
 /** @{ */
-#if UIP_CONF_ROUTER || UIP_CONF_6LR
-uip_ds6_prefix_t *uip_ds6_prefix_add_router(uip_ipaddr_t *ipaddr, uint8_t length,
+#if UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER
+uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                      uint8_t advertise, uint8_t flags,
                                      unsigned long vtime,
                                      unsigned long ptime);
-#else /* UIP_CONF_ROUTER || UIP_CONF_6LR */
+#else /* UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER */
 uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                      unsigned long interval);
-#endif /* UIP_CONF_ROUTER || UIP_CONF_6LR */
+#endif /* UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER */
 void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
 uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);

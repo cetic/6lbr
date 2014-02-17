@@ -127,19 +127,19 @@ uip_ds6_init(void)
   uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
   uip_ds6_if.retrans_timer = UIP_ND6_RETRANS_TIMER;
   uip_ds6_if.maxdadns = UIP_ND6_DEF_MAXDADNS;
-#if UIP_CONF_6LR
+#if UIP_CONF_6L_ROUTER
   //TODO: increment this value when prefix or context information changes
   uip_ds6_if.abro_version = 0;
   #if UIP_CONF_6LBR
   //TODO: make function to modify this value
   uip_ds6_if.abro_lifetime = 0x0; /* default value of 10,000 ( ~one week) */
   #endif /* UIP_CONF_6LBR */
-#endif /* UIP_CONF_6LR */
+#endif /* UIP_CONF_6L_ROUTER */
 
   /* Create link local address, prefix, multicast addresses, anycast addresses */
   uip_create_linklocal_prefix(&loc_fipaddr);
 #if UIP_CONF_ROUTER
-  uip_ds6_prefix_add_router(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
 #else /* UIP_CONF_ROUTER */
   uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
 #endif /* UIP_CONF_ROUTER */
@@ -154,17 +154,16 @@ uip_ds6_init(void)
 #if UIP_ND6_SEND_RA
   stimer_set(&uip_ds6_timer_ra, UIP_DS6_RA_FREQUENCY);     /* wait to have a link local IP address */
 #endif /* UIP_ND6_SEND_RA */
+#if UIP_CONF_6LR
+  etimer_set(&uip_ds6_timer_rs,
+             random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
+                              CLOCK_SECOND));
+#endif /* UIP_CONF_6LR */
 #else /* UIP_CONF_ROUTER */
-  //TODO: 6LR also
   etimer_set(&uip_ds6_timer_rs,
              random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
                               CLOCK_SECOND));
 #endif /* UIP_CONF_ROUTER */
-#if UIP_CONF_6LN
-  etimer_set(&uip_ds6_timer_rs,
-             random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
-                              CLOCK_SECOND));
-#endif /* UIP_CONF_6LN */
   etimer_set(&uip_ds6_timer_periodic, UIP_DS6_PERIOD);
 
 #if CONF_6LOWPAN_ND
@@ -293,10 +292,10 @@ uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
 }
 
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_ROUTER || UIP_CONF_6LR
+#if UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER
 /*---------------------------------------------------------------------------*/
 uip_ds6_prefix_t *
-uip_ds6_prefix_add_router(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
+uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
                    uint8_t advertise, uint8_t flags, unsigned long vtime,
                    unsigned long ptime)
 {
@@ -311,14 +310,14 @@ uip_ds6_prefix_add_router(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     locprefix->l_a_reserved = flags;
     locprefix->vlifetime_val = vtime;
     locprefix->plifetime = ptime;
-  #if !UIP_CONF_6LBR
-    if(interval != 0) {
+  #if UIP_CONF_6LR
+    if(vtime != 0) {
       stimer_set(&(locprefix->vlifetime), vtime);
       locprefix->isinfinite = 0;
     } else {
       locprefix->isinfinite = 1;
     }
-  #endif /* !UIP_CONF_6LBR */
+  #endif /* UIP_CONF_6LR */
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
     PRINTF("length %u, flags %x, Valid lifetime %lx, Preffered lifetime %lx\n",
@@ -331,7 +330,7 @@ uip_ds6_prefix_add_router(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
 }
 
 
-#else /* UIP_CONF_ROUTER || UIP_CONF_6LR */
+#else /* UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER */
 uip_ds6_prefix_t *
 uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
                    unsigned long interval)
@@ -355,7 +354,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
   }
   return NULL;
 }
-#endif /* UIP_CONF_ROUTER || UIP_CONF_6LR */
+#endif /* UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER */
 
 /*---------------------------------------------------------------------------*/
 void
@@ -470,9 +469,9 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
     if(lifetime != 0) {
       stimer_set(&(loccontext->lifetime), lifetime * 60);
     }
-  #if UIP_CONF_6LR
+  #if UIP_CONF_6L_ROUTER
     loccontext->vlifetime = lifetime;
-  #endif /* UIP_CONF_6LR */
+  #endif /* UIP_CONF_6L_ROUTER */
     loccontext->router_lifetime = router_lifetime;
     PRINTF("Adding context prefix ");
     PRINT6ADDR(&loccontext->ipaddr);

@@ -43,7 +43,7 @@
 #define UDP_SERVER_PORT 5678
 #define MAX_PAYLOAD_LEN   30
 
-#define SEND_INTERVAL   (20 * CLOCK_SECOND)
+#define SEND_INTERVAL   (60 * CLOCK_SECOND)
 
 #define BUFLEN 100
 
