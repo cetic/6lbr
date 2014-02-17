@@ -373,6 +373,9 @@ uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 uint8_t
 uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 {
+#if UIP_CONF_6LN
+  return uip_is_addr_link_local(ipaddr);
+#else /* UIP_CONF_6LN */
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {
     if(locprefix->isused &&
@@ -381,6 +384,7 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
     }
   }
   return 0;
+#endif /* UIP_CONF_6LN */
 }
 
 /*---------------------------------------------------------------------------*/
