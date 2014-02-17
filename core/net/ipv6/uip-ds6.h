@@ -191,7 +191,11 @@ typedef struct uip_ds6_prefix {
   uip_ipaddr_t ipaddr;
   uint8_t length;
   uint8_t advertise;
-  uint32_t vlifetime;
+  uint32_t vlifetime_val;
+#if UIP_CONF_6LR
+  struct stimer vlifetime;
+  uint8_t isinfinite;
+#endif /* UIP_CONF_6LR */
   uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
 } uip_ds6_prefix_t;
@@ -323,15 +327,15 @@ uint8_t uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
 
 /** \name Prefix list basic routines */
 /** @{ */
-#if UIP_CONF_ROUTER
-uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
+#if UIP_CONF_ROUTER || UIP_CONF_6LR
+uip_ds6_prefix_t *uip_ds6_prefix_add_router(uip_ipaddr_t *ipaddr, uint8_t length,
                                      uint8_t advertise, uint8_t flags,
                                      unsigned long vtime,
                                      unsigned long ptime);
-#else /* UIP_CONF_ROUTER */
+#else /* UIP_CONF_ROUTER || UIP_CONF_6LR */
 uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                      unsigned long interval);
-#endif /* UIP_CONF_ROUTER */
+#endif /* UIP_CONF_ROUTER || UIP_CONF_6LR */
 void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
 uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);
@@ -412,7 +416,8 @@ void uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest);
 /** \brief Send a periodic RA */
 void uip_ds6_send_ra_periodic(void);
 #endif /* UIP_ND6_SEND_RA */
-#else /* UIP_CONF_ROUTER */
+#endif /* UIP_CONF_ROUTER */
+#if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND
 /** \brief Send periodic RS to find router */
 void uip_ds6_send_rs(void);
 #if CONF_6LOWPAN_ND
@@ -421,7 +426,7 @@ void uip_ds6_send_unicast_rs(void);
 /** \brief Indicate  */
 void uip_ds6_received_ra(void);
 #endif /* CONF_6LOWPAN_ND */
-#endif /* UIP_CONF_ROUTER */
+#endif /* UIP_CONF_ROUTER || CONF_6LOWPAN_ND */
 
 /** \brief Compute the reachable time based on base reachable time, see RFC 4861*/
 uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachable timer */

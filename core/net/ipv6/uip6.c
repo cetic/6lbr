@@ -1419,7 +1419,9 @@ uip_process(uint8_t flag)
     UIP_STAT(++uip_stat.icmp.drop);
     uip_len = 0;
 #else /* UIP_CONF_ROUTER */
+#if !UIP_CONF_6LBR
     uip_nd6_ra_input();
+#endif /* !UIP_CONF_6LBR */
 #endif /* UIP_CONF_ROUTER */
     break;
 #if UIP_CONF_IPV6_RPL

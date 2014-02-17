@@ -503,8 +503,10 @@ void uip_nd6_rs_unicast_output(uip_ipaddr_t* ipaddr);
  * - If SLLAO option: update entry in neighbor cache
  * - If prefix option: start autoconf, add prefix to prefix list
  */
+#if !UIP_CONF_6LBR
 void
 uip_nd6_ra_input(void);
+#endif /* !UIP_CONF_6LBR */
 /** @} */
 
 

@@ -125,7 +125,7 @@ static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 static uip_nd6_opt_aro *nd6_opt_aro;    /**  Pointer to aro option in uip_buf */
 #endif /* CONF_6LOWPAN_ND */
 
-#if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
+#if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND           // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
 #endif
@@ -658,7 +658,7 @@ uip_nd6_na_input(void)
                 uip_ds6_addr_rm(addr);
                 /*TODO: activate this line, need send rs in 6LR and new management 
                         of prefix structure between 6LR et 6LBR*/
-                //uip_ds6_send_rs();
+                uip_ds6_send_rs();
               }
               break;
             default:
@@ -913,7 +913,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
       UIP_ND6_OPT_PREFIX_BUF->flagsreserved1 = prefix->l_a_reserved;
-      UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime);
+      UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime_val);
       UIP_ND6_OPT_PREFIX_BUF->preferredlt = uip_htonl(prefix->plifetime);
       UIP_ND6_OPT_PREFIX_BUF->reserved2 = 0;
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
@@ -993,7 +993,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 #endif /* UIP_ND6_SEND_RA */
 #endif /* UIP_CONF_ROUTER */
 
-#if !UIP_CONF_ROUTER
+#if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND
 /*---------------------------------------------------------------------------*/
 #if CONF_6LOWPAN_ND
 void 
@@ -1053,6 +1053,7 @@ uip_nd6_rs_output(void)
 
 
 /*---------------------------------------------------------------------------*/
+#if !UIP_CONF_6LBR
 void
 uip_nd6_ra_input(void)
 {
@@ -1307,7 +1308,8 @@ discard:
   uip_len = 0;
   return;
 }
-#endif /* !UIP_CONF_ROUTER */
+#endif /* !UIP_CONF_6LBR */
+#endif /* !UIP_CONF_ROUTER || CONF_6LOWPAN_ND */
 
  /** @} */
 #endif /* UIP_CONF_IPV6 */

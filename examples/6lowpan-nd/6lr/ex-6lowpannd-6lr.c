@@ -89,7 +89,7 @@ set_prefix_address(void)
   static uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_prefix_add(&ipaddr, 64, 1, 0xc0, 86400, 14400);
+  uip_ds6_prefix_add_router(&ipaddr, 64, 1, 0xc0, 86400, 14400);
 
 }
 /*---------------------------------------------------------------------------*/
