@@ -73,6 +73,7 @@ uip_ds6_netif_t uip_ds6_if;                                       /** \brief The
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
 #if CONF_6LOWPAN_ND
 uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];  /** \brief Prefix list */
+uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];  /** \brief Border router list */
 #if UIP_CONF_6LBR
 uint8_t uip_ds6_context_pref_list_index;
 #endif /* UIP_CONF_6LBR */
@@ -95,6 +96,8 @@ static uip_ds6_prefix_t *locprefix;
 #if CONF_6LOWPAN_ND
 static uip_ds6_context_pref_t *loccontext;
 static uint8_t flag_rs_ra; /* format: free|rcv_ra|send_new_rs */
+//TODO: static variable<-> extern
+uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
@@ -116,6 +119,9 @@ uip_ds6_init(void)
 #if UIP_CONF_6LBR
   uip_ds6_context_pref_list_index = 0;
 #endif /* UIP_CONF_6LBR */
+#if UIP_CONF_6L_ROUTER
+  memset(uip_ds6_br_list, 0, sizeof(uip_ds6_border_router_t));
+#endif /* UIP_CONF_6L_ROUTER */
 #endif /* CONF_6LOWPAN_ND */
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
@@ -127,14 +133,6 @@ uip_ds6_init(void)
   uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
   uip_ds6_if.retrans_timer = UIP_ND6_RETRANS_TIMER;
   uip_ds6_if.maxdadns = UIP_ND6_DEF_MAXDADNS;
-#if UIP_CONF_6L_ROUTER
-  //TODO: increment this value when prefix or context information changes
-  uip_ds6_if.abro_version = 0;
-  #if UIP_CONF_6LBR
-  //TODO: make function to modify this value
-  uip_ds6_if.abro_lifetime = 0x0; /* default value of 10,000 ( ~one week) */
-  #endif /* UIP_CONF_6LBR */
-#endif /* UIP_CONF_6L_ROUTER */
 
   /* Create link local address, prefix, multicast addresses, anycast addresses */
   uip_create_linklocal_prefix(&loc_fipaddr);
@@ -209,19 +207,32 @@ uip_ds6_periodic(void)
     }
     }*/
 
-#if !UIP_CONF_ROUTER
-  /* Periodic processing on prefixes */
-  for(locprefix = uip_ds6_prefix_list;
-      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
-      locprefix++) {
-    if(locprefix->isused && !locprefix->isinfinite
-       && stimer_expired(&(locprefix->vlifetime))) {
-      uip_ds6_prefix_rm(locprefix);
+    /* Periodic processing on border router */
+#if UIP_CONF_6LBR
+  for(locbr = uip_ds6_br_list;
+      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+      locbr++) {
+    if(locbr->state == BR_ST_NEW_VERSION) {
+      /* New version so send a RA to all router */
+      locbr->version++;
+      locbr->state = BR_ST_USED;
+      //TODO: determine unicast or broadcast RA and do it
     }
   }
-#endif /* !UIP_CONF_ROUTER */
+#else /* UIP_CONF_6LBR */
+    //TODO: test
+  for(locbr = uip_ds6_br_list;
+      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+      locbr++) {
+    if(locbr->state == BR_ST_USED && stimer_expired(&locbr->timeout)) {
+      /* remove all thing associate to border router */
+      uip_ds6_br_rm(locbr);
+    }
+  }
+#endif /* UIP_CONF_6LBR */
 
-#if UIP_CONF_6LN
+
+#if !UIP_CONF_6LBR
   /* Periodic processing on context prefixes */
   for(loccontext = uip_ds6_context_pref_list;
       loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
@@ -243,14 +254,26 @@ uip_ds6_periodic(void)
         }
       }
   }
-
   /* Send RS if needed well before all timer exepired */
   /* TODO: should in default-router and PIO */
   //TODO: threshold min lifetime ? (in sec)
   if(flag_rs_ra & 0x1) {
     uip_ds6_send_unicast_rs(); 
   }
-#endif /* UIP_CONF_6LN */
+#endif /* !UIP_CONF_6LBR */
+
+//TODO: macro to activate in case of 6LR
+#if !UIP_CONF_ROUTER
+  /* Periodic processing on prefixes */
+  for(locprefix = uip_ds6_prefix_list;
+      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
+      locprefix++) {
+    if(locprefix->isused && !locprefix->isinfinite
+       && stimer_expired(&(locprefix->vlifetime))) {
+      uip_ds6_prefix_rm(locprefix);
+    }
+  }
+#endif /* !UIP_CONF_ROUTER */
 
   uip_ds6_neighbor_periodic();
 
@@ -318,6 +341,13 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
       locprefix->isinfinite = 1;
     }
   #endif /* UIP_CONF_6LR */
+  #if UIP_CONF_6LBR
+    /* Increase version in border router */
+    locbr = uip_ds6_br_lookup(NULL);
+    if(locbr != NULL) {
+      locbr->state = BR_ST_USED;
+    }
+  #endif /* UIP_CONF_6LBR */
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
     PRINTF("length %u, flags %x, Valid lifetime %lx, Preffered lifetime %lx\n",
@@ -445,8 +475,13 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime
   loccontext->length = length;
   loccontext->vlifetime = lifetime;
   loccontext->cid = (uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1;
-  //TODO: modify version un abro
-  uip_ds6_if.abro_version++;
+#if UIP_CONF_6LBR
+  /* Increase version in border router */
+  locbr = uip_ds6_br_lookup(NULL);
+  if(locbr != NULL) {
+    locbr->state = BR_ST_USED;
+  }
+#endif /* UIP_CONF_6LBR */
   PRINTF("Adding context prefix ");
   PRINT6ADDR(&loccontext->ipaddr);
   PRINTF(" length %u, cid %x, lifetime %dmin\n",
@@ -517,6 +552,75 @@ uip_ds6_context_pref_lookup_by_cid(uint8_t cid)
   loccontext = &uip_ds6_context_pref_list[cid-1];
   return loccontext->state == CONTEXT_PREF_ST_FREE ? NULL : loccontext;
 }
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_border_router_t *
+uip_ds6_br_add(uint32_t version, uint16_t lifetime, uip_ipaddr_t *ipaddr)
+{
+  if(ipaddr == NULL) {
+    return NULL;
+  }
+
+  for(locbr = uip_ds6_br_list;
+      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+      locbr++) {
+    if(locbr->state == BR_ST_FREE) {
+      locbr->state = BR_ST_USED;
+      locbr->version = version;
+  #if UIP_CONF_6L_ROUTER
+      locbr->lifetime = lifetime;
+  #endif /* UIP_CONF_6L_ROUTER */
+  #if !UIP_CONF_6LBR
+      stimer_set(&(locbr->timeout), (lifetime==0 ? 10000 : lifetime)*60);
+  #endif /* !UIP_CONF_6LBR */
+      uip_ipaddr_copy(&locbr->ipaddr, ipaddr);
+      return locbr;
+    }
+  }
+
+  return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_br_rm(uip_ds6_border_router_t *br)
+{
+  if(br != NULL) {
+    br->state = BR_ST_FREE;
+  }
+  //TODO more: rm link to context and pio
+}
+
+/*---------------------------------------------------------------------------*/
+/*
+ * get border router structur associated to ipaddr
+ * ipaddr == NULL => find first border router
+ */
+uip_ds6_border_router_t *
+uip_ds6_br_lookup(uip_ipaddr_t *ipaddr)
+{
+  for(locbr = uip_ds6_br_list;
+      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+      locbr++) {
+    if(locbr->state != BR_ST_FREE && 
+       (ipaddr == NULL || uip_ip6addr_cmp(ipaddr, &locbr->ipaddr))) {
+      return locbr;
+    }
+  }
+  return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_6LBR
+void 
+uip_ds6_br_config()
+{
+  //TODO: increment this value when prefix or context information changes
+  //TODO: remplace 0x0 by a MACRO
+  /* default value of 10,000 ( ~one week) */
+  uip_ds6_br_add(0, 0x0, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
+}
+#endif /* UIP_CONF_6LBR */
 /*---------------------------------------------------------------------------*/
 #endif /* CONF_6LOWPAN_ND */
 
@@ -847,10 +951,13 @@ uip_ds6_send_ra_sollicited(void)
 void
 uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest)
 {
-  //TODO: send with rand time ?
-  uip_nd6_ra_output(dest);
-  //TODO: good idea to write this line here ?
-  tcpip_ipv6_output();
+  for(locbr = uip_ds6_br_list;
+      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+      locbr++) {
+    //TODO: send with rand time ?
+    uip_nd6_ra_output(dest);
+    tcpip_ipv6_output();
+  }
 }
 #endif /* CONF_6LOWPAN_ND */
 

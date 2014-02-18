@@ -127,6 +127,7 @@ PROCESS_THREAD(test_router, ev, data)
   ipaddr = set_global_address();
   set_prefix_address();
   set_context_prefix_address();
+  uip_ds6_br_config();
 
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);

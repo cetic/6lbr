@@ -76,14 +76,27 @@
 #endif
 #define UIP_DS6_PREFIX_NB UIP_DS6_PREFIX_NBS + UIP_DS6_PREFIX_NBU
 
-/* Context Prefix list */
+
 #if CONF_6LOWPAN_ND
+
+/* Context Prefix list */
 #ifndef UIP_CONF_DS6_CONTEXT_PREF_NB
 #define UIP_DS6_CONTEXT_PREF_NB  1
 #else
 #define UIP_DS6_CONTEXT_PREF_NB UIP_CONF_DS6_CONTEXT_PREF_NB
 #endif
-#endif /* CONF_6LOWPAN_ND */
+
+/* Border router list */
+#if UIP_CONF_6LBR
+#define UIP_DS6_BR_NB  1
+#endif
+#ifndef UIP_CONF_DS6_BR_NB
+#define UIP_DS6_BR_NB  1
+#else
+#define UIP_DS6_BR_NB UIP_CONF_DS6_BR_NB
+#endif
+
+#endif /* UIP_CONF_6L_ROUTER */
 
 /* Unicast address list*/
 #define UIP_DS6_ADDR_NBS 1
@@ -145,16 +158,22 @@
 #define FREESPACE 1
 #define NOSPACE 2
 
-/** \brief Possible states for context prefix states */
 #if CONF_6LOWPAN_ND
+
+/** \brief Possible states for context prefix states */
 #define CONTEXT_PREF_ST_FREE 0
 #define CONTEXT_PREF_ST_COMPRESS 1
 #define CONTEXT_PREF_ST_UNCOMPRESSONLY 2
 #define CONTEXT_PREF_ST_SENDING 3
 #define CONTEXT_PREF_USE_COMPRESS(X) (X==CONTEXT_PREF_ST_COMPRESS || X==CONTEXT_PREF_ST_SENDING)
 #define CONTEXT_PREF_USE_UNCOMPRESS(X) (X!=CONTEXT_PREF_ST_FREE)
-#endif /* CONF_6LOWPAN_ND */
 
+/** \brief Possible states for context prefix states */
+#define BR_ST_FREE 0
+#define BR_ST_USED 1
+#define BR_ST_NEW_VERSION 2
+
+#endif /* CONF_6LOWPAN_ND */
 
 /** \brief Genereal timer delay */
 #if UIP_ND6_SEND_RA
@@ -228,6 +247,22 @@ typedef struct uip_ds6_context_pref {
 #endif /* CONF_6LOWPAN_ND */
 
 
+/** \brief A border router list entry */
+#if CONF_6LOWPAN_ND
+typedef struct uip_ds6_border_router {
+  uint8_t state;
+  uint32_t version;
+#if UIP_CONF_6L_ROUTER
+  uint8_t lifetime;        /* in 60sec */ 
+#endif /* UIP_CONF_6L_ROUTER */
+#if !UIP_CONF_6LBR
+  struct stimer timeout;
+#endif /* !UIP_CONF_6LBR */
+  uip_ipaddr_t ipaddr; 
+} uip_ds6_border_router_t;
+#endif /* CONF_6LOWPAN_ND */
+
+
 /** * \brief Unicast address structure */
 typedef struct uip_ds6_addr {
   uint8_t isused;
@@ -279,10 +314,6 @@ typedef struct uip_ds6_netif {
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
   uip_ds6_aaddr_t aaddr_list[UIP_DS6_AADDR_NB];
   uip_ds6_maddr_t maddr_list[UIP_DS6_MADDR_NB];
-#if UIP_CONF_6L_ROUTER
-  uint32_t abro_version;
-  uint8_t abro_lifetime;        /* in 60sec */
-#endif /* UIP_CONF_6L_ROUTER */
 } uip_ds6_netif_t;
 
 /** \brief Generic type for a DS6, to use a common loop though all DS */
@@ -300,6 +331,8 @@ extern struct etimer uip_ds6_timer_periodic;
 extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
 #if CONF_6LOWPAN_ND
 extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
+extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
+extern uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
 #if !UIP_CONF_ROUTER || UIP_CONF_6LR
@@ -355,9 +388,22 @@ uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t l
 void uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix);
 uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr);
 uip_ds6_context_pref_t *uip_ds6_context_pref_lookup_by_cid(uint8_t cid);
-#endif /* CONF_6LOWPAN_ND */
 
 /** @} */
+
+
+/** \name Border router list basic routines */
+/** @{ */
+uip_ds6_border_router_t *uip_ds6_br_add(uint32_t version, uint16_t lifetime, 
+                                        uip_ipaddr_t *ipaddr);
+void uip_ds6_br_rm(uip_ds6_border_router_t *br);
+uip_ds6_border_router_t *uip_ds6_br_lookup(uip_ipaddr_t *ipaddr);
+#if UIP_CONF_6LBR
+void uip_ds6_br_config();
+#endif /* UIP_CONF_6LBR */
+
+/** @} */
+#endif /* CONF_6LOWPAN_ND */
 
 /** \name Unicast address list basic routines */
 /** @{ */

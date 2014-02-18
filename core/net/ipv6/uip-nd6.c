@@ -131,7 +131,8 @@ static uip_ipaddr_t ipaddr;
 #endif
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #if CONF_6LOWPAN_ND
-static uip_ds6_context_pref_t *context_pref; /**  Pointer to a context prefix list entry */
+static uip_ds6_context_pref_t *context_pref;  /**  Pointer to a context prefix list entry */
+static uip_ds6_border_router_t *border_router;  /**  Pointer to a border router list entry */
 static uip_nd6_opt_6co *nd6_opt_context_prefix; /**  Pointer to context 6LoWPAN context option in uip_buf */
 static uip_nd6_opt_aro *nd6_opt_addr_register; /**  Pointer to context address register option in uip_buf */
 static uip_nd6_opt_abro *nd6_opt_auth_br; /**  Pointer to context authorisation border router option in uip_buf */
@@ -855,7 +856,6 @@ discard:
 }
 
 /*---------------------------------------------------------------------------*/
-void
 uip_nd6_ra_output(uip_ipaddr_t * dest)
 {
 #if UIP_CONF_6L_ROUTER
@@ -945,15 +945,11 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   /* Authoritative Border Router Option */
   UIP_ND6_OPT_ABRO_BUF->type = UIP_ND6_OPT_ABRO;
   UIP_ND6_OPT_ABRO_BUF->len = UIP_ND6_OPT_ABRO_LEN / 8;
-  UIP_ND6_OPT_ABRO_BUF->verlow = uip_htons(uip_ds6_if.abro_version & 0xffff);
-  UIP_ND6_OPT_ABRO_BUF->verhigh = uip_htons(uip_ds6_if.abro_version >> 16);
-  UIP_ND6_OPT_ABRO_BUF->lifetime = uip_htons(uip_ds6_if.abro_lifetime);
-  #if UIP_CONF_6LBR
-  uip_ds6_select_src(&UIP_ND6_OPT_ABRO_BUF->address, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
-  #else
-  //TODO
-  //uip_ipaddr_copy(&UIP_ND6_OPT_ABRO_BUF->address, ??);
-  #endif
+  UIP_ND6_OPT_ABRO_BUF->verlow = uip_htons(locbr->version & 0xffff);
+  UIP_ND6_OPT_ABRO_BUF->verhigh = uip_htons(locbr->version >> 16);
+  UIP_ND6_OPT_ABRO_BUF->lifetime = uip_htons(locbr->lifetime);
+  uip_ipaddr_copy(&UIP_ND6_OPT_ABRO_BUF->address, &locbr->ipaddr);
+
   nd6_opt_offset += UIP_ND6_OPT_ABRO_LEN;
   uip_len += UIP_ND6_OPT_ABRO_LEN;
   UIP_IP_BUF->len[1] += UIP_ND6_OPT_ABRO_LEN;
@@ -962,7 +958,8 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   for(context_pref = uip_ds6_context_pref_list;
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
-    if((context_pref->state != CONTEXT_PREF_ST_FREE)) {
+    //TODO: add condition link bewteen 6CO and ABRO (br)
+    if(CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
@@ -1070,10 +1067,54 @@ uip_nd6_ra_input(void)
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
      (!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) ||
      (UIP_ICMP_BUF->icode != 0)) {
-    PRINTF("RA received is bad");
+    PRINTF("RA received is bad\n");
     goto discard;
   }
 #endif /*UIP_CONF_IPV6_CHECKS */
+
+#if CONF_6LOWPAN_ND
+  /* Check ABRO is present and with which version*/
+  //TODO
+  int abro_version;
+  nd6_opt_auth_br = NULL;
+  nd6_opt_offset = UIP_ND6_RA_LEN;
+
+  while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+    if(UIP_ND6_OPT_HDR_BUF->len == 0) {
+      PRINTF("RA received is bad\n");
+      goto discard;
+    }
+    if(UIP_ND6_OPT_HDR_BUF->type == UIP_ND6_OPT_ABRO) {
+      nd6_opt_auth_br = (uip_nd6_opt_abro *) UIP_ND6_OPT_HDR_BUF;
+      break;
+    }
+    nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+  }
+
+  if(nd6_opt_auth_br == NULL) {
+    PRINTF("RA received without ABRO\n");
+    goto discard;
+  }
+
+  abro_version = nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16);
+  border_router = uip_ds6_br_lookup(&nd6_opt_auth_br->address);
+  if(border_router != NULL && abro_version < border_router->version) {
+    PRINTF("RA received with lower ABRO version\n");
+    goto discard;
+  }
+
+  if (border_router == NULL) {
+    /* New border router found */
+    border_router = uip_ds6_br_add(abro_version, nd6_opt_auth_br->lifetime, 
+                                   &nd6_opt_auth_br->address);
+  }
+
+  abro_version -= border_router->version;
+  if(abro_version > 0) {
+    /* New version, so remove all prefix and context */
+    //TODO
+  }
+#endif /* CONF_6LOWPAN_ND */
 
   if(UIP_ND6_RA_BUF->cur_ttl != 0) {
     uip_ds6_if.cur_hop_limit = UIP_ND6_RA_BUF->cur_ttl;
@@ -1094,10 +1135,12 @@ uip_nd6_ra_input(void)
   /* Options processing */
   nd6_opt_offset = UIP_ND6_RA_LEN;
   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+#if !CONF_6LOWPAN_ND
     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
-      PRINTF("RA received is bad");
+      PRINTF("RA received is bad\n");
       goto discard;
     }
+#endif /* !CONF_6LOWPAN_ND */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
       PRINTF("Processing SLLAO option in RA\n");
@@ -1251,12 +1294,14 @@ uip_nd6_ra_input(void)
                     nd6_opt_context_prefix->contlen,
                     nd6_opt_context_prefix->res_c_cid & (UIP_ND6_6CO_FLAG_C | UIP_ND6_6CO_FLAG_CID),
                     uip_ntohs(nd6_opt_context_prefix->lifetime), UIP_ND6_RA_BUF->router_lifetime);
+          //TODO: add in br
         }
       } else {
         /* Update entry already in table */
         if (nd6_opt_context_prefix->lifetime == 0) {
           /* context entry MUST be removed immediately */
           uip_ds6_context_pref_rm(context_pref);
+          //TODO: remove in br
         } else {
           /* update lifetime */
           if(nd6_opt_context_prefix->lifetime != 0) {
@@ -1269,6 +1314,28 @@ uip_nd6_ra_input(void)
           PRINTF("/%d \n", nd6_opt_context_prefix->len);
         }
       }
+      break;
+    case UIP_ND6_OPT_ABRO:
+    /* TODO remove
+      nd6_opt_auth_br = (uip_nd6_opt_abro *) UIP_ND6_OPT_HDR_BUF;
+      border_router = uip_ds6_br_lookup(&nd6_opt_auth_br->address);
+      if (border_router == NULL) {
+        border_router = uip_ds6_br_add(nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16),
+                                       nd6_opt_auth_br->lifetime, &nd6_opt_auth_br->address);
+      } else {
+      }
+    */
+      if (abro_version >= 0) {
+        /* Update timer */
+        stimer_set(&border_router->timeout, 
+          (nd6_opt_auth_br->lifetime == 0 ? 10000 : nd6_opt_auth_br->lifetime)*60);
+      }
+      if(abro_version > 0) {
+        /* Update information */
+        //TODO: update all info (PIO, Context prefix) if only version increase
+        border_router->version = nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16);
+        uip_ipaddr_copy(&border_router->ipaddr, &nd6_opt_auth_br->address);
+      } 
       break;
   #endif /* CONF_6LOWPAN_ND */
     default:
@@ -1322,6 +1389,16 @@ uip_nd6_ra_input(void)
   }
 
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
+
+#if UIP_CONF_6LR
+  if(abro_version > 0) {
+    /* propage new version to other router, host*/
+    /* TODO
+    http://tools.ietf.org/search/rfc6775#section-8.1.5
+    http://tools.ietf.org/html/rfc4861#section-6.2.2
+    */
+  }
+#endif /* UIP_CONF_6LR */
 
 discard:
   uip_len = 0;
