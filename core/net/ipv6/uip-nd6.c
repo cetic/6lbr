@@ -389,7 +389,6 @@ create_na:
        * ARO when ARO with status > 0 
        */
       if(aro_state != UIP_ND6_ARO_STATUS_SUCESS) {
-        PRINTF("--> aro error\n");
         uip_create_linklocal_prefix(&UIP_IP_BUF->destipaddr);
         uip_ds6_set_addr_iid(&UIP_IP_BUF->destipaddr, (uip_lladdr_t*)&nd6_opt_aro->eui64);
       }
@@ -970,7 +969,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
     //TODO: add condition link bewteen 6CO and ABRO (br)
-    if(CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
+    if(locbr == context_pref->br && CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
@@ -1085,7 +1084,6 @@ uip_nd6_ra_input(void)
 
 #if CONF_6LOWPAN_ND
   /* Check ABRO is present and with which version*/
-  //TODO
   int abro_version;
   nd6_opt_auth_br = NULL;
   nd6_opt_offset = UIP_ND6_RA_LEN;
@@ -1124,6 +1122,7 @@ uip_nd6_ra_input(void)
   if(abro_version > 0) {
     /* New version, so remove all prefix and context */
     //TODO
+    uip_ds6_context_pref_rm_all(border_router);
   }
 #endif /* CONF_6LOWPAN_ND */
 
@@ -1305,14 +1304,13 @@ uip_nd6_ra_input(void)
                     nd6_opt_context_prefix->contlen,
                     nd6_opt_context_prefix->res_c_cid & (UIP_ND6_6CO_FLAG_C | UIP_ND6_6CO_FLAG_CID),
                     uip_ntohs(nd6_opt_context_prefix->lifetime), UIP_ND6_RA_BUF->router_lifetime);
-          //TODO: add in br
+          context_pref->br = border_router;
         }
-      } else {
+      } else if(context_pref->br == border_router) {
         /* Update entry already in table */
         if (nd6_opt_context_prefix->lifetime == 0) {
           /* context entry MUST be removed immediately */
           uip_ds6_context_pref_rm(context_pref);
-          //TODO: remove in br
         } else {
           /* update lifetime */
           if(nd6_opt_context_prefix->lifetime != 0) {
@@ -1324,18 +1322,11 @@ uip_nd6_ra_input(void)
           PRINT6ADDR(&context_pref->ipaddr);
           PRINTF("/%d \n", nd6_opt_context_prefix->len);
         }
+      } else {
+        //TODO: what's the proccess to do ?
       }
       break;
     case UIP_ND6_OPT_ABRO:
-    /* TODO remove
-      nd6_opt_auth_br = (uip_nd6_opt_abro *) UIP_ND6_OPT_HDR_BUF;
-      border_router = uip_ds6_br_lookup(&nd6_opt_auth_br->address);
-      if (border_router == NULL) {
-        border_router = uip_ds6_br_add(nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16),
-                                       nd6_opt_auth_br->lifetime, &nd6_opt_auth_br->address);
-      } else {
-      }
-    */
       if (abro_version >= 0) {
         /* Update timer */
         stimer_set(&border_router->timeout, 

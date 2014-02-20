@@ -530,6 +530,22 @@ uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix)
 }
 
 /*---------------------------------------------------------------------------*/
+void 
+uip_ds6_context_pref_rm_all(uip_ds6_border_router_t *br)
+{
+  if(br == NULL) {
+    return;
+  }
+  for(loccontext = uip_ds6_context_pref_list; 
+      loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB; 
+      loccontext++) {
+    if(loccontext->state != CONTEXT_PREF_ST_FREE && loccontext->br == br) {
+      loccontext->state = CONTEXT_PREF_ST_FREE;
+    }
+  }
+}
+
+/*---------------------------------------------------------------------------*/
 uip_ds6_context_pref_t *
 uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr)
 {
@@ -586,8 +602,9 @@ uip_ds6_br_rm(uip_ds6_border_router_t *br)
 {
   if(br != NULL) {
     br->state = BR_ST_FREE;
+    //TODO more: rm link to context and pio
+    uip_ds6_context_pref_rm_all(br);
   }
-  //TODO more: rm link to context and pio
 }
 
 /*---------------------------------------------------------------------------*/
