@@ -119,7 +119,7 @@ set_context_prefix_address(uint16_t pref)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_context_pref_add(&ipaddr, 16, 2, -1);
 }
 
@@ -202,7 +202,7 @@ PROCESS_THREAD(change_prefix, ev, data)
 
   static uint16_t pref;
 
-  pref = 0xbbbb;
+  pref = PREFIX_INIT;
 
   etimer_set(&periodic_timer, CHANGING_INTERVAL);
   while(1) {
