@@ -462,6 +462,7 @@ print_context_pref(void)
 uip_ds6_context_pref_t *
 uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime)
 {
+  //TODO: conflit de cid entre 6LBR au niveau des 6LR
   uint8_t cid;
   cid = ((uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1) & UIP_ND6_6CO_FLAG_CID;
   uip_ds6_context_pref_list_index++;
@@ -475,13 +476,11 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime
   loccontext->length = length;
   loccontext->vlifetime = lifetime;
   loccontext->cid = (uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1;
-#if UIP_CONF_6LBR
   /* Increase version in border router */
   locbr = uip_ds6_br_lookup(NULL);
   if(locbr != NULL) {
     locbr->state = BR_ST_USED;
   }
-#endif /* UIP_CONF_6LBR */
   PRINTF("Adding context prefix ");
   PRINT6ADDR(&loccontext->ipaddr);
   PRINTF(" length %u, cid %x, lifetime %dmin\n",

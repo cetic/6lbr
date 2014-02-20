@@ -186,6 +186,12 @@ uip_nd6_ns_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
 
+#if UIP_CONF_6L_ROUTER
+  if(non_router()) {
+    goto discard;
+  }
+#endif
+
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
      (uip_is_addr_mcast(&UIP_ND6_NS_BUF->tgtipaddr)) ||
@@ -762,6 +768,11 @@ uip_nd6_rs_input(void)
   PRINTF(" \n");
   UIP_STAT(++uip_stat.nd6.recv);
 
+#if UIP_CONF_6L_ROUTER
+  if(non_router()) {
+    goto discard;
+  }
+#endif
 
 #if UIP_CONF_IPV6_CHECKS
   /*
@@ -888,11 +899,9 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 #if UIP_CONF_6LBR
   UIP_ND6_RA_BUF->flags_reserved |= 1 << 3;
 #else /* UIP_CONF_6LBR */
-  /* TODO: implement function "no_route_to_br"
-  if(no_route_to_br()) { 
+  if(uip_ds6_br_lookup(NULL) == NULL) { 
     UIP_ND6_RA_BUF->flags_reserved |= 3 << 3;
   }
-  */
 #endif /* UIP_CONF_6LBR */
 #endif /* UIP_CONF_6L_ROUTER */
 
@@ -907,6 +916,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 
 
   /* Prefix list */
+  //TODO: only prefix bound to br
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
     if((prefix->isused) && (prefix->advertise)) {
@@ -955,6 +965,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   UIP_IP_BUF->len[1] += UIP_ND6_OPT_ABRO_LEN;
 
   /* 6LoWPAN Context Option */
+  //TODO: only prefix bound to br
   for(context_pref = uip_ds6_context_pref_list;
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {

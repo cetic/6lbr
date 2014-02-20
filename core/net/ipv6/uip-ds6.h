@@ -484,4 +484,8 @@ uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachab
 /** @} */
 /** @} */
 
+#if UIP_CONF_6L_ROUTER
+#define non_router() (uip_ds6_get_global(ADDR_PREFERRED) == NULL)
+#endif
+
 #endif /* UIP_DS6_H_ */
