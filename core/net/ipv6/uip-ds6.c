@@ -339,7 +339,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     /* Increase version in border router */
     locbr = uip_ds6_br_lookup(NULL);
     if(locbr != NULL) {
-      locbr->state = BR_ST_USED;
+      locbr->state = BR_ST_NEW_VERSION;
     }
   #endif /* UIP_CONF_6LBR */
     PRINTF("Adding prefix ");
@@ -465,16 +465,16 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime
   if(cid_val <= 0xf) {
     cid = cid_val;
   } else {
-    cid = 0;
+    cid = -1;
     do {
       cid++;
       loccontext = &uip_ds6_context_pref_list[cid];
     } while(cid < UIP_DS6_CONTEXT_PREF_NB && loccontext->state != CONTEXT_PREF_ST_FREE);
-    cid = cid+1 == UIP_DS6_CONTEXT_PREF_NB ? (rand()%UIP_DS6_CONTEXT_PREF_NB) : cid;
+    cid = cid+1 == UIP_DS6_CONTEXT_PREF_NB ? (random_rand() % UIP_DS6_CONTEXT_PREF_NB) : cid;
   }
   /* install a new context */
   loccontext = &uip_ds6_context_pref_list[cid];
-  if(loccontext != CONTEXT_PREF_ST_FREE) {
+  if(loccontext->state != CONTEXT_PREF_ST_FREE) {
     PRINTF("Overwriting because Context Prefix is already in the list\n");
   }
   loccontext->state = CONTEXT_PREF_ST_COMPRESS;
@@ -485,7 +485,7 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime
   /* Increase version in border router */
   locbr = uip_ds6_br_lookup(NULL);
   if(locbr != NULL) {
-    locbr->state = BR_ST_USED;
+    locbr->state = BR_ST_NEW_VERSION;
   }
   PRINTF("Adding context prefix ");
   PRINT6ADDR(&loccontext->ipaddr);
