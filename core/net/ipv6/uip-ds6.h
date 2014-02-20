@@ -81,7 +81,7 @@
 
 /* Context Prefix list */
 #ifndef UIP_CONF_DS6_CONTEXT_PREF_NB
-#define UIP_DS6_CONTEXT_PREF_NB  1
+#define UIP_DS6_CONTEXT_PREF_NB  5 //TODO: default value 1 ?
 #else
 #define UIP_DS6_CONTEXT_PREF_NB UIP_CONF_DS6_CONTEXT_PREF_NB
 #endif
