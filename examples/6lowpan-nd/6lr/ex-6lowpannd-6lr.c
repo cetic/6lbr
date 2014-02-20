@@ -59,6 +59,25 @@ PROCESS(test_router, "Test process of 6LoWPAN ND router");
 AUTOSTART_PROCESSES(&test_router);
 
 /*---------------------------------------------------------------------------*/
+void
+display_add()
+{
+  int i;
+  uint8_t state;
+
+  printf("IPv6 addresses: ");
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      printf(" , ");
+    }
+  }
+  printf("\n");
+}
+
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
@@ -81,6 +100,7 @@ PROCESS_THREAD(test_router, ev, data)
 #endif
 */
 
+  display_add();
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
   if(server_conn == NULL) {

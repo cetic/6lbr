@@ -81,9 +81,10 @@ set_global_address(uint16_t pref)
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
       uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
-      printf("\n");
+      printf(" , ");
     }
   }
+  printf("\n");
 
   return &ipaddr;
 }

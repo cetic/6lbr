@@ -60,6 +60,24 @@ SHELL_COMMAND(udp_send_cmd,
 PROCESS(test_host, "Test process of 6LoWPAN ND host");
 AUTOSTART_PROCESSES(&test_host);
 
+void
+display_add()
+{
+  int i;
+  uint8_t state;
+
+  printf("IPv6 addresses: ");
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      printf(" , ");
+    }
+  }
+  printf("\n");
+}
+
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(uint8_t num)
@@ -115,6 +133,8 @@ PROCESS_THREAD(test_host, ev, data)
 
   //TODO: pq ca marche pas ?
   //shell_register_command(&udp_send_cmd);
+
+  display_add();
 
   client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
   if(client_conn == NULL) {
