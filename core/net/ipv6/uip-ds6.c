@@ -74,9 +74,6 @@ uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Pre
 #if CONF_6LOWPAN_ND
 uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];  /** \brief Prefix list */
 uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];  /** \brief Border router list */
-#if UIP_CONF_6LBR
-uint8_t uip_ds6_context_pref_list_index;
-#endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
@@ -116,9 +113,6 @@ uip_ds6_init(void)
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
 #if CONF_6LOWPAN_ND
   memset(uip_ds6_context_pref_list, 0, sizeof(uip_ds6_context_pref_list));
-#if UIP_CONF_6LBR
-  uip_ds6_context_pref_list_index = 0;
-#endif /* UIP_CONF_6LBR */
 #if UIP_CONF_6L_ROUTER
   memset(uip_ds6_br_list, 0, sizeof(uip_ds6_border_router_t));
 #endif /* UIP_CONF_6L_ROUTER */
@@ -459,23 +453,35 @@ print_context_pref(void)
 #endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LBR
+/*
+ * If 0xf > cid_val < 0 then search a free place to put context (may be overwriting)
+ */
 uip_ds6_context_pref_t *
-uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime)
+uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime, 
+                         uint8_t cid_val)
 {
-  //TODO: conflit de cid entre 6LBR au niveau des 6LR
   uint8_t cid;
-  cid = ((uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1) & UIP_ND6_6CO_FLAG_CID;
-  uip_ds6_context_pref_list_index++;
+  /* search a free space */
+  if(cid_val <= 0xf) {
+    cid = cid_val;
+  } else {
+    cid = 0;
+    do {
+      cid++;
+      loccontext = &uip_ds6_context_pref_list[cid];
+    } while(cid < UIP_DS6_CONTEXT_PREF_NB && loccontext->state != CONTEXT_PREF_ST_FREE);
+    cid = cid+1 == UIP_DS6_CONTEXT_PREF_NB ? (rand()%UIP_DS6_CONTEXT_PREF_NB) : cid;
+  }
   /* install a new context */
-  loccontext = &uip_ds6_context_pref_list[cid-1];
+  loccontext = &uip_ds6_context_pref_list[cid];
   if(loccontext != CONTEXT_PREF_ST_FREE) {
-    PRINTF("Crushing because Context Prefix is already in the list\n");
+    PRINTF("Overwriting because Context Prefix is already in the list\n");
   }
   loccontext->state = CONTEXT_PREF_ST_COMPRESS;
   uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
   loccontext->length = length;
   loccontext->vlifetime = lifetime;
-  loccontext->cid = (uip_ds6_context_pref_list_index % UIP_DS6_CONTEXT_PREF_NB)+1;
+  loccontext->cid = cid;
   /* Increase version in border router */
   locbr = uip_ds6_br_lookup(NULL);
   if(locbr != NULL) {
@@ -564,7 +570,7 @@ uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr)
 uip_ds6_context_pref_t *
 uip_ds6_context_pref_lookup_by_cid(uint8_t cid)
 {
-  loccontext = &uip_ds6_context_pref_list[cid-1];
+  loccontext = &uip_ds6_context_pref_list[cid];
   return loccontext->state == CONTEXT_PREF_ST_FREE ? NULL : loccontext;
 }
 

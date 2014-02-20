@@ -380,7 +380,7 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 /** @{ */
 #if UIP_CONF_6LBR
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, 
-                                                 uint16_t lifetime);
+                                                 uint16_t lifetime, uint8_t cid_val);
 #else /* UIP_CONF_6LBR */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                                  uint8_t c_cid, uint16_t lifetime,
