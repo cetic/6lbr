@@ -969,7 +969,8 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
     //TODO: add condition link bewteen 6CO and ABRO (br)
-    if(locbr == context_pref->br && CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
+    //-> locbr == context_pref->br &&
+    if(CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
@@ -1084,6 +1085,7 @@ uip_nd6_ra_input(void)
 
 #if CONF_6LOWPAN_ND
   /* Check ABRO is present and with which version*/
+  PRINTF("Checking ABRO option in RA\n");
   int abro_version;
   nd6_opt_auth_br = NULL;
   nd6_opt_offset = UIP_ND6_RA_LEN;
@@ -1121,7 +1123,7 @@ uip_nd6_ra_input(void)
   abro_version -= border_router->version;
   if(abro_version > 0) {
     /* New version, so remove all prefix and context */
-    //TODO
+    //TODO PIO
     uip_ds6_context_pref_rm_all(border_router);
   }
 #endif /* CONF_6LOWPAN_ND */
@@ -1294,6 +1296,7 @@ uip_nd6_ra_input(void)
       break;
   #if CONF_6LOWPAN_ND
     case UIP_ND6_OPT_6CO:
+      PRINTF("Processing 6CO option in RA\n");
       nd6_opt_context_prefix = (uip_nd6_opt_6co *) UIP_ND6_OPT_HDR_BUF;
       context_pref = uip_ds6_context_pref_lookup_by_cid(
               nd6_opt_context_prefix->res_c_cid & UIP_ND6_6CO_FLAG_CID);
@@ -1327,6 +1330,7 @@ uip_nd6_ra_input(void)
       }
       break;
     case UIP_ND6_OPT_ABRO:
+      PRINTF("Processing ABRO option in RA\n");
       if (abro_version >= 0) {
         /* Update timer */
         stimer_set(&border_router->timeout, 
@@ -1399,6 +1403,7 @@ uip_nd6_ra_input(void)
     http://tools.ietf.org/search/rfc6775#section-8.1.5
     http://tools.ietf.org/html/rfc4861#section-6.2.2
     */
+    uip_ds6_send_ra_periodic();
   }
 #endif /* UIP_CONF_6LR */
 
