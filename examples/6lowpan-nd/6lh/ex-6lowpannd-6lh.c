@@ -153,7 +153,7 @@ PROCESS_THREAD(test_host, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     etimer_reset(&periodic_timer);
     //SEND
-    send_packet(2);
+    //send_packet(2);
     etimer_set(&periodic_timer, SEND_INTERVAL);
   }
 

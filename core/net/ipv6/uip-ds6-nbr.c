@@ -237,8 +237,8 @@ uip_ds6_neighbor_periodic(void)
         PRINTF(")\n");
         uip_ds6_nbr_rm(nbr);
     #if !UIP_CONF_6LBR
-     } else if(stimer_remaining(&nbr->reachable) <= UIP_DS6_NS_MINLIFETIME_RETRAN) {
-        //TODO: send well before nb become inreachable
+      } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN, 
+                                      UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
         nbr->state = NBR_TENTATIVE;
     #endif /* !UIP_CONF_6LBR */

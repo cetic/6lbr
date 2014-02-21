@@ -60,7 +60,7 @@
 /*---------------------------------------------------------------------------*/
 PROCESS(test_router, "Test process of 6LoWPAN ND router");
 PROCESS(change_prefix, "Test process of changing prefix");
-AUTOSTART_PROCESSES(&test_router, &change_prefix);
+AUTOSTART_PROCESSES(&test_router);//, &change_prefix);
 
 
 /*---------------------------------------------------------------------------*/
@@ -120,7 +120,7 @@ set_context_prefix_address(uint16_t pref)
   static uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_context_pref_add(&ipaddr, 16, 2, -1);
+  uip_ds6_context_pref_add(&ipaddr, 16, 30, -1);
 }
 
 /*---------------------------------------------------------------------------*/

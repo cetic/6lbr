@@ -108,8 +108,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>21.986945711525472</x>
-        <y>90.43008622889566</y>
+        <x>24.57368106472331</x>
+        <y>93.63732872459359</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -117,6 +117,20 @@
         <id>2</id>
       </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>28.16524036365975</x>
+        <y>140.7051514183161</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>3</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -135,7 +149,7 @@
       <coloring />
     </plugin_config>
     <width>919</width>
-    <z>2</z>
+    <z>3</z>
     <height>240</height>
     <location_x>400</location_x>
     <location_y>160</location_y>
@@ -145,6 +159,7 @@
     <plugin_config>
       <mote>0</mote>
       <mote>1</mote>
+      <mote>2</mote>
       <showRadioRXTX />
       <showRadioHW />
       <showLEDs />
@@ -176,10 +191,10 @@
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>6.3183411255463655 0.0 0.0 6.3183411255463655 -4.921023314286688 -299.3681328067355</viewport>
+      <viewport>3.47082132865459 0.0 0.0 3.47082132865459 93.24348301912659 -157.36244059426517</viewport>
     </plugin_config>
     <width>400</width>
-    <z>0</z>
+    <z>2</z>
     <height>400</height>
     <location_x>0</location_x>
     <location_y>1</location_y>
@@ -194,7 +209,7 @@
       <analyzers name="6lowpan" />
     </plugin_config>
     <width>865</width>
-    <z>3</z>
+    <z>0</z>
     <height>438</height>
     <location_x>1</location_x>
     <location_y>402</location_y>

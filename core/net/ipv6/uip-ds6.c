@@ -144,7 +144,7 @@ uip_ds6_init(void)
   uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
   uip_ds6_maddr_add(&loc_fipaddr);
 #if UIP_ND6_SEND_RA
-  stimer_set(&uip_ds6_timer_ra, UIP_DS6_RA_FREQUENCY);     /* wait to have a link local IP address */
+  stimer_set(&uip_ds6_timer_ra, UIP_DS6_RA_FREQUENCY * 60);     /* wait to have a link local IP address */
 #endif /* UIP_ND6_SEND_RA */
 #if UIP_CONF_6LR
   etimer_set(&uip_ds6_timer_rs,
@@ -201,6 +201,7 @@ uip_ds6_periodic(void)
     }
     }*/
 
+#if CONF_6LOWPAN_ND
     /* Periodic processing on border router */
 #if UIP_CONF_6LBR
   for(locbr = uip_ds6_br_list;
@@ -242,8 +243,9 @@ uip_ds6_periodic(void)
             loccontext->state = CONTEXT_PREF_ST_UNCOMPRESSONLY;
             stimer_set(&loccontext->lifetime, 2*loccontext->router_lifetime);
           }
-        } else if(stimer_remaining(&loccontext->lifetime) < UIP_DS6_RS_MINLIFETIME_RETRAN && 
-                  loccontext->state == CONTEXT_PREF_ST_COMPRESS) {
+        } else if(is_timeout_percent(&loccontext->lifetime, UIP_DS6_RS_PERCENT_LIFETIME_RETRAN, 
+                                      UIP_DS6_RS_MINLIFETIME_RETRAN) 
+                  && loccontext->state == CONTEXT_PREF_ST_COMPRESS) {
           flag_rs_ra |= 0x1;
           loccontext->state = CONTEXT_PREF_ST_SENDING;
         }
@@ -256,6 +258,7 @@ uip_ds6_periodic(void)
     uip_ds6_send_unicast_rs(); 
   }
 #endif /* !UIP_CONF_6LBR */
+#endif /* CONF_6LOWPAN_ND */
 
 //TODO: macro to activate in case of 6LR
 #if !UIP_CONF_ROUTER

@@ -178,7 +178,7 @@
 /** \brief Genereal timer delay */
 #if UIP_ND6_SEND_RA
 #ifndef UIP_CONF_DS6_RA_FREQUENCY
-#define UIP_DS6_RA_FREQUENCY 2
+#define UIP_DS6_RA_FREQUENCY 2 /* in min */
 #else
 #define UIP_DS6_RA_FREQUENCY UIP_CONF_DS6_RA_FREQUENCY
 #endif
@@ -188,6 +188,11 @@
 #else
 #define UIP_DS6_RS_MINLIFETIME_RETRAN UIP_CONF_DS6_RS_MINLIFETIME_RETRAN
 #endif
+#ifndef UIP_CONF_DS6_RS_PERCENT_LIFETIME_RETRAN
+#define UIP_DS6_RS_PERCENT_LIFETIME_RETRAN 10 //TODO: default value ?
+#else
+#define UIP_DS6_RS_PERCENT_LIFETIME_RETRAN UIP_CONF_DS6_RS_PERCENT_LIFETIME_RETRAN
+#endif
 #endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_ND6_SEND_RA */ 
 #if CONF_6LOWPAN_ND
@@ -196,7 +201,17 @@
 #else
 #define UIP_DS6_NS_MINLIFETIME_RETRAN UIP_CONF_DS6_NS_MINLIFETIME_RETRAN
 #endif
+#ifndef UIP_CONF_DS6_NS_PERCENT_LIFETIME_RETRAN
+#define UIP_DS6_NS_PERCENT_LIFETIME_RETRAN 10 //TODO: default value ?
+#else
+#define UIP_DS6_NS_PERCENT_LIFETIME_RETRAN UIP_CONF_DS6_RS_PERCENT_LIFETIME_RETRAN
+#endif
 #endif /* CONF_6LOWPAN_ND */
+
+#define is_timeout_percent(timer, per, bound) ( \
+    (100-per) * stimer_remaining(timer) < per * stimer_elapsed(timer) || \
+    stimer_remaining(timer) < bound) 
+
 /*--------------------------------------------------*/
 
 #if UIP_CONF_IPV6_QUEUE_PKT
