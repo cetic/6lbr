@@ -190,7 +190,7 @@ uip_nd6_ns_input(void)
   if(non_router()) {
     goto discard;
   }
-#endif
+#endif /* UIP_CONF_6L_ROUTER */
 
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
@@ -282,6 +282,12 @@ uip_nd6_ns_input(void)
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
 
+#if CONF_6LOWPAN_ND
+  if(nd6_opt_llao == NULL) {
+    nd6_opt_aro = NULL;
+  }
+#endif /* CONF_6LOWPAN_ND */
+
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
 #if UIP_ND6_DEF_MAXDADNS > 0
@@ -297,7 +303,7 @@ uip_nd6_ns_input(void)
         uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
         uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
         flags = UIP_ND6_NA_FLAG_OVERRIDE;
-    #if 0//TODO UIP_CONF_6L_ROUTER
+    #if UIP_CONF_6L_ROUTER
         //TODO: cache entity
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_REACHABLE);
