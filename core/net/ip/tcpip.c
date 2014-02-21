@@ -659,6 +659,7 @@ tcpip_ipv6_output(void)
       return;
     }
 #else /* CONF_6LOWPAN_ND */
+    //TODO activate this for 6LR - RFC6775 section 6.5.5.
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {

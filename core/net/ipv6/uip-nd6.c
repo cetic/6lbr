@@ -234,12 +234,11 @@ uip_nd6_ns_input(void)
             stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
             aro_state = UIP_ND6_ARO_STATUS_SUCESS;
           } else {
-            //TODO: never reach because RA before 
             aro_state = UIP_ND6_ARO_STATUS_CACHE_FULL;
           }
         } else {
           //TODO Duplication?
-          //TODO
+          //TODO make distinction between NS for NUD or a new NS
         }
     #else /* UIP_CONF_6L_ROUTER */
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
@@ -304,7 +303,7 @@ uip_nd6_ns_input(void)
         uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
         flags = UIP_ND6_NA_FLAG_OVERRIDE;
     #if UIP_CONF_6L_ROUTER
-        //TODO: cache entity
+        //TODO: test with multicat NS bewteen routers
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_REACHABLE);
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
@@ -656,7 +655,7 @@ uip_nd6_na_input(void)
               //TODO: send RS ?
               break;
             case UIP_ND6_ARO_STATUS_CACHE_FULL:
-              //TODO: right ? ->test
+              //TODO: test
               /* TODO: RFC 6775 section 5.5.3
                 A Status code of two indicates that the Neighbor Cache of that router
                 is full.  In this case, the host SHOULD remove this router from its
@@ -672,8 +671,6 @@ uip_nd6_na_input(void)
               /* register with another router */
               if(uip_ds6_defrt_choose() == NULL) {
                 uip_ds6_addr_rm(addr);
-                /*TODO: activate this line, need send rs in 6LR and new management 
-                        of prefix structure between 6LR et 6LBR*/
                 uip_ds6_send_rs();
               }
               break;
@@ -974,11 +971,9 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   UIP_IP_BUF->len[1] += UIP_ND6_OPT_ABRO_LEN;
 
   /* 6LoWPAN Context Option */
-  //TODO: only prefix bound to br
   for(context_pref = uip_ds6_context_pref_list;
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
-    //TODO: add condition link bewteen 6CO and ABRO (br)
     if(locbr == context_pref->br && CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
@@ -1342,8 +1337,6 @@ uip_nd6_ra_input(void)
           PRINT6ADDR(&context_pref->ipaddr);
           PRINTF("/%d \n", nd6_opt_context_prefix->len);
         }
-      } else {
-        //TODO: what's the proccess to do ?
       }
       break;
     case UIP_ND6_OPT_ABRO:

@@ -991,7 +991,6 @@ uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest)
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
       locbr++) {
-    //TODO: send with rand time ?
     uip_nd6_ra_output(dest);
     tcpip_ipv6_output();
   }
