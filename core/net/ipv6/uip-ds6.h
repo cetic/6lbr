@@ -177,11 +177,6 @@
 
 /** \brief Genereal timer delay */
 #if UIP_ND6_SEND_RA
-#ifndef UIP_CONF_DS6_RA_FREQUENCY
-#define UIP_DS6_RA_FREQUENCY 2 /* in min */
-#else
-#define UIP_DS6_RA_FREQUENCY UIP_CONF_DS6_RA_FREQUENCY
-#endif
 #if CONF_6LOWPAN_ND
 #ifndef UIP_CONF_DS6_RS_MINLIFETIME_RETRAN
 #define UIP_DS6_RS_MINLIFETIME_RETRAN 60 //TODO: default value 60sec ?

@@ -144,7 +144,9 @@ uip_ds6_init(void)
   uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
   uip_ds6_maddr_add(&loc_fipaddr);
 #if UIP_ND6_SEND_RA
-  stimer_set(&uip_ds6_timer_ra, UIP_DS6_RA_FREQUENCY * 60);     /* wait to have a link local IP address */
+#if !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC
+  stimer_set(&uip_ds6_timer_ra, 2);     /* wait to have a link local IP address */
+#endif /* #if !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC */
 #endif /* UIP_ND6_SEND_RA */
 #if UIP_CONF_6LR
   etimer_set(&uip_ds6_timer_rs,
@@ -212,7 +214,7 @@ uip_ds6_periodic(void)
       locbr->version++;
       locbr->state = BR_ST_USED;
       //TODO no periodic ?
-      uip_ds6_send_ra_periodic();
+      //uip_ds6_send_ra_periodic();
     }
   }
 #else /* UIP_CONF_6LBR */
@@ -644,7 +646,7 @@ uip_ds6_br_config()
       loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB; 
       loccontext++) {
     if(loccontext->state != CONTEXT_PREF_ST_FREE) {
-      loccontext->br == locbr;
+      loccontext->br = locbr;
     }
   }
 }

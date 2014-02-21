@@ -969,8 +969,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
     //TODO: add condition link bewteen 6CO and ABRO (br)
-    //-> locbr == context_pref->br &&
-    if(CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
+    if(locbr == context_pref->br && CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
@@ -1407,7 +1406,7 @@ uip_nd6_ra_input(void)
     http://tools.ietf.org/search/rfc6775#section-8.1.5
     http://tools.ietf.org/html/rfc4861#section-6.2.2
     */
-    uip_ds6_send_ra_periodic();
+    //uip_ds6_send_ra_periodic();
   }
 #endif /* UIP_CONF_6LR */
 

@@ -51,7 +51,7 @@
 #define UDP_SERVER_PORT 5678
 
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
-#define CHANGING_INTERVAL (1 * 60 * CLOCK_SECOND)
+#define CHANGING_INTERVAL (10 * 60 * CLOCK_SECOND)
 
 #define PREFIX_INIT 0xbbbb
 
@@ -60,7 +60,7 @@
 /*---------------------------------------------------------------------------*/
 PROCESS(test_router, "Test process of 6LoWPAN ND router");
 PROCESS(change_prefix, "Test process of changing prefix");
-AUTOSTART_PROCESSES(&test_router);//, &change_prefix);
+AUTOSTART_PROCESSES(&test_router, &change_prefix);
 
 
 /*---------------------------------------------------------------------------*/
