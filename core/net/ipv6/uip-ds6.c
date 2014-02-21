@@ -145,6 +145,7 @@ uip_ds6_init(void)
   uip_ds6_maddr_add(&loc_fipaddr);
 #if UIP_ND6_SEND_RA
 #if !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC
+  PRINTF("Will Sending periodic RA\n");
   stimer_set(&uip_ds6_timer_ra, 2);     /* wait to have a link local IP address */
 #endif /* #if !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC */
 #endif /* UIP_ND6_SEND_RA */
@@ -264,6 +265,7 @@ uip_ds6_periodic(void)
 
 //TODO: macro to activate in case of 6LR
 #if !UIP_CONF_ROUTER
+
   /* Periodic processing on prefixes */
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
@@ -278,10 +280,12 @@ uip_ds6_periodic(void)
   uip_ds6_neighbor_periodic();
 
 #if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
+#if !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
     uip_ds6_send_ra_periodic();
   }
+#endif /* !CONF_6LOWPAN_ND || UIP_ND6_RA_PERIODIC */
 #endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
   etimer_reset(&uip_ds6_timer_periodic);
   return;

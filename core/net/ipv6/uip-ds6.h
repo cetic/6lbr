@@ -96,7 +96,7 @@
 #define UIP_DS6_BR_NB UIP_CONF_DS6_BR_NB
 #endif
 
-#endif /* UIP_CONF_6L_ROUTER */
+#endif /* CONF_6LOWPAN_ND */
 
 /* Unicast address list*/
 #define UIP_DS6_ADDR_NBS 1

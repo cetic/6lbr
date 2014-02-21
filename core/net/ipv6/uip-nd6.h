@@ -83,6 +83,11 @@
 #else
 #define UIP_ND6_SEND_RA UIP_CONF_ND6_SEND_RA
 #endif
+#ifndef UIP_CONF_ND6_RA_PERIODIC
+#define UIP_ND6_RA_PERIODIC                     1   /* enable/disable RA periodic sending */
+#else
+#define UIP_ND6_RA_PERIODIC UIP_CONF_ND6_RA_PERIODIC
+#endif
 #ifndef UIP_CONF_ND6_SEND_NA
 #define UIP_ND6_SEND_NA                     1   /* enable/disable NA sending */
 #else
