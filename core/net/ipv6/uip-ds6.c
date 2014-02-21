@@ -509,10 +509,13 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
     uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
     loccontext->length = length;
     loccontext->cid = c_cid & UIP_ND6_6CO_FLAG_CID;
+    loccontext->router_lifetime = router_lifetime;
     if(lifetime != 0) {
       stimer_set(&(loccontext->lifetime), lifetime * 60);
     }
-    loccontext->router_lifetime = router_lifetime;
+    if(loccontext->state == CONTEXT_PREF_ST_UNCOMPRESSONLY) {
+      stimer_set(&loccontext->lifetime, 2*loccontext->router_lifetime);
+    }
     PRINTF("Adding context prefix ");
     PRINT6ADDR(&loccontext->ipaddr);
     PRINTF(" length %u, c %x, cid %x, lifetime %dmin\n",
