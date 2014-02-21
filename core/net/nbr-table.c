@@ -172,10 +172,6 @@ nbr_table_allocate(void)
             * (2) used by fewest tables
             * (3) oldest (the list is ordered by insertion time)
             * */
-#if CONF_6LOWPAN_ND
-    //TODO: it's right ?
-    return NULL;
-#else /* CONF_6LOWPAN_ND */
     /* Get item from first key */
     key = list_head(nbr_table_keys);
     while(key != NULL) {
@@ -225,7 +221,6 @@ nbr_table_allocate(void)
       /* Return associated key */
       return least_used_key;
     }
-#endif /* CONF_6LOWPAN_ND */
   }
 }
 /*---------------------------------------------------------------------------*/

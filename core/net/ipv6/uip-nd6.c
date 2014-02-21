@@ -227,6 +227,9 @@ uip_nd6_ns_input(void)
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
                         0, NBR_REGISTERED);
+          if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+            nbr->state = NBR_GARBAGE_COLLECTIBLE;
+          }
           if(nbr != NULL) {
             stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
             aro_state = UIP_ND6_ARO_STATUS_SUCESS;
@@ -636,6 +639,7 @@ uip_nd6_na_input(void)
             switch(nd6_opt_aro->status) {
             case UIP_ND6_ARO_STATUS_SUCESS:
               nbr->state = NBR_REGISTERED;
+              nbr_table_lock(ds6_neighbors, nbr);
               nbr->nscount = 0;
               addr->state = ADDR_PREFERRED;
               stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
@@ -1165,7 +1169,11 @@ uip_nd6_ra_input(void)
       if(nbr == NULL) {
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-            1, NBR_TENTATIVE);
+        #if UIP_CONF_6L_ROUTER
+                              1, NBR_GARBAGE_COLLECTIBLE);
+        #else /* UIP_CONF_6L_ROUTER */
+                              1, NBR_TENTATIVE);
+        #endif /* UIP_CONF_6L_ROUTER */
       } else {
         //TODO: refresh timer in nbr, or rm entry
       }

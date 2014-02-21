@@ -86,6 +86,11 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
     nbr->isrouter = isrouter;
     nbr->state = state;
+  #if CONF_6LOWPAN_ND
+    if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
+      nbr_table_lock(ds6_neighbors, nbr);
+    }
+  #endif /* CONF_6LOWPAN_ND */
   #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
   #endif /* UIP_CONF_IPV6_QUEUE_PKT */
@@ -114,6 +119,11 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
+#if CONF_6LOWPAN_ND
+  if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
+    nbr_table_unlock(ds6_neighbors, nbr);
+  }
+#endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
 #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_free(&nbr->packethandle);
@@ -228,6 +238,12 @@ uip_ds6_neighbor_periodic(void)
 #if CONF_6LOWPAN_ND
     case NBR_GARBAGE_COLLECTIBLE:
       //TODO
+      if(stimer_expired(&nbr->reachable)) {
+        PRINTF("GARBAGE_COLLECTIBLE: remove entry (");
+        PRINT6ADDR(&nbr->ipaddr);
+        PRINTF(")\n");
+        uip_ds6_nbr_rm(nbr);
+      }
       break;
     case NBR_REGISTERED:
       //TODO
