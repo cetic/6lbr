@@ -203,6 +203,23 @@
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
+
+/** \brief A border router list entry */
+#if CONF_6LOWPAN_ND
+typedef struct uip_ds6_border_router {
+  uint8_t state;
+  uint32_t version;
+#if UIP_CONF_6L_ROUTER
+  uint8_t lifetime;        /* in 60sec */ 
+#endif /* UIP_CONF_6L_ROUTER */
+#if !UIP_CONF_6LBR
+  struct stimer timeout;
+#endif /* !UIP_CONF_6LBR */
+  uip_ipaddr_t ipaddr; 
+} uip_ds6_border_router_t;
+#endif /* CONF_6LOWPAN_ND */
+
+
 /** \brief A prefix list entry */
 #if UIP_CONF_ROUTER
 typedef struct uip_ds6_prefix {
@@ -242,25 +259,9 @@ typedef struct uip_ds6_context_pref {
   struct stimer lifetime;
   uint16_t router_lifetime;
 #endif /* UIP_CONF_6LBR */
+  uip_ds6_border_router_t* br;
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
-
-
-/** \brief A border router list entry */
-#if CONF_6LOWPAN_ND
-typedef struct uip_ds6_border_router {
-  uint8_t state;
-  uint32_t version;
-#if UIP_CONF_6L_ROUTER
-  uint8_t lifetime;        /* in 60sec */ 
-#endif /* UIP_CONF_6L_ROUTER */
-#if !UIP_CONF_6LBR
-  struct stimer timeout;
-#endif /* !UIP_CONF_6LBR */
-  uip_ipaddr_t ipaddr; 
-} uip_ds6_border_router_t;
-#endif /* CONF_6LOWPAN_ND */
-
 
 /** * \brief Unicast address structure */
 typedef struct uip_ds6_addr {
@@ -385,6 +386,7 @@ uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t l
                                                  uint16_t router_lifetime);
 #endif /* UIP_CONF_6LBR */
 void uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix);
+void uip_ds6_context_pref_rm_all(uip_ds6_border_router_t *br);
 uip_ds6_context_pref_t *uip_ds6_context_pref_lookup(uip_ipaddr_t *ipaddr);
 uip_ds6_context_pref_t *uip_ds6_context_pref_lookup_by_cid(uint8_t cid);
 

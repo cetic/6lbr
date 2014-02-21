@@ -210,7 +210,8 @@ uip_ds6_periodic(void)
       /* New version so send a RA to all router */
       locbr->version++;
       locbr->state = BR_ST_USED;
-      //TODO: determine unicast or broadcast RA and do it
+      //TODO no periodic ?
+      uip_ds6_send_ra_periodic();
     }
   }
 #else /* UIP_CONF_6LBR */
@@ -497,7 +498,7 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                          uint8_t c_cid, uint16_t lifetime, 
                          uint16_t router_lifetime)
 {
-  loccontext = &uip_ds6_context_pref_list[(c_cid & UIP_ND6_6CO_FLAG_CID)-1];
+  loccontext = &uip_ds6_context_pref_list[(c_cid & UIP_ND6_6CO_FLAG_CID)];
   if(loccontext->state == CONTEXT_PREF_ST_FREE) {
     loccontext->state = c_cid & UIP_ND6_6CO_FLAG_C ? CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_UNCOMPRESSONLY;
     uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
@@ -527,6 +528,22 @@ uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix)
     prefix->state = CONTEXT_PREF_ST_FREE;
   }
   return;
+}
+
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_context_pref_rm_all(uip_ds6_border_router_t *br)
+{
+  if(br == NULL) {
+    return;
+  }
+  for(loccontext = uip_ds6_context_pref_list; 
+      loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB; 
+      loccontext++) {
+    if(loccontext->state != CONTEXT_PREF_ST_FREE && loccontext->br == br) {
+      loccontext->state = CONTEXT_PREF_ST_FREE;
+    }
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -586,8 +603,9 @@ uip_ds6_br_rm(uip_ds6_border_router_t *br)
 {
   if(br != NULL) {
     br->state = BR_ST_FREE;
+    //TODO more: rm link to context and pio
+    uip_ds6_context_pref_rm_all(br);
   }
-  //TODO more: rm link to context and pio
 }
 
 /*---------------------------------------------------------------------------*/
@@ -617,7 +635,15 @@ uip_ds6_br_config()
   //TODO: increment this value when prefix or context information changes
   //TODO: remplace 0x0 by a MACRO
   /* default value of 10,000 ( ~one week) */
-  uip_ds6_br_add(0, 0x0, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
+  locbr = uip_ds6_br_add(0, 0x0, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
+  /* link all context to border router */
+  for(loccontext = uip_ds6_context_pref_list; 
+      loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB; 
+      loccontext++) {
+    if(loccontext->state != CONTEXT_PREF_ST_FREE) {
+      loccontext->br == locbr;
+    }
+  }
 }
 #endif /* UIP_CONF_6LBR */
 /*---------------------------------------------------------------------------*/
@@ -966,7 +992,15 @@ uip_ds6_send_ra_periodic(void)
 {
   if(racount > 0) {
     /* send previously scheduled RA */
+#if CONF_6LOWPAN_ND
+    for(locbr = uip_ds6_br_list;
+        locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
+        locbr++) {
+      uip_nd6_ra_output(NULL);
+    }
+#else
     uip_nd6_ra_output(NULL);
+#endif /* CONF_6LOWPAN_ND */
     PRINTF("Sending periodic RA\n");
   }
 

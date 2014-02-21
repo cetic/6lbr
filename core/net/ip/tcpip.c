@@ -651,7 +651,7 @@ tcpip_ipv6_output(void)
 #if CONF_6LOWPAN_ND
     //TODO: profil of 6LR and 6LBR
     if(nbr == NULL) {
-      PRINTF("tcpip_ipv6_output: Impossible to find nexthop in nbr");
+      PRINTF("tcpip_ipv6_output: Impossible to find nexthop in nbr\n");
       return;
     } else {
       tcpip_output(uip_ds6_nbr_get_ll(nbr));

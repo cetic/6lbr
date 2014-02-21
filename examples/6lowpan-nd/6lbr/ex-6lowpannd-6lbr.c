@@ -51,22 +51,27 @@
 #define UDP_SERVER_PORT 5678
 
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
+#define CHANGING_INTERVAL (1 * 60 * CLOCK_SECOND)
+
+#define PREFIX_INIT 0xbbbb
 
  static struct uip_udp_conn *server_conn;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_router, "Test process of 6LoWPAN ND router");
-AUTOSTART_PROCESSES(&test_router);
+PROCESS(change_prefix, "Test process of changing prefix");
+AUTOSTART_PROCESSES(&test_router, &change_prefix);
+
 
 /*---------------------------------------------------------------------------*/
 static uip_ipaddr_t *
-set_global_address(void)
+set_global_address(uint16_t pref)
 {
   static uip_ipaddr_t ipaddr;
   int i;
   uint8_t state;
 
-  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
@@ -76,37 +81,68 @@ set_global_address(void)
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
       uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
-      printf("\n");
+      printf(" , ");
     }
   }
+  printf("\n");
 
   return &ipaddr;
 }
+
 /*---------------------------------------------------------------------------*/
 void
-set_prefix_address(void)
+rm_global_address(uint16_t pref)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+
+  uip_ds6_addr_rm(uip_ds6_addr_lookup(&ipaddr));
+}
+
+/*---------------------------------------------------------------------------*/
+void
+set_prefix_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_prefix_add(&ipaddr, 64, 1, 0xc0, 86400, 14400);
 
 }
+
 /*---------------------------------------------------------------------------*/
 void
-set_context_prefix_address(void)
+set_context_prefix_address(uint16_t pref)
 {
   static uip_ipaddr_t ipaddr;
 
-  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_context_pref_add(&ipaddr, 16, 2, -1);
 }
+
+/*---------------------------------------------------------------------------*/
+void
+rm_context_prefix_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+  uip_ds6_context_pref_t *context;
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+
+  context = uip_ds6_context_pref_lookup(&ipaddr);
+  uip_ds6_context_pref_rm(context);
+}
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
   static struct etimer periodic_timer;
   char *appdata;
+  static uint16_t pref = PREFIX_INIT;
 
 	PROCESS_BEGIN();
  
@@ -124,11 +160,10 @@ PROCESS_THREAD(test_router, ev, data)
 #endif
 */
 
-  ipaddr = set_global_address();
-  set_prefix_address();
-  set_context_prefix_address();
+  ipaddr = set_global_address(pref);
+  set_prefix_address(pref);
+  set_context_prefix_address(pref);
   uip_ds6_br_config();
-
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
   if(server_conn == NULL) {
@@ -157,5 +192,32 @@ PROCESS_THREAD(test_router, ev, data)
 
 
   PROCESS_END();
-  printf("END PROCESS :() \n");
+}
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(change_prefix, ev, data)
+{
+  static struct etimer periodic_timer;
+  PROCESS_BEGIN();
+
+  static uint16_t pref;
+
+  pref = PREFIX_INIT;
+
+  etimer_set(&periodic_timer, CHANGING_INTERVAL);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    //CHANGING
+    printf("---- CHANGING VERSION -----");
+    rm_global_address(pref);
+    rm_context_prefix_address(pref);
+    pref += 0x1111;
+    printf("--> %x\n", pref);
+    set_global_address(pref);
+    set_context_prefix_address(pref);
+    etimer_set(&periodic_timer, CHANGING_INTERVAL);
+  }
+
+  PROCESS_END();
 }
