@@ -978,7 +978,11 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_6CO_BUF->res_c_cid = context_pref->cid | 
                 (CONTEXT_PREF_USE_COMPRESS(context_pref->state)? UIP_ND6_6CO_FLAG_C : 0);
       UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
+  #if UIP_CONF_6LBR
       UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->vlifetime);
+  #else /* UIP_CONF_6LBR */
+      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(stimer_remaining(&context_pref->lifetime)/60);
+  #endif /* UIP_CONF_6LBR */
       uip_ipaddr_copy(&(UIP_ND6_OPT_6CO_BUF->prefix), &(context_pref->ipaddr));
       nd6_opt_offset += len * 8;
       uip_len += len * 8;

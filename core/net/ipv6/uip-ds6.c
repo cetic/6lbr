@@ -430,24 +430,21 @@ print_context_pref(void)
 {
   int i;
   PRINTF("------ CONTEXT TABLE ------\n");
-  PRINTF("prefix  | st | cid");
-  #if UIP_CONF_ROUTER
-  PRINTF("| lifetime (min)\n");
-  #else
-  PRINTF("\n");
-  #endif
+  PRINTF("prefix  | st | cid | lifetime (min)\n");
   for(i = 0; i< UIP_DS6_CONTEXT_PREF_NB; i++) {
     loccontext = &uip_ds6_context_pref_list[i];
     PRINT6ADDR(&loccontext->ipaddr);
-  #if UIP_CONF_ROUTER
-    PRINTF("/%u | %x | %x | %d\n",
-       loccontext->length, loccontext->state, 
-       loccontext->cid, loccontext->vlifetime);
-  #else
-    PRINTF("/%u | %x | %x\n",
-       loccontext->length, loccontext->state, 
-       loccontext->cid);
-  #endif
+    if(loccontext->state != CONTEXT_PREF_ST_FREE) {
+    #if UIP_CONF_6LBR
+      PRINTF("/%u | %x | %x | %d\n",
+         loccontext->length, loccontext->state, 
+         loccontext->cid, loccontext->vlifetime);
+    #else
+      PRINTF("/%u | %x | %x | %d\n",
+         loccontext->length, loccontext->state, 
+         loccontext->cid, stimer_remaining(&loccontext->lifetime)/60);
+    #endif
+    }
   }
 }
 #endif /* DEBUG */
@@ -509,9 +506,6 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
     if(lifetime != 0) {
       stimer_set(&(loccontext->lifetime), lifetime * 60);
     }
-  #if UIP_CONF_6L_ROUTER
-    loccontext->vlifetime = lifetime;
-  #endif /* UIP_CONF_6L_ROUTER */
     loccontext->router_lifetime = router_lifetime;
     PRINTF("Adding context prefix ");
     PRINT6ADDR(&loccontext->ipaddr);

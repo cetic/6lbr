@@ -236,13 +236,12 @@ typedef struct uip_ds6_context_pref {
   uip_ipaddr_t ipaddr;
   uint8_t length;
   uint8_t cid;
-#if UIP_CONF_ROUTER
+#if UIP_CONF_6LBR
   uint16_t vlifetime;
-#endif /* UIP_CONF_ROUTER */
-#if !UIP_CONF_6LBR
+#else /* UIP_CONF_6LBR */
   struct stimer lifetime;
   uint16_t router_lifetime;
-#endif /* !UIP_CONF_6LBR */
+#endif /* UIP_CONF_6LBR */
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
 
