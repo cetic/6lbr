@@ -648,21 +648,28 @@ tcpip_ipv6_output(void)
     }
 #endif /* UIP_CONF_IPV6_RPL */
     nbr = uip_ds6_nbr_lookup(nexthop);
-#if CONF_6LOWPAN_ND
+#if UIP_CONF_6LN
     //TODO: profil of 6LR and 6LBR
     if(nbr == NULL) {
-      PRINTF("tcpip_ipv6_output: Impossible to find nexthop in nbr\n");
+      PRINTF("tcpip_ipv6_output: Impossible to find nexthop (");
+      PRINT6ADDR(nexthop);
+      PRINTF(") in nbr\n");
       return;
     } else {
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
       uip_len = 0;
       return;
     }
-#else /* CONF_6LOWPAN_ND */
+#else /* UIP_CONF_6LN */
     //TODO activate this for 6LR - RFC6775 section 6.5.5.
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
+  #if CONF_6LOWPAN_ND
+      //TODO not TENTATIVE because problem when resend a rs (with ARO)
+      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_TENTATIVE)) == NULL) {
+  #else /* CONF_6LOWPAN_ND */
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
+  #endif /* CONF_6LOWPAN_ND */
         uip_len = 0;
         return;
       } else {
@@ -691,7 +698,12 @@ tcpip_ipv6_output(void)
 #endif /* UIP_ND6_SEND_NA */
     } else {
 #if UIP_ND6_SEND_NA
+  #if CONF_6LOWPAN_ND
+      //TODO if(nbr->state == NBR_TENTATIVE) { ?
+      if(nbr->state == -1) {
+  #else /* CONF_6LOWPAN_ND */
       if(nbr->state == NBR_INCOMPLETE) {
+  #endif /* CONF_6LOWPAN_ND */
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* Copy outgoing pkt in the queuing buffer for later transmit and set
@@ -704,6 +716,7 @@ tcpip_ipv6_output(void)
         uip_len = 0;
         return;
       }
+    #if !CONF_6LOWPAN_ND //TODO right to add macro ?
       /* Send in parallel if we are running NUD (nbc state is either STALE,
          DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
       if(nbr->state == NBR_STALE) {
@@ -712,6 +725,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
+    #endif /* !CONF_6LOWPAN_ND */
 #endif /* UIP_ND6_SEND_NA */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
@@ -734,7 +748,10 @@ tcpip_ipv6_output(void)
       uip_len = 0;
       return;
     }
-#endif /* CONF_6LOWPAN_ND */
+  #if CONF_6LOWPAN_ND
+    tcpip_output(NULL);
+  #endif /* CONF_6LOWPAN_ND */
+#endif /* UIP_CONF_6LN */
     return;
   }
   /* Multicast IP destination address. */

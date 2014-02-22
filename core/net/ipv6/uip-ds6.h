@@ -96,6 +96,15 @@
 #define UIP_DS6_BR_NB UIP_CONF_DS6_BR_NB
 #endif
 
+/* Duplication Address Detection list */
+#if UIP_CONF_6LBR
+#ifndef UIP_CONF_DS6_DUPADDR_NB
+#define UIP_DS6_DUPADDR_NB  20 //TODO default value ?
+#else
+#define UIP_DS6_DUPADDR_NB UIP_CONF_DS6_DUPADDR_NB
+#endif
+#endif /* UIP_CONF_6LBR */
+
 #endif /* CONF_6LOWPAN_ND */
 
 /* Unicast address list*/
@@ -273,6 +282,16 @@ typedef struct uip_ds6_context_pref {
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
 
+/** \brief A Duplication Address Detection list entry */
+#if UIP_CONF_6LBR
+typedef struct uip_ds6_dup_addr {
+  uint8_t isused;
+  uip_ipaddr_t ipaddr;
+  uip_lladdr_t eui64;
+  struct stimer lifetime;
+} uip_ds6_dup_addr_t; 
+#endif /* UIP_CONF_6LBR */
+
 /** * \brief Unicast address structure */
 typedef struct uip_ds6_addr {
   uint8_t isused;
@@ -348,6 +367,9 @@ extern uip_ds6_border_router_t *locbr;
 #if !UIP_CONF_ROUTER || UIP_CONF_6LR
 extern struct etimer uip_ds6_timer_rs;
 #endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
+#if UIP_CONF_6LBR
+extern uip_ds6_dup_addr_t uip_ds6_dup_addr_list[UIP_DS6_DUPADDR_NB];
+#endif /* UIP_CONF_6LBR */
 
 
 /*---------------------------------------------------------------------------*/
@@ -415,6 +437,16 @@ void uip_ds6_br_config();
 
 /** @} */
 #endif /* CONF_6LOWPAN_ND */
+
+/** \name Duplication Address Detection list basic routines */
+/** @{ */
+#if UIP_CONF_6LBR
+uip_ds6_dup_addr_t *uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime, 
+                                         uip_lladdr_t *eui64);
+void uip_ds6_dup_addr_rm(uip_ds6_dup_addr_t *dad);
+uip_ds6_dup_addr_t *uip_ds6_dup_addr_lookup(uip_ipaddr_t *ipaddr);
+#endif /* UIP_CONF_6LBR */
+/** @} */
 
 /** \name Unicast address list basic routines */
 /** @{ */

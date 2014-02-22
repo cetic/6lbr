@@ -74,6 +74,9 @@ uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Pre
 #if CONF_6LOWPAN_ND
 uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];  /** \brief Prefix list */
 uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];  /** \brief Border router list */
+#if UIP_CONF_6LBR
+uip_ds6_dup_addr_t uip_ds6_dup_addr_list[UIP_DS6_DUPADDR_NB];  /** \brief Duplication Address Detection list */
+#endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
@@ -92,6 +95,9 @@ static uip_ds6_aaddr_t *locaaddr;
 static uip_ds6_prefix_t *locprefix;
 #if CONF_6LOWPAN_ND
 static uip_ds6_context_pref_t *loccontext;
+#if UIP_CONF_6LBR
+static uip_ds6_dup_addr_t *locdad;
+#endif /* UIP_CONF_6LBR */
 static uint8_t flag_rs_ra; /* format: free|rcv_ra|send_new_rs */
 //TODO: static variable<-> extern
 uip_ds6_border_router_t *locbr;
@@ -116,6 +122,9 @@ uip_ds6_init(void)
 #if UIP_CONF_6L_ROUTER
   memset(uip_ds6_br_list, 0, sizeof(uip_ds6_border_router_t));
 #endif /* UIP_CONF_6L_ROUTER */
+#if UIP_CONF_6LBR
+  memset(uip_ds6_dup_addr_list, 0, sizeof(uip_ds6_dup_addr_t));
+#endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
@@ -588,7 +597,7 @@ uip_ds6_br_add(uint32_t version, uint16_t lifetime, uip_ipaddr_t *ipaddr)
   if(ipaddr == NULL) {
     return NULL;
   }
-
+//TODO optimization with uip_ds6_list_loop
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
       locbr++) {
@@ -660,6 +669,68 @@ uip_ds6_br_config()
 #endif /* UIP_CONF_6LBR */
 /*---------------------------------------------------------------------------*/
 #endif /* CONF_6LOWPAN_ND */
+
+
+#if UIP_CONF_6LBR
+/*---------------------------------------------------------------------------*/
+#if DEBUG==DEBUG_FULL
+void *
+print_dup_addr(void) {
+  PRINTF("      ipaddr      |      eui64      | used | lifetime\n");
+  for(locdad = uip_ds6_dup_addr_list;
+      locdad < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
+      locdad++)
+  {
+    PRINT6ADDR(&locdad->ipaddr);
+    PRINTF(" | ");
+    PRINTLLADDR(&locdad->eui64);
+    PRINTF(" |   %d  | %d\n", locdad->isused, locdad->lifetime);
+  }
+}
+#endif /* DEBUG */
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_dup_addr_t *
+uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime, 
+                     uip_lladdr_t *eui64)
+{
+  if(uip_ds6_list_loop
+     ((uip_ds6_element_t *)uip_ds6_dup_addr_list, UIP_DS6_DUPADDR_NB,
+      sizeof(uip_ds6_addr_t), ipaddr, 128,
+      (uip_ds6_element_t **)&locdad) == FREESPACE) {
+    locdad->isused = 1;
+    uip_ipaddr_copy(&locdad->ipaddr, ipaddr);
+    if(lifetime != 0) {
+      stimer_set(&locdad->lifetime, lifetime);
+    }
+    memcpy(&locdad->eui64, eui64, UIP_LLADDR_LEN);
+    return locdad;
+  } 
+  return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_dup_addr_rm(uip_ds6_dup_addr_t *dad)
+{
+  if(dad != NULL) {
+    dad->isused = 0;
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_dup_addr_t *
+uip_ds6_dup_addr_lookup(uip_ipaddr_t *ipaddr)
+{
+  if(uip_ds6_list_loop
+     ((uip_ds6_element_t *)uip_ds6_dup_addr_list, UIP_DS6_DUPADDR_NB,
+      sizeof(uip_ds6_addr_t), ipaddr, 128,
+      (uip_ds6_element_t **)&locdad) == FOUND) {
+    return locdad;
+  }
+  return NULL;
+}
+#endif /* UIP_CONF_6LBR */
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_addr_t *

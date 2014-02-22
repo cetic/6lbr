@@ -198,6 +198,9 @@
 #define UIP_ND6_NS_LEN                  20
 #define UIP_ND6_RA_LEN                  12
 #define UIP_ND6_RS_LEN                  4  
+#if UIP_CONF_6L_ROUTER
+#define UIP_ND6_DA_LEN                  28
+#endif /* UIP_CONF_6L_ROUTER */
 /** @} */
 
 
@@ -314,6 +317,21 @@ typedef struct uip_nd6_redirect {
   uip_ipaddr_t tgtipaddress;
   uip_ipaddr_t destipaddress;
 } uip_nd6_redirect;
+
+#if UIP_CONF_6L_ROUTER
+/**
+ * \brief A Duplicate Address constant part
+ *
+ * Possible option is: /
+ */
+typedef struct uip_nd6_da {
+  uint8_t status;
+  uint8_t reserved;
+  uint16_t lifetime;
+  uip_lladdr_t eui64;
+  uip_ipaddr_t regipaddr;
+} uip_nd6_da;
+#endif /* UIP_CONF_6L_ROUTER */
 /** @} */
 
 /**
@@ -356,6 +374,7 @@ typedef struct uip_nd6_opt_aro {
   uint8_t reserved1;
   uint16_t reserved2;
   uint16_t lifetime;
+  //TODO type eui64 (not ipaddr)
   uip_ipaddr_t eui64;
 } uip_nd6_opt_aro;
 
@@ -443,7 +462,8 @@ uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
 #if CONF_6LOWPAN_ND
 //TODO: description (if lifetime<0 -> NO ARO msg)
 void
-uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, uint16_t lifetime);
+uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, 
+                      uint16_t lifetime, uint8_t sendaro);
 #endif /* CONF_6LOWPAN_ND */
 
 /**
@@ -513,6 +533,42 @@ void uip_nd6_rs_unicast_output(uip_ipaddr_t* ipaddr);
 void
 uip_nd6_ra_input(void);
 #endif /* !UIP_CONF_6LBR */
+
+
+/**
+ *
+ * \brief process a Duplication Address Register
+ *
+ * TODO description
+ */
+#if UIP_CONF_6LBR
+void uip_nd6_dar_input(void);
+#endif /* UIP_CONF_6LBR */
+
+/**
+ *
+ * \brief process a Duplication Address Confirmation
+ *
+ * TODO description
+ */
+#if UIP_CONF_6LR
+void uip_nd6_dac_input(void);
+#endif /* UIP_CONF_6LR */
+
+/**
+ *
+ * \brief process a Duplication Address
+ *
+ * TODO description
+ */
+#if UIP_CONF_6L_ROUTER
+void uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
+            uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
+#if UIP_CONF_6LR
+void uip_nd6_dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
+            uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
+#endif/* UIP_CONF_6LR */
+#endif /* UIP_CONF_6L_ROUTER */
 /** @} */
 
 
@@ -620,6 +676,28 @@ uip_appserver_addr_get(uip_ipaddr_t *ipaddr);
  *    |   Options ...
  *    +-+-+-+-+-+-+-+-+-+-+-+-
  *
+ *
+ * Duplicate Address Messages
+ *
+ *    0                   1                   2                   3
+ *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |     Type      |     Code      |          Checksum             |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |    Status     |   Reserved    |    Registration Lifetime      |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                                                               |
+ *    +                            EUI-64                             +
+ *    |                                                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                                                               |
+ *    +                                                               +
+ *    |                                                               |
+ *    +                     Registered Address                        +
+ *    |                                                               |
+ *    +                                                               +
+ *    |                                                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
  * SLLAO/TLLAO option:
  *    0                   1                   2                   3

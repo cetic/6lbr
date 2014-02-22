@@ -1388,10 +1388,9 @@ uip_process(uint8_t flag)
 #if UIP_CONF_ICMP6
   UIP_ICMP6_APPCALL(UIP_ICMP_BUF->type);
 #endif /*UIP_CONF_ICMP6*/
-
   switch(UIP_ICMP_BUF->type) {
     case ICMP6_NS:
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NA && !UIP_CONF_6LN
       uip_nd6_ns_input();
 #else /* UIP_ND6_SEND_NA */
       UIP_STAT(++uip_stat.icmp.drop);
@@ -1422,6 +1421,24 @@ uip_process(uint8_t flag)
     uip_len = 0;
 #endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR*/
     break;
+#if CONF_6LOWPAN_ND
+  case ICMP6_DAR:
+#if UIP_CONF_6LBR
+    uip_nd6_dar_input();
+#else /* UIP_CONF_6LBR */
+    UIP_STAT(++uip_stat.icmp.drop);
+    uip_len = 0;
+#endif /* UIP_CONF_6LBR */
+    break;
+  case ICMP6_DAC:
+#if UIP_CONF_6LR
+    uip_nd6_dac_input();
+#else /* UIP_CONF_6LR */
+    UIP_STAT(++uip_stat.icmp.drop);
+    uip_len = 0;
+#endif /* UIP_CONF_6LR */
+    break;
+#endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_IPV6_RPL
   case ICMP6_RPL:
     uip_rpl_input();

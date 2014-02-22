@@ -177,6 +177,13 @@ PROCESS_THREAD(test_router, ev, data)
   printf(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
+  //routing table
+  uip_ipaddr_t prefix;
+  uip_ipaddr_t ipaddr6LR2;
+  uip_ip6addr(&prefix, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr6LR2, pref, 0, 0, 0, 0x212, 0x7402, 0x2, 0x202);
+  uip_ds6_route_add(&prefix, 32, &ipaddr6LR2);
+
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {

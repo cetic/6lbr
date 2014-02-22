@@ -67,6 +67,7 @@
 #define  NBR_GARBAGE_COLLECTIBLE 5
 #define  NBR_REGISTERED 6
 #define  NBR_TENTATIVE 7
+#define  NBR_TENTATIVE_DAD 8
 #endif /* CONF_6LOWPAN_ND */
 
 NBR_TABLE_DECLARE(ds6_neighbors);

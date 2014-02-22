@@ -237,7 +237,6 @@ uip_ds6_neighbor_periodic(void)
     switch(nbr->state) {
 #if CONF_6LOWPAN_ND
     case NBR_GARBAGE_COLLECTIBLE:
-      //TODO
       if(stimer_expired(&nbr->reachable)) {
         PRINTF("GARBAGE_COLLECTIBLE: remove entry (");
         PRINT6ADDR(&nbr->ipaddr);
@@ -246,13 +245,13 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
     case NBR_REGISTERED:
-      //TODO
       if(stimer_expired(&nbr->reachable)) {
         PRINTF("REGISTERED: remove entry (");
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
         uip_ds6_nbr_rm(nbr);
     #if !UIP_CONF_6LBR
+      //TODO right ? where in rfc ?
       } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN, 
                                       UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
@@ -261,24 +260,42 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
     case NBR_TENTATIVE:
-      //TODO
       /* TODO  
       Hosts that receive RA messages from multiple default routers SHOULD
       attempt to register with more than one of them in order to increase
       the robustness of the network.
       */
       if (nbr->isrouter) {
+        //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           //TODO: -1 in arg ? -> check if add is a tentative
           uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
-                                UIP_ND6_REGISTER_LIFETIME);
+                                UIP_ND6_REGISTER_LIFETIME, 1);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       }
       break;
+  #if UIP_CONF_6LR
+    case NBR_TENTATIVE_DAD:
+      if (!nbr->isrouter) {
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+          uip_ds6_nbr_rm(nbr);
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          //TODO border router found ?
+          //TODO always UIP_ND6_ARO_STATUS_SUCESS ?
+          uip_nd6_dar_output(&uip_ds6_br_lookup(NULL)->ipaddr,
+                             UIP_ND6_ARO_STATUS_SUCESS, &nbr->ipaddr,
+                             uip_ds6_nbr_get_ll(nbr), 
+                             (stimer_remaining(&nbr->reachable) + stimer_expired(&nbr->reachable))/60);
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+      }
+      break;
+  #endif  /* UIP_CONF_6LR */
 #else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
@@ -328,7 +345,7 @@ uip_ds6_neighbor_periodic(void)
 #endif /* CONF_6LOWPAN_ND */
     default:
       //TODO: remove
-      //PRINTF("/!\\ ERROR: invalide cache type\n");
+      PRINTF("/!\\ ERROR: invalide cache type (%d)\n", nbr->state);
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
