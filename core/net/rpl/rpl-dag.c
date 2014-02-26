@@ -500,6 +500,7 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
       dag->rank = INFINITE_RANK;
       dag->min_rank = INFINITE_RANK;
       dag->instance = instance;
+      dag->lifetime = RPL_DAG_LIFETIME;
       return dag;
     }
   }
@@ -875,6 +876,7 @@ rpl_update_dag(rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio)
 {
   dag->grounded = dio->grounded;
   dag->preference = dio->preference;
+  dag->lifetime = RPL_DAG_LIFETIME;
 }
 /*---------------------------------------------------------------------------*/
 void
