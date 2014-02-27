@@ -55,6 +55,7 @@
  */
 #define FLASH_CCA_BOOTLDR_CFG_DISABLE           0xEFFFFFFF /**< Disable backdoor function */
 #define FLASH_CCA_BOOTLDR_CFG_ENABLE            0xF0FFFFFF /**< Enable backdoor function */
+#define FLASH_CCA_BOOTLDR_CFG_ENABLE_SE         0xF3FFFFFF /**< Enable backdoor function RF06 Select btn */
 #define FLASH_CCA_BOOTLDR_CFG_ACTIVE_HIGH       0x08000000 /**< Selected pin on pad A active high */
 #define FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_M      0x07000000 /**< Selected pin on pad A mask */
 #define FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S      24         /**< Selected pin on pad A shift */
