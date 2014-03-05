@@ -107,7 +107,7 @@ uip_ds6_route_info_callback(uip_nd6_opt_route_info * rio,
      && rio->rlifetime != 0) {
     //New route
     LOG6LBR_INFO("New route received\n");
-    LOG6LBR_6ADDR(DEBUG, &rio->prefix, "type=%d, flags=%d, length=%d, lifetime=%d, Preflen=%d, prefix=",
+    LOG6LBR_6ADDR(DEBUG, &rio->prefix, "type=%d, flags=%d, length=%d, lifetime=%lu, Preflen=%d, prefix=",
         rio->type, rio->flagsreserved, rio->len, uip_ntohl(rio->rlifetime), rio->preflen);
     uip_ds6_route_t *new_route;
 

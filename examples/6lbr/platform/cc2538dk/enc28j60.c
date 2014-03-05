@@ -246,7 +246,7 @@ enc28j60PhyWrite(uint8_t address, uint16_t data)
 void
 enc28j60Init(uint8_t * macaddr)
 {
-  unsigned int i = 0;
+  //unsigned int i = 0;
 
   //Setup SPI frequency and mode
   *SPI_SETUP = (*SPI_SETUP & ~SPI_SS_SETUP_MASK) | (1 << SPI_SS_SETUP_OFFSET);

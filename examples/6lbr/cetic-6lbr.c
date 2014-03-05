@@ -301,7 +301,9 @@ cetic_6lbr_init(void)
 
 /*---------------------------------------------------------------------------*/
 
+#if CONTIKI_TARGET_NATIVE
 static struct etimer reboot_timer;
+#endif
 
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {

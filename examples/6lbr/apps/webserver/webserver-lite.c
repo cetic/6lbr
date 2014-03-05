@@ -210,7 +210,7 @@ static
 PT_THREAD(generate_index(struct httpd_state *s))
 {
   static int i;
-  static int j;
+  //static int j;
   static uip_ds6_nbr_t *nbr;
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
@@ -582,8 +582,8 @@ PT_THREAD(generate_index(struct httpd_state *s))
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
-  static uip_ds6_route_t *r;
-  static int i;
+  //static uip_ds6_route_t *r;
+  //static int i;
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;

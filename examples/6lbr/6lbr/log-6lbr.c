@@ -63,7 +63,7 @@ log6lbr_timestamp() {
   struct tm date;
   gettimeofday(&timestamp, NULL);
   localtime_r(&timestamp.tv_sec, &date);
-  printf("%d-%02d-%02d %d:%02d:%02d.%06d: ", date.tm_year+1900, date.tm_mon, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, timestamp.tv_usec);
+  printf("%d-%02d-%02d %d:%02d:%02d.%lu: ", date.tm_year+1900, date.tm_mon, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, timestamp.tv_usec);
 }
 #endif
 /*---------------------------------------------------------------------------*/
