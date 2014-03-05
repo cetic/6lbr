@@ -18,6 +18,10 @@ ECONOTAG_NODE_INFO=0
 ECONOTAG_UDPSERVER=0
 ECONOTAG_WEBSERVER_LITE=1
 
+CC2538DK_NODE_INFO=0
+CC2538DK_UDPSERVER=0
+CC2538DK_WEBSERVER_LITE=1
+
 # End of user configurable section
 
 all: $(CONTIKI_PROJECT)
@@ -27,7 +31,16 @@ CFLAGS += -DUIP_CONF_IPV6=1
 
 CONTIKI = ../..
 
-PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
+PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info
+ifeq ($(TARGET),native)
+PROJECTDIRS += platform/native
+endif
+ifeq ($(TARGET),econotag)
+PROJECTDIRS += platform/econotag
+endif
+ifeq ($(TARGET),cc2538dk)
+PROJECTDIRS += platform/cc2538dk
+endif
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
@@ -85,11 +98,16 @@ PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-ssi.c enc28j60-dr
 override TARGET=econotag
 endif
 
+ifeq ($(TARGET),cc2538dk)
+PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c
+endif
+
 UIP_CONF_RPL?=1
 CFLAGS += -DUIP_CONF_IPV6_RPL=$(UIP_CONF_RPL)
 
 NATIVE_CONF=WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) WITH_NODE_INFO=$(WITH_NODE_INFO)
 ECONOTAG_CONF=WITH_WEBSERVER=0 WITH_WEBSERVER_LITE=$(ECONOTAG_WEBSERVER_LITE) WITH_UDPSERVER=$(ECONOTAG_UDPSERVER) WITH_NODE_INFO=$(ECONOTAG_NODE_INFO)
+CC2538DK_CONF=WITH_WEBSERVER=0 WITH_WEBSERVER_LITE=$(CC2538DK_WEBSERVER_LITE) WITH_UDPSERVER=$(CC2538DK_UDPSERVER) WITH_NODE_INFO=$(CC2538DK_NODE_INFO)
 
 bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
@@ -217,6 +235,46 @@ all_red-io:
 	$(MAKE) TARGET=red-io clean
 	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_6lr 
 
+bin_cc2538dk/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_SMARTBRIDGE=1 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_smart_bridge.hex
+
+bin_cc2538dk/cetic_6lbr_rpl_relay:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_rpl_relay.hex
+
+bin_cc2538dk/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_full_transparent_bridge.hex
+
+bin_cc2538dk/cetic_6lbr_router:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_router.hex
+
+bin_cc2538dk/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_ndp_router.hex
+
+bin_cc2538dk/cetic_6lbr_6lr:
+	$(MAKE) TARGET=cc2538dk CETIC_6LBR_6LR=1 $(CC2538DK_CONF)
+	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_6lr.hex
+
+all_cc2538dk:
+	rm -rf bin_cc2538dk
+	mkdir -p bin_cc2538dk
+#	$(MAKE) TARGET=cc2538dk clean
+#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_smart_bridge
+#	$(MAKE) TARGET=cc2538dk clean
+#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_rpl_relay
+#	$(MAKE) TARGET=cc2538dk clean
+#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_full_transparent_bridge
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_router
+#	$(MAKE) TARGET=cc2538dk clean
+#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_ndp_router
+#	$(MAKE) TARGET=cc2538dk clean
+#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_6lr
+
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
@@ -266,4 +324,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* tools
+.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools

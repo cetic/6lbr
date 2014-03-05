@@ -318,6 +318,60 @@
 
 #endif
 
+#if CONTIKI_TARGET_CC2538DK
+/*------------------------------------------------------------------*/
+/* CC2538DK 6LBR                                                    */
+/*------------------------------------------------------------------*/
+
+#if WEBSERVER
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     25
+
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   25
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   25
+
+#else
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     100
+
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   100
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   100
+
+#endif
+
+#define WEBSERVER_CONF_CFS_URLCONV	0
+
+#define WEBSERVER_CONF_CFS_CONNS	1
+
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
+
+/* Do not change lines below */
+
+#define LOG6LBR_TIMESTAMP           0
+#define LOG6LBR_STATIC              1
+
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nullrdc_driver
+
+#if CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_LEARN_RPL_MAC
+//Setup 802.15.4 interface in promiscuous mode
+#define NULLRDC_CONF_ADDRESS_FILTER	0
+#undef MACA_AUTOACK
+#define MACA_AUTOACK				0
+#endif
+
+#endif
+/*------------------------------------------------------------------*/
+
 /* Do not change lines below */
 #define CETIC_6LBR_VERSION		"1.3.1"
 
