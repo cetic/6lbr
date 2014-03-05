@@ -325,6 +325,8 @@ uip_nd6_ns_input(void)
           } else {
             aro_state = UIP_ND6_ARO_STATUS_CACHE_FULL;
           }
+        } else {
+          aro_state = UIP_ND6_ARO_STATUS_SUCESS;
         }
     #else /* UIP_CONF_6L_ROUTER */
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
