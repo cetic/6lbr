@@ -564,7 +564,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
            loccontext->cid);
   }
   /* check if dest or src context exists (for allocating third byte) */
-  if(PACKETBUF_IPHC_BUF[2] != 0) {
+  if(iphc1 & (SICSLOWPAN_IPHC_SAC | SICSLOWPAN_IPHC_DAC)) {
     PRINTF("IPHC: compressing dest or/and src ipaddr - setting CID\n");
     iphc1 |= SICSLOWPAN_IPHC_CID;
     hc06_ptr++;
