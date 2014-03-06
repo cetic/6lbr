@@ -240,7 +240,7 @@ uip_ds6_periodic(void)
 #endif /* UIP_CONF_6LBR */
 
 
-#if !UIP_CONF_6LBR
+#if UIP_CONF_6LR || UIP_CONF_6LN
   /* Periodic processing on context prefixes */
   for(loccontext = uip_ds6_context_pref_list;
       loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
@@ -269,7 +269,7 @@ uip_ds6_periodic(void)
   if(flag_rs_ra & 0x1) {
     uip_ds6_send_unicast_rs(); 
   }
-#endif /* !UIP_CONF_6LBR */
+#endif /* UIP_CONF_6LR || UIP_CONF_6LN */
 #endif /* CONF_6LOWPAN_ND */
 
 //TODO: macro to activate in case of 6LR

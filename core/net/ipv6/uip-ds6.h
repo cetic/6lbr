@@ -185,8 +185,7 @@
 #endif /* CONF_6LOWPAN_ND */
 
 /** \brief Genereal timer delay */
-#if UIP_ND6_SEND_RA
-#if CONF_6LOWPAN_ND
+#if UIP_ND6_SEND_RA || CONF_6LOWPAN_ND
 #ifndef UIP_CONF_DS6_RS_MINLIFETIME_RETRAN
 #define UIP_DS6_RS_MINLIFETIME_RETRAN 60 //TODO: default value 60sec ?
 #else
@@ -197,8 +196,7 @@
 #else
 #define UIP_DS6_RS_PERCENT_LIFETIME_RETRAN UIP_CONF_DS6_RS_PERCENT_LIFETIME_RETRAN
 #endif
-#endif /* CONF_6LOWPAN_ND */
-#endif /* UIP_ND6_SEND_RA */ 
+#endif /* UIP_ND6_SEND_RA || CONF_6LOWPAN_ND */ 
 #if CONF_6LOWPAN_ND
 #ifndef UIP_CONF_DS6_NS_MINLIFETIME_RETRAN
 #define UIP_DS6_NS_MINLIFETIME_RETRAN 60 //TODO: default value 60sec ?
