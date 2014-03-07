@@ -99,7 +99,7 @@ override TARGET=econotag
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c
+PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch.c
 endif
 
 UIP_CONF_RPL?=1

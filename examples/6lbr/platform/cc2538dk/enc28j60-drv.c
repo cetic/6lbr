@@ -47,9 +47,6 @@
 #include "packet-filter.h"
 #include "log-6lbr.h"
 
-//#include "isr.h"
-#warning "TODO: Interrupts for cc2538dk"
-
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
@@ -99,9 +96,7 @@ eth_drv_send(void)
     printf("\n");
   )
 
-//  disable_int(enc28j60PacketSend
-//              (uip_len + sizeof(struct uip_eth_hdr), uip_buf));
-#warning "TODO: Disable interrupts for enc28j60"
+  enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
 }
 
 void
@@ -153,17 +148,14 @@ void
 eth_drv_init()
 {
   LOG6LBR_INFO("ENC28J60 init\n");
-  enc28j60Init(eth_mac_addr);
+  enc28j60_init(eth_mac_addr);
 }
 
 /*---------------------------------------------------------------------------*/
 void
 enc28j60_pollhandler(void)
 {
-  //process_poll(&enc28j60_process);
-
-#warning "TODO: Disable interrupts for enc28j60"
-//  disable_int(uip_len = enc28j60PacketReceive(UIP_BUFSIZE, uip_buf));
+  uip_len = enc28j60_read(uip_buf, UIP_BUFSIZE);
 
   if(uip_len > 0) {
     eth_drv_input();
@@ -173,8 +165,6 @@ enc28j60_pollhandler(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
-  //PROCESS_POLLHANDLER(enc28j60_pollhandler());
-
   PROCESS_BEGIN();
 
   LOG6LBR_INFO("ENC-28J60 Process started\n");
