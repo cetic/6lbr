@@ -139,7 +139,9 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
+#if !CONF_6LOWPAN_ND
   rpl_prefix_t prefix_info;
+#endif /* !CONF_6LOWPAN_ND */
 };
 typedef struct rpl_dag rpl_dag_t;
 typedef struct rpl_instance rpl_instance_t;

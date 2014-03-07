@@ -35,6 +35,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/netstack.h"
 #include "sys/etimer.h"
+#include "net/rpl/rpl.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -44,7 +45,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
 
 
 #define UDP_CLIENT_PORT 8765
@@ -147,6 +147,7 @@ rm_context_prefix_address(uint16_t pref)
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
+  struct uip_ds6_addr *root_if;
   static struct etimer periodic_timer;
   char *appdata;
   static uint16_t pref = PREFIX_INIT;
@@ -171,6 +172,18 @@ PROCESS_THREAD(test_router, ev, data)
   set_prefix_address(pref);
   set_context_prefix_address(pref);
   uip_ds6_br_config();
+
+  /* Config RPL root */
+  root_if = uip_ds6_addr_lookup(ipaddr);
+  if(root_if != NULL) {
+    rpl_dag_t *dag;
+    dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)ipaddr);
+    //rpl_set_prefix(dag, &pref, 64);
+    printf("created a new RPL dag\n");
+  } else {
+    printf("failed to create a new RPL DAG\n");
+  }
+
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
   if(server_conn == NULL) {

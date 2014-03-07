@@ -224,6 +224,7 @@ dio_input(void)
   PRINT6ADDR(&from);
   PRINTF("\n");
 
+  #if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -246,6 +247,7 @@ dio_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
+  #endif /* CONF_6LOWPAN_ND */
 
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
 
@@ -376,6 +378,7 @@ dio_input(void)
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
              dio.default_lifetime, dio.lifetime_unit);
       break;
+#if !CONF_6LOWPAN_ND
     case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
         PRINTF("RPL: DAG prefix info not ok, len != 32\n");
@@ -391,6 +394,7 @@ dio_input(void)
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
       break;
+#endif /* CONF_6LOWPAN_ND */
     default:
       PRINTF("RPL: Unsupported suboption type in DIO: %u\n",
 	(unsigned)subopt_type);
@@ -504,6 +508,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   set16(buffer, pos, instance->lifetime_unit);
   pos += 2;
 
+#if !CONF_6LOWPAN_ND
   /* Check if we have a prefix to send also. */
   if(dag->prefix_info.length > 0) {
     buffer[pos++] = RPL_OPTION_PREFIX_INFO;
@@ -525,6 +530,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     PRINTF("RPL: No prefix to announce (len %d)\n",
            dag->prefix_info.length);
   }
+#endif /* !CONF_6LOWPAN_ND */
 
 #if RPL_LEAF_ONLY
 #if (DEBUG) & DEBUG_PRINT
@@ -717,6 +723,7 @@ dao_input(void)
 
   PRINTF("RPL: adding DAO route\n");
 
+  #if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -739,6 +746,7 @@ dao_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
+  #endif /* !CONF_6LOWPAN_ND */
 
   rpl_lock_parent(p);
 

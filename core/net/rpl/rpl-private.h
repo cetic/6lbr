@@ -234,7 +234,9 @@ struct rpl_dio {
   rpl_rank_t dag_max_rankinc;
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
+#if !CONF_6LOWPAN_ND
   rpl_prefix_t prefix_info;
+#endif /* !CONF_6LOWPAN_ND */
   struct rpl_metric_container mc;
 };
 typedef struct rpl_dio rpl_dio_t;
