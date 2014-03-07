@@ -384,10 +384,8 @@ uip_nd6_ns_input(void)
     if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
       //TODO find a way to get a border router bound with ipsrc
       border_router = uip_ds6_br_lookup(NULL);
-      goto create_dar;
-    } else {
-      goto discard;
     }
+    goto discard;
   }
 #endif /* UIP_CONF_6LR */
 
@@ -463,14 +461,6 @@ uip_nd6_ns_input(void)
   } else {
     goto discard;
   }
-
-#if CONF_6LOWPAN_ND
-create_dar:
-  uip_nd6_da_output(&border_router->ipaddr, ICMP6_DAR,
-                    UIP_ND6_ARO_STATUS_SUCESS, &UIP_IP_BUF->srcipaddr,
-                    &nd6_opt_aro->eui64, nd6_opt_aro->lifetime);
-  return;
-#endif /* CONF_6LOWPAN_ND */
 
 create_na:
 #if UIP_CONF_6L_ROUTER
