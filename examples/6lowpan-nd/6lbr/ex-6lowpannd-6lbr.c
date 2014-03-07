@@ -65,7 +65,7 @@ PROCESS(test_router, "Test process of 6LoWPAN ND router");
 PROCESS(change_prefix, "Test process of changing prefix");
 AUTOSTART_PROCESSES(&test_router, &change_prefix);
 #else
-AUTOSTART_PROCESSES(&test_router, &change_prefix);
+AUTOSTART_PROCESSES(&test_router);
 #endif
 
 
