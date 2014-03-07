@@ -55,12 +55,19 @@
 
 #define PREFIX_INIT 0xbbbb
 
+#define CHANGE_PREFIX 0
+
  static struct uip_udp_conn *server_conn;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_router, "Test process of 6LoWPAN ND router");
+#if CHANGE_PREFIX
 PROCESS(change_prefix, "Test process of changing prefix");
 AUTOSTART_PROCESSES(&test_router, &change_prefix);
+#else
+AUTOSTART_PROCESSES(&test_router, &change_prefix);
+#endif
+
 
 
 /*---------------------------------------------------------------------------*/
@@ -202,6 +209,7 @@ PROCESS_THREAD(test_router, ev, data)
 }
 
 /*---------------------------------------------------------------------------*/
+#if CHANGE_PREFIX
 PROCESS_THREAD(change_prefix, ev, data)
 {
   static struct etimer periodic_timer;
@@ -228,3 +236,4 @@ PROCESS_THREAD(change_prefix, ev, data)
 
   PROCESS_END();
 }
+#endif
