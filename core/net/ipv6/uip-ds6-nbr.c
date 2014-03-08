@@ -51,7 +51,7 @@
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
@@ -166,15 +166,20 @@ uip_ds6_nbr_num(void)
 uip_ds6_nbr_t *
 uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
 {
+      PRINT6ADDR(ipaddr);
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   if(ipaddr != NULL) {
     while(nbr != NULL) {
+      PRINTF(" , ");
+      PRINT6ADDR(&nbr->ipaddr);
       if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
+  PRINTF("<-OK-\n");
         return nbr;
       }
       nbr = nbr_table_next(ds6_neighbors, nbr);
     }
   }
+  PRINTF("<-KO-\n");
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
