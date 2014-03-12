@@ -870,40 +870,47 @@ uip_nd6_rs_input(void)
       goto discard;
     } else {
 #endif /*UIP_CONF_IPV6_CHECKS */
+    #if UIP_CONF_6L_ROUTER
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
-    #if UIP_CONF_6L_ROUTER
-        //TODO: state reachable ? != RFC (tentative)
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_GARBAGE_COLLECTIBLE);
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
-    #else /* UIP_CONF_6L_ROUTER */ 
-        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
-    #endif /* UIP_CONF_6L_ROUTER */
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
             uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
           uip_ds6_nbr_t nbr_data = *nbr;
           uip_ds6_nbr_rm(nbr);
-    #if UIP_CONF_6L_ROUTER
-          //TODO: state reachable ? != RFC (tentative)
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                                 (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_GARBAGE_COLLECTIBLE);
           stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
-    #else /* UIP_CONF_6L_ROUTER */ 
-          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
-    #endif /* UIP_CONF_6L_ROUTER */
           nbr->reachable = nbr_data.reachable;
           nbr->sendns = nbr_data.sendns;
           nbr->nscount = nbr_data.nscount;
         }
         nbr->isrouter = 0;
       }
-    #if UIP_CONF_6L_ROUTER
       stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
+    #else  /* UIP_CONF_6L_ROUTER */
+      if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
+        /* we need to add the neighbor */
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+      } else {
+        /* If LL address changed, set neighbor state to stale */
+        if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+            uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
+          uip_ds6_nbr_t nbr_data = *nbr;
+          uip_ds6_nbr_rm(nbr);
+          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+          nbr->reachable = nbr_data.reachable;
+          nbr->sendns = nbr_data.sendns;
+          nbr->nscount = nbr_data.nscount;
+        }
+        nbr->isrouter = 0;
+      }
     #endif /* UIP_CONF_6L_ROUTER */
 #if UIP_CONF_IPV6_CHECKS
     }

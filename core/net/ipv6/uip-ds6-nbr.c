@@ -77,6 +77,45 @@ uip_ds6_neighbors_init(void)
   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
 }
 /*---------------------------------------------------------------------------*/
+//TODO remove
+#if DEBUG
+void
+uip6_ds6_nbr_display(void)
+{
+  /* display nce */
+  uip_ds6_nbr_t *nbr2 = nbr_table_head(ds6_neighbors);
+  PRINTF("Neighbor                Linklayer                  St  Expire\n");
+  PRINTF("--------------------------------------------------------------\n");
+  if(nbr2==NULL) {
+    PRINTF("                        EMPTY\n"); 
+    return;
+  }
+  do {
+    PRINT6ADDR(&nbr2->ipaddr);
+    PRINTF("\t   ");
+    PRINTLLADDR(uip_ds6_nbr_get_ll(nbr2));
+    PRINTF("\t   ");
+    switch(nbr2->state){
+      case NBR_GARBAGE_COLLECTIBLE:
+        PRINTF("GC  ");
+        break;
+      case NBR_REGISTERED:
+        PRINTF("R   ");
+        break;
+      case NBR_TENTATIVE:
+        PRINTF("T   ");
+        break;
+      case NBR_TENTATIVE_DAD:
+        PRINTF("TD  ");
+        break;
+      default:
+        PRINTF("?   ");
+    }
+   PRINTF("%u\n", stimer_remaining(&nbr2->reachable));
+  } while(nbr2 = nbr_table_next(ds6_neighbors, nbr2));
+}
+#endif
+/*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state)
@@ -104,6 +143,8 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     PRINTLLADDR(lladdr);
     PRINTF(" state %u\n", state);
     NEIGHBOR_STATE_CHANGED(nbr);
+    //TODO remove
+    //uip6_ds6_nbr_display();
     return nbr;
   } else {
     PRINTF("uip_ds6_nbr_add drop ip addr ");
@@ -131,6 +172,8 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     NEIGHBOR_STATE_CHANGED(nbr);
     nbr_table_remove(ds6_neighbors, nbr);
   }
+  //TODO remove
+  //uip6_ds6_nbr_display();
   return;
 }
 
