@@ -979,10 +979,13 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 
 
   /* Prefix list */
-  //TODO: only prefix bound to br
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
+  #if UIP_CONF_6L_ROUTER
+    if((prefix->isused) && (prefix->advertise) && (locbr == prefix->br)) {
+  #else /* UIP_CONF_6L_ROUTER */
     if((prefix->isused) && (prefix->advertise)) {
+  #endif /* UIP_CONF_6L_ROUTER */
       UIP_ND6_OPT_PREFIX_BUF->type = UIP_ND6_OPT_PREFIX_INFO;
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
@@ -1188,7 +1191,8 @@ uip_nd6_ra_input(void)
   abro_version -= border_router->version;
   if(abro_version > 0) {
     /* New version, so remove all prefix and context */
-    //TODO PIO
+    //TODO good idea to rm all entries ?
+    uip_ds6_prefix_rm_all(border_router);
     uip_ds6_context_pref_rm_all(border_router);
   }
 #endif /* CONF_6LOWPAN_ND */
@@ -1290,6 +1294,7 @@ uip_nd6_ra_input(void)
                                             1, nd6_opt_prefix_info->flagsreserved1,
                                             0, 0);
               }
+              prefix->br = border_router;
             #else /* UIP_CONF_6LR */
               if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,

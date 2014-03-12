@@ -422,6 +422,22 @@ uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 }
 
 /*---------------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
+void
+uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router)
+{
+  //TODO what to do when prefix rm and it's use in address)
+  for(locprefix = uip_ds6_prefix_list;
+      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
+      locprefix++) {
+    if(locprefix->br == border_router) {
+      locprefix->isused = 0;
+    }
+  }
+}
+#endif /* CONF_6LOWPAN_ND */
+
+/*---------------------------------------------------------------------------*/
 uint8_t
 uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 {
@@ -461,7 +477,7 @@ print_context_pref(void)
     #else
       PRINTF("/%u | %x | %x | %d\n",
          loccontext->length, loccontext->state, 
-         loccontext->cid, stimer_remaining(&loccontext->lifetime)/60);
+         loccontext->cid, (int) stimer_remaining(&loccontext->lifetime)/60);
     #endif
     }
   }
@@ -625,6 +641,7 @@ uip_ds6_br_rm(uip_ds6_border_router_t *br)
   if(br != NULL) {
     br->state = BR_ST_FREE;
     //TODO more: rm link to context and pio
+    uip_ds6_prefix_rm_all(br);
     uip_ds6_context_pref_rm_all(br);
   }
 }
@@ -663,6 +680,14 @@ uip_ds6_br_config()
       loccontext++) {
     if(loccontext->state != CONTEXT_PREF_ST_FREE) {
       loccontext->br = locbr;
+    }
+  }
+  /* link all prefixes to border router */
+  for(locprefix = uip_ds6_prefix_list;
+      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
+      locprefix++) {
+    if(locprefix->isused) {
+      locprefix->br = locbr;
     }
   }
 }

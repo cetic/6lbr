@@ -251,6 +251,9 @@ typedef struct uip_ds6_prefix {
 #endif /* UIP_CONF_6L_ROUTER */
   uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
+#if CONF_6LOWPAN_ND
+  uip_ds6_border_router_t* br;
+#endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #else /* UIP_CONF_ROUTER */
 typedef struct uip_ds6_prefix {
@@ -259,6 +262,9 @@ typedef struct uip_ds6_prefix {
   uint8_t length;
   struct stimer vlifetime;
   uint8_t isinfinite;
+#if CONF_6LOWPAN_ND
+  uip_ds6_border_router_t* br;
+#endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #endif /*UIP_CONF_ROUTER */
 
@@ -402,6 +408,9 @@ void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
 uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);
 uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
+#if CONF_6LOWPAN_ND
+void uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router);
+#endif /* CONF_6LOWPAN_ND */
 
 
 #if CONF_6LOWPAN_ND
