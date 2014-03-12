@@ -374,8 +374,7 @@ typedef struct uip_nd6_opt_aro {
   uint8_t reserved1;
   uint16_t reserved2;
   uint16_t lifetime;
-  //TODO type eui64 (not ipaddr)
-  uip_ipaddr_t eui64;
+  uip_lladdr_t eui64;
 } uip_nd6_opt_aro;
 
 /** \brief ND option 6LoWPAN context */
