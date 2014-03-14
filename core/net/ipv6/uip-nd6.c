@@ -308,12 +308,17 @@ uip_nd6_ns_input(void)
     #if UIP_CONF_6L_ROUTER
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
         if(nbr == NULL) {
+        #if UIP_CONF_6LR
+          nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
+          if(nbr == NULL) {
+            goto  discard;
+          }
+          nbr->state = NBR_TENTATIVE_DAD;
+          uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr);
+        #else /* UIP_CONF_6LR */
           //TODO  0 or 1 for isrouter in arg
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
-        #if UIP_CONF_6LR
-                        0, NBR_TENTATIVE_DAD);
-        #else /* UIP_CONF_6LR */
                         0, NBR_REGISTERED);
         #endif /* UIP_CONF_6LR */
           if(nbr != NULL) {
@@ -1595,15 +1600,14 @@ uip_nd6_dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
 {
   uip_nd6_da_output(destipaddr, ICMP6_DAR, status, hostipaddr, eui64, lifetime);
 }
-#endif/* UIP_CONF_6LR */
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_6LR
 void
 uip_nd6_dac_input(void)
 {
   uint8_t aro_state;
   //TODO bricolage !!
   static uip_nd6_opt_aro aro;
+  static uip_ds6_dar_t* dar;
 
   PRINTF("Received DAC from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -1624,18 +1628,23 @@ uip_nd6_dac_input(void)
   }
 #endif /*UIP_CONF_IPV6_CHECKS */
   
-  nbr = uip_ds6_nbr_lookup(&UIP_ND6_DA_BUF->regipaddr);
+  nbr = uip_ds6_nbr_ll_lookup(&UIP_ND6_DA_BUF->eui64);
   if(nbr == NULL || 
-     !memcmp(uip_ds6_nbr_ipaddr_from_lladdr(nbr), &UIP_ND6_DA_BUF->eui64, UIP_LLADDR_LEN)) {
+     !(dar=uip_ds6_dar_lookup_by_nbr(nbr)) || 
+     !uip_ipaddr_cmp(&dar->ipaddr, &UIP_ND6_DA_BUF->regipaddr)) {
     /* No in NCE, so silently ignored */
     goto discard;
   } else if(UIP_ND6_DA_BUF->status == UIP_ND6_ARO_STATUS_SUCESS){
     nbr->state = NBR_REGISTERED;
+    stimer_set(&nbr->reachable, UIP_ND6_DA_BUF->lifetime);
+    uip_ds6_route_add(&dar->ipaddr, 128, &nbr->ipaddr);
     aro_state = UIP_ND6_ARO_STATUS_SUCESS;
   } else {
     uip_ds6_nbr_rm(nbr);
     aro_state = UIP_ND6_DA_BUF->status;
   }
+  uip_ds6_dar_rm(dar);
+
   /* send na */
   nd6_opt_aro = &aro;
   nd6_opt_aro->lifetime = UIP_ND6_DA_BUF->lifetime;

@@ -105,6 +105,15 @@
 #endif
 #endif /* UIP_CONF_6LBR */
 
+/* Duplication Adresse Request list */
+#if UIP_CONF_6L_ROUTER
+#ifndef UIP_CONF_DS6_DAR_NB
+#define UIP_DS6_DAR_NB 2
+#else
+#define UIP_DS6_DAR_NB UIP_CONF_DS6_DAR_NB
+#endif
+#endif /*  */
+
 #endif /* CONF_6LOWPAN_ND */
 
 /* Unicast address list*/

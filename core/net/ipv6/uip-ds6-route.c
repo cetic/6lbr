@@ -590,6 +590,7 @@ uip_ds6_defrt_choose(void)
     PRINT6ADDR(&d->ipaddr);
     PRINTF("\n");
     bestnbr = uip_ds6_nbr_lookup(&d->ipaddr);
+    //TODO adapt with 6LoWPAN-ND
     if(bestnbr != NULL && bestnbr->state != NBR_INCOMPLETE) {
       PRINTF("Defrt found, IP address ");
       PRINT6ADDR(&d->ipaddr);
