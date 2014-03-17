@@ -26,18 +26,24 @@
  * This file is part of the Contiki operating system.
  */
 
+
+#define SHELL 1
+
 #include "contiki.h"
 #include "net/ip/uip.h"
 #include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "sys/etimer.h"
-#include "apps/shell/shell.h"
+
+#if SHELL
+#include "../shell-6l.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
 
- #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 
 #define UDP_CLIENT_PORT 8765
 #define UDP_SERVER_PORT 5678
@@ -49,17 +55,12 @@
 
 static struct uip_udp_conn *client_conn;
 
-/*---------------------------------------------------------------------------*/
 
-PROCESS(shell_send_process, "sendbr");
-SHELL_COMMAND(udp_send_cmd,
-        "sendbr",
-        "sendbr: Send a packet udp to border router",
-        &shell_send_process);
 
 PROCESS(test_host, "Test process of 6LoWPAN ND host");
 AUTOSTART_PROCESSES(&test_host);
 
+/*---------------------------------------------------------------------------*/
 void
 display_add()
 {
@@ -98,23 +99,8 @@ send_packet(uint8_t num)
 }
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_send_process, ev, data)
-{
-  char buf[BUFLEN];
-  int i, v;
-  PROCESS_BEGIN();
-
-  printf("---------- SHELL_COMMAND: sendbr ----------\n");
-  send_packet(1);
-
-  PROCESS_END();
-}
-
-
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_host, ev, data)
 {
-  uip_ipaddr_t *ipaddr;
   static struct etimer periodic_timer;
 
 	PROCESS_BEGIN();
@@ -131,8 +117,10 @@ PROCESS_THREAD(test_host, ev, data)
   printf("NO UIP_CONF_ROUTER\n");
 #endif
 
-  //TODO: pq ca marche pas ?
-  //shell_register_command(&udp_send_cmd);
+
+#if SHELL
+  shell_6l_init();
+#endif
 
   display_add();
 
