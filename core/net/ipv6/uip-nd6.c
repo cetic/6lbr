@@ -230,7 +230,7 @@ uip_nd6_na_output(uint8_t flags)
       /* add aro option if aro in NS is defined */
       UIP_IP_BUF->len[1] += UIP_ND6_OPT_ARO_LEN;
       create_aro(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
-                 aro_state, uip_htons(nd6_opt_aro->lifetime), (uip_lladdr_t*)&nd6_opt_aro->eui64);
+                 aro_state, uip_ntohs(nd6_opt_aro->lifetime), (uip_lladdr_t*)&nd6_opt_aro->eui64);
       uip_len += UIP_ND6_OPT_ARO_LEN;
     }
   #endif /* UIP_CONF_6L_ROUTER */
@@ -314,7 +314,6 @@ uip_nd6_ns_input(void)
             goto  discard;
           }
           nbr->state = NBR_TENTATIVE_DAD;
-          uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr);
         #else /* UIP_CONF_6LR */
           //TODO  0 or 1 for isrouter in arg
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
@@ -378,17 +377,20 @@ uip_nd6_ns_input(void)
   if(nd6_opt_llao == NULL) {
     nd6_opt_aro = NULL;
 #if UIP_CONF_6L_ROUTER
-  } else if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-    timer_set(&nbr->reachable, uip_htons(nd6_opt_aro->lifetime)*60);
+  } else if (nd6_opt_aro && aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+    //TODO define timer dad (not 60) !
+    timer_set(&nbr->reachable, nbr->state == NBR_TENTATIVE_DAD ? 
+      60 : uip_ntohs(nd6_opt_aro->lifetime)*60);
 #endif /* UIP_CONF_6L_ROUTER */
   }
 #endif /* CONF_6LOWPAN_ND */
 
 #if UIP_CONF_6LR
-  if(nd6_opt_aro != NULL && nbr->state == NBR_TENTATIVE_DAD) {
+  if(nd6_opt_aro && nbr->state == NBR_TENTATIVE_DAD) {
     if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
       //TODO find a way to get a border router bound with ipsrc
       border_router = uip_ds6_br_lookup(NULL);
+      uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
     }
     goto discard;
   }
@@ -1540,7 +1542,7 @@ uip_nd6_dar_input(void)
   }
   uip_nd6_da_output(&UIP_IP_BUF->srcipaddr, ICMP6_DAC,
                       status_return, &UIP_ND6_DA_BUF->regipaddr,
-                      &UIP_ND6_DA_BUF->eui64, UIP_ND6_DA_BUF->lifetime);
+                      &UIP_ND6_DA_BUF->eui64, uip_ntohs(UIP_ND6_DA_BUF->lifetime));
   return;
 
 discard:

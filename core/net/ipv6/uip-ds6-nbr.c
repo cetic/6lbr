@@ -332,8 +332,9 @@ uip_ds6_neighbor_periodic(void)
   #if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
       if (!nbr->isrouter) {
+        locdar = uip_ds6_dar_lookup_by_nbr(nbr);
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
-          uip_ds6_dar_rm(uip_ds6_dar_lookup_by_nbr(nbr));
+          uip_ds6_dar_rm(locdar);
           nbr->state = NBR_GARBAGE_COLLECTIBLE;
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
@@ -341,9 +342,9 @@ uip_ds6_neighbor_periodic(void)
           //TODO always UIP_ND6_ARO_STATUS_SUCESS ?
           uip_nd6_dar_output(&uip_ds6_br_lookup(NULL)->ipaddr,
                              UIP_ND6_ARO_STATUS_SUCESS, 
-                             &(uip_ds6_dar_lookup_by_nbr(nbr))->ipaddr,
+                             &locdar->ipaddr,
                              uip_ds6_nbr_get_ll(nbr), 
-                             (stimer_remaining(&nbr->reachable) + stimer_expired(&nbr->reachable))/60);
+                             locdar->lifetime);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       }
@@ -429,7 +430,7 @@ uip_ds6_get_least_lifetime_neighbor(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LR
 uip_ds6_dar_t *
-uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr)
+uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime)
 {
   for(locdar = uip_ds6_dar_list;
       locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
@@ -437,6 +438,7 @@ uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr)
     if(locdar->nbr == NULL) {
       uip_ipaddr_copy(&locdar->ipaddr, ipaddr);
       locdar->nbr = nbr;
+      locdar->lifetime = lifetime;
       return locdar;
     }
   }
