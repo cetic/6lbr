@@ -26,6 +26,8 @@
  * This file is part of the Contiki operating system.
  */
 
+#define SHELL 1
+ 
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -45,6 +47,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#if SHELL
+#include "../shell-6l.h"
+#endif
 
 
 #define UDP_CLIENT_PORT 8765
@@ -158,6 +163,10 @@ PROCESS_THREAD(test_router, ev, data)
 #else
   printf("STARTING unknown device...\n");
 #endif	
+
+#if SHELL
+  shell_6l_init();
+#endif
 
 /*
 #if UIP_ND6_SEND_RA

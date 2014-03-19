@@ -76,7 +76,7 @@
 
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
-#define DEBUG DEBUG_FULL
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
@@ -1532,7 +1532,7 @@ uip_nd6_dar_input(void)
   } else if(UIP_ND6_DA_BUF->lifetime == 0){
     uip_ds6_dup_addr_rm(dupaddr);
     status_return = UIP_ND6_ARO_STATUS_SUCESS;
-  } else if(memcmp(&dupaddr->eui64, &UIP_ND6_DA_BUF->eui64, UIP_LLADDR_LEN)){
+  } else if(!memcmp(&dupaddr->eui64, &UIP_ND6_DA_BUF->eui64, UIP_LLADDR_LEN)){
     /* Update entry */
     stimer_set(&dupaddr->lifetime, uip_ntohs(UIP_ND6_DA_BUF->lifetime));
     status_return = UIP_ND6_ARO_STATUS_SUCESS;
@@ -1589,7 +1589,7 @@ uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" with host address ");
   PRINT6ADDR(&UIP_ND6_DA_BUF->regipaddr);
-  PRINTF("\n");
+  PRINTF(" with status %d\n", status);
   return;
 }
 #endif /* UIP_CONF_6L_ROUTER */

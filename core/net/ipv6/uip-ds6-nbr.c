@@ -51,7 +51,7 @@
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
-#define DEBUG DEBUG_FULL
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
@@ -84,45 +84,6 @@ uip_ds6_neighbors_init(void)
   memset(uip_ds6_dar_list, 0, sizeof(uip_ds6_dar_t));
 #endif /* UIP_CONF_6LR */
 }
-/*---------------------------------------------------------------------------*/
-//TODO remove
-#if DEBUG
-void
-uip6_ds6_nbr_display(void)
-{
-  /* display nce */
-  uip_ds6_nbr_t *nbr2 = nbr_table_head(ds6_neighbors);
-  PRINTF("Neighbor                Linklayer                  St  Expire\n");
-  PRINTF("--------------------------------------------------------------\n");
-  if(nbr2==NULL) {
-    PRINTF("                        EMPTY\n"); 
-    return;
-  }
-  do {
-    PRINT6ADDR(&nbr2->ipaddr);
-    PRINTF("\t   ");
-    PRINTLLADDR(uip_ds6_nbr_get_ll(nbr2));
-    PRINTF("\t   ");
-    switch(nbr2->state){
-      case NBR_GARBAGE_COLLECTIBLE:
-        PRINTF("GC  ");
-        break;
-      case NBR_REGISTERED:
-        PRINTF("R   ");
-        break;
-      case NBR_TENTATIVE:
-        PRINTF("T   ");
-        break;
-      case NBR_TENTATIVE_DAD:
-        PRINTF("TD  ");
-        break;
-      default:
-        PRINTF("?   ");
-    }
-   PRINTF("%u\n", stimer_remaining(&nbr2->reachable));
-  } while(nbr2 = nbr_table_next(ds6_neighbors, nbr2));
-}
-#endif
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
@@ -398,8 +359,6 @@ uip_ds6_neighbor_periodic(void)
 #endif /* UIP_ND6_SEND_NA */
 #endif /* CONF_6LOWPAN_ND */
     default:
-      //TODO: remove
-      PRINTF("/!\\ ERROR: invalide cache type (%d)\n", nbr->state);
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);

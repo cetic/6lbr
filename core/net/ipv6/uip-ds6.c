@@ -50,7 +50,7 @@
 
 #if UIP_CONF_IPV6
 
-#define DEBUG DEBUG_FULL
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
@@ -457,32 +457,7 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 
 /*---------------------------------------------------------------------------*/
 #if CONF_6LOWPAN_ND
-/*---------------------------------------------------------------------------*/
-#if DEBUG
-//TODO: remove
-void 
-print_context_pref(void)
-{
-  int i;
-  PRINTF("------ CONTEXT TABLE ------\n");
-  PRINTF("prefix  | st | cid | lifetime (min)\n");
-  for(i = 0; i< UIP_DS6_CONTEXT_PREF_NB; i++) {
-    loccontext = &uip_ds6_context_pref_list[i];
-    PRINT6ADDR(&loccontext->ipaddr);
-    if(loccontext->state != CONTEXT_PREF_ST_FREE) {
-    #if UIP_CONF_6LBR
-      PRINTF("/%u | %x | %x | %d\n",
-         loccontext->length, loccontext->state, 
-         loccontext->cid, loccontext->vlifetime);
-    #else
-      PRINTF("/%u | %x | %x | %d\n",
-         loccontext->length, loccontext->state, 
-         loccontext->cid, (int) stimer_remaining(&loccontext->lifetime)/60);
-    #endif
-    }
-  }
-}
-#endif /* DEBUG */
+
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LBR
 /*
@@ -697,23 +672,6 @@ uip_ds6_br_config()
 
 
 #if UIP_CONF_6LBR
-/*---------------------------------------------------------------------------*/
-#if DEBUG==DEBUG_FULL
-void *
-print_dup_addr(void) {
-  PRINTF("      ipaddr      |      eui64      | used | lifetime\n");
-  for(locdad = uip_ds6_dup_addr_list;
-      locdad < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
-      locdad++)
-  {
-    PRINT6ADDR(&locdad->ipaddr);
-    PRINTF(" | ");
-    PRINTLLADDR(&locdad->eui64);
-    PRINTF(" |   %d  | %d\n", locdad->isused, locdad->lifetime);
-  }
-}
-#endif /* DEBUG */
-
 /*---------------------------------------------------------------------------*/
 uip_ds6_dup_addr_t *
 uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime, 

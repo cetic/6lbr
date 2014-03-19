@@ -372,14 +372,16 @@ extern struct etimer uip_ds6_timer_periodic;
 #if UIP_CONF_ROUTER
 extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
 #if CONF_6LOWPAN_ND
-extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
-extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
 extern uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
 #if !UIP_CONF_ROUTER || UIP_CONF_6LR
 extern struct etimer uip_ds6_timer_rs;
 #endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
+#if CONF_6LOWPAN_ND
+extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
+extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
+#endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_6LBR
 extern uip_ds6_dup_addr_t uip_ds6_dup_addr_list[UIP_DS6_DUPADDR_NB];
 #endif /* UIP_CONF_6LBR */
