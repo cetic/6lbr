@@ -96,8 +96,7 @@ eth_drv_send(void)
     printf("\n");
   )
 
-  disable_int(enc28j60PacketSend
-              (uip_len + sizeof(struct uip_eth_hdr), uip_buf));
+  disable_int(enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr)));
 }
 
 void
@@ -149,7 +148,7 @@ void
 eth_drv_init()
 {
   LOG6LBR_INFO("ENC28J60 init\n");
-  enc28j60Init(eth_mac_addr);
+  enc28j60_init(eth_mac_addr);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -158,7 +157,7 @@ enc28j60_pollhandler(void)
 {
   //process_poll(&enc28j60_process);
 
-  disable_int(uip_len = enc28j60PacketReceive(UIP_BUFSIZE, uip_buf));
+  disable_int(uip_len = enc28j60_read(uip_buf, UIP_BUFSIZE));
 
   if(uip_len > 0) {
     eth_drv_input();

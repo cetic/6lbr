@@ -74,10 +74,15 @@ PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-c
 ifeq ($(TARGET),native)
 APPS = slip-cmd
 PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c
-else
-ifeq ($(TARGET),econotag)
-PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c
 endif
+
+ifeq ($(TARGET),econotag)
+PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-spi.c enc28j60-drv.c
+endif
+
+ifeq ($(TARGET),red-io)
+PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-ssi.c enc28j60-drv.c enc28j60-red-io-arch.c
+override TARGET=econotag
 endif
 
 UIP_CONF_RPL?=1
@@ -172,6 +177,46 @@ all_econotag:
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_6lr 
 
+bin_red-io/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=red-io CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_smart_bridge 
+
+bin_red-io/cetic_6lbr_rpl_relay:
+	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_rpl_relay
+
+bin_red-io/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_full_transparent_bridge 
+
+bin_red-io/cetic_6lbr_router:
+	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_router 
+
+bin_red-io/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_ndp_router 
+
+bin_red-io/cetic_6lbr_6lr:
+	$(MAKE) TARGET=red-io CETIC_6LBR_6LR=1 $(ECONOTAG_CONF)
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_6lr
+
+all_red-io:
+	rm -rf bin_red-io
+	mkdir -p bin_red-io
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_rpl_relay
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_router 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_6lr 
+
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
@@ -227,4 +272,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag deb ipk tools bin/* bin_econotag/* tools
+.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin/red-io/* tools
