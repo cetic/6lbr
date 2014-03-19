@@ -112,8 +112,6 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     PRINTLLADDR(lladdr);
     PRINTF(" state %u\n", state);
     NEIGHBOR_STATE_CHANGED(nbr);
-    //TODO remove
-    //uip6_ds6_nbr_display();
     return nbr;
   } else {
     PRINTF("uip_ds6_nbr_add drop ip addr ");
@@ -133,6 +131,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
     nbr_table_unlock(ds6_neighbors, nbr);
   }
+  uip_ds6_route_rm(uip_ds6_route_lookup(&nbr->ipaddr));
 #endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -141,8 +140,6 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     NEIGHBOR_STATE_CHANGED(nbr);
     nbr_table_remove(ds6_neighbors, nbr);
   }
-  //TODO remove
-  //uip6_ds6_nbr_display();
   return;
 }
 
@@ -268,6 +265,7 @@ uip_ds6_neighbor_periodic(void)
                                       UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
         nbr->state = NBR_TENTATIVE;
+        nbr->nscount = 0;
     #endif /* !UIP_CONF_6LBR */
       }
       break;

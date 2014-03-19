@@ -308,17 +308,15 @@ uip_nd6_ns_input(void)
     #if UIP_CONF_6L_ROUTER
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
         if(nbr == NULL) {
-        #if UIP_CONF_6LR
           nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
           if(nbr == NULL) {
             goto  discard;
           }
+        #if UIP_CONF_6LR
           nbr->state = NBR_TENTATIVE_DAD;
+          nbr->nscount = 0;
         #else /* UIP_CONF_6LR */
-          //TODO  0 or 1 for isrouter in arg
-          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
-                        0, NBR_REGISTERED);
+          nbr->state = NBR_REGISTERED;
         #endif /* UIP_CONF_6LR */
           if(nbr != NULL) {
             if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
@@ -376,25 +374,37 @@ uip_nd6_ns_input(void)
 #if CONF_6LOWPAN_ND
   if(nd6_opt_llao == NULL) {
     nd6_opt_aro = NULL;
-#if UIP_CONF_6L_ROUTER
-  } else if (nd6_opt_aro && aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-    //TODO define timer dad (not 60) !
-    timer_set(&nbr->reachable, nbr->state == NBR_TENTATIVE_DAD ? 
-      60 : uip_ntohs(nd6_opt_aro->lifetime)*60);
-#endif /* UIP_CONF_6L_ROUTER */
+  }
+
+  if(nd6_opt_aro) {
+    nbr = uip_ds6_nbr_ll_lookup(&nd6_opt_aro->eui64);
+
+  #if UIP_CONF_6LBR
+    if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+      uip_ds6_route_add(&UIP_IP_BUF->srcipaddr, 128, &nbr->ipaddr);
+    }
+  #endif /* UIP_CONF_6LBR */
+
+  #if UIP_CONF_6LR
+    if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+      //TODO define timer dad (not 60) !
+      stimer_set(&nbr->reachable, 60);
+    }
+
+    /* Process to DAD */
+    if(nbr->state == NBR_TENTATIVE_DAD) {
+      if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+        //TODO find a way to get a border router bound with ipsrc
+        border_router = uip_ds6_br_lookup(NULL);
+        uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
+      }
+      goto discard;
+    }
+  #endif /* UIP_CONF_6LR */
+
   }
 #endif /* CONF_6LOWPAN_ND */
 
-#if UIP_CONF_6LR
-  if(nd6_opt_aro && nbr->state == NBR_TENTATIVE_DAD) {
-    if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-      //TODO find a way to get a border router bound with ipsrc
-      border_router = uip_ds6_br_lookup(NULL);
-      uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
-    }
-    goto discard;
-  }
-#endif /* UIP_CONF_6LR */
 
 //TODO if REGISTERED -> stimer_set(&nbr->reachable, uip_htons(nd6_opt_aro->lifetime));
 
@@ -898,7 +908,6 @@ uip_nd6_rs_input(void)
         }
         nbr->isrouter = 0;
       }
-      stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
     #else  /* UIP_CONF_6L_ROUTER */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
@@ -1638,7 +1647,7 @@ uip_nd6_dac_input(void)
     goto discard;
   } else if(UIP_ND6_DA_BUF->status == UIP_ND6_ARO_STATUS_SUCESS){
     nbr->state = NBR_REGISTERED;
-    stimer_set(&nbr->reachable, UIP_ND6_DA_BUF->lifetime);
+    stimer_set(&nbr->reachable, uip_ntohs(UIP_ND6_DA_BUF->lifetime)*60);
     uip_ds6_route_add(&dar->ipaddr, 128, &nbr->ipaddr);
     aro_state = UIP_ND6_ARO_STATUS_SUCESS;
   } else {
