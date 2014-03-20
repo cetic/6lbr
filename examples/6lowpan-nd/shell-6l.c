@@ -32,6 +32,51 @@ PROCESS_THREAD(shell_send_process, ev, data)
 }
 */
 
+/*---------------------------------------------------------------------------*/
+PROCESS(route_m_process, "route");
+SHELL_COMMAND(route_cmd,
+        "route",
+        "route: manage routing table (add/rm)",
+        &route_m_process);
+/*---------------------------------------------------------------------------*/
+void
+str2ip(char* str, uip_ipaddr_t* ip)
+{
+  int i, j; 
+  uint16_t v;
+  char c;
+  for(i=0; i<8; i++) {
+    v = 0;
+    for(j=0; j<4; j++) {
+      c = *(str+(i*5)+j);
+      v = v << 4;     
+      v += c - (c<0x40 ? 0x30 : 0x60 - 9);
+    } 
+    ip->u16[i] = UIP_HTONS(v);
+  }
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(route_m_process, ev, data)
+{
+  PROCESS_BEGIN();
+  /* format data : -a ipv6/length nexthop */
+  uint8_t l;
+  uip_ipaddr_t ip;
+  uip_ipaddr_t nexthop;
+  char * str = data;
+  if(*(str+1) == 'a') {
+    if(*str!='-' || *(str+2)!=' ' || *(str+42)!=' ' || *(str+82)!=' '){
+      printf("Wrong format:%s\n", str);
+    } else {
+      str2ip(str+3, &ip);
+      str2ip(str+43, &nexthop);
+      l = (uint8_t) atoi(str+83);
+      uip_ds6_route_add(&ip, l, &nexthop);
+    }
+  }
+  PROCESS_END();
+}
+
 #if DEBUG == DEBUG_PRINT
 /*---------------------------------------------------------------------------*/
 PROCESS(net_display_process, "netd");
@@ -161,6 +206,7 @@ shell_6l_init(void)
   serial_line_init();
   serial_shell_init();
   //shell_register_command(&udp_send_cmd);
+  shell_register_command(&route_cmd);
 #if DEBUG == DEBUG_PRINT
   shell_register_command(&netd_cmd);
 #endif /* DEBUG == DEBUG_PRINT */

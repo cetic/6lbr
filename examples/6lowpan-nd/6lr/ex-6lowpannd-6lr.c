@@ -69,16 +69,16 @@ display_add()
   int i;
   uint8_t state;
 
-  printf("IPv6 addresses: ");
+  PRINTF("IPv6 addresses: ");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
-      printf(" , ");
+      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTF(" , ");
     }
   }
-  printf("\n");
+  PRINTF("\n");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -112,17 +112,18 @@ PROCESS_THREAD(test_router, ev, data)
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
   if(server_conn == NULL) {
-    printf("No UDP connection available, exiting the process!\n");
+    PRINTF("No UDP connection available, exiting the process!\n");
     PROCESS_EXIT();
   }
   udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
 
-  printf("Created a server connection with remote address ");
+  PRINTF("Created a server connection with remote address ");
   PRINT6ADDR(&server_conn->ripaddr);
-  printf(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
   //routing table
+/*
   uip_ipaddr_t prefix;
   uip_ipaddr_t ipaddr6LBR;
   uip_ipaddr_t ipaddr6LH;
@@ -132,21 +133,22 @@ PROCESS_THREAD(test_router, ev, data)
   uip_ip6addr(&ipaddr6LH, pref, 0, 0, 0, 0x212, 0x7403, 0x3, 0x103);
   uip_ds6_route_add(&prefix, 32, &ipaddr6LBR);
   uip_ds6_route_add(&ipaddr6LH, 128, &ipaddr6LH);
-
+*/
+  
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {
       if(uip_newdata()) {
         appdata = (char *)uip_appdata;
         appdata[uip_datalen()] = 0;
-        printf("DATA recv '%s'\n", appdata);
+        PRINTF("DATA recv '%s'\n", appdata);
       }
     }else if (ev == sensors_event && data == &button_sensor) {
-      printf("------> TEST EVENT <-------\n");
+      PRINTF("------> TEST EVENT <-------\n");
     }
   }
 
 
   PROCESS_END();
-  printf("END PROCESS :() \n");
+  PRINTF("END PROCESS :() \n");
 }

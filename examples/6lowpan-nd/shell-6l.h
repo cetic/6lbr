@@ -14,7 +14,7 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-ds6-nbr.h"
-
+#include "net/ipv6/uip-ds6-route.h"
 
 #ifdef CONTIKI_TARGET_Z1
 #include "dev/uart0.h"
