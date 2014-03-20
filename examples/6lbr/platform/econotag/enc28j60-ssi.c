@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, CETIC.
  * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
@@ -424,7 +425,13 @@ reset(void)
 
   /* Receive filters */
   setregbank(EPKTCNT_BANK);
-  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
+  //writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+  //Enter Promiscuous mode (capture all packets)
+  writereg(ERXFCON, 0);
+#else
+  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_MCEN | ERXFCON_BCEN);
+#endif
 
   /*
     6.6 PHY Initialization Settings
