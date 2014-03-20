@@ -272,4 +272,4 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin/red-io/* tools
+.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* tools
