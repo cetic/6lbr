@@ -60,7 +60,9 @@ nvm_data_read(void)
   err =
     nvm_read(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
              CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
+  if (err) {
+    LOG6LBR_ERROR("read error : %d\n", err);
+  }
 }
 
 void
@@ -75,5 +77,7 @@ nvm_data_write(void)
   err =
     nvm_write(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
               CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
+  if (err) {
+    LOG6LBR_ERROR("write error : %d\n", err);
+  }
 }
