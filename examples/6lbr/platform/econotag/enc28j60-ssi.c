@@ -218,12 +218,18 @@ readdata(uint8_t *buf, int len)
   for(i = 0; i < ETHERNET_LLH_LEN; i++) {
     ll_header[i] = enc28j60_arch_spi_read();
   }
-  for(i = 0; i < len - ETHERNET_LLH_LEN; i++) {
+  for(i = 0; i < len - ETHERNET_LLH_LEN - 4; i++) {
     buf[i] = enc28j60_arch_spi_read();
   }
+  for(i = 0; i < 4; i++) {
+    enc28j60_arch_spi_read();
+  }
 #elif UIP_CONF_LLH_LEN == 14
-  for(i = 0; i < len; i++) {
+  for(i = 0; i < len - 4; i++) {
     buf[i] = enc28j60_arch_spi_read();
+  }
+  for(i = 0; i < 4; i++) {
+    enc28j60_arch_spi_read();
   }
 #else
 #error "UIP_CONF_LLH_LEN value neither 0 nor 14."
@@ -642,9 +648,9 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   received_packets++;
   PRINTF("enc28j60: received_packets %d\n", received_packets);
 #if UIP_CONF_LLH_LEN == 0
-  return len - ETHERNET_LLH_LEN;
+  return len - ETHERNET_LLH_LEN - 4;
 #elif UIP_CONF_LLH_LEN == 14
-  return len;
+  return len - 4;
 #endif
 }
 /*---------------------------------------------------------------------------*/
