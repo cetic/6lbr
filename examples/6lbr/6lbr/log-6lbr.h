@@ -138,7 +138,7 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_LEVEL_TRACE 70
 
 #define LOG6LBR_LEVEL_ALL 127
-#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_ALL
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
 
 #define LOG6LBR_SERVICE_GLOBAL    0x00000001
 #define LOG6LBR_SERVICE_ETH_IN    0x00000002
@@ -211,7 +211,7 @@ extern void log6lbr_timestamp();
 #else
 #define _LEVEL_FILTER_PACKET(...)
 #endif
-#if LOG6LBR_LEVELl_DUMP <= LOG6LBR_LEVEL
+#if LOG6LBR_LEVEL_DUMP <= LOG6LBR_LEVEL
 #define _LEVEL_FILTER_DUMP(a) a
 #else
 #define _LEVEL_FILTER_DUMP(...)
