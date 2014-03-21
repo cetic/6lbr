@@ -382,6 +382,7 @@ uip_nd6_ns_input(void)
   #if UIP_CONF_6LBR
     if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
       uip_ds6_route_add(&UIP_IP_BUF->srcipaddr, 128, &nbr->ipaddr);
+      stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
     }
   #endif /* UIP_CONF_6LBR */
 

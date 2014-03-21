@@ -441,9 +441,9 @@ uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router)
 uint8_t
 uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 {
-#if UIP_CONF_6LN
+#if CONF_6LOWPAN_ND
   return uip_is_addr_link_local(ipaddr);
-#else /* UIP_CONF_6LN */
+#else /* CONF_6LOWPAN_ND */
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {
     if(locprefix->isused &&
@@ -452,7 +452,7 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
     }
   }
   return 0;
-#endif /* UIP_CONF_6LN */
+#endif /* CONF_6LOWPAN_ND */
 }
 
 /*---------------------------------------------------------------------------*/

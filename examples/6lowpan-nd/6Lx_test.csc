@@ -8,7 +8,7 @@
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>6LoWPAN-ND</title>
-    <speedlimit>2.0</speedlimit>
+    <speedlimit>10.0</speedlimit>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -140,10 +140,10 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>2</z>
     <height>160</height>
-    <location_x>964</location_x>
-    <location_y>2</location_y>
+    <location_x>299</location_x>
+    <location_y>10</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -153,10 +153,10 @@
       <coloring />
     </plugin_config>
     <width>919</width>
-    <z>2</z>
-    <height>478</height>
-    <location_x>366</location_x>
-    <location_y>159</location_y>
+    <z>1</z>
+    <height>911</height>
+    <location_x>431</location_x>
+    <location_y>35</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -185,10 +185,10 @@
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>3.47082132865459 0.0 0.0 3.47082132865459 -10.756516980873421 -157.36244059426517</viewport>
     </plugin_config>
-    <width>400</width>
+    <width>399</width>
     <z>3</z>
     <height>400</height>
-    <location_x>0</location_x>
+    <location_x>1</location_x>
     <location_y>1</location_y>
   </plugin>
   <plugin>
@@ -216,8 +216,8 @@
     <width>350</width>
     <z>4</z>
     <height>300</height>
-    <location_x>914</location_x>
-    <location_y>398</location_y>
+    <location_x>975</location_x>
+    <location_y>684</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
@@ -227,17 +227,23 @@ for(var i=0; i&lt;3; i++) {&#xD;
     YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
 }&#xD;
 &#xD;
-// Display all mote NC&#xD;
-for(var i=1; i&lt;=3; i++) {&#xD;
-    write(sim.getMoteWithID(i), "netd nc");&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
+// Display all mote Table&#xD;
+function displayAllTable(){&#xD;
+    var allm = sim.getMotes();&#xD;
+    for(var id in  allm) {&#xD;
+	    write(allm[id], "netd nc");&#xD;
+	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
+	    write(allm[id], "netd rt");&#xD;
+	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
+	}&#xD;
 }&#xD;
+//displayAllTable();&#xD;
 &#xD;
 // Add to routing table&#xD;
-function genip(num){&#xD;
+var prefix = "bbbb";&#xD;
+function genip(num, pref){&#xD;
     var ip = "";&#xD;
-    var prefix = "bbbb";&#xD;
-    ip += prefix;&#xD;
+    ip += pref;&#xD;
     for(var i=0; i&lt;3; i++){&#xD;
         ip +=":0000";&#xD;
     }&#xD;
@@ -251,23 +257,47 @@ function genip(num){&#xD;
     ip += ":0"+n.toString(16);&#xD;
     return ip;&#xD;
 }&#xD;
+function gpip(num) { return genip(num, prefix); }&#xD;
+function llip(num) { return genip(num, "fe80"); }&#xD;
 function addroute(moteID, to, nexthop, len) {&#xD;
     mote = sim.getMoteWithID(moteID);&#xD;
-    //log.log("MOTE "+moteID+"-&gt;"+"route -a "+genip(to)+" "+genip(nexthop)+" "+len + "\n");&#xD;
-    write(mote, "route -a "+genip(to)+" "+genip(nexthop)+" "+len);&#xD;
+    var cmd = "route -a "+gpip(to)+" "+llip(nexthop)+" "+len;&#xD;
+    log.log("MOTE " +moteID + "-&gt;" + cmd + "\n");&#xD;
+    write(mote, cmd);&#xD;
 }&#xD;
 //RT mote 3&#xD;
-addroute(3, 0, 2, 32);&#xD;
+addroute(1, 0, 2, 32);&#xD;
 //RT mote 2&#xD;
 addroute(2, 0, 1, 32);&#xD;
-addroute(2, 3, 3, 128);</script>
+addroute(2, 3, 3, 128);&#xD;
+&#xD;
+&#xD;
+//Waiting configurate of all mote was done&#xD;
+function waitingConfig(){&#xD;
+	var lastid = -1;&#xD;
+	for(var i=0;; i++) {&#xD;
+	    YIELD_THEN_WAIT_UNTIL(msg.contains("Sending") || msg.contains("timeout"));&#xD;
+	    if(msg.contains("Sending")){&#xD;
+	        GENERATE_MSG(60000, "timeout"+i);&#xD;
+	        lastid++;&#xD;
+	    }else if(msg.equals("timeout"+lastid)) {&#xD;
+	        return;&#xD;
+	    }&#xD;
+	}&#xD;
+}&#xD;
+&#xD;
+//Display NC when changement of msg was done&#xD;
+while(true) {&#xD;
+	waitingConfig();&#xD;
+    displayAllTable();&#xD;
+}</script>
       <active>true</active>
     </plugin_config>
-    <width>600</width>
+    <width>511</width>
     <z>0</z>
-    <height>700</height>
-    <location_x>148</location_x>
-    <location_y>0</location_y>
+    <height>995</height>
+    <location_x>1390</location_x>
+    <location_y>1</location_y>
   </plugin>
 </simconf>
 

@@ -156,6 +156,22 @@ display_nbr(void)
   } while(nbr2 = nbr_table_next(ds6_neighbors, nbr2));
 }
 /*---------------------------------------------------------------------------*/
+void
+display_rt(void)
+{
+  PRINTF("IPv6                      Nexthop\n");
+  PRINTF("----------------------------------------------\n");
+  uip_ds6_route_t *r;
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
+      PRINT6ADDR(&r->ipaddr);
+      PRINTF("/%d  ",r->length);
+      PRINT6ADDR(uip_ds6_route_nexthop(r));
+      PRINTF("\n");
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LBR
 void *
 print_dup_addr(void) {
@@ -182,6 +198,8 @@ PROCESS_THREAD(net_display_process, ev, data)
   PROCESS_BEGIN();
   if(strcmp(data, "nc") == 0) {
     display_nbr();
+  } else if(strcmp(data, "rt") == 0) {
+    display_rt();
   } else if(strcmp(data, "cp") == 0) {
     display_context_pref();
 #if UIP_CONF_6LBR
