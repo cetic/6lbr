@@ -428,7 +428,8 @@ uip_nd6_ns_input(void)
     #if UIP_CONF_6L_ROUTER
         //TODO: test with multicat NS bewteen routers
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_GARBAGE_COLLECTIBLE);
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
+                        ISROUTER_NODEFINE_N, NBR_GARBAGE_COLLECTIBLE);
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
         aro_state = UIP_ND6_ARO_STATUS_SUCESS;
     #endif /* UIP_CONF_6L_ROUTER */
@@ -892,7 +893,8 @@ uip_nd6_rs_input(void)
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_GARBAGE_COLLECTIBLE);
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
+                        ISROUTER_NODEFINE_N, NBR_GARBAGE_COLLECTIBLE);
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
       } else {
         /* If LL address changed, set neighbor state to stale */
@@ -901,13 +903,14 @@ uip_nd6_rs_input(void)
           uip_ds6_nbr_t nbr_data = *nbr;
           uip_ds6_nbr_rm(nbr);
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_GARBAGE_COLLECTIBLE);
+                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
+                                ISROUTER_NODEFINE_N, NBR_GARBAGE_COLLECTIBLE);
           stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
           nbr->reachable = nbr_data.reachable;
           nbr->sendns = nbr_data.sendns;
           nbr->nscount = nbr_data.nscount;
         }
-        nbr->isrouter = 0;
+        nbr->isrouter = ISROUTER_NODEFINE_N;
       }
     #else  /* UIP_CONF_6L_ROUTER */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
@@ -1249,11 +1252,11 @@ uip_nd6_ra_input(void)
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
         #if UIP_CONF_6L_ROUTER
-            1,  NBR_TENTATIVE);
+                              ISROUTER_NODEFINE_R,  NBR_TENTATIVE);
         //TODO != RFC -> tentative or garbage
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
         #else /* UIP_CONF_6L_ROUTER */
-                              1, NBR_TENTATIVE);
+                              ISROUTER_YES, NBR_TENTATIVE);
         #endif /* UIP_CONF_6L_ROUTER */
       } else {
         //TODO: refresh timer in nbr, or rm entry
@@ -1449,6 +1452,7 @@ uip_nd6_ra_input(void)
   defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
   if(UIP_ND6_RA_BUF->router_lifetime != 0) {
     if(nbr != NULL) {
+      //TODO right ?
       nbr->isrouter = 1;
     }
     if(defrt == NULL) {

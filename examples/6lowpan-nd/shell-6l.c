@@ -119,8 +119,8 @@ display_nbr(void)
 {
   /* display nce */
   uip_ds6_nbr_t *nbr2 = nbr_table_head(ds6_neighbors);
-  PRINTF("Neighbor              Linklayer                St  Expire\n");
-  PRINTF("---------------------------------------------------------\n");
+  PRINTF("Neighbor              Linklayer                St  R  Expire\n");
+  PRINTF("------------------------------------------------------------\n");
   if(nbr2==NULL) {
     return;
   }
@@ -145,7 +145,26 @@ display_nbr(void)
       default:
         PRINTF("? ");
     }
-   PRINTF("  %d\n", (int) stimer_remaining(&nbr2->reachable));
+    PRINTF("  ");
+    switch(nbr2->isrouter){
+      case ISROUTER_YES:
+        PRINTF("R");
+        break;
+      case ISROUTER_NO:
+        PRINTF("H ");
+        break;
+  #if UIP_CONF_6L_ROUTER
+      case ISROUTER_NODEFINE_R:
+        PRINTF("?R");
+        break;
+      case ISROUTER_NODEFINE_N:
+        PRINTF("?H");
+        break;
+  #endif /* UIP_CONF_6L_ROUTER */
+      default:
+        PRINTF("??");
+    }
+    PRINTF("  %d\n", (int) stimer_remaining(&nbr2->reachable));
   } while(nbr2 = nbr_table_next(ds6_neighbors, nbr2));
 }
 /*---------------------------------------------------------------------------*/

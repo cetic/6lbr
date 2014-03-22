@@ -275,7 +275,12 @@ uip_ds6_neighbor_periodic(void)
       attempt to register with more than one of them in order to increase
       the robustness of the network.
       */
-      if (nbr->isrouter) {
+      /* TODO
+      if(stimer_expired(&nbr->reachable)) {
+          uip_ds6_nbr_rm(nbr);
+      }
+      */
+      if (nbr->isrouter == ISROUTER_YES || nbr->isrouter == ISROUTER_NODEFINE_R) {
         //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
@@ -286,11 +291,15 @@ uip_ds6_neighbor_periodic(void)
                                 UIP_ND6_REGISTER_LIFETIME, 1);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
+      } else {
+        if(stimer_expired(&nbr->reachable)) {
+          uip_ds6_nbr_rm(nbr);
+        }
       }
       break;
   #if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
-      if (!nbr->isrouter) {
+      if (nbr->isrouter == ISROUTER_NO || nbr->isrouter == ISROUTER_NODEFINE_N) {
         locdar = uip_ds6_dar_lookup_by_nbr(nbr);
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           uip_ds6_dar_rm(locdar);

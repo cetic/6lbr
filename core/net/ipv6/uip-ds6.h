@@ -191,6 +191,17 @@
 #define BR_ST_USED 1
 #define BR_ST_NEW_VERSION 2
 
+/** \brief Possible states for isrouter flag */
+#define ISROUTER_NO 0
+#define ISROUTER_YES 1
+#if UIP_CONF_6LN
+#define ISROUTER_NODEFINE_R ISROUTER_YES
+#define ISROUTER_NODEFINE_N ISROUTER_YES
+#else /* UIP_CONF_6LN */
+#define ISROUTER_NODEFINE_R 2
+#define ISROUTER_NODEFINE_N 3
+#endif /* UIP_CONF_6LN */
+
 #endif /* CONF_6LOWPAN_ND */
 
 /** \brief Genereal timer delay */
