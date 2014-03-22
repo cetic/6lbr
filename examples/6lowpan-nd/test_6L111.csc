@@ -142,7 +142,7 @@
     <z>0</z>
     <height>160</height>
     <location_x>299</location_x>
-    <location_y>10</location_y>
+    <location_y>12</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -263,14 +263,9 @@ function llip(num) { return genip(num, "fe80"); }&#xD;
 function addroute(moteID, to, nexthop, len) {&#xD;
     mote = sim.getMoteWithID(moteID);&#xD;
     var cmd = "route -a "+gpip(to)+" "+llip(nexthop)+" "+len;&#xD;
-    //log.log("MOTE " +moteID + "-&gt;" + cmd + "\n");&#xD;
+    log.log("MOTE " +moteID + "-&gt;" + cmd + "\n");&#xD;
     write(mote, cmd);&#xD;
 }&#xD;
-//RT mote 3&#xD;
-//addroute(1, 0, 2, 32);&#xD;
-//RT mote 2&#xD;
-//addroute(2, 0, 1, 32);&#xD;
-//addroute(2, 3, 3, 128);&#xD;
 &#xD;
 &#xD;
 //Waiting configurate of all mote was done&#xD;
@@ -278,7 +273,7 @@ function waitingConfig(){&#xD;
 	var lastid = 0;&#xD;
 	for(var i=0;; i++) {&#xD;
 	    YIELD_THEN_WAIT_UNTIL(msg.contains("Sending") || msg.contains("timeout"));&#xD;
-	    if(msg.contains("Sending")){&#xD;
+        if(msg.contains("Sending")){&#xD;
 	        GENERATE_MSG(75000, "timeout"+lastid);&#xD;
 	        lastid++;&#xD;
 	    }else if(msg.equals("timeout"+(lastid-1))) {&#xD;
@@ -292,7 +287,7 @@ function sendudp(from, to) {&#xD;
     var cmd = "sendudp " + gpip(to);&#xD;
     log.log("mote "+from+" -&gt; "+cmd+"\n");&#xD;
     write(mote, cmd);&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv"));   &#xD;
+    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello"));   &#xD;
 }&#xD;
 &#xD;
 function sendudpBR(br) {&#xD;
@@ -307,18 +302,22 @@ function sendudpBR(br) {&#xD;
 }&#xD;
 &#xD;
 //Display NC when changement of msg was done&#xD;
-while(true) {&#xD;
-	waitingConfig();&#xD;
-    displayAllTable();&#xD;
-    //sendudpBR(brID);&#xD;
-}</script>
+TIMEOUT(300000);&#xD;
+waitingConfig();&#xD;
+log.log("Topology stable\n");&#xD;
+log.log("Modify RT\n");&#xD;
+addroute(1,1,2,32);&#xD;
+displayAllTable();&#xD;
+log.log("Sending udp packet\n");&#xD;
+sendudpBR(brID);&#xD;
+log.testOK();</script>
       <active>true</active>
     </plugin_config>
     <width>511</width>
     <z>1</z>
     <height>995</height>
     <location_x>1390</location_x>
-    <location_y>1</location_y>
+    <location_y>5</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.MoteInterfaceViewer

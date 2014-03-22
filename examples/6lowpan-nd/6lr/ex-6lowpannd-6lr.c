@@ -32,7 +32,6 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/ip/uip.h"
-#include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/netstack.h"
@@ -41,18 +40,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "dev/button-sensor.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#define DEBUG DEBUG_PRINT
+#include "net/ip/uip-debug.h"
+
+void send_packet(uip_ipaddr_t * server_ipaddr);
 
 #if SHELL
 #include "../shell-6l.h"
 #endif
 
-#define UDP_CLIENT_PORT 8765
-#define UDP_SERVER_PORT 5678
+#define UDP_PORT 8765
+#define MAX_PAYLOAD_LEN   30
 
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
@@ -66,6 +64,7 @@ AUTOSTART_PROCESSES(&test_router);
 void
 display_add()
 {
+#if DEBUG
   int i;
   uint8_t state;
 
@@ -79,6 +78,22 @@ display_add()
     }
   }
   PRINTF("\n");
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+void
+send_packet(uip_ipaddr_t * server_ipaddr)
+{
+  static int seq_id;
+  char buf[MAX_PAYLOAD_LEN];
+
+  seq_id++;
+  printf("DATA 'Hello %d' send to %d \n",
+         server_ipaddr->u8[sizeof(server_ipaddr->u8) - 1], seq_id);
+  sprintf(buf, "Hello %d from the client", seq_id);
+  uip_udp_packet_sendto(server_conn, buf, strlen(buf),
+                        server_ipaddr, UIP_HTONS(UDP_PORT));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -110,12 +125,12 @@ PROCESS_THREAD(test_router, ev, data)
 
   display_add();
 
-  server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
+  server_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL);
   if(server_conn == NULL) {
     PRINTF("No UDP connection available, exiting the process!\n");
     PROCESS_EXIT();
   }
-  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
+  udp_bind(server_conn, UIP_HTONS(UDP_PORT));
 
   PRINTF("Created a server connection with remote address ");
   PRINT6ADDR(&server_conn->ripaddr);
@@ -137,14 +152,10 @@ PROCESS_THREAD(test_router, ev, data)
   
   while(1) {
     PROCESS_YIELD();
-    if(ev == tcpip_event) {
-      if(uip_newdata()) {
+    if(ev == tcpip_event && uip_newdata()) {
         appdata = (char *)uip_appdata;
         appdata[uip_datalen()] = 0;
-        PRINTF("DATA recv '%s'\n", appdata);
-      }
-    }else if (ev == sensors_event && data == &button_sensor) {
-      PRINTF("------> TEST EVENT <-------\n");
+        printf("DATA recv '%s'\n", appdata);
     }
   }
 

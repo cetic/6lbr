@@ -5,39 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
-/*
-PROCESS(shell_send_process, "sendbr");
-SHELL_COMMAND(udp_send_cmd,
-        "sendbr",
-        "sendbr: Send a packet udp to border router",
-        &shell_send_process);
-*/
-
-/*---------------------------------------------------------------------------*/
-/*
-PROCESS_THREAD(shell_send_process, ev, data)
-{
-  int v;
-  PROCESS_BEGIN();
-
-  v = atoi(data);
-  if(!v) {
-    printf("destination invalid (%d)\n", v);
-  } else {
-    send_packet(v);
-  }
-
-  PROCESS_END();
-}
-*/
-
-/*---------------------------------------------------------------------------*/
-PROCESS(route_m_process, "route");
-SHELL_COMMAND(route_cmd,
-        "route",
-        "route: manage routing table (add/rm)",
-        &route_m_process);
 /*---------------------------------------------------------------------------*/
 void
 str2ip(char* str, uip_ipaddr_t* ip)
@@ -55,6 +22,32 @@ str2ip(char* str, uip_ipaddr_t* ip)
     ip->u16[i] = UIP_HTONS(v);
   }
 }
+
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_send_process, "sendudp");
+SHELL_COMMAND(udp_send_cmd,
+        "sendudp",
+        "sendudp: Send a packet udp to border router",
+        &shell_send_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_send_process, ev, data)
+{
+  uip_ipaddr_t ip;
+  PROCESS_BEGIN();
+
+  str2ip(data, &ip);
+  send_packet(&ip);
+
+  PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
+PROCESS(route_m_process, "route");
+SHELL_COMMAND(route_cmd,
+        "route",
+        "route: manage routing table (add/rm)",
+        &route_m_process);
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(route_m_process, ev, data)
 {
@@ -223,7 +216,7 @@ shell_6l_init(void)
   #endif
   serial_line_init();
   serial_shell_init();
-  //shell_register_command(&udp_send_cmd);
+  shell_register_command(&udp_send_cmd);
   shell_register_command(&route_cmd);
 #if DEBUG == DEBUG_PRINT
   shell_register_command(&netd_cmd);

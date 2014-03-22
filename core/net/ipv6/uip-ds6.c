@@ -50,7 +50,7 @@
 
 #if UIP_CONF_IPV6
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */

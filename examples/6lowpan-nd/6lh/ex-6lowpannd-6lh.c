@@ -31,12 +31,14 @@
 
 #include "contiki.h"
 #include "net/ip/uip.h"
-#include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "sys/etimer.h"
 
 #define DEBUG DEBUG_PRINT
+#include "net/ip/uip-debug.h"
+
+void send_packet(uip_ipaddr_t * server_ipaddr);
 
 #if SHELL
 #include "../shell-6l.h"
@@ -45,8 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define UDP_CLIENT_PORT 8765
-#define UDP_SERVER_PORT 5678
+#define UDP_PORT 8765
 #define MAX_PAYLOAD_LEN   30
 
 #define SEND_INTERVAL   (60 * CLOCK_SECOND)
@@ -64,6 +65,7 @@ AUTOSTART_PROCESSES(&test_host);
 void
 display_add()
 {
+#if DEBUG
   int i;
   uint8_t state;
 
@@ -77,31 +79,29 @@ display_add()
     }
   }
   PRINTF("\n");
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
-static void
-send_packet(uint8_t num)
+void
+send_packet(uip_ipaddr_t * server_ipaddr)
 {
   static int seq_id;
-  static uip_ipaddr_t server_ipaddr;
   char buf[MAX_PAYLOAD_LEN];
 
-  uip_ip6addr(&server_ipaddr, 0xbbbb, 0, 0, 0, 0x0212, 0x7400+num, num, (0x100*num)+num);
-
   seq_id++;
-  PRINTF("DATA 'Hello %d' send to %d ",
-         server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1], seq_id);
-  PRINT6ADDR(&server_ipaddr);
+  printf("DATA 'Hello %d' send to %d \n",
+         server_ipaddr->u8[sizeof(server_ipaddr->u8) - 1], seq_id);
   sprintf(buf, "Hello %d from the client", seq_id);
   uip_udp_packet_sendto(client_conn, buf, strlen(buf),
-                        &server_ipaddr, UIP_HTONS(UDP_SERVER_PORT));
+                        server_ipaddr, UIP_HTONS(UDP_PORT));
 }
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_host, ev, data)
 {
   static struct etimer periodic_timer;
+  char *appdata;
 
 	PROCESS_BEGIN();
 
@@ -124,25 +124,26 @@ PROCESS_THREAD(test_host, ev, data)
 
   display_add();
 
-  client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
+  client_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL); 
   if(client_conn == NULL) {
     PRINTF("No UDP connection available, exiting the process!\n");
     PROCESS_EXIT();
   }
-  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT)); 
+  udp_bind(client_conn, UIP_HTONS(UDP_PORT)); 
 
   PRINTF("Created a connection with the server ");
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
   UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 
-  etimer_set(&periodic_timer, SEND_INTERVAL);
+
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-    etimer_reset(&periodic_timer);
-    //SEND
-    //send_packet(2);
-    etimer_set(&periodic_timer, SEND_INTERVAL);
+    PROCESS_YIELD();
+    if(ev == tcpip_event && uip_newdata()) {
+      appdata = (char *)uip_appdata;
+      appdata[uip_datalen()] = 0;
+      printf("DATA recv '%s'\n", appdata);
+    }
   }
 
   PROCESS_END();
