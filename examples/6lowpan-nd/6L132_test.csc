@@ -101,6 +101,10 @@
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
+      </interface_config>
       <motetype_identifier>sky3</motetype_identifier>
     </mote>
     <mote>
@@ -114,6 +118,10 @@
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
@@ -131,7 +139,7 @@
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd rt~;netd nc~;</history>
+        <history>netd nc~;netd rt~;netd nc~;netd rt~;netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -167,13 +175,17 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>85.37351826660874</x>
-        <y>124.11386972155958</y>
+        <x>85.70465169454424</x>
+        <y>130.9533389936734</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd cp~;netd nc~;netd cp~;netd nc~;help~;restart~;netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -181,10 +193,10 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>2</z>
     <height>160</height>
-    <location_x>419</location_x>
-    <location_y>6</location_y>
+    <location_x>62</location_x>
+    <location_y>747</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -194,10 +206,10 @@
       <coloring />
     </plugin_config>
     <width>919</width>
-    <z>2</z>
+    <z>1</z>
     <height>911</height>
-    <location_x>431</location_x>
-    <location_y>35</location_y>
+    <location_x>411</location_x>
+    <location_y>3</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -214,7 +226,7 @@
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>1319</width>
-    <z>7</z>
+    <z>5</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>847</location_y>
@@ -227,7 +239,7 @@
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>2.966779905384192 0.0 0.0 2.966779905384192 69.2483615546748 -120.06333466939438</viewport>
+      <viewport>1.4307387660996298 0.0 0.0 1.4307387660996298 116.37903238554924 24.639981351565215</viewport>
     </plugin_config>
     <width>399</width>
     <z>3</z>
@@ -251,19 +263,6 @@
     <location_y>402</location_y>
   </plugin>
   <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>2</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>6</z>
-    <height>300</height>
-    <location_x>975</location_x>
-    <location_y>684</location_y>
-  </plugin>
-  <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
       <script>var prefix = "bbbb";&#xD;
@@ -281,6 +280,8 @@ function displayAllTable(){&#xD;
 	    write(allm[id], "netd nc");&#xD;
 	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
 	    write(allm[id], "netd rt");&#xD;
+	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
+	    write(allm[id], "netd cp");&#xD;
 	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
 	}&#xD;
 }&#xD;
@@ -305,6 +306,16 @@ function genip(num, pref){&#xD;
 }&#xD;
 function gpip(num) { return genip(num, prefix); }&#xD;
 function llip(num) { return genip(num, "fe80"); }&#xD;
+function genpref(pref){&#xD;
+    var ip = "";&#xD;
+    ip += pref;&#xD;
+    var n = pref.split(":");&#xD;
+    var r = 8 - n.length;&#xD;
+    for(var i=0; i&lt;r; i++){&#xD;
+        ip +=":0000";&#xD;
+    }&#xD;
+    return ip;&#xD;
+}&#xD;
 function addroute(moteID, to, nexthop, len) {&#xD;
     mote = sim.getMoteWithID(moteID);&#xD;
     var cmd = "route -a "+gpip(to)+" "+llip(nexthop)+" "+len;&#xD;
@@ -364,6 +375,18 @@ function buildRT(s) {&#xD;
     }&#xD;
 }&#xD;
 &#xD;
+function addCO(prefix, len) {&#xD;
+    var cmd = "cp -a "+genpref(prefix)+" "+len;&#xD;
+    log.log("CO added -&gt; "+cmd+"\n");&#xD;
+    write(sim.getMoteWithID(brID), cmd);&#xD;
+}&#xD;
+&#xD;
+function rmCO(prefix, len) {&#xD;
+    var cmd = "cp -r "+genpref(prefix)+" "+len;&#xD;
+    log.log("CO remove -&gt; "+cmd+"\n");&#xD;
+    write(sim.getMoteWithID(brID), cmd);&#xD;
+}&#xD;
+&#xD;
 //Display NC when changement of msg was done&#xD;
 //TIMEOUT(300000);&#xD;
 log.log("Modify RT\n");&#xD;
@@ -380,36 +403,26 @@ buildRT([&#xD;
         }&#xD;
     }&#xD;
 ]);&#xD;
+&#xD;
+addCO("cccc",16);&#xD;
+&#xD;
 while(true) {&#xD;
 	waitingConfig();&#xD;
 	log.log("Topology stable\n");&#xD;
 	//addroute(1,1,2,32);&#xD;
 	displayAllTable();&#xD;
-	log.log("Sending udp packet...\n");&#xD;
-	sendudpBR(brID);&#xD;
-	log.log("   OK\n");&#xD;
+	//log.log("Sending udp packet...\n");&#xD;
+    //sendudpBR(brID);&#xD;
+	//log.log("   OK\n");&#xD;
 }&#xD;
 log.testOK();</script>
-      <active>false</active>
+      <active>true</active>
     </plugin_config>
     <width>560</width>
     <z>0</z>
     <height>995</height>
     <location_x>1341</location_x>
     <location_y>1</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>1</mote_arg>
-    <plugin_config>
-      <interface>IP Address</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>5</z>
-    <height>300</height>
-    <location_x>1011</location_x>
-    <location_y>199</location_y>
   </plugin>
 </simconf>
 

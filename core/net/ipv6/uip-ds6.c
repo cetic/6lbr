@@ -99,7 +99,6 @@ static uip_ds6_context_pref_t *loccontext;
 static uip_ds6_dup_addr_t *locdad;
 #endif /* UIP_CONF_6LBR */
 static uint8_t flag_rs_ra; /* format: free|rcv_ra|send_new_rs */
-//TODO: static variable<-> extern
 uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 
@@ -214,21 +213,9 @@ uip_ds6_periodic(void)
     }*/
 
 #if CONF_6LOWPAN_ND
+
     /* Periodic processing on border router */
-#if UIP_CONF_6LBR
-  for(locbr = uip_ds6_br_list;
-      locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
-      locbr++) {
-    if(locbr->state == BR_ST_NEW_VERSION) {
-      /* New version so send a RA to all router */
-      locbr->version++;
-      locbr->state = BR_ST_USED;
-      //TODO no periodic ?
-      //uip_ds6_send_ra_periodic();
-    }
-  }
-#else /* UIP_CONF_6LBR */
-    //TODO: test
+#if !UIP_CONF_6LBR
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
       locbr++) {
@@ -237,23 +224,47 @@ uip_ds6_periodic(void)
       uip_ds6_br_rm(locbr);
     }
   }
-#endif /* UIP_CONF_6LBR */
+#endif /* !UIP_CONF_6LBR */
 
 
-#if UIP_CONF_6LR || UIP_CONF_6LN
   /* Periodic processing on context prefixes */
   for(loccontext = uip_ds6_context_pref_list;
       loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       loccontext++) {
       if (loccontext->state != CONTEXT_PREF_ST_FREE) {
+    #if UIP_CONF_6LBR
+        if(stimer_expired(&loccontext->lifetime) && 
+           loccontext->br->state != BR_ST_NEW_VERSION) {
+          switch(loccontext->state) {
+          case CONTEXT_PREF_ST_RM:
+            /* Valid lifetime expired, so remove */
+            loccontext->state = CONTEXT_PREF_ST_FREE;
+            break;
+          case CONTEXT_PREF_ST_ADD:
+            /* before c=0, now c=1 */
+            loccontext->state = CONTEXT_PREF_ST_COMPRESS;
+            stimer_set(&loccontext->lifetime, loccontext->vlifetime*60);
+            break;
+          }
+        }
+    #else /* UIP_CONF_6LBR */
         if(stimer_expired(&loccontext->lifetime)) {
-          /* Valid lifetime expired */
-          if(loccontext->state  == CONTEXT_PREF_ST_UNCOMPRESSONLY) {
-            uip_ds6_context_pref_rm(loccontext);
-          } else {
+          switch(loccontext->state) {
+          case CONTEXT_PREF_ST_UNCOMPRESSONLY:
+          case CONTEXT_PREF_ST_RM:
+            /* Valid lifetime expired, so remove */
+            loccontext->state = CONTEXT_PREF_ST_FREE;
+            break;
+          case CONTEXT_PREF_ST_SENDING:
             /* receive-only mode for a period of twice the default Router Lifetime */
             loccontext->state = CONTEXT_PREF_ST_UNCOMPRESSONLY;
-            stimer_set(&loccontext->lifetime, 2*loccontext->router_lifetime);
+            stimer_set(&loccontext->lifetime, loccontext->router_lifetime*2);
+            break;
+          case CONTEXT_PREF_ST_ADD:
+            /* before c=0, now c=1 */
+            loccontext->state = CONTEXT_PREF_ST_COMPRESS;
+            stimer_set(&loccontext->lifetime, loccontext->vlifetime*60);
+            break;
           }
         } else if(is_timeout_percent(&loccontext->lifetime, UIP_DS6_RS_PERCENT_LIFETIME_RETRAN, 
                                       UIP_DS6_RS_MINLIFETIME_RETRAN) 
@@ -261,18 +272,20 @@ uip_ds6_periodic(void)
           flag_rs_ra |= 0x1;
           loccontext->state = CONTEXT_PREF_ST_SENDING;
         }
+    #endif /* UIP_CONF_6LBR */
       }
   }
+
+#if !UIP_CONF_6LBR
   /* Send RS if needed well before all timer exepired */
   /* TODO: should in default-router and PIO */
   //TODO: threshold min lifetime ? (in sec)
   if(flag_rs_ra & 0x1) {
     uip_ds6_send_unicast_rs(); 
   }
-#endif /* UIP_CONF_6LR || UIP_CONF_6LN */
+#endif /* !UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
 
-//TODO: macro to activate in case of 6LR
 #if !UIP_CONF_ROUTER
 
   /* Periodic processing on prefixes */
@@ -460,39 +473,39 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LBR
-/*
- * If 0xf > cid_val < 0 then search a free place to put context (may be overwriting)
- */
 uip_ds6_context_pref_t *
-uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime, 
-                         uint8_t cid_val)
+uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, uint16_t lifetime)
 {
-  uint8_t cid;
+  if(lifetime == 0) {
+    return NULL;
+  }
   /* search a free space */
-  if(cid_val <= 0xf) {
-    cid = cid_val;
-  } else {
-    cid = -1;
-    do {
-      cid++;
-      loccontext = &uip_ds6_context_pref_list[cid];
-    } while(cid < UIP_DS6_CONTEXT_PREF_NB && loccontext->state != CONTEXT_PREF_ST_FREE);
-    cid = cid+1 == UIP_DS6_CONTEXT_PREF_NB ? (random_rand() % UIP_DS6_CONTEXT_PREF_NB) : cid;
+  uint8_t cid;
+  cid = -1;
+  do {
+    cid++;
+    loccontext = &uip_ds6_context_pref_list[cid];
+  } while(cid < UIP_DS6_CONTEXT_PREF_NB && loccontext->state != CONTEXT_PREF_ST_FREE);
+  if(cid == UIP_DS6_CONTEXT_PREF_NB) {
+    /* Table full */
+    return NULL;
   }
   /* install a new context */
   loccontext = &uip_ds6_context_pref_list[cid];
   if(loccontext->state != CONTEXT_PREF_ST_FREE) {
     PRINTF("Overwriting because Context Prefix is already in the list\n");
   }
-  loccontext->state = CONTEXT_PREF_ST_COMPRESS;
+  loccontext->state = CONTEXT_PREF_ST_ADD;
   uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
   loccontext->length = length;
-  loccontext->vlifetime = lifetime;
   loccontext->cid = cid;
+  loccontext->vlifetime = lifetime;
+  stimer_set(&loccontext->lifetime, UIP_ND6_MIN_CONTEXT_CHANGE_DELAY);
   /* Increase version in border router */
   locbr = uip_ds6_br_lookup(NULL);
   if(locbr != NULL) {
     locbr->state = BR_ST_NEW_VERSION;
+    loccontext->br = locbr;
   }
   PRINTF("Adding context prefix ");
   PRINT6ADDR(&loccontext->ipaddr);
@@ -509,16 +522,17 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
 {
   loccontext = &uip_ds6_context_pref_list[(c_cid & UIP_ND6_6CO_FLAG_CID)];
   if(loccontext->state == CONTEXT_PREF_ST_FREE) {
-    loccontext->state = c_cid & UIP_ND6_6CO_FLAG_C ? CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_UNCOMPRESSONLY;
+    loccontext->state = (c_cid & UIP_ND6_6CO_FLAG_C) ? 
+                            CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_ADD;
     uip_ipaddr_copy(&loccontext->ipaddr, ipaddr);
     loccontext->length = length;
     loccontext->cid = c_cid & UIP_ND6_6CO_FLAG_CID;
     loccontext->router_lifetime = router_lifetime;
-    if(lifetime != 0) {
-      stimer_set(&(loccontext->lifetime), lifetime * 60);
-    }
-    if(loccontext->state == CONTEXT_PREF_ST_UNCOMPRESSONLY) {
-      stimer_set(&loccontext->lifetime, 2*loccontext->router_lifetime);
+    loccontext->vlifetime = lifetime;
+    if(loccontext->state == CONTEXT_PREF_ST_ADD) {
+      stimer_set(&loccontext->lifetime, UIP_ND6_MIN_CONTEXT_CHANGE_DELAY);
+    } else {
+      stimer_set(&loccontext->lifetime, lifetime * 60);
     }
     PRINTF("Adding context prefix ");
     PRINT6ADDR(&loccontext->ipaddr);
@@ -536,8 +550,9 @@ uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
 void 
 uip_ds6_context_pref_rm(uip_ds6_context_pref_t *prefix)
 {
-  if(prefix != NULL) {
-    prefix->state = CONTEXT_PREF_ST_FREE;
+  if(prefix != NULL && prefix->state != CONTEXT_PREF_ST_RM) {
+    prefix->state = CONTEXT_PREF_ST_RM;
+    stimer_set(&prefix->lifetime, UIP_ND6_MIN_CONTEXT_CHANGE_DELAY);
   }
   return;
 }
@@ -552,8 +567,8 @@ uip_ds6_context_pref_rm_all(uip_ds6_border_router_t *br)
   for(loccontext = uip_ds6_context_pref_list; 
       loccontext < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB; 
       loccontext++) {
-    if(loccontext->state != CONTEXT_PREF_ST_FREE && loccontext->br == br) {
-      loccontext->state = CONTEXT_PREF_ST_FREE;
+    if(loccontext->br == br) {
+      uip_ds6_context_pref_rm(loccontext);
     }
   }
 }
@@ -1110,7 +1125,6 @@ uip_ds6_send_rs(void)
 #if CONF_6LOWPAN_ND
   } else if(uip_ds6_defrt_choose() == NULL || !(flag_rs_ra & 0x2)){
     /* Slower retransmissions */
-    //TODO: right algorithm (truncated binary exponential backoff) ?
     PRINTF("Sending RS slower %u\n", rscount);
     uip_nd6_rs_output();
     rscount++;

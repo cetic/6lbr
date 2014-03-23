@@ -275,11 +275,6 @@ uip_ds6_neighbor_periodic(void)
       attempt to register with more than one of them in order to increase
       the robustness of the network.
       */
-      /* TODO
-      if(stimer_expired(&nbr->reachable)) {
-          uip_ds6_nbr_rm(nbr);
-      }
-      */
       if (nbr->isrouter == ISROUTER_YES) {
         //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
@@ -292,6 +287,7 @@ uip_ds6_neighbor_periodic(void)
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       } else {
+        //TODO asyncrounous mechanism DAD
         if(stimer_expired(&nbr->reachable)) {
           uip_ds6_nbr_rm(nbr);
         }

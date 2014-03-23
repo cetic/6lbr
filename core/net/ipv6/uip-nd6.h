@@ -117,9 +117,9 @@
 #define UIP_ND6_TENTATIVE_NCE_LIFETIME      20 /*seconds*/
 #define UIP_ND6_MULTIHOP_HOPLIMIT           64
 #endif /* UIP_CONF_6L_ROUTER */
-#if UIP_CONF_6LBR
-#define UIP_ND6_MIN_CONTEXT_CHANGE_DELAY    3000 /*seconds*/
-#endif /* UIP_CONF_6LBR */
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_MIN_CONTEXT_CHANGE_DELAY    300 /*seconds*/
+#endif /* CONF_6LOWPAN_ND */
 /** @} */
 
 #ifndef UIP_CONF_ND6_DEF_MAXDADNS

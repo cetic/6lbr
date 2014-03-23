@@ -183,6 +183,8 @@
 #define CONTEXT_PREF_ST_COMPRESS 1
 #define CONTEXT_PREF_ST_UNCOMPRESSONLY 2
 #define CONTEXT_PREF_ST_SENDING 3
+#define CONTEXT_PREF_ST_ADD 4
+#define CONTEXT_PREF_ST_RM 5
 #define CONTEXT_PREF_USE_COMPRESS(X) (X==CONTEXT_PREF_ST_COMPRESS || X==CONTEXT_PREF_ST_SENDING)
 #define CONTEXT_PREF_USE_UNCOMPRESS(X) (X!=CONTEXT_PREF_ST_FREE)
 
@@ -285,12 +287,11 @@ typedef struct uip_ds6_context_pref {
   uip_ipaddr_t ipaddr;
   uint8_t length;
   uint8_t cid;
-#if UIP_CONF_6LBR
-  uint16_t vlifetime;
-#else /* UIP_CONF_6LBR */
   struct stimer lifetime;
+  uint16_t vlifetime;
+#if !UIP_CONF_6LBR
   uint16_t router_lifetime;
-#endif /* UIP_CONF_6LBR */
+#endif /* !UIP_CONF_6LBR */
   uip_ds6_border_router_t* br;
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
@@ -429,7 +430,7 @@ void uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router);
 /** @{ */
 #if UIP_CONF_6LBR
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, 
-                                                 uint16_t lifetime, uint8_t cid_val);
+                                                 uint16_t lifetime);
 #else /* UIP_CONF_6LBR */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                                  uint8_t c_cid, uint16_t lifetime,

@@ -387,14 +387,12 @@ uip_nd6_ns_input(void)
   #endif /* UIP_CONF_6LBR */
 
   #if UIP_CONF_6LR
-    if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-      //TODO define timer dad (not 60) !
-      stimer_set(&nbr->reachable, 60);
-    }
-
     /* Process to DAD */
     if(nbr->state == NBR_TENTATIVE_DAD) {
+      //TODO asyncrounous mechanism
       if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+        //TODO define timer dad (not 60) !
+        stimer_set(&nbr->reachable, 60);
         //TODO find a way to get a border router bound with ipsrc
         border_router = uip_ds6_br_lookup(NULL);
         uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
@@ -407,8 +405,6 @@ uip_nd6_ns_input(void)
 #endif /* CONF_6LOWPAN_ND */
 
 
-//TODO if REGISTERED -> stimer_set(&nbr->reachable, uip_htons(nd6_opt_aro->lifetime));
-
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
 #if UIP_ND6_DEF_MAXDADNS > 0
@@ -420,13 +416,11 @@ uip_nd6_ns_input(void)
         goto discard;
       }
 #endif /* UIP_CONF_IPV6_CHECKS */
-      //TODO
       if(addr->state != ADDR_TENTATIVE) {
         uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
         uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
         flags = UIP_ND6_NA_FLAG_OVERRIDE;
     #if UIP_CONF_6L_ROUTER
-        //TODO: test with multicat NS bewteen routers
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
                         ISROUTER_NODEFINE, NBR_GARBAGE_COLLECTIBLE);
@@ -583,7 +577,6 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
 
 
 /*------------------------------------------------------------------*/
-//TODO improve signature
 void
 uip_nd6_na_input(void)
 {
@@ -717,19 +710,9 @@ uip_nd6_na_input(void)
               stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
               break;
             case UIP_ND6_ARO_STATUS_DUPLICATE:
-              //TODO: as follow section 5.5.3 in RFC 6775, it's only this
               uip_ds6_addr_rm(addr);
-              //TODO: send RS ?
               break;
             case UIP_ND6_ARO_STATUS_CACHE_FULL:
-              //TODO: test
-              /* TODO: RFC 6775 section 5.5.3
-                A Status code of two indicates that the Neighbor Cache of that router
-                is full.  In this case, the host SHOULD remove this router from its
-                default router list and attempt to register with another router.  If
-                the host’s default router list is empty, it needs to revert to
-                sending RSs as specified in Section 5.3.
-              */
               /* the host SHOULD remove this router from its default router list */
               defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
               if(defrt != NULL) {
@@ -1037,6 +1020,12 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
 
+#if UIP_CONF_6LBR
+  if(locbr->state == BR_ST_NEW_VERSION) {
+    locbr->version++;
+  }
+#endif /* UIP_CONF_6LBR */
+
 #if UIP_CONF_6L_ROUTER
   /* Authoritative Border Router Option */
   UIP_ND6_OPT_ABRO_BUF->type = UIP_ND6_OPT_ABRO;
@@ -1055,6 +1044,11 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       context_pref < uip_ds6_context_pref_list + UIP_DS6_CONTEXT_PREF_NB;
       context_pref++) {
     if(locbr == context_pref->br && CONTEXT_PREF_USE_UNCOMPRESS(context_pref->state)) {
+      #if UIP_CONF_6LBR
+        if(locbr->state == BR_ST_NEW_VERSION) {
+          stimer_set(&context_pref->lifetime, UIP_ND6_MIN_CONTEXT_CHANGE_DELAY);
+        }
+      #endif /* UIP_CONF_6LBR */
       len = context_pref->length<64 ? 3:2;
       UIP_ND6_OPT_6CO_BUF->type = UIP_ND6_OPT_6CO;
       UIP_ND6_OPT_6CO_BUF->len = len;
@@ -1062,11 +1056,8 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_6CO_BUF->res_c_cid = context_pref->cid | 
                 (CONTEXT_PREF_USE_COMPRESS(context_pref->state)? UIP_ND6_6CO_FLAG_C : 0);
       UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
-  #if UIP_CONF_6LBR
-      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->vlifetime);
-  #else /* UIP_CONF_6LBR */
-      UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(stimer_remaining(&context_pref->lifetime)/60);
-  #endif /* UIP_CONF_6LBR */
+      UIP_ND6_OPT_6CO_BUF->lifetime = context_pref->state == CONTEXT_PREF_ST_RM ?
+                                        0 : uip_htons(context_pref->vlifetime);
       uip_ipaddr_copy(&(UIP_ND6_OPT_6CO_BUF->prefix), &(context_pref->ipaddr));
       nd6_opt_offset += len * 8;
       uip_len += len * 8;
@@ -1075,6 +1066,12 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   }
 
 #endif /* UIP_CONF_6L_ROUTER */
+
+#if UIP_CONF_6LBR
+  if(locbr->state == BR_ST_NEW_VERSION) {
+    locbr->state = BR_ST_USED;
+  }
+#endif /* UIP_CONF_6LBR */
 
   /*ICMP checksum */
   UIP_ICMP_BUF->icmpchksum = 0;
@@ -1211,9 +1208,8 @@ uip_nd6_ra_input(void)
   abro_version -= border_router->version;
   if(abro_version > 0) {
     /* New version, so remove all prefix and context */
-    //TODO good idea to rm all entries ?
+    //TODO not a good idea to rm all entries ?
     uip_ds6_prefix_rm_all(border_router);
-    uip_ds6_context_pref_rm_all(border_router);
   }
 #endif /* CONF_6LOWPAN_ND */
 
@@ -1249,18 +1245,14 @@ uip_nd6_ra_input(void)
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
     #if CONF_6LOWPAN_ND
       if(nbr == NULL) {
+        //TODO != RFC -> tentative or garbage
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-        #if UIP_CONF_6L_ROUTER
                               ISROUTER_YES,  NBR_TENTATIVE);
-        //TODO != RFC -> tentative or garbage
+        #if UIP_CONF_6L_ROUTER
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
-        #else /* UIP_CONF_6L_ROUTER */
-                              ISROUTER_YES, NBR_TENTATIVE);
         #endif /* UIP_CONF_6L_ROUTER */
-      } else {
-        //TODO: refresh timer in nbr, or rm entry
-      }
+      } 
     #else /* CONF_6LOWPAN_ND */
       if(nbr == NULL) {
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
@@ -1412,7 +1404,7 @@ uip_nd6_ra_input(void)
           uip_ds6_context_pref_rm(context_pref);
         } else {
           /* update lifetime */
-          if(nd6_opt_context_prefix->lifetime != 0) {
+          if(nd6_opt_context_prefix->lifetime != 0 && context_pref->state != CONTEXT_PREF_ST_ADD) {
             context_pref->state = nd6_opt_context_prefix->res_c_cid & UIP_ND6_6CO_FLAG_C ? 
                                     CONTEXT_PREF_ST_COMPRESS : CONTEXT_PREF_ST_UNCOMPRESSONLY;
             stimer_set(&context_pref->lifetime, uip_ntohs(nd6_opt_context_prefix->lifetime)*60);
@@ -1621,7 +1613,6 @@ void
 uip_nd6_dac_input(void)
 {
   uint8_t aro_state;
-  //TODO bricolage !!
   static uip_nd6_opt_aro aro;
   static uip_ds6_dar_t* dar;
 

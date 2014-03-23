@@ -129,7 +129,7 @@ set_context_prefix_address(uint16_t pref)
   static uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_context_pref_add(&ipaddr, 16, 30, -1);
+  uip_ds6_context_pref_add(&ipaddr, 16, 10);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -190,7 +190,7 @@ PROCESS_THREAD(test_router, ev, data)
 
   ipaddr = set_global_address(pref);
   set_prefix_address(pref);
-  //set_context_prefix_address(pref);
+  set_context_prefix_address(pref);
   uip_ds6_br_config();
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL);

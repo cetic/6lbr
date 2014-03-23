@@ -100,15 +100,17 @@ display_context_pref(void)
       case CONTEXT_PREF_ST_SENDING:
         PRINTF("S");
         break;
+      case CONTEXT_PREF_ST_ADD:
+        PRINTF("A");
+        break;
+      case CONTEXT_PREF_ST_RM:
+        PRINTF("R");
+        break;
       default:
         PRINTF("?");
     }
     PRINTF("   %u    ", loccontext->cid);
-    #if UIP_CONF_6LBR
-      PRINTF("%d\n",loccontext->vlifetime);
-    #else
-      PRINTF("%d\n", (int) stimer_remaining(&loccontext->lifetime)/60);
-    #endif
+    PRINTF("%d\n", (int) stimer_remaining(&loccontext->lifetime));
     }
   }
 }
@@ -219,6 +221,38 @@ PROCESS_THREAD(net_display_process, ev, data)
   PROCESS_END();
 }
 #endif /* DEBUG == DEBUG_PRINT */
+
+#if UIP_CONF_6LBR
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_cp_process, "cp");
+SHELL_COMMAND(cp_cmd,
+        "cp",
+        "cp: Add and remove context prefix",
+        &shell_cp_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_cp_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  uip_ipaddr_t ip;
+  int l;
+  char * str = data;
+  if(*str!='-' || *(str+2)!=' ' || *(str+42)!=' '){
+    printf("Wrong format:%s\n", str);
+  } else {
+    str2ip(str+3, &ip);
+    l = (uint8_t) atoi(str+43);
+  }
+  if(*(str+1) == 'a') {
+    //expire in 30 min
+    uip_ds6_context_pref_add(&ip, l, 30);
+  }else if(*(str+1) == 'r') {
+    uip_ds6_context_pref_rm(uip_ds6_context_pref_lookup(&ip));
+  }
+
+  PROCESS_END();
+}
+#endif
 /*---------------------------------------------------------------------------*/
 void 
 shell_6l_init(void)
@@ -235,4 +269,7 @@ shell_6l_init(void)
 #if DEBUG == DEBUG_PRINT
   shell_register_command(&netd_cmd);
 #endif /* DEBUG == DEBUG_PRINT */
+#if UIP_CONF_6LBR
+  shell_register_command(&cp_cmd);
+#endif
 }
