@@ -109,10 +109,10 @@
 #if UIP_CONF_6L_ROUTER
 #ifndef UIP_CONF_DS6_DAR_NB
 #define UIP_DS6_DAR_NB 2
-#else
+#else  /* UIP_CONF_6L_ROUTER */
 #define UIP_DS6_DAR_NB UIP_CONF_DS6_DAR_NB
 #endif
-#endif /*  */
+#endif /* UIP_CONF_6L_ROUTER */
 
 #endif /* CONF_6LOWPAN_ND */
 
@@ -190,17 +190,6 @@
 #define BR_ST_FREE 0
 #define BR_ST_USED 1
 #define BR_ST_NEW_VERSION 2
-
-/** \brief Possible states for isrouter flag */
-#define ISROUTER_NO 0
-#define ISROUTER_YES 1
-#if UIP_CONF_6LN
-#define ISROUTER_NODEFINE_R ISROUTER_YES
-#define ISROUTER_NODEFINE_N ISROUTER_YES
-#else /* UIP_CONF_6LN */
-#define ISROUTER_NODEFINE_R 2
-#define ISROUTER_NODEFINE_N 3
-#endif /* UIP_CONF_6LN */
 
 #endif /* CONF_6LOWPAN_ND */
 

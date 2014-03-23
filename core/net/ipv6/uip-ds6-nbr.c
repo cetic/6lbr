@@ -280,7 +280,7 @@ uip_ds6_neighbor_periodic(void)
           uip_ds6_nbr_rm(nbr);
       }
       */
-      if (nbr->isrouter == ISROUTER_YES || nbr->isrouter == ISROUTER_NODEFINE_R) {
+      if (nbr->isrouter == ISROUTER_YES) {
         //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
@@ -299,7 +299,7 @@ uip_ds6_neighbor_periodic(void)
       break;
   #if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
-      if (nbr->isrouter == ISROUTER_NO || nbr->isrouter == ISROUTER_NODEFINE_N) {
+      if (nbr->isrouter == ISROUTER_NO || nbr->isrouter == ISROUTER_NODEFINE) {
         locdar = uip_ds6_dar_lookup_by_nbr(nbr);
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           uip_ds6_dar_rm(locdar);

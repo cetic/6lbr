@@ -151,18 +151,13 @@ display_nbr(void)
         PRINTF("R");
         break;
       case ISROUTER_NO:
-        PRINTF("H ");
+        PRINTF("H");
         break;
   #if UIP_CONF_6L_ROUTER
-      case ISROUTER_NODEFINE_R:
-        PRINTF("?R");
-        break;
-      case ISROUTER_NODEFINE_N:
-        PRINTF("?H");
+      case ISROUTER_NODEFINE:
+        PRINTF("?");
         break;
   #endif /* UIP_CONF_6L_ROUTER */
-      default:
-        PRINTF("??");
     }
     PRINTF("  %d\n", (int) stimer_remaining(&nbr2->reachable));
   } while(nbr2 = nbr_table_next(ds6_neighbors, nbr2));

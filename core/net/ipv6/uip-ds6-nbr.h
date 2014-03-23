@@ -70,6 +70,17 @@
 #define  NBR_TENTATIVE_DAD 8
 #endif /* CONF_6LOWPAN_ND */
 
+/** \brief Possible states for isrouter flag */
+#if CONF_6LOWPAN_ND
+#define ISROUTER_NO 0
+#define ISROUTER_YES 1
+#if UIP_CONF_6LN
+#define ISROUTER_NODEFINE ISROUTER_YES
+#else /* UIP_CONF_6LN */
+#define ISROUTER_NODEFINE 2
+#endif /* UIP_CONF_6LN */
+#endif /* CONF_6LOWPAN_ND */
+
 NBR_TABLE_DECLARE(ds6_neighbors);
 
 /** \brief An entry in the nbr cache */
