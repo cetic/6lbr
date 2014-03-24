@@ -666,7 +666,7 @@ tcpip_ipv6_output(void)
 #if UIP_ND6_SEND_NA
   #if CONF_6LOWPAN_ND
       //TODO not TENTATIVE because problem when resend a rs (with ARO)
-      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_TENTATIVE)) == NULL) {
+      if((nbr = uip_ds6_nbr_add(nexthop, NULL, ISROUTER_YES, NBR_TENTATIVE)) == NULL) {
   #else /* CONF_6LOWPAN_ND */
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
   #endif /* CONF_6LOWPAN_ND */

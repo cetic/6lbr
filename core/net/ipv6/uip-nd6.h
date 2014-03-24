@@ -117,9 +117,9 @@
 #define UIP_ND6_TENTATIVE_NCE_LIFETIME      20 /*seconds*/
 #define UIP_ND6_MULTIHOP_HOPLIMIT           64
 #endif /* UIP_CONF_6L_ROUTER */
-#if UIP_CONF_6LBR
-#define UIP_ND6_MIN_CONTEXT_CHANGE_DELAY    3000 /*seconds*/
-#endif /* UIP_CONF_6LBR */
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_MIN_CONTEXT_CHANGE_DELAY    300 /*seconds*/
+#endif /* CONF_6LOWPAN_ND */
 /** @} */
 
 #ifndef UIP_CONF_ND6_DEF_MAXDADNS
@@ -374,8 +374,7 @@ typedef struct uip_nd6_opt_aro {
   uint8_t reserved1;
   uint16_t reserved2;
   uint16_t lifetime;
-  //TODO type eui64 (not ipaddr)
-  uip_ipaddr_t eui64;
+  uip_lladdr_t eui64;
 } uip_nd6_opt_aro;
 
 /** \brief ND option 6LoWPAN context */

@@ -105,6 +105,15 @@
 #endif
 #endif /* UIP_CONF_6LBR */
 
+/* Duplication Adresse Request list */
+#if UIP_CONF_6L_ROUTER
+#ifndef UIP_CONF_DS6_DAR_NB
+#define UIP_DS6_DAR_NB 2
+#else  /* UIP_CONF_6L_ROUTER */
+#define UIP_DS6_DAR_NB UIP_CONF_DS6_DAR_NB
+#endif
+#endif /* UIP_CONF_6L_ROUTER */
+
 #endif /* CONF_6LOWPAN_ND */
 
 /* Unicast address list*/
@@ -174,6 +183,8 @@
 #define CONTEXT_PREF_ST_COMPRESS 1
 #define CONTEXT_PREF_ST_UNCOMPRESSONLY 2
 #define CONTEXT_PREF_ST_SENDING 3
+#define CONTEXT_PREF_ST_ADD 4
+#define CONTEXT_PREF_ST_RM 5
 #define CONTEXT_PREF_USE_COMPRESS(X) (X==CONTEXT_PREF_ST_COMPRESS || X==CONTEXT_PREF_ST_SENDING)
 #define CONTEXT_PREF_USE_UNCOMPRESS(X) (X!=CONTEXT_PREF_ST_FREE)
 
@@ -251,6 +262,9 @@ typedef struct uip_ds6_prefix {
 #endif /* UIP_CONF_6L_ROUTER */
   uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
+#if CONF_6LOWPAN_ND
+  uip_ds6_border_router_t* br;
+#endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #else /* UIP_CONF_ROUTER */
 typedef struct uip_ds6_prefix {
@@ -259,6 +273,9 @@ typedef struct uip_ds6_prefix {
   uint8_t length;
   struct stimer vlifetime;
   uint8_t isinfinite;
+#if CONF_6LOWPAN_ND
+  uip_ds6_border_router_t* br;
+#endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #endif /*UIP_CONF_ROUTER */
 
@@ -270,12 +287,11 @@ typedef struct uip_ds6_context_pref {
   uip_ipaddr_t ipaddr;
   uint8_t length;
   uint8_t cid;
-#if UIP_CONF_6LBR
-  uint16_t vlifetime;
-#else /* UIP_CONF_6LBR */
   struct stimer lifetime;
+  uint16_t vlifetime;
+#if !UIP_CONF_6LBR
   uint16_t router_lifetime;
-#endif /* UIP_CONF_6LBR */
+#endif /* !UIP_CONF_6LBR */
   uip_ds6_border_router_t* br;
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
@@ -357,14 +373,16 @@ extern struct etimer uip_ds6_timer_periodic;
 #if UIP_CONF_ROUTER
 extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
 #if CONF_6LOWPAN_ND
-extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
-extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
 extern uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
 #if !UIP_CONF_ROUTER || UIP_CONF_6LR
 extern struct etimer uip_ds6_timer_rs;
 #endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
+#if CONF_6LOWPAN_ND
+extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
+extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
+#endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_6LBR
 extern uip_ds6_dup_addr_t uip_ds6_dup_addr_list[UIP_DS6_DUPADDR_NB];
 #endif /* UIP_CONF_6LBR */
@@ -402,6 +420,9 @@ void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
 uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);
 uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
+#if CONF_6LOWPAN_ND
+void uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router);
+#endif /* CONF_6LOWPAN_ND */
 
 
 #if CONF_6LOWPAN_ND
@@ -409,7 +430,7 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 /** @{ */
 #if UIP_CONF_6LBR
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, 
-                                                 uint16_t lifetime, uint8_t cid_val);
+                                                 uint16_t lifetime);
 #else /* UIP_CONF_6LBR */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                                  uint8_t c_cid, uint16_t lifetime,

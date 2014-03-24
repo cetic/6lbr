@@ -51,7 +51,7 @@
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
@@ -70,11 +70,19 @@ void LINK_NEIGHBOR_CALLBACK(const linkaddr_t *addr, int status, int numtx);
 
 NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 
+#if UIP_CONF_6LR
+uip_ds6_dar_t uip_ds6_dar_list[UIP_DS6_DAR_NB]; /* \brief Duplication addresse request list */
+static uip_ds6_dar_t *locdar;
+#endif /* UIP_CONF_6LR */
+
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_neighbors_init(void)
 {
   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
+#if UIP_CONF_6LR
+  memset(uip_ds6_dar_list, 0, sizeof(uip_ds6_dar_t));
+#endif /* UIP_CONF_6LR */
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
@@ -123,6 +131,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
     nbr_table_unlock(ds6_neighbors, nbr);
   }
+  uip_ds6_route_rm(uip_ds6_route_lookup(&nbr->ipaddr));
 #endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -261,6 +270,7 @@ uip_ds6_neighbor_periodic(void)
                                       UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
         nbr->state = NBR_TENTATIVE;
+        nbr->nscount = 0;
     #endif /* !UIP_CONF_6LBR */
       }
       break;
@@ -270,7 +280,7 @@ uip_ds6_neighbor_periodic(void)
       attempt to register with more than one of them in order to increase
       the robustness of the network.
       */
-      if (nbr->isrouter) {
+      if (nbr->isrouter == ISROUTER_YES) {
         //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
@@ -281,21 +291,29 @@ uip_ds6_neighbor_periodic(void)
                                 UIP_ND6_REGISTER_LIFETIME, 1);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
+      } else {
+        //TODO asyncrounous mechanism DAD
+        if(stimer_expired(&nbr->reachable)) {
+          uip_ds6_nbr_rm(nbr);
+        }
       }
       break;
   #if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
-      if (!nbr->isrouter) {
+      if (nbr->isrouter == ISROUTER_NO || nbr->isrouter == ISROUTER_NODEFINE) {
+        locdar = uip_ds6_dar_lookup_by_nbr(nbr);
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
-          uip_ds6_nbr_rm(nbr);
+          uip_ds6_dar_rm(locdar);
+          nbr->state = NBR_GARBAGE_COLLECTIBLE;
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           //TODO border router found ?
           //TODO always UIP_ND6_ARO_STATUS_SUCESS ?
           uip_nd6_dar_output(&uip_ds6_br_lookup(NULL)->ipaddr,
-                             UIP_ND6_ARO_STATUS_SUCESS, &nbr->ipaddr,
+                             UIP_ND6_ARO_STATUS_SUCESS, 
+                             &locdar->ipaddr,
                              uip_ds6_nbr_get_ll(nbr), 
-                             (stimer_remaining(&nbr->reachable) + stimer_expired(&nbr->reachable))/60);
+                             locdar->lifetime);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       }
@@ -349,8 +367,6 @@ uip_ds6_neighbor_periodic(void)
 #endif /* UIP_ND6_SEND_NA */
 #endif /* CONF_6LOWPAN_ND */
     default:
-      //TODO: remove
-      PRINTF("/!\\ ERROR: invalide cache type (%d)\n", nbr->state);
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
@@ -376,3 +392,55 @@ uip_ds6_get_least_lifetime_neighbor(void)
   return nbr_expiring;
 }
 /*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_6LR
+uip_ds6_dar_t *
+uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr == NULL) {
+      uip_ipaddr_copy(&locdar->ipaddr, ipaddr);
+      locdar->nbr = nbr;
+      locdar->lifetime = lifetime;
+      return locdar;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_dar_rm(uip_ds6_dar_t *dar)
+{
+  dar->nbr = NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_dar_t *
+uip_ds6_dar_lookup(uip_ipaddr_t *ipaddr)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr != NULL && uip_ipaddr_cmp(&locdar->ipaddr, ipaddr)) {
+      return locdar;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_dar_t *
+uip_ds6_dar_lookup_by_nbr( uip_ds6_nbr_t* nbr)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr != NULL && locdar->nbr == nbr) {
+      return locdar;
+    }
+  }
+  return NULL;
+}
+#endif /* UIP_CONF_6LR */
