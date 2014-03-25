@@ -128,7 +128,7 @@ static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 static uip_nd6_opt_aro *nd6_opt_aro;    /**  Pointer to aro option in uip_buf */
 #endif /* CONF_6LOWPAN_ND */
 
-#if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND           // TBD see if we move it to ra_input
+#if !UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER           // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
 #endif
@@ -580,10 +580,12 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
 void
 uip_nd6_na_input(void)
 {
+#if !CONF_6LOWPAN_ND
   uint8_t is_llchange;
+  uint8_t is_override;
+#endif /* !CONF_6LOWPAN_ND */
   uint8_t is_router;
   uint8_t is_solicited;
-  uint8_t is_override;
 
   PRINTF("Received NA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -598,12 +600,14 @@ uip_nd6_na_input(void)
    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
    * but it works. Be careful though, do not use tests such as is_router == 1 
    */
-  is_llchange = 0;
   is_router = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_ROUTER));
   is_solicited =
     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_SOLICITED));
+#if !CONF_6LOWPAN_ND
+  is_llchange = 0;
   is_override =
     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_OVERRIDE));
+#endif /* !CONF_6LOWPAN_ND */
 
 #if UIP_CONF_6LN
     /* 
@@ -682,9 +686,7 @@ uip_nd6_na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
-    uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
-    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
     if(nbr == NULL) {
       goto discard;
     }
@@ -731,6 +733,8 @@ uip_nd6_na_input(void)
         }
       }
   #else /* CONF_6LOWPAN_ND */
+    uip_lladdr_t *lladdr;
+    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
     if(nd6_opt_llao != 0) {
       is_llchange =
         memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
@@ -933,6 +937,7 @@ discard:
 }
 
 /*---------------------------------------------------------------------------*/
+void
 uip_nd6_ra_output(uip_ipaddr_t * dest)
 {
 #if UIP_CONF_6L_ROUTER
@@ -1171,7 +1176,7 @@ uip_nd6_ra_input(void)
 #if CONF_6LOWPAN_ND
   /* Check ABRO is present and with which version*/
   PRINTF("Checking ABRO option in RA\n");
-  int abro_version;
+  uint32_t abro_version;
   nd6_opt_auth_br = NULL;
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
@@ -1192,7 +1197,8 @@ uip_nd6_ra_input(void)
     goto discard;
   }
 
-  abro_version = nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16);
+  abro_version = nd6_opt_auth_br->verhigh;
+  abro_version = nd6_opt_auth_br->verlow + (abro_version << 16);
   border_router = uip_ds6_br_lookup(&nd6_opt_auth_br->address);
   if(border_router != NULL && abro_version < border_router->version) {
     PRINTF("RA received with lower ABRO version\n");
@@ -1425,7 +1431,8 @@ uip_nd6_ra_input(void)
       if(abro_version > 0) {
         /* Update information */
         //TODO: update all info (PIO, Context prefix) if only version increase
-        border_router->version = nd6_opt_auth_br->verlow + (nd6_opt_auth_br->verhigh << 16);
+        border_router->version = nd6_opt_auth_br->verhigh;
+        border_router->version = nd6_opt_auth_br->verlow + (border_router->version << 16);
         uip_ipaddr_copy(&border_router->ipaddr, &nd6_opt_auth_br->address);
       } 
       break;
@@ -1519,7 +1526,7 @@ uip_nd6_dar_input(void)
 
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_ICMP_BUF->icode != 0) ||
-     (UIP_IP_BUF->len < 32) ||
+     (UIP_IP_BUF->len[1] < 32) ||
      (uip_is_addr_mcast(&UIP_ND6_DA_BUF->regipaddr)) ||
      (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr))) {
     PRINTF("DAR received is bad\n");
@@ -1627,7 +1634,7 @@ uip_nd6_dac_input(void)
 
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_ICMP_BUF->icode != 0) ||
-     (UIP_IP_BUF->len < 32) ||
+     (UIP_IP_BUF->len[1] < 32) ||
      (uip_is_addr_mcast(&UIP_ND6_DA_BUF->regipaddr)) ||
      (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr))) {
     PRINTF("DAR received is bad\n");
