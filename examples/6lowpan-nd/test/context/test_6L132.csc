@@ -93,13 +93,17 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>22.539962642565648</x>
-        <y>49.86995783751088</y>
+        <x>48.045261104095495</x>
+        <y>53.694046148582835</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky3</motetype_identifier>
     </mote>
@@ -115,14 +119,18 @@
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
+      </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>28.16524036365975</x>
-        <y>140.7051514183161</y>
+        <x>-16.292769319017438</x>
+        <y>94.53772929025756</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -131,7 +139,53 @@
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd nc~;</history>
+        <history>netd nc~;netd rt~;netd nc~;netd rt~;netd nc~;</history>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>61.90372840805272</x>
+        <y>92.2744691858602</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>4</id>
+      </interface_config>
+      <motetype_identifier>sky2</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>44.49388880880046</x>
+        <y>128.8125912889984</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>5</id>
+      </interface_config>
+      <motetype_identifier>sky2</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>85.70465169454424</x>
+        <y>130.9533389936734</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>6</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd cp~;netd nc~;netd cp~;netd nc~;help~;restart~;netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -139,10 +193,10 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>0</z>
+    <z>2</z>
     <height>160</height>
-    <location_x>299</location_x>
-    <location_y>12</location_y>
+    <location_x>62</location_x>
+    <location_y>747</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -152,10 +206,10 @@
       <coloring />
     </plugin_config>
     <width>919</width>
-    <z>2</z>
+    <z>1</z>
     <height>911</height>
-    <location_x>431</location_x>
-    <location_y>35</location_y>
+    <location_x>411</location_x>
+    <location_y>3</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -163,13 +217,16 @@
       <mote>0</mote>
       <mote>1</mote>
       <mote>2</mote>
+      <mote>3</mote>
+      <mote>4</mote>
+      <mote>5</mote>
       <showRadioRXTX />
       <showRadioHW />
       <showLEDs />
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>1319</width>
-    <z>7</z>
+    <z>5</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>847</location_y>
@@ -182,10 +239,11 @@
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>3.47082132865459 0.0 0.0 3.47082132865459 -10.756516980873421 -157.36244059426517</viewport>
+      <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
+      <viewport>1.4307387660996298 0.0 0.0 1.4307387660996298 116.37903238554924 24.639981351565215</viewport>
     </plugin_config>
     <width>399</width>
-    <z>5</z>
+    <z>3</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -200,137 +258,22 @@
       <analyzers name="6lowpan" />
     </plugin_config>
     <width>865</width>
-    <z>3</z>
+    <z>4</z>
     <height>438</height>
     <location_x>1</location_x>
     <location_y>402</location_y>
   </plugin>
   <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>2</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>6</z>
-    <height>300</height>
-    <location_x>975</location_x>
-    <location_y>684</location_y>
-  </plugin>
-  <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>var prefix = "bbbb";&#xD;
-var brID = 1;&#xD;
-&#xD;
-//Wait until all mote started&#xD;
-for(var i=0; i&lt;3; i++) {&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-}&#xD;
-&#xD;
-// Display all mote Table&#xD;
-function displayAllTable(){&#xD;
-    var allm = sim.getMotes();&#xD;
-    for(var id in  allm) {&#xD;
-	    write(allm[id], "netd nc");&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-	    write(allm[id], "netd rt");&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-	}&#xD;
-}&#xD;
-//displayAllTable();&#xD;
-&#xD;
-// Add to routing table&#xD;
-function genip(num, pref){&#xD;
-    var ip = "";&#xD;
-    ip += pref;&#xD;
-    for(var i=0; i&lt;3; i++){&#xD;
-        ip +=":0000";&#xD;
-    }&#xD;
-    var n;&#xD;
-    ip += ":0212";&#xD;
-    n = 0x7400 + num;&#xD;
-    ip += ":"+n.toString(16);&#xD;
-    n = 0x0 + num;&#xD;
-    ip += ":000"+n.toString(16);&#xD;
-    n = (0x100 * num) + num;&#xD;
-    ip += ":0"+n.toString(16);&#xD;
-    return ip;&#xD;
-}&#xD;
-function gpip(num) { return genip(num, prefix); }&#xD;
-function llip(num) { return genip(num, "fe80"); }&#xD;
-function addroute(moteID, to, nexthop, len) {&#xD;
-    mote = sim.getMoteWithID(moteID);&#xD;
-    var cmd = "route -a "+gpip(to)+" "+llip(nexthop)+" "+len;&#xD;
-    log.log("MOTE " +moteID + "-&gt;" + cmd + "\n");&#xD;
-    write(mote, cmd);&#xD;
-}&#xD;
-&#xD;
-&#xD;
-//Waiting configurate of all mote was done&#xD;
-function waitingConfig(){&#xD;
-	var lastid = 0;&#xD;
-	for(var i=0;; i++) {&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.contains("Sending") || msg.contains("timeout"));&#xD;
-        if(msg.contains("Sending")){&#xD;
-	        GENERATE_MSG(75000, "timeout"+lastid);&#xD;
-	        lastid++;&#xD;
-	    }else if(msg.equals("timeout"+(lastid-1))) {&#xD;
-	        return;&#xD;
-	    }&#xD;
-	}&#xD;
-}&#xD;
-&#xD;
-function sendudp(from, to) {&#xD;
-    mote = sim.getMoteWithID(from);&#xD;
-    var cmd = "sendudp " + gpip(to);&#xD;
-    log.log("mote "+from+" -&gt; "+cmd+"\n");&#xD;
-    write(mote, cmd);&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello"));   &#xD;
-}&#xD;
-&#xD;
-function sendudpBR(br) {&#xD;
-    var allm = sim.getMotes();&#xD;
-    for(var i in  allm) {&#xD;
-        var id = allm[i].getID();&#xD;
-        if(id != br) {&#xD;
-            sendudp(id, br);&#xD;
-            sendudp(br, id);&#xD;
-        }&#xD;
-    }&#xD;
-}&#xD;
-&#xD;
-//Display NC when changement of msg was done&#xD;
-TIMEOUT(300000);&#xD;
-waitingConfig();&#xD;
-log.log("Topology stable\n");&#xD;
-log.log("Modify RT\n");&#xD;
-addroute(1,1,2,32);&#xD;
-displayAllTable();&#xD;
-log.log("Sending udp packet\n");&#xD;
-sendudpBR(brID);&#xD;
-log.testOK();</script>
+      <scriptfile>[CONFIG_DIR]/context.js</scriptfile>
       <active>true</active>
     </plugin_config>
-    <width>511</width>
-    <z>1</z>
+    <width>562</width>
+    <z>0</z>
     <height>995</height>
-    <location_x>1390</location_x>
-    <location_y>5</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>1</mote_arg>
-    <plugin_config>
-      <interface>IP Address</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>4</z>
-    <height>300</height>
-    <location_x>1011</location_x>
-    <location_y>199</location_y>
+    <location_x>1339</location_x>
+    <location_y>1</location_y>
   </plugin>
 </simconf>
 

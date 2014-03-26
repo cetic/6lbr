@@ -181,10 +181,10 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>2</z>
     <height>160</height>
-    <location_x>419</location_x>
-    <location_y>6</location_y>
+    <location_x>30</location_x>
+    <location_y>782</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -193,11 +193,11 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <width>919</width>
-    <z>0</z>
+    <width>674</width>
+    <z>1</z>
     <height>911</height>
-    <location_x>431</location_x>
-    <location_y>35</location_y>
+    <location_x>403</location_x>
+    <location_y>2</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -214,7 +214,7 @@
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>1319</width>
-    <z>7</z>
+    <z>5</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>847</location_y>
@@ -227,6 +227,7 @@
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
       <viewport>2.966779905384192 0.0 0.0 2.966779905384192 69.2483615546748 -120.06333466939438</viewport>
     </plugin_config>
     <width>399</width>
@@ -251,162 +252,16 @@
     <location_y>402</location_y>
   </plugin>
   <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>2</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>6</z>
-    <height>300</height>
-    <location_x>975</location_x>
-    <location_y>684</location_y>
-  </plugin>
-  <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>var prefix = "bbbb";&#xD;
-var brID = 1;&#xD;
-&#xD;
-//Wait until all mote started&#xD;
-for(var i=0; i&lt;3; i++) {&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-}&#xD;
-&#xD;
-// Display all mote Table&#xD;
-function displayAllTable(){&#xD;
-    var allm = sim.getMotes();&#xD;
-    for(var id in  allm) {&#xD;
-	    write(allm[id], "netd nc");&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-	    write(allm[id], "netd rt");&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.indexOf("Contiki&gt;") != -1);&#xD;
-	}&#xD;
-}&#xD;
-//displayAllTable();&#xD;
-&#xD;
-// Add to routing table&#xD;
-function genip(num, pref){&#xD;
-    var ip = "";&#xD;
-    ip += pref;&#xD;
-    for(var i=0; i&lt;3; i++){&#xD;
-        ip +=":0000";&#xD;
-    }&#xD;
-    var n;&#xD;
-    ip += ":0212";&#xD;
-    n = 0x7400 + num;&#xD;
-    ip += ":"+n.toString(16);&#xD;
-    n = 0x0 + num;&#xD;
-    ip += ":000"+n.toString(16);&#xD;
-    n = (0x100 * num) + num;&#xD;
-    ip += ":0"+n.toString(16);&#xD;
-    return ip;&#xD;
-}&#xD;
-function gpip(num) { return genip(num, prefix); }&#xD;
-function llip(num) { return genip(num, "fe80"); }&#xD;
-function addroute(moteID, to, nexthop, len) {&#xD;
-    mote = sim.getMoteWithID(moteID);&#xD;
-    var cmd = "route -a "+gpip(to)+" "+llip(nexthop)+" "+len;&#xD;
-    log.log("MOTE " +moteID + "-&gt;" + cmd + "\n");&#xD;
-    write(mote, cmd);&#xD;
-}&#xD;
-&#xD;
-&#xD;
-//Waiting configurate of all mote was done&#xD;
-function waitingConfig(){&#xD;
-	var lastid = 0;&#xD;
-	for(var i=0;; i++) {&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.contains("Sending") || msg.contains("timeout"));&#xD;
-        if(msg.contains("Sending")){&#xD;
-	        GENERATE_MSG(75000, "timeout"+lastid);&#xD;
-	        lastid++;&#xD;
-	    }else if(msg.equals("timeout"+(lastid-1))) {&#xD;
-	        return;&#xD;
-	    }&#xD;
-	}&#xD;
-}&#xD;
-&#xD;
-function sendudp(from, to) {&#xD;
-    mote = sim.getMoteWithID(from);&#xD;
-    var cmd = "sendudp " + gpip(to);&#xD;
-    log.log("mote "+from+" -&gt; "+cmd+"\n");&#xD;
-    write(mote, cmd);&#xD;
-    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello"));   &#xD;
-}&#xD;
-&#xD;
-function sendudpBR(br) {&#xD;
-    var allm = sim.getMotes();&#xD;
-    for(var i in  allm) {&#xD;
-        var id = allm[i].getID();&#xD;
-        if(id != br) {&#xD;
-            sendudp(id, br);&#xD;
-            sendudp(br, id);&#xD;
-        }&#xD;
-    }&#xD;
-}&#xD;
-&#xD;
-&#xD;
-function buildRT(s) {&#xD;
-    while(true) {&#xD;
-	    YIELD_THEN_WAIT_UNTIL(msg.contains("Received NA"));&#xD;
-	    var from = msg.split("to")[1].split("::")[1].split(":")[2];&#xD;
-	    var alldone = true;&#xD;
-	    for(var i in s){&#xD;
-	        var v = s[i];&#xD;
-	        if(v.mote == from) {&#xD;
-	            v.fct();&#xD;
-	            v.done = true;    &#xD;
-	        }&#xD;
-	        if(!v.done) alldone = false;&#xD;
-	    }&#xD;
-	    if(alldone) return;&#xD;
-    }&#xD;
-}&#xD;
-&#xD;
-//Display NC when changement of msg was done&#xD;
-TIMEOUT(300000);&#xD;
-log.log("Modify RT\n");&#xD;
-buildRT([&#xD;
-    {"mote":2, &#xD;
-     "fct":function(){&#xD;
-        addroute(1,3,2,128);&#xD;
-        addroute(1,5,2,128);&#xD;
-        }&#xD;
-    },&#xD;
-    {"mote":4, &#xD;
-     "fct":function(){&#xD;
-        addroute(1,6,4,128);&#xD;
-        }&#xD;
-    }&#xD;
-]);&#xD;
-waitingConfig();&#xD;
-log.log("Topology stable\n");&#xD;
-//addroute(1,1,2,32);&#xD;
-displayAllTable();&#xD;
-log.log("Sending udp packet\n");&#xD;
-sendudpBR(brID);&#xD;
-log.testOK();</script>
+      <scriptfile>[CONFIG_DIR]/test_6L132.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>560</width>
-    <z>2</z>
+    <z>0</z>
     <height>995</height>
-    <location_x>1341</location_x>
-    <location_y>1</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>1</mote_arg>
-    <plugin_config>
-      <interface>IP Address</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>5</z>
-    <height>300</height>
-    <location_x>1011</location_x>
-    <location_y>199</location_y>
+    <location_x>1080</location_x>
+    <location_y>6</location_y>
   </plugin>
 </simconf>
 

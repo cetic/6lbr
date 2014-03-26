@@ -88,6 +88,12 @@ void uip_log(char *msg);
 #define UIP_LOG(m)
 #endif /* UIP_LOGGING == 1 */
 
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+#define TCPIP_ANNOTATE(m) printf("#%s\n", m);
+#else /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+#define TCPIP_ANNOTATE(m)
+#endif  /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+
 /*------------------------------------------------------------------*/
 /** @{ */
 /** \name Pointers to the header structures.
@@ -249,6 +255,7 @@ uip_nd6_na_output(uint8_t flags)
     PRINTF(" with aro status:%d ", aro_state);
   #endif /* UIP_CONF_6L_ROUTER */
     PRINTF("\n");
+    TCPIP_ANNOTATE("sNA");
 }
 
 /*------------------------------------------------------------------*/
@@ -571,6 +578,7 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
   PRINTF(" with target address ");
   PRINT6ADDR(tgt);
   PRINTF("\n");
+  TCPIP_ANNOTATE("sNS");
   return;
 }
 
@@ -595,6 +603,11 @@ uip_nd6_na_input(void)
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NA_BUF->tgtipaddr));
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+  printf("#rNA ");
+  uip_debug_ipaddr_print(&UIP_IP_BUF->destipaddr);
+  printf("\n");
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
 
   /* 
    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
@@ -1088,6 +1101,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("sRA");
   return;
 }
 #endif /* UIP_ND6_SEND_RA */
@@ -1148,6 +1162,7 @@ uip_nd6_rs_output(void)
   PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("sRS");
   return;
 }
 
@@ -1603,6 +1618,7 @@ uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
   PRINTF(" with host address ");
   PRINT6ADDR(&UIP_ND6_DA_BUF->regipaddr);
   PRINTF(" with status %d\n", status);
+  TCPIP_ANNOTATE("sDA");
   return;
 }
 #endif /* UIP_CONF_6L_ROUTER */

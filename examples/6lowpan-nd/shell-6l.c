@@ -184,20 +184,19 @@ display_rt(void)
 #if UIP_CONF_6LBR
 void *
 print_dup_addr(void) {
-  static uip_ds6_dup_addr_t *locdad;
+  static uip_ds6_dup_addr_t *locdup;
   PRINTF("IPv6                  EUI64                    Expire\n");
   PRINTF("-----------------------------------------------------\n");
-  for(locdad = uip_ds6_dup_addr_list;
-      locdad < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
-      locdad++)
+  for(locdup = uip_ds6_dup_addr_list;
+      locdup < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
+      locdup++)
   {
-    //TODO
-    //if(locdad->isused) {
-      PRINT6ADDR(&locdad->ipaddr);
+    if(locdup->isused) {
+      PRINT6ADDR(&locdup->ipaddr);
       PRINTF("  ");
-      PRINTLLADDR(&locdad->eui64);
-      PRINTF("  %d\n", locdad->lifetime);
-    //}
+      PRINTLLADDR(&locdup->eui64);
+      PRINTF("  %d\n", stimer_remaining(&locdup->lifetime));
+    }
   }
 }
 #endif /* UIP_CONF_6LBR */
