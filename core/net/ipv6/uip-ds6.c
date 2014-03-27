@@ -119,10 +119,10 @@ uip_ds6_init(void)
 #if CONF_6LOWPAN_ND
   memset(uip_ds6_context_pref_list, 0, sizeof(uip_ds6_context_pref_list));
 #if UIP_CONF_6L_ROUTER
-  memset(uip_ds6_br_list, 0, sizeof(uip_ds6_border_router_t));
+  memset(uip_ds6_br_list, 0, sizeof(uip_ds6_br_list));
 #endif /* UIP_CONF_6L_ROUTER */
 #if UIP_CONF_6LBR
-  memset(uip_ds6_dup_addr_list, 0, sizeof(uip_ds6_dup_addr_t));
+  memset(uip_ds6_dup_addr_list, 0, sizeof(uip_ds6_dup_addr_list));
 #endif /* UIP_CONF_6LBR */
 #endif /* CONF_6LOWPAN_ND */
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
@@ -214,7 +214,7 @@ uip_ds6_periodic(void)
 
 #if CONF_6LOWPAN_ND
 
-    /* Periodic processing on border router */
+  /* Periodic processing on border router */
 #if !UIP_CONF_6LBR
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
@@ -225,6 +225,18 @@ uip_ds6_periodic(void)
     }
   }
 #endif /* !UIP_CONF_6LBR */
+
+  /* Periodic processing on border router */
+#if UIP_CONF_6LBR
+  for(locdad = uip_ds6_dup_addr_list;
+      locdad < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
+      locdad++)
+  {
+    if(locdad->isused && stimer_expired(&locdad->lifetime)) {
+      uip_ds6_dup_addr_rm(locdad);
+    }
+  }
+#endif /* UIP_CONF_6LBR */
 
 
   /* Periodic processing on context prefixes */
@@ -694,16 +706,16 @@ uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime,
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_dup_addr_list, UIP_DS6_DUPADDR_NB,
-      sizeof(uip_ds6_addr_t), ipaddr, 128,
+      sizeof(uip_ds6_dup_addr_t), ipaddr, 128,
       (uip_ds6_element_t **)&locdad) == FREESPACE) {
     locdad->isused = 1;
     uip_ipaddr_copy(&locdad->ipaddr, ipaddr);
     if(lifetime != 0) {
-      stimer_set(&locdad->lifetime, lifetime);
+      stimer_set(&locdad->lifetime, lifetime * 60);
     }
     memcpy(&locdad->eui64, eui64, UIP_LLADDR_LEN);
     return locdad;
-  } 
+  }
   return NULL;
 }
 
@@ -722,7 +734,7 @@ uip_ds6_dup_addr_lookup(uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_dup_addr_list, UIP_DS6_DUPADDR_NB,
-      sizeof(uip_ds6_addr_t), ipaddr, 128,
+      sizeof(uip_ds6_dup_addr_t), ipaddr, 128,
       (uip_ds6_element_t **)&locdad) == FOUND) {
     return locdad;
   }
