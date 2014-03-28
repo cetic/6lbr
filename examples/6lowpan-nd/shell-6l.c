@@ -84,7 +84,7 @@ display_context_pref(void)
   int i;
   static uip_ds6_context_pref_t *loccontext;
   PRINTF("Prefix      St  CID  Expire\n");
-  PRINTF("---------------------------\n");
+  //PRINTF("---------------------------\n");
   for(i = 0; i< UIP_DS6_CONTEXT_PREF_NB; i++) {
     loccontext = &uip_ds6_context_pref_list[i];
     if(loccontext->state != CONTEXT_PREF_ST_FREE) {
@@ -106,8 +106,6 @@ display_context_pref(void)
       case CONTEXT_PREF_ST_RM:
         PRINTF("R");
         break;
-      default:
-        PRINTF("?");
     }
     PRINTF("   %u    ", loccontext->cid);
     PRINTF("%d\n", (int) stimer_remaining(&loccontext->lifetime));
@@ -121,12 +119,13 @@ display_nbr(void)
 {
   /* display nce */
   uip_ds6_nbr_t *nbr2 = nbr_table_head(ds6_neighbors);
-  PRINTF("Neighbor              Linklayer                St  R  Expire\n");
-  PRINTF("------------------------------------------------------------\n");
+  PRINTF(" Neighbor              Linklayer                St  R  Expire\n");
+  //PRINTF("----------------------------------------------------------------\n");
   if(nbr2==NULL) {
     return;
   }
   do {
+    PRINTF("%s", (uip_ds6_defrt_lookup(&nbr2->ipaddr)!=NULL ? ">" : " "));
     PRINT6ADDR(&nbr2->ipaddr);
     PRINTF("  ");
     PRINTLLADDR(uip_ds6_nbr_get_ll(nbr2));
@@ -144,8 +143,6 @@ display_nbr(void)
       case NBR_TENTATIVE_DAD:
         PRINTF("TD");
         break;
-      default:
-        PRINTF("? ");
     }
     PRINTF("  ");
     switch(nbr2->isrouter){
@@ -169,7 +166,7 @@ void
 display_rt(void)
 {
   PRINTF("IPv6                      Nexthop\n");
-  PRINTF("----------------------------------------------\n");
+  //PRINTF("----------------------------------------------\n");
   uip_ds6_route_t *r;
   for(r = uip_ds6_route_head();
       r != NULL;
@@ -186,7 +183,7 @@ void *
 print_dup_addr(void) {
   static uip_ds6_dup_addr_t *locdup;
   PRINTF("IPv6                  EUI64                    Expire\n");
-  PRINTF("-----------------------------------------------------\n");
+  //PRINTF("-----------------------------------------------------\n");
   for(locdup = uip_ds6_dup_addr_list;
       locdup < uip_ds6_dup_addr_list + UIP_DS6_DUPADDR_NB;
       locdup++)
@@ -200,6 +197,26 @@ print_dup_addr(void) {
   }
 }
 #endif /* UIP_CONF_6LBR */
+
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_reboot_process, "reboot");
+SHELL_COMMAND(reboot_cmd,
+        "reboot",
+        "reboot: reboot the system",
+        &shell_reboot_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_reboot_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  PRINTF("Rebooting the node...");
+
+  watchdog_reboot();
+
+  PROCESS_END();
+}
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(net_display_process, ev, data)
 {
@@ -243,8 +260,8 @@ PROCESS_THREAD(shell_cp_process, ev, data)
     l = (uint8_t) atoi(str+43);
   }
   if(*(str+1) == 'a') {
-    //expire in 30 min
-    uip_ds6_context_pref_add(&ip, l, 30);
+    //expire in 10 min
+    uip_ds6_context_pref_add(&ip, l, 10);
   }else if(*(str+1) == 'r') {
     uip_ds6_context_pref_rm(uip_ds6_context_pref_lookup(&ip));
   }
@@ -271,4 +288,5 @@ shell_6l_init(void)
 #if UIP_CONF_6LBR
   shell_register_command(&cp_cmd);
 #endif
+  shell_register_command(&reboot_cmd);
 }
