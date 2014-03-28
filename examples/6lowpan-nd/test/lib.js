@@ -82,8 +82,9 @@ function sendudp(from, to) {
     var cmd = "sendudp " + gpip(to);
     log.log("mote "+from+" -> "+cmd+"\n");
     write(mote, cmd);
-    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello") || msg.contains("#s"));
-    if(msg.contains("#s")) {
+    GENERATE_MSG(5000, "timeout"); //fail when timout (5s)
+    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello") || msg.contains("timeout"));
+    if(msg.contains("timeout")) {
         log.testFailed();
     }   
 }
