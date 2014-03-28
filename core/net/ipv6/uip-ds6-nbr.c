@@ -132,6 +132,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     nbr_table_unlock(ds6_neighbors, nbr);
   }
   uip_ds6_route_rm(uip_ds6_route_lookup(&nbr->ipaddr));
+  uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
 #endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
 #if UIP_CONF_IPV6_QUEUE_PKT

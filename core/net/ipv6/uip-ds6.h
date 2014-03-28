@@ -192,6 +192,12 @@
 #define BR_ST_FREE 0
 #define BR_ST_USED 1
 #define BR_ST_NEW_VERSION 2
+#define BR_ST_MUST_SEND_RS 3
+#define BR_ST_SENDING_RS 4
+
+/** \brief Possible states for default router */
+#define DEFRT_ST_RA_RCV 0
+#define DEFRT_ST_SENDING_RS 1
 
 #endif /* CONF_6LOWPAN_ND */
 
@@ -230,22 +236,6 @@
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
-
-
-/** \brief A border router list entry */
-#if CONF_6LOWPAN_ND
-typedef struct uip_ds6_border_router {
-  uint8_t state;
-  uint32_t version;
-#if UIP_CONF_6L_ROUTER
-  uint8_t lifetime;        /* in 60sec */ 
-#endif /* UIP_CONF_6L_ROUTER */
-#if !UIP_CONF_6LBR
-  struct stimer timeout;
-#endif /* !UIP_CONF_6LBR */
-  uip_ipaddr_t ipaddr; 
-} uip_ds6_border_router_t;
-#endif /* CONF_6LOWPAN_ND */
 
 
 /** \brief A prefix list entry */
@@ -381,6 +371,7 @@ extern struct etimer uip_ds6_timer_rs;
 #endif /* !UIP_CONF_ROUTER || UIP_CONF_6LR */
 #if CONF_6LOWPAN_ND
 extern uip_ds6_context_pref_t uip_ds6_context_pref_list[UIP_DS6_CONTEXT_PREF_NB];
+//TODO rm
 extern uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];
 #endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_6LBR
@@ -423,7 +414,7 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 #if CONF_6LOWPAN_ND
 void uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router);
 #endif /* CONF_6LOWPAN_ND */
-
+/** @} */
 
 #if CONF_6LOWPAN_ND
 /** \name Context prefix list basic routines */
@@ -444,17 +435,6 @@ uip_ds6_context_pref_t *uip_ds6_context_pref_lookup_by_cid(uint8_t cid);
 /** @} */
 
 
-/** \name Border router list basic routines */
-/** @{ */
-uip_ds6_border_router_t *uip_ds6_br_add(uint32_t version, uint16_t lifetime, 
-                                        uip_ipaddr_t *ipaddr);
-void uip_ds6_br_rm(uip_ds6_border_router_t *br);
-uip_ds6_border_router_t *uip_ds6_br_lookup(uip_ipaddr_t *ipaddr);
-#if UIP_CONF_6LBR
-void uip_ds6_br_config();
-#endif /* UIP_CONF_6LBR */
-
-/** @} */
 #endif /* CONF_6LOWPAN_ND */
 
 /** \name Duplication Address Detection list basic routines */
@@ -527,12 +507,6 @@ void uip_ds6_send_ra_periodic(void);
 #if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND
 /** \brief Send periodic RS to find router */
 void uip_ds6_send_rs(void);
-#if CONF_6LOWPAN_ND
-/** \brief Send unicast RS to refresh lifetime const */
-void uip_ds6_send_unicast_rs(void);
-/** \brief Indicate  */
-void uip_ds6_received_ra(void);
-#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER || CONF_6LOWPAN_ND */
 
 /** \brief Compute the reachable time based on base reachable time, see RFC 4861*/

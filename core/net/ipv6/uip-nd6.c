@@ -410,9 +410,11 @@ uip_nd6_ns_input(void)
     /* Process to DAD */
     if(nbr->state == NBR_TENTATIVE_DAD) {
       if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-        //TODO define timer dad (not 60) !
-        stimer_set(&nbr->reachable, 60);
-        //TODO find a way to get a border router bound with ipsrc
+        stimer_set(&nbr->reachable, UIP_ND6_MAX_RTR_SOLICITATIONS);
+        /*TODO 
+         find a way to get a border router bound with ipsrc
+         uip_ds6_prefix_lookup(&UIP_IP_BUF->srcipaddr,???)->br
+         */
         border_router = uip_ds6_br_lookup(NULL);
         uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
       }
@@ -1203,7 +1205,7 @@ uip_nd6_ra_input(void)
 #if CONF_6LOWPAN_ND
   /* Check ABRO is present and with which version*/
   PRINTF("Checking ABRO option in RA\n");
-  uint32_t abro_version;
+  uint32_t abro_version = 0;
   nd6_opt_auth_br = NULL;
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
@@ -1224,10 +1226,10 @@ uip_nd6_ra_input(void)
     goto discard;
   }
 
-  abro_version = nd6_opt_auth_br->verhigh;
-  abro_version = nd6_opt_auth_br->verlow + (abro_version << 16);
+  abro_version = uip_ntohs(nd6_opt_auth_br->verhigh);
+  abro_version = uip_ntohs(nd6_opt_auth_br->verlow) + (abro_version << 16);
   border_router = uip_ds6_br_lookup(&nd6_opt_auth_br->address);
-  if(border_router != NULL && abro_version < border_router->version) {
+  if(border_router != NULL && (abro_version < (border_router->version))) {
     PRINTF("RA received with lower ABRO version\n");
     goto discard;
   }
@@ -1243,6 +1245,7 @@ uip_nd6_ra_input(void)
     /* New version, so remove all prefix and context */
     //TODO not a good idea to rm all entries ?
     uip_ds6_prefix_rm_all(border_router);
+    border_router->version += abro_version;
   }
 #endif /* CONF_6LOWPAN_ND */
 
@@ -1278,7 +1281,6 @@ uip_nd6_ra_input(void)
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
     #if CONF_6LOWPAN_ND
       if(nbr == NULL) {
-        //TODO != RFC -> tentative or garbage
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
                               ISROUTER_YES,  NBR_TENTATIVE);
@@ -1458,8 +1460,8 @@ uip_nd6_ra_input(void)
       if(abro_version > 0) {
         /* Update information */
         //TODO: update all info (PIO, Context prefix) if only version increase
-        border_router->version = nd6_opt_auth_br->verhigh;
-        border_router->version = nd6_opt_auth_br->verlow + (border_router->version << 16);
+        border_router->version = uip_ntohs(nd6_opt_auth_br->verhigh);
+        border_router->version = uip_ntohs(nd6_opt_auth_br->verlow) + (border_router->version << 16);
         uip_ipaddr_copy(&border_router->ipaddr, &nd6_opt_auth_br->address);
       } 
       break;
@@ -1471,10 +1473,6 @@ uip_nd6_ra_input(void)
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
 
-#if CONF_6LOWPAN_ND
-  uip_ds6_received_ra();
-#endif /* CONF_6LOWPAN_ND */
-
   defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
   if(UIP_ND6_RA_BUF->router_lifetime != 0) {
     if(nbr != NULL) {
@@ -1482,12 +1480,10 @@ uip_nd6_ra_input(void)
     }
     if(defrt == NULL) {
   #if CONF_6LOWPAN_ND
-      //TODO: right ? no in RFC :s
       if(!(UIP_ND6_RA_BUF->flags_reserved & 0x10))
   #endif /* CONF_6LOWPAN_ND */
-      uip_ds6_defrt_add(&UIP_IP_BUF->srcipaddr,
-                        (unsigned
-                         long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
+      defrt = uip_ds6_defrt_add(&UIP_IP_BUF->srcipaddr,
+                 (unsigned long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
     } else {
       stimer_set(&(defrt->lifetime),
                  (unsigned long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
@@ -1497,6 +1493,16 @@ uip_nd6_ra_input(void)
       uip_ds6_defrt_rm(defrt);
     }
   }
+
+#if CONF_6LOWPAN_ND
+  if(defrt == NULL) {
+    nbr->state = NBR_GARBAGE_COLLECTIBLE;
+    goto discard;
+  } else {
+    defrt->br = border_router;
+    defrt->state = DEFRT_ST_RA_RCV;
+  }
+#endif /* CONF_6LOWPAN_ND */
 
 #if UIP_CONF_IPV6_QUEUE_PKT
   /* If the nbr just became reachable (e.g. it was in NBR_INCOMPLETE state
@@ -1515,17 +1521,6 @@ uip_nd6_ra_input(void)
   }
 
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
-
-#if UIP_CONF_6LR
-  if(abro_version > 0) {
-    /* propage new version to other router, host*/
-    /* TODO
-    http://tools.ietf.org/search/rfc6775#section-8.1.5
-    http://tools.ietf.org/html/rfc4861#section-6.2.2
-    */
-    //uip_ds6_send_ra_periodic();
-  }
-#endif /* UIP_CONF_6LR */
 
 discard:
   uip_len = 0;
