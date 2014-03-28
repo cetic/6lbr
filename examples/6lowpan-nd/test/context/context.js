@@ -86,8 +86,9 @@ function sendudp(from, to) {
     var cmd = "sendudp " + gpip(to);
     log.log("mote "+from+" -> "+cmd+"\n");
     write(mote, cmd);
-    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello") || msg.contains("#s"));
-    if(msg.contains("#s")) {
+    GENERATE_MSG(5000, "timeout"); //fail when timout (5s)
+    YIELD_THEN_WAIT_UNTIL(msg.contains("DATA recv 'Hello") || msg.contains("timeout"));
+    if(msg.contains("timeout")) {
         log.testFailed();
     }   
 }
@@ -150,7 +151,7 @@ function checkTable(prefixes){
                     val.found = true;
                  }  
             }
-        }while(msg.contains("Contiki>"));
+        }while(!msg.contains("Contiki>"));
 	}
     for(var i in prefixes) {
         if(!prefixes[i].found)
@@ -161,7 +162,7 @@ function checkTable(prefixes){
 
 
 /*---------------------------------------------------------------*/
-TIMEOUT(9999999);
+TIMEOUT(7200000); //2h
 WaitingStarting();
 
 log.log("Modify RT\n");
@@ -193,23 +194,18 @@ log.log("Context found\n");
 
 addCO(newprefix,16);
 rmCO(prefix,16);
-log.log("Modfy Context Table\n");
+log.log("Modify Context Table\n");
 
 function refreshTopo(){
 	YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
 	waitingConfig();
 	displayAllTable();
-	log.log("Topolgy refreshed");
+	log.log("Topolgy refreshed\n");
 }
 
 refreshTopo();
 if(!checkTable([{"pref":prefix+"::/16", "ok":1},
                 {"pref":newprefix+"::/16", "ok":1}])) {
-    log.testFailed();
-}
-
-refreshTopo();
-if(!checkTable([{"pref":newprefix+"::/16", "ok":1}])) {
     log.testFailed();
 }
 

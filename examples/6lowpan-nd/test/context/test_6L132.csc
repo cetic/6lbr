@@ -101,10 +101,6 @@
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
-      <interface_config>
-        org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd nc~;</history>
-      </interface_config>
       <motetype_identifier>sky3</motetype_identifier>
     </mote>
     <mote>
@@ -118,10 +114,6 @@
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
-      </interface_config>
-      <interface_config>
-        org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
@@ -139,7 +131,7 @@
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd nc~;netd rt~;netd nc~;netd rt~;netd nc~;</history>
+        <history>netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -175,17 +167,13 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>85.70465169454424</x>
-        <y>130.9533389936734</y>
+        <x>85.37351826660874</x>
+        <y>124.11386972155958</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
-      </interface_config>
-      <interface_config>
-        org.contikios.cooja.mspmote.interfaces.MspSerial
-        <history>netd cp~;netd nc~;netd cp~;netd nc~;help~;restart~;netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -195,8 +183,8 @@
     <width>280</width>
     <z>2</z>
     <height>160</height>
-    <location_x>62</location_x>
-    <location_y>747</location_y>
+    <location_x>30</location_x>
+    <location_y>782</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -205,11 +193,11 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <width>919</width>
+    <width>674</width>
     <z>1</z>
     <height>911</height>
-    <location_x>411</location_x>
-    <location_y>3</location_y>
+    <location_x>403</location_x>
+    <location_y>2</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -240,7 +228,7 @@
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
-      <viewport>1.4307387660996298 0.0 0.0 1.4307387660996298 116.37903238554924 24.639981351565215</viewport>
+      <viewport>2.966779905384192 0.0 0.0 2.966779905384192 69.2483615546748 -120.06333466939438</viewport>
     </plugin_config>
     <width>399</width>
     <z>3</z>
@@ -269,11 +257,11 @@
       <scriptfile>[CONFIG_DIR]/context.js</scriptfile>
       <active>true</active>
     </plugin_config>
-    <width>562</width>
+    <width>560</width>
     <z>0</z>
     <height>995</height>
-    <location_x>1339</location_x>
-    <location_y>1</location_y>
+    <location_x>1080</location_x>
+    <location_y>6</location_y>
   </plugin>
 </simconf>
 
