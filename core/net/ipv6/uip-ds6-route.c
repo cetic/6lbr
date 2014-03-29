@@ -727,7 +727,7 @@ uip_ds6_br_periodic(void)
         d = list_item_next(d);
       }
       if(list_head(defaultrouterlist) == NULL) {
-        etimer_set(&uip_ds6_timer_rs, UIP_ND6_MAX_RTR_SOLICITATION_DELAY);
+        uip_ds6_send_rs();
         locbr->state = BR_ST_USED;
         return;
       }

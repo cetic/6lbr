@@ -138,7 +138,9 @@
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
+#ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 1
+#endif
 #define UIP_CONF_IPV6_RPL               1
 
 /* Handle 10 neighbors */
@@ -146,7 +148,7 @@
 /* Handle 10 routes    */
 #define UIP_CONF_MAX_ROUTES   15
 
-#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_SEND_RA		1
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
@@ -169,7 +171,11 @@
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
+#ifdef CONF_6LOWPAN_ND
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#else /* CONF_6LOWPAN_ND */
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       0
+#endif /* CONF_6LOWPAN_ND */
 #else /* WITH_UIP6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108

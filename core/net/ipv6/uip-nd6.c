@@ -134,7 +134,7 @@ static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 static uip_nd6_opt_aro *nd6_opt_aro;    /**  Pointer to aro option in uip_buf */
 #endif /* CONF_6LOWPAN_ND */
 
-#if !UIP_CONF_ROUTER || UIP_CONF_6L_ROUTER           // TBD see if we move it to ra_input
+#if !UIP_CONF_ROUTER || CONF_6LOWPAN_ND           // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
 #endif
@@ -1326,7 +1326,7 @@ uip_nd6_ra_input(void)
                                   nd6_opt_prefix_info->preflen);
           if(prefix == NULL) {
             if(nd6_opt_prefix_info->validlt != 0) {
-            #if UIP_CONF_6LR
+            #if UIP_CONF_6L_ROUTER
               if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
                                             nd6_opt_prefix_info->preflen,
@@ -1342,7 +1342,7 @@ uip_nd6_ra_input(void)
                                             0, 0);
               }
               prefix->br = border_router;
-            #else /* UIP_CONF_6LR */
+            #else /* UIP_CONF_6L_ROUTER */
               if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
                                             nd6_opt_prefix_info->preflen,
@@ -1352,7 +1352,7 @@ uip_nd6_ra_input(void)
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
                                             nd6_opt_prefix_info->preflen, 0);
               }
-            #endif /* UIP_CONF_6LR */
+            #endif /* UIP_CONF_6L_ROUTER */
             }
           } else {
             switch (nd6_opt_prefix_info->validlt) {
