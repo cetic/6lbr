@@ -268,6 +268,36 @@ PROCESS_THREAD(shell_cp_process, ev, data)
 
   PROCESS_END();
 }
+
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_pref_process, "prefix");
+SHELL_COMMAND(pref_cmd,
+        "prefix",
+        "prefix: Add and remove context prefix",
+        &shell_pref_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_pref_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  uip_ipaddr_t ip;
+  int l;
+  char * str = data;
+  if(*str!='-' || *(str+2)!=' ' || *(str+42)!=' '){
+    printf("Wrong format:%s\n", str);
+  } else {
+    str2ip(str+3, &ip);
+    l = (uint8_t) atoi(str+43);
+  }
+  if(*(str+1) == 'a') {
+    uip_ds6_prefix_add(&ip, l, 1, 0xc0, 86400, 14400);
+  }else if(*(str+1) == 'r') {
+    uip_ds6_prefix_rm(uip_ds6_prefix_lookup(&ip, l));
+  }
+
+  PROCESS_END();
+}
+
 #endif
 /*---------------------------------------------------------------------------*/
 void 
@@ -287,6 +317,7 @@ shell_6l_init(void)
 #endif /* DEBUG == DEBUG_PRINT */
 #if UIP_CONF_6LBR
   shell_register_command(&cp_cmd);
+  shell_register_command(&pref_cmd);
 #endif
   shell_register_command(&reboot_cmd);
 }
