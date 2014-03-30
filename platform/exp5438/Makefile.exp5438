@@ -13,9 +13,15 @@ endif
 CLEAN += *.exp5438 symbols.c symbols.h
 
 ARCH=msp430.c leds.c watchdog.c \
-     spix.c cc2420.c cc2420-arch.c \
+     spix.c \
      rtimer-arch.c node-id.c leds-arch.c uart1x.c lcd.c \
-     hal_lcd.c hal_lcd_fonts.c duty-cycle-scroller.c cfs-ram.c
+     hal_lcd.c hal_lcd_fonts.c duty-cycle-scroller.c cfs-ram.c \
+     slip_uart1.c uart1-putchar.c
+
+RADIO_DEVICE?=cc2420
+ifeq ($(RADIO_DEVICE),cc2420)
+ARCH+= cc2420.c cc2420-arch.c
+endif
 
 ifeq ($(WITH_SLIP),1)
 ARCH += slip_uart0.c
