@@ -310,6 +310,10 @@ uip_ds6_neighbor_periodic(void)
                              locdar->lifetime);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
+        if(stimer_expired(&nbr->reachable)) {
+          uip_ds6_nbr_rm(nbr);
+          uip_ds6_dar_rm(uip_ds6_dar_lookup_by_nbr(nbr));
+        }
       }
       break;
   #endif  /* UIP_CONF_6LR */
