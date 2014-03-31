@@ -210,8 +210,8 @@
 #define UIP_ND6_OPT_PREFIX_INFO_LEN    32
 #define UIP_ND6_OPT_MTU_LEN            8
 #if CONF_6LOWPAN_ND
-#define UIP_ND6_OPT_ARO_LEN            2*8
-#define UIP_ND6_OPT_ABRO_LEN           3*8
+#define UIP_ND6_OPT_ARO_LEN            16
+#define UIP_ND6_OPT_ABRO_LEN           24
 #endif /* CONF_6LOWPAN_ND */
 
 /* 6LoWPAN ND assignement */

@@ -689,7 +689,12 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
                                CLOCK_SECOND));
     locaddr->dadnscount = 0;
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
+  #if UIP_CONF_6LN || UIP_CONF_6LR
+    locaddr->state = uip_is_addr_link_local(ipaddr) ? 
+                              ADDR_PREFERRED : ADDR_TENTATIVE;
+  #else /* UIP_CONF_6LN || UIP_CONF_6LR */
     locaddr->state = ADDR_PREFERRED;
+  #endif /* UIP_CONF_6LN || UIP_CONF_6LR */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     uip_create_solicited_node(ipaddr, &loc_fipaddr);
     uip_ds6_maddr_add(&loc_fipaddr);
@@ -874,6 +879,7 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
 }
 
 /*---------------------------------------------------------------------------*/
+#if !UIP_FAKE
 void
 uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 {
@@ -892,6 +898,7 @@ uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 #error uip-ds6.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
 }
+#endif /* !UIP_FAKE */
 
 /*---------------------------------------------------------------------------*/
 uint8_t

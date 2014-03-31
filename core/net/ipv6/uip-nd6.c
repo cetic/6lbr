@@ -390,7 +390,7 @@ uip_nd6_ns_input(void)
     //check duplication of addr
     if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
       dupaddr = uip_ds6_dup_addr_lookup(&UIP_IP_BUF->srcipaddr);
-      if(dupaddr != NULL && 
+      if((dupaddr != NULL || uip_ds6_addr_lookup(&UIP_IP_BUF->srcipaddr)!=NULL) &&
         memcmp(&dupaddr->eui64, 
           (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN)){
         aro_state = UIP_ND6_ARO_STATUS_DUPLICATE;
@@ -729,28 +729,24 @@ uip_nd6_na_input(void)
               uip_ds6_defrt_rm(defrt);
             }
           } else {
-            addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
             switch(nd6_opt_aro->status) {
             case UIP_ND6_ARO_STATUS_SUCESS:
+              addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
               nbr->state = NBR_REGISTERED;
-              nbr_table_lock(ds6_neighbors, nbr);
               nbr->nscount = 0;
               addr->state = ADDR_PREFERRED;
               stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
               break;
             case UIP_ND6_ARO_STATUS_DUPLICATE:
-              uip_ds6_addr_rm(addr);
+              //TODO use defrt -> right br
+              uip_ds6_get_global(ADDR_TENTATIVE)->isused = 0;
+              //TODO more !
               break;
             case UIP_ND6_ARO_STATUS_CACHE_FULL:
-              /* the host SHOULD remove this router from its default router list */
+              /* Host SHOULD remove this router from its default router list */
               defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
               if(defrt != NULL) {
                 uip_ds6_defrt_rm(defrt);
-              }
-              /* register with another router */
-              if(uip_ds6_defrt_choose() == NULL) {
-                uip_ds6_addr_rm(addr);
-                uip_ds6_send_rs();
               }
               break;
             default:
