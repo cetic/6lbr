@@ -132,6 +132,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     nbr_table_unlock(ds6_neighbors, nbr);
   }
   uip_ds6_route_rm(uip_ds6_route_lookup(&nbr->ipaddr));
+  uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
 #endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -275,13 +276,7 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
     case NBR_TENTATIVE:
-      /* TODO  
-      Hosts that receive RA messages from multiple default routers SHOULD
-      attempt to register with more than one of them in order to increase
-      the robustness of the network.
-      */
       if (nbr->isrouter == ISROUTER_YES) {
-        //TODO MULTICAST ?
         if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
@@ -292,7 +287,6 @@ uip_ds6_neighbor_periodic(void)
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       } else {
-        //TODO asyncrounous mechanism DAD
         if(stimer_expired(&nbr->reachable)) {
           uip_ds6_nbr_rm(nbr);
         }

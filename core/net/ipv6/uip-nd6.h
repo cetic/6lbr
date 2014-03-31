@@ -64,7 +64,7 @@
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
 #define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
 /** @} */
-#else /* CONF_6LOWPAN_ND */
+#else /* !CONF_6LOWPAN_ND */
 
 /** \name RFC 6775 Host constant */
 /** @{ */
@@ -73,7 +73,7 @@
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  10
 #define UIP_ND6_MAX_RTR_SOLICITATIONS    3
 /** @} */
-#endif /* CONF_6LOWPAN_ND */
+#endif /* !CONF_6LOWPAN_ND */
 
 //TODO: check constant for 6LR and 6LBR
 /** \name RFC 4861 Router constants */
@@ -210,8 +210,8 @@
 #define UIP_ND6_OPT_PREFIX_INFO_LEN    32
 #define UIP_ND6_OPT_MTU_LEN            8
 #if CONF_6LOWPAN_ND
-#define UIP_ND6_OPT_ARO_LEN            2*8
-#define UIP_ND6_OPT_ABRO_LEN           3*8
+#define UIP_ND6_OPT_ARO_LEN            16
+#define UIP_ND6_OPT_ABRO_LEN           24
 #endif /* CONF_6LOWPAN_ND */
 
 /* 6LoWPAN ND assignement */

@@ -93,8 +93,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>48.045261104095495</x>
-        <y>53.694046148582835</y>
+        <x>22.539962642565648</x>
+        <y>49.86995783751088</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -107,8 +107,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>24.57368106472331</x>
-        <y>93.63732872459359</y>
+        <x>24.336057887713313</x>
+        <y>93.74985712045675</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -121,8 +121,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-16.292769319017438</x>
-        <y>94.53772929025756</y>
+        <x>25.711757854797014</x>
+        <y>173.5404552113115</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -139,8 +139,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>61.90372840805272</x>
-        <y>92.2744691858602</y>
+        <x>24.336057887713313</x>
+        <y>137.77225606713523</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -149,42 +149,14 @@
       </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
-    <mote>
-      <breakpoints />
-      <interface_config>
-        org.contikios.cooja.interfaces.Position
-        <x>44.49388880880046</x>
-        <y>128.8125912889984</y>
-        <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        org.contikios.cooja.mspmote.interfaces.MspMoteID
-        <id>5</id>
-      </interface_config>
-      <motetype_identifier>sky2</motetype_identifier>
-    </mote>
-    <mote>
-      <breakpoints />
-      <interface_config>
-        org.contikios.cooja.interfaces.Position
-        <x>85.37351826660874</x>
-        <y>124.11386972155958</y>
-        <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        org.contikios.cooja.mspmote.interfaces.MspMoteID
-        <id>6</id>
-      </interface_config>
-      <motetype_identifier>sky1</motetype_identifier>
-    </mote>
   </simulation>
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>2</z>
+    <z>3</z>
     <height>160</height>
-    <location_x>30</location_x>
-    <location_y>782</location_y>
+    <location_x>12</location_x>
+    <location_y>842</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -193,11 +165,11 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <width>674</width>
+    <width>600</width>
     <z>1</z>
     <height>911</height>
-    <location_x>403</location_x>
-    <location_y>2</location_y>
+    <location_x>406</location_x>
+    <location_y>0</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -206,8 +178,6 @@
       <mote>1</mote>
       <mote>2</mote>
       <mote>3</mote>
-      <mote>4</mote>
-      <mote>5</mote>
       <showRadioRXTX />
       <showRadioHW />
       <showLEDs />
@@ -228,10 +198,10 @@
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
-      <viewport>2.966779905384192 0.0 0.0 2.966779905384192 69.2483615546748 -120.06333466939438</viewport>
+      <viewport>1.5073054078759274 0.0 0.0 1.5073054078759274 170.59652833946805 -6.808866625259964</viewport>
     </plugin_config>
     <width>399</width>
-    <z>3</z>
+    <z>2</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -254,14 +224,14 @@
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[CONFIG_DIR]/test_6L132.js</scriptfile>
+      <scriptfile>[CONFIG_DIR]/prefix.js</scriptfile>
       <active>true</active>
     </plugin_config>
-    <width>560</width>
+    <width>658</width>
     <z>0</z>
     <height>995</height>
-    <location_x>1080</location_x>
-    <location_y>6</location_y>
+    <location_x>1007</location_x>
+    <location_y>-1</location_y>
   </plugin>
 </simconf>
 

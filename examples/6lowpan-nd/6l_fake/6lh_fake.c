@@ -26,21 +26,16 @@
  * This file is part of the Contiki operating system.
  */
 
- #define SHELL 1
+
+#define SHELL 0
 
 #include "contiki.h"
-#include "contiki-lib.h"
-#include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
-#include "net/netstack.h"
 #include "sys/etimer.h"
 
-#include <stdio.h>
-#include <string.h>
-
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 void send_packet(uip_ipaddr_t * server_ipaddr);
@@ -49,16 +44,12 @@ void send_packet(uip_ipaddr_t * server_ipaddr);
 #include "../shell-6l.h"
 #endif
 
-#define UDP_PORT 8765
-#define MAX_PAYLOAD_LEN   30
+#include <stdio.h>
+#include <string.h>
 
-#define SEND_INTERVAL   (1 * CLOCK_SECOND)
 
- static struct uip_udp_conn *server_conn;
-
-/*---------------------------------------------------------------------------*/
-PROCESS(test_router, "Test process of 6LoWPAN ND router");
-AUTOSTART_PROCESSES(&test_router);
+PROCESS(test_host, "Test process of 6LoWPAN ND host");
+AUTOSTART_PROCESSES(&test_host);
 
 /*---------------------------------------------------------------------------*/
 void
@@ -73,7 +64,7 @@ display_add()
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF(" , ");
     }
   }
@@ -82,71 +73,36 @@ display_add()
 }
 
 /*---------------------------------------------------------------------------*/
-void
-send_packet(uip_ipaddr_t * server_ipaddr)
+PROCESS_THREAD(test_host, ev, data)
 {
-  static int seq_id;
-  char buf[MAX_PAYLOAD_LEN];
-
-  seq_id++;
-  printf("DATA 'Hello %d' send to %d \n",
-         server_ipaddr->u8[sizeof(server_ipaddr->u8) - 1], seq_id);
-  sprintf(buf, "Hello %d from the client", seq_id);
-  uip_udp_packet_sendto(server_conn, buf, strlen(buf),
-                        server_ipaddr, UIP_HTONS(UDP_PORT));
-}
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_router, ev, data)
-{
-  uip_ipaddr_t *ipaddr;
   static struct etimer periodic_timer;
   char *appdata;
 
 	PROCESS_BEGIN();
- 
-#if UIP_CONF_6LR
-  printf("STARTING router (6LR)...  \n");
+
+#if UIP_CONF_6LN
+	PRINTF("STARTING FAKE host (6LN)... \n");
 #else
-  printf("STARTING unknown device...\n");
-#endif	
+  PRINTF("STARTING unknown device...\n");
+#endif
+  
+#ifdef UIP_CONF_ROUTER
+  PRINTF("UIP_CONF_ROUTER:%d\n", UIP_CONF_ROUTER);
+#else
+  PRINTF("NO UIP_CONF_ROUTER\n");
+#endif
+
 
 #if SHELL
   shell_6l_init();
 #endif
 
-/*
-#if UIP_ND6_SEND_RA
-  printf("---->%d\n", UIP_ND6_SEND_RA);
-#else
-  printf("MACRO no define\n");
-#endif
-*/
-
   display_add();
-
-  server_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL);
-  if(server_conn == NULL) {
-    PRINTF("No UDP connection available, exiting the process!\n");
-    PROCESS_EXIT();
-  }
-  udp_bind(server_conn, UIP_HTONS(UDP_PORT));
-
-  PRINTF("Created a server connection with remote address ");
-  PRINT6ADDR(&server_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
-         UIP_HTONS(server_conn->rport));
 
   while(1) {
     PROCESS_YIELD();
-    if(ev == tcpip_event && uip_newdata()) {
-        appdata = (char *)uip_appdata;
-        appdata[uip_datalen()] = 0;
-        printf("DATA recv '%s'\n", appdata);
-    }
   }
 
-
   PROCESS_END();
-  PRINTF("END PROCESS :() \n");
+  PRINTF("END PROCESS.\n");
 }

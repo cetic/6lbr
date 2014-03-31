@@ -254,7 +254,7 @@
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[CONFIG_DIR]/test_6L132.js</scriptfile>
+      <scriptfile>[CONFIG_DIR]/context.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>560</width>

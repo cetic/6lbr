@@ -20,6 +20,7 @@
 #else
 #include "dev/uart1.h"
 #endif
+#include "dev/watchdog.h"
 
 void shell_6l_init(void);
 
