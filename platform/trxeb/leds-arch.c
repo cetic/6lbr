@@ -45,7 +45,9 @@
 #define LEDS_CONF_RED    0x01
 #define LEDS_CONF_GREEN  0x02
 #define LEDS_CONF_YELLOW 0x04
+/* Blue is the rightmost red led */
 #define LEDS_CONF_BLUE   0x08
+/* Note that LED ports level are inverted wrt exp5438 */
 
 /*---------------------------------------------------------------------------*/
 void
@@ -60,19 +62,19 @@ leds_arch_init(void)
 unsigned char
 leds_arch_get(void)
 {
-  return ((P4OUT & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((P4OUT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN)
-  | ((P4OUT & LEDS_CONF_YELLOW) ? 0 : LEDS_YELLOW)
-  | ((P4OUT & LEDS_CONF_BLUE) ? 0 : LEDS_BLUE);
+  return (!(P4OUT & LEDS_CONF_RED) ? 0 : LEDS_RED)
+    | (!(P4OUT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN)
+  | (!(P4OUT & LEDS_CONF_YELLOW) ? 0 : LEDS_YELLOW)
+  | (!(P4OUT & LEDS_CONF_BLUE) ? 0 : LEDS_BLUE);
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
-  P4OUT = (P4OUT & ~LEDS_CONF_RED) | ((leds & LEDS_RED) ? LEDS_CONF_RED : 0);
+  P4OUT = (P4OUT & ~LEDS_CONF_RED) | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED);
   P4OUT = (P4OUT & ~LEDS_CONF_GREEN) |
-    ((leds & LEDS_GREEN) ? LEDS_CONF_GREEN : 0);
-  P4OUT = (P4OUT & ~LEDS_CONF_YELLOW) | ((leds & LEDS_YELLOW) ? LEDS_CONF_YELLOW : 0);
-  P4OUT = (P4OUT & ~LEDS_CONF_BLUE) | ((leds & LEDS_BLUE) ? LEDS_CONF_BLUE : 0);
+    ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  P4OUT = (P4OUT & ~LEDS_CONF_YELLOW) | ((leds & LEDS_YELLOW) ? 0 : LEDS_CONF_YELLOW );
+  P4OUT = (P4OUT & ~LEDS_CONF_BLUE) | ((leds & LEDS_BLUE) ? 0 : LEDS_CONF_BLUE);
 }
 /*---------------------------------------------------------------------------*/
