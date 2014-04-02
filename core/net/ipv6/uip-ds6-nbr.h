@@ -79,6 +79,8 @@
 #else /* UIP_CONF_6LN */
 #define ISROUTER_NODEFINE 2
 #endif /* UIP_CONF_6LN */
+#define ISROUTER_RPL 3
+#define ISROUTER_TESTING 4
 #endif /* CONF_6LOWPAN_ND */
 
 NBR_TABLE_DECLARE(ds6_neighbors);

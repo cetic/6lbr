@@ -224,6 +224,9 @@ struct rpl_instance {
   struct ctimer dio_timer;
   struct ctimer dao_timer;
   struct ctimer dao_lifetime_timer;
+#if CONF_6LOWPAN_ND
+  struct ctimer host_timer; 
+#endif /* CONF_6LOWPAN_ND */
 };
 
 /*---------------------------------------------------------------------------*/

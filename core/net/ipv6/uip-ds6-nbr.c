@@ -132,7 +132,11 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
       nbr_table_unlock(ds6_neighbors, nbr);
     }
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+    uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr)->state.lifetime = 0;
+#else /* UIP_DS6_ROUTE_STATE_TYPE */
     uip_ds6_route_rm(uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr));
+#endif /* UIP_DS6_ROUTE_STATE_TYPE */
     uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
 #endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_IPV6_QUEUE_PKT

@@ -550,12 +550,18 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
         (unsigned)instance->current_dag->rank);
     uip_create_linklocal_rplnodes_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
+#if CONF_6LOWPAN_ND
+    rpl_host_determination(instance);
+#endif /* CONF_6LOWPAN_ND */
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
         (unsigned)instance->current_dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
+#if CONF_6LOWPAN_ND
+    //TODO
+#endif /* CONF_6LOWPAN_ND */
   }
 #endif /* RPL_LEAF_ONLY */
 }
@@ -674,7 +680,11 @@ dao_input(void)
       PRINT6ADDR(&prefix);
       PRINTF("\n");
       rep->state.nopath_received = 1;
+#if CONF_6LOWPAN_ND
+      uip_ds6_route_rm(rep);
+#else /* CONF_6LOWPAN_ND */
       rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+#endif /* CONF_6LOWPAN_ND */
 
       /* We forward the incoming no-path DAO to our parent, if we have
          one. */
@@ -723,7 +733,7 @@ dao_input(void)
 
   PRINTF("RPL: adding DAO route\n");
 
-  #if !CONF_6LOWPAN_ND
+#if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -746,7 +756,7 @@ dao_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
-  #endif /* !CONF_6LOWPAN_ND */
+#endif /* !CONF_6LOWPAN_ND */
 
   rpl_lock_parent(p);
 
@@ -927,6 +937,15 @@ void
 uip_rpl_input(void)
 {
   PRINTF("Received an RPL control message\n");
+
+#if CONF_6LOWPAN_ND
+  uip_ds6_nbr_t *nbr;
+  nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+  if(nbr != NULL && nbr->isrouter != ISROUTER_YES) {
+    nbr->isrouter = ISROUTER_RPL;
+  }
+#endif /* CONF_6LOWPAN_ND */
+
   switch(UIP_ICMP_BUF->icode) {
   case RPL_CODE_DIO:
     dio_input();

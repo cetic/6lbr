@@ -293,4 +293,52 @@ rpl_cancel_dao(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_lifetime_timer);
 }
 /*---------------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
+static void
+handle_host_timer(void *ptr)
+{
+  rpl_parent_t *parent;
+  rpl_instance_t *instance;
+  uip_ds6_nbr_t *nbr;
+  uip_ds6_route_t *route;
+
+  instance = (rpl_instance_t *)ptr;
+  parent = instance->current_dag->preferred_parent;
+  nbr = nbr_table_head(ds6_neighbors);
+
+  while(nbr != NULL) {
+    //TODO problem of timer when TESTING
+    if(nbr->isrouter == ISROUTER_TESTING) {
+      nbr->isrouter = ISROUTER_NO;
+      route = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
+      if(route != NULL) {
+        dao_output_target(parent, &route->ipaddr, instance->default_lifetime);
+      }
+    }
+    nbr = nbr_table_next(ds6_neighbors, nbr);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_host_determination(rpl_instance_t *instance)
+{
+  uint8_t num;
+  uip_ds6_nbr_t *nbr;
+
+  num = 0;
+  nbr = nbr_table_head(ds6_neighbors);
+  while(nbr != NULL) {
+    if(nbr->state == NBR_REGISTERED && nbr->isrouter == ISROUTER_NODEFINE) {
+      nbr->isrouter = ISROUTER_TESTING;
+      num++;
+    }
+    nbr = nbr_table_next(ds6_neighbors, nbr);
+  }
+  if(num != 0) {
+    ctimer_set(&instance->host_timer, 60*CLOCK_SECOND, &handle_host_timer, instance);
+  }
+}
+
+#endif /* CONF_6LOWPAN_ND */
+/*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */

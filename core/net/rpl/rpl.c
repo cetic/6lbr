@@ -45,7 +45,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 #include <limits.h>
@@ -106,6 +106,7 @@ rpl_purge_routes(void)
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
 
+#if !CONF_6LOWPAN_ND
   /* First pass, decrement lifetime */
   r = uip_ds6_route_head();
 
@@ -120,6 +121,7 @@ rpl_purge_routes(void)
     }
     r = uip_ds6_route_next(r);
   }
+#endif /* !CONF_6LOWPAN_ND */
 
   /* Second pass, remove dead routes */
   r = uip_ds6_route_head();

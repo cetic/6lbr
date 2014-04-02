@@ -72,7 +72,7 @@ uip_ds6_border_router_t *locbr;
 static int num_routes = 0;
 
 #undef DEBUG
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 static void rm_routelist_callback(nbr_table_item_t *ptr);
@@ -371,7 +371,11 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+#if CONF_6LOWPAN_ND
+  r->state.lifetime = 1;
+#endif /* CONF_6LOWPAN_ND */
 #endif
+
 
   PRINTF("uip_ds6_route_add: adding route: ");
   PRINT6ADDR(ipaddr);
