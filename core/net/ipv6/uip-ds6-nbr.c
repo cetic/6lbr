@@ -127,14 +127,14 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
-#if CONF_6LOWPAN_ND
-  if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
-    nbr_table_unlock(ds6_neighbors, nbr);
-  }
-  uip_ds6_route_rm(uip_ds6_route_lookup(&nbr->ipaddr));
-  uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
-#endif /* CONF_6LOWPAN_ND */
   if(nbr != NULL) {
+#if CONF_6LOWPAN_ND
+    if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
+      nbr_table_unlock(ds6_neighbors, nbr);
+    }
+    uip_ds6_route_rm(uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr));
+    uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
+#endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
@@ -277,8 +277,10 @@ uip_ds6_neighbor_periodic(void)
       break;
     case NBR_TENTATIVE:
       if (nbr->isrouter == ISROUTER_YES) {
-        if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
+        // TODO send until get addr ?
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_defrt_choose() != NULL) {
           uip_ds6_nbr_rm(nbr);
+          //TODO /!\ addr to register
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           //TODO: -1 in arg ? -> check if add is a tentative
@@ -289,12 +291,12 @@ uip_ds6_neighbor_periodic(void)
       } else {
         if(stimer_expired(&nbr->reachable)) {
           uip_ds6_nbr_rm(nbr);
+          //TODO /!\ addr to register
         }
       }
       break;
   #if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
-      if (nbr->isrouter == ISROUTER_NO || nbr->isrouter == ISROUTER_NODEFINE) {
         locdar = uip_ds6_dar_lookup_by_nbr(nbr);
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           uip_ds6_dar_rm(locdar);
@@ -310,11 +312,6 @@ uip_ds6_neighbor_periodic(void)
                              locdar->lifetime);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
-        if(stimer_expired(&nbr->reachable)) {
-          uip_ds6_nbr_rm(nbr);
-          uip_ds6_dar_rm(uip_ds6_dar_lookup_by_nbr(nbr));
-        }
-      }
       break;
   #endif  /* UIP_CONF_6LR */
 #else /* CONF_6LOWPAN_ND */
