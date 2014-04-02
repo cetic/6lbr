@@ -147,6 +147,9 @@ display_nbr(void)
     PRINTF("  ");
     switch(nbr2->isrouter){
       case ISROUTER_YES:
+  #if UIP_CONF_6L_ROUTER
+      case ISROUTER_RPL:
+  #endif /* UIP_CONF_6L_ROUTER */
         PRINTF("R");
         break;
       case ISROUTER_NO:
@@ -155,6 +158,9 @@ display_nbr(void)
   #if UIP_CONF_6L_ROUTER
       case ISROUTER_NODEFINE:
         PRINTF("?");
+        break;
+      case ISROUTER_TESTING:
+        PRINTF("T");
         break;
   #endif /* UIP_CONF_6L_ROUTER */
     }
