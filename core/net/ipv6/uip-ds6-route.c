@@ -248,6 +248,20 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
+uip_ds6_route_lookup_by_nexthop(uip_ipaddr_t *ipaddr)
+{
+  uip_ds6_route_t *r;
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
+    if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), ipaddr)) {
+      return r;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_route_t *
 uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 		  uip_ipaddr_t *nexthop)
 {
