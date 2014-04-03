@@ -1678,7 +1678,6 @@ uip_nd6_dac_input(void)
     uip_ds6_route_add(&dar->ipaddr, 128, &nbr->ipaddr);
     aro_state = UIP_ND6_ARO_STATUS_SUCESS;
   } else {
-    uip_ds6_nbr_rm(nbr);
     aro_state = UIP_ND6_DA_BUF->status;
   }
 
@@ -1693,7 +1692,12 @@ uip_nd6_dac_input(void)
   uip_nd6_na_output(UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE,
                     aro_state);
 
+  /* remove all entries */
   uip_ds6_dar_rm(dar);
+  if(aro_state != UIP_ND6_ARO_STATUS_SUCESS) {
+    tcpip_ipv6_output(); //force to send before remove NCE
+    uip_ds6_nbr_rm(nbr);
+  }
   return;
 
 discard:
