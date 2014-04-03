@@ -130,6 +130,8 @@ buildRT([
     {"mote":2, 
      "fct":function(){
         addroute(1,4,2,128);
+        GENERATE_MSG(500, "continue");
+        WAIT_UNTIL(msg.contains("continue"));
         addroute(1,3,2,128);
         }
     },
