@@ -121,44 +121,53 @@ function buildRT(s) {
 }
 // endload()
 
+function unregister(noteID, routerID) {
+    var mote = sim.getMoteWithID(noteID);
+    var cmd = "unregister "+llip(routerID);
+    log.log("MOTE "+noteID+" -> "+cmd+"\n");
+    write(mote, cmd);
+}
 
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+":")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
 
 /*---------------------------------------------------------------*/
 
-TIMEOUT(7200000); //2h
+TIMEOUT(1800000); //30min
 WaitingStarting();
-
+waitingConfig();
 log.log("Starting...\n");
 
-//Waiting 1min
-GENERATE_MSG(60000, "timeout");
-YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
-log.log("Testing....\n");
-
-for(var i=0; i<30; i++) {
-    log.log("Check "+(i+1)+"...");
-    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
-    GENERATE_MSG(3000, "timeout");
-    YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
-
-    //check IP
-    var ipcheck = {1:false, 2:true, 3:false, 4:false};
-    var allm = sim.getMotes();
-    for(var id in  allm) {
-        var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ipcheck[moteid]) {
-            //Check local IP
-            if(ip.indexOf("fe80:") != 0) {
-                log.testFailed();
-            }
-        } else {
-            //Check global IP
-            if(ip.indexOf(prefix+":") != 0) {
-                log.testFailed();
-            }
-        }
-    } 
-    log.log("\tOK\n");
+//Send cmd to unregister
+unregister(6, 2);
+YIELD_THEN_WAIT_UNTIL(msg.contains("rNA"));
+if(!checknc({
+        6:{2:false, 4:true},
+        2:{6:false},
+        4:{6:true}
+    })){
+    log.testFailed();
 }
+
 log.testOK();

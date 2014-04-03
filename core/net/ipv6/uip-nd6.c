@@ -76,7 +76,7 @@
 
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
@@ -385,6 +385,17 @@ uip_nd6_ns_input(void)
 
   if(nd6_opt_aro) {
     nbr = uip_ds6_nbr_ll_lookup(&nd6_opt_aro->eui64);
+
+  #if UIP_CONF_6L_ROUTER
+    if(nd6_opt_aro->lifetime == 0) {
+      uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+      uip_nd6_na_output(UIP_ND6_NA_FLAG_OVERRIDE, UIP_ND6_ARO_STATUS_SUCESS);
+      tcpip_ipv6_output();
+      uip_ds6_nbr_rm(nbr);
+      goto discard;
+    }
+  #endif /* UIP_CONF_6L_ROUTER */
 
   #if UIP_CONF_6LBR
     //check duplication of addr
