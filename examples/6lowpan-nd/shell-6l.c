@@ -299,6 +299,30 @@ PROCESS_THREAD(shell_pref_process, ev, data)
 }
 
 #endif
+
+
+#if UIP_CONF_6LN
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_unreg_process, "unregister");
+SHELL_COMMAND(unreg_cmd,
+        "unregister",
+        "unregister: Unsubscribe from router",
+        &shell_unreg_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_unreg_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  uip_ipaddr_t ip;
+  char * str = data;
+  str2ip(str, &ip);
+
+  uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &ip, &ip, 0 , 1);
+
+  PROCESS_END();
+}
+
+#endif
 /*---------------------------------------------------------------------------*/
 void 
 shell_6l_init(void)
@@ -320,4 +344,7 @@ shell_6l_init(void)
   shell_register_command(&pref_cmd);
 #endif
   shell_register_command(&reboot_cmd);
+#if UIP_CONF_6LN
+  shell_register_command(&unreg_cmd);
+#endif
 }
