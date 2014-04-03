@@ -147,7 +147,7 @@ buildRT([
     }
 ]);
 
-for(var i=0; i<=15; i++) {
+for(var i=0; i<=10; i++) {
 	waitingConfig();
 	log.log("Topology stable\n");
 	displayAllTable();
