@@ -95,6 +95,8 @@ PROCESS_THREAD(test_host, ev, data)
 
 #if SHELL
   shell_6l_init();
+#else
+  printf("Contiki>\n");
 #endif
 
   display_add();
