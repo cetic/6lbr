@@ -398,11 +398,17 @@ uip_nd6_ns_input(void)
     }
     //add to all table
     if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
-      uip_ds6_route_add(&UIP_IP_BUF->srcipaddr, 128, &nbr->ipaddr);
+      if(uip_ds6_route_lookup(&UIP_IP_BUF->srcipaddr) == NULL){
+        uip_ds6_route_add(&UIP_IP_BUF->srcipaddr, 128, &nbr->ipaddr);
+      }
       stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
-      uip_ds6_dup_addr_add(&UIP_IP_BUF->srcipaddr, 
-                           uip_ntohs(nd6_opt_aro->lifetime), 
-                           (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
+      if(dupaddr != NULL) {
+        stimer_set(&dupaddr->lifetime, uip_ntohs(nd6_opt_aro->lifetime) * 60);
+      } else {
+        uip_ds6_dup_addr_add(&UIP_IP_BUF->srcipaddr, 
+                             uip_ntohs(nd6_opt_aro->lifetime), 
+                             (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
+      }
     }
   #endif /* UIP_CONF_6LBR */
 

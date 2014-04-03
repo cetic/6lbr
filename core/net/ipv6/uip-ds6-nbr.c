@@ -279,8 +279,10 @@ uip_ds6_neighbor_periodic(void)
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           //TODO: -1 in arg ? -> check if add is a tentative
-          uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
+          if(uip_ds6_get_global(-1) != NULL) {
+            uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
                                 UIP_ND6_REGISTER_LIFETIME, 1);
+          }
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
       } else {
@@ -299,7 +301,6 @@ uip_ds6_neighbor_periodic(void)
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           //TODO border router found ?
-          //TODO always UIP_ND6_ARO_STATUS_SUCESS ?
           uip_nd6_dar_output(&uip_ds6_br_lookup(NULL)->ipaddr,
                              UIP_ND6_ARO_STATUS_SUCESS, 
                              &locdar->ipaddr,
