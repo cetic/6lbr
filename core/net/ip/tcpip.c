@@ -649,7 +649,6 @@ tcpip_ipv6_output(void)
 #endif /* UIP_CONF_IPV6_RPL */
     nbr = uip_ds6_nbr_lookup(nexthop);
 #if UIP_CONF_6LN
-    //TODO: profil of 6LR and 6LBR
     if(nbr == NULL) {
       PRINTF("tcpip_ipv6_output: Impossible to find nexthop (");
       PRINT6ADDR(nexthop);
@@ -661,11 +660,9 @@ tcpip_ipv6_output(void)
       return;
     }
 #else /* UIP_CONF_6LN */
-    //TODO activate this for 6LR - RFC6775 section 6.5.5.
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
   #if CONF_6LOWPAN_ND
-      //TODO not TENTATIVE because problem when resend a rs (with ARO)
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, ISROUTER_YES, NBR_TENTATIVE)) == NULL) {
   #else /* CONF_6LOWPAN_ND */
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {

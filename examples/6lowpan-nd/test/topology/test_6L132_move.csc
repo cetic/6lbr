@@ -161,19 +161,27 @@
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>5</id>
       </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
+      </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>85.37351826660874</x>
-        <y>124.11386972155958</y>
+        <x>72.19667291685657</x>
+        <y>123.03687712288338</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>netd nc~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
@@ -181,7 +189,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>2</z>
+    <z>3</z>
     <height>160</height>
     <location_x>30</location_x>
     <location_y>782</location_y>
@@ -193,9 +201,9 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <width>674</width>
-    <z>1</z>
-    <height>911</height>
+    <width>678</width>
+    <z>0</z>
+    <height>704</height>
     <location_x>403</location_x>
     <location_y>2</location_y>
   </plugin>
@@ -228,10 +236,10 @@
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
-      <viewport>2.966779905384192 0.0 0.0 2.966779905384192 69.2483615546748 -120.06333466939438</viewport>
+      <viewport>2.0602638231834667 0.0 0.0 2.0602638231834667 145.25580663519085 -1.4884268537461303</viewport>
     </plugin_config>
     <width>399</width>
-    <z>3</z>
+    <z>1</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -254,11 +262,11 @@
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[CONFIG_DIR]/move.js</scriptfile>
+      <scriptfile>[CONTIKI_DIR]/examples/6lowpan-nd/test/topology/move.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>560</width>
-    <z>0</z>
+    <z>2</z>
     <height>995</height>
     <location_x>1080</location_x>
     <location_y>6</location_y>
