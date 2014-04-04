@@ -154,6 +154,7 @@ typedef struct uip_ds6_defrt {
 
 /** \name Border router list basic routines */
 /** @{ */
+#if CONF_6LOWPAN_ND
 uip_ds6_border_router_t *uip_ds6_br_add(uint32_t version, uint16_t lifetime, 
                                         uip_ipaddr_t *ipaddr);
 void uip_ds6_br_rm(uip_ds6_border_router_t *br);
@@ -162,6 +163,7 @@ uip_ds6_border_router_t *uip_ds6_br_lookup(uip_ipaddr_t *ipaddr);
 void uip_ds6_br_config();
 void uip_ds6_br_periodic(void);
 #endif /* UIP_CONF_6LBR */
+#endif /* CONF_6LOWPAN_ND */
 /** @} */
 
 /** \name Default router list basic routines */
