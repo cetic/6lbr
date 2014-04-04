@@ -257,6 +257,11 @@ enc28j60_init(uint8_t * macaddr)
   gpio_select_function(6, 1);
   gpio_select_function(7, 1);
 
+  /* SS is multiplexed on M12, to enable it on card-edge connector, GPIO_63 must be high */
+  GPIO->FUNC_SEL.GPIO_63 = 3;
+  GPIO->PAD_DIR_SET.GPIO_63 = 1;
+  gpio_set(GPIO_63);
+
   // perform system reset
   clock_delay(50);
   enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);

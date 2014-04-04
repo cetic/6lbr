@@ -58,7 +58,7 @@
 
 /* CS = Chip Select */
 #undef SPI_CS_PORT
-#define SPI_CS_PORT   GPIO_D_BASE
+#define SPI_CS_PORT   GPIO_B_BASE
 #define SPI_CS_BIT    (1 << 5)
 #define SPI_CS        SPI_CS_PORT, SPI_CS_BIT
 
