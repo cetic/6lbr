@@ -282,7 +282,7 @@ uip_ds6_neighbor_periodic(void)
     case NBR_TENTATIVE:
       if (nbr->isrouter == ISROUTER_YES) {
         // TODO send until get addr ?
-        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_defrt_choose() != NULL) {
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
           uip_ds6_nbr_rm(nbr);
           //TODO /!\ addr to register
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
