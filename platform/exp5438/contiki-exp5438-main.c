@@ -67,6 +67,7 @@
 #endif
 
 extern unsigned char node_mac[8];
+extern int msp430_dco_required;
 
 //SENSORS(&button_sensor);
 /*---------------------------------------------------------------------------*/
@@ -314,12 +315,16 @@ main(int argc, char **argv)
          were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
-      _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
-                                              statement will block
-                                              until the CPU is
-                                              woken up by an
-                                              interrupt that sets
-                                              the wake up flag. */
+      if (msp430_dco_required) {
+        _BIS_SR(GIE | CPUOFF); /* LPM1 sleep for DMA to work!. */
+      } else {
+       _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+                                                statement will block
+                                                until the CPU is
+                                                woken up by an
+                                                interrupt that sets
+                                                the wake up flag. */
+      }
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */
