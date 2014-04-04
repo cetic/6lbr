@@ -335,6 +335,7 @@ rpl_host_determination(rpl_instance_t *instance)
     nbr = nbr_table_next(ds6_neighbors, nbr);
   }
   if(num != 0) {
+    //TODO use macro for time in timer
     ctimer_set(&instance->host_timer, 60*CLOCK_SECOND, &handle_host_timer, instance);
   }
 }
