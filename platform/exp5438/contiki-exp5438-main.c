@@ -204,7 +204,23 @@ main(int argc, char **argv)
     PRINTF("Node id not set.\n");
   }
 
-#if WITH_UIP6
+#if SLIP_RADIO
+  memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
+  /* Setup nullmac-like MAC for 802.15.4 */
+
+  queuebuf_init();
+
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %lu %u\n",
+         NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()),
+         CC2420_CONF_CHANNEL);
+
+#elif WITH_UIP6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 
@@ -262,7 +278,7 @@ main(int argc, char **argv)
          CC2420_CONF_CHANNEL);
 #endif /* WITH_UIP6 */
 
-#if !WITH_UIP6
+#if !WITH_UIP6 && !SLIP_RADIO
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
