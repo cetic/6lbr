@@ -1,9 +1,11 @@
 # $Id: Makefile.z1,v 1.4 2010/11/07 08:40:24 enricmcalvo Exp $
 # msp430flasher -n msp430x5437 -w "Firmware.txt" -v -z [VCC]
 
+RADIO_DEVICE?=cc2420
+
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 \
            core/net/mac core/net/rpl core/net/rime core/net/mac/contikimac \
-           dev/cc2420
+           dev/$(RADIO_DEVICE)
 
 ifdef IAR
 CFLAGS+=-e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X  --data_model small --double=32 -D__MSP430F5438A__=1
@@ -18,9 +20,10 @@ ARCH=msp430.c leds.c watchdog.c \
      hal_lcd.c hal_lcd_fonts.c duty-cycle-scroller.c cfs-ram.c \
      slip_uart1.c uart1-putchar.c
 
-RADIO_DEVICE?=cc2420
+CFLAGS+=-DRADIO_DEVICE_$(RADIO_DEVICE)=1 -DRADIO_DEVICE=$(RADIO_DEVICE)
+
 ifeq ($(RADIO_DEVICE),cc2420)
-ARCH+= cc2420.c cc2420-arch.c
+ARCH+=cc2420-arch.c
 endif
 
 ifeq ($(WITH_SLIP),1)
