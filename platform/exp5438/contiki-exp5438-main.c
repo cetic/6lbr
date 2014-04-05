@@ -34,7 +34,9 @@
 #include <stdarg.h>
 
 #include "dev/button-sensor.h"
+#if RADIO_DEVICE_cc2420
 #include "cc2420.h"
+#endif
 #include "dev/flash.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
@@ -179,7 +181,7 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  cc2420_init();
+  NETSTACK_CONF_RADIO.init();
 
   {
     uint8_t longaddr[8];
@@ -193,7 +195,9 @@ main(int argc, char **argv)
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
            longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
 
+#if RADIO_DEVICE_cc2420
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
+#endif
   }
 
   leds_off(LEDS_ALL);
