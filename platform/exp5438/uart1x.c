@@ -86,16 +86,12 @@ uart1_init(unsigned long ubr)
   UCA1CTL1 |= UCSWRST;            /* Hold peripheral in reset state */
   UCA1CTL1 |= UCSSEL_2;           /* CLK = SMCLK */
 
-  /* UCA1BR0 = 0x45;                 /\* 8MHz/115200 = 69 = 0x45 *\/ */
-  UCA1BR0 = ubr & 0xff; //0x45; /* tested... */
-  /* UCA1BR0 = 9; */
+  UCA1BR0 = ubr & 0xff;
   UCA1BR1 = ubr >> 8;
   UCA1MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
   P5DIR &= ~0x80;                 /* P5.7 = USCI_A1 RXD as input */
   P5DIR |= 0x40;                  /* P5.6 = USCI_A1 TXD as output */
   P5SEL |= 0xc0;                  /* P5.6,7 = USCI_A1 TXD/RXD */
-
-  /*UCA1CTL1 &= ~UCSWRST;*/       /* Initialize USCI state machine */
 
   transmitting = 0;
 
