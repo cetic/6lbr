@@ -61,8 +61,8 @@ int packet_pos;
 
 static int slip_radio_cmd_handler(const uint8_t *data, int len);
 
-#if RADIO_DEVICE
-int cmd_handler_##RADIO_DEVICE(const uint8_t *data, int len);
+#if RADIO_DEVICE_cc2420
+int cmd_handler_cc2420(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_NOOLIBERRY
 int cmd_handler_rf230(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_ECONOTAG
