@@ -43,8 +43,8 @@
 
 /* LED ports */
 #define LEDS_CONF_RED    0x01
-#define LEDS_CONF_GREEN  0x02
-#define LEDS_CONF_YELLOW 0x04
+#define LEDS_CONF_YELLOW 0x02
+#define LEDS_CONF_GREEN  0x04
 /* Blue is the rightmost red led */
 #define LEDS_CONF_BLUE   0x08
 /* Note that LED ports level are inverted wrt exp5438 */
