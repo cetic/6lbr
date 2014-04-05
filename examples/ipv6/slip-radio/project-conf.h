@@ -45,7 +45,9 @@
 #define CMD_CONF_OUTPUT slip_radio_cmd_output
 
 /* add the cmd_handler_cc2420 + some sensors if TARGET_SKY */
-#ifdef CONTIKI_TARGET_SKY
+#if RADIO_DEVICE
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_##RADIO_DEVICE
+#elif CONTIKI_TARGET_SKY
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
 #define SLIP_RADIO_CONF_SENSORS slip_radio_sky_sensors
 /* add the cmd_handler_rf230 if TARGET_NOOLIBERRY. Other RF230 platforms can be added */
