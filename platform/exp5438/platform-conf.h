@@ -69,7 +69,9 @@ typedef unsigned long clock_time_t;
 typedef unsigned long off_t;
 
 /* the low-level radio driver */
+#if RADIO_DEVICE_cc2420
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#endif
 
 /*
  * Definitions below are dictated by the hardware and not really
