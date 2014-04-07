@@ -46,13 +46,24 @@ spi_init(void)
 
   UCB0CTL1 |= UCSWRST;                /* Reset USCI */
   UCB0CTL1 |= UCSSEL_2;               /* smclk while usci is reset */
-  /* MSB-first 8-bit, Master, Synchronous, 3 pin SPI master, no ste,
+  /* MSB-first 8-bit, Master, Synchronous, 4 pin SPI master, no ste,
      watch-out for clock-phase UCCKPH */
-  UCB0CTL0 = (UCMSB | UCMST | UCSYNC | UCCKPL);
+  UCB0CTL0 = (UCMSB | UCMST | UCSYNC | UCCKPL | UCMODE_1);
 
-  /* Set up SPI bus speed. */
+  /*
+   * Set up SPI bus speed.
+   */
   UCB0BR1 = 0x00;
+#if F_CPU==16000000uL
+  /* Baud rate is F_CPU/4 */
+  UCB0BR0 = 0x02;
+#elif F_CPU==8000000uL
+  /* Baud rate is F_CPU/2 */
   UCB0BR0 = 0x01;
+#else
+#warning Unknown CPU speed, using default value
+  UCB0BR0 = 0x01;
+#endif
 
   /* Dont need modulation control. */
   /* UCB0MCTL = 0; */
