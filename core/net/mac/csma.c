@@ -126,6 +126,13 @@ static void transmit_packet_list(void *ptr);
 
 int packet_overflow;
 int neighbor_overflow;
+uint32_t csma_sent_packets;
+uint32_t csma_received_packets;
+uint32_t csma_noack;
+uint32_t csma_collisions;
+uint32_t csma_deferred;
+uint32_t csma_retransmissions;
+uint32_t csma_dropped;
 
 /*---------------------------------------------------------------------------*/
 int csma_allocated_packets(void)
@@ -229,15 +236,22 @@ packet_sent(void *ptr, int status, int num_transmissions)
     return;
   }
   switch(status) {
-  case MAC_TX_OK:
   case MAC_TX_NOACK:
+    csma_noack++;
+    csma_sent_packets++;
+    n->transmissions++;
+    break;
+  case MAC_TX_OK:
+    csma_sent_packets++;
     n->transmissions++;
     break;
   case MAC_TX_COLLISION:
+    csma_collisions++;
     n->collisions++;
     break;
   case MAC_TX_DEFERRED:
     n->deferrals++;
+    csma_deferred++;
     break;
   }
 
@@ -295,6 +309,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         time = time + (random_rand() % (backoff_transmissions * time));
 
         if(n->transmissions < metadata->max_transmissions) {
+          csma_retransmissions++;
           PRINTF("csma: retransmitting with time %lu %p\n", time, q);
           ctimer_set(&n->transmit_timer, time,
                      transmit_packet_list, n);
@@ -302,6 +317,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
              transmitting this packet. */
           queuebuf_update_attr_from_packetbuf(q->buf);
         } else {
+          csma_dropped++;
           PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
                  status, n->transmissions, n->collisions);
           free_packet(n, q);
@@ -426,6 +442,7 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 input_packet(void)
 {
+  csma_received_packets++;
   NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
