@@ -1273,6 +1273,16 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+  add("Send packets : %d<br />", csma_sent_packets);
+  add("Received packets : %d<br />", csma_received_packets);
+  add("Not acked packets : %d<br />", csma_noack);
+  add("Collisions : %d<br />", csma_collisions);
+  add("Retransmissions : %d<br />", csma_retransmissions);
+  add("Dropped packets : %d<br />", csma_dropped);
+  add("Deferred packets : %d<br />", csma_deferred);
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #endif
 #endif
   add("<h2>SLIP</h2>");
