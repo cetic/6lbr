@@ -49,6 +49,13 @@ int watchdog_interval = 60;
 char const * watchdog_file_name = "/var/log/6lbr.timestamp";
 
 /*---------------------------------------------------------------------------*/
+static void
+reset_watchdog(void)
+{
+  FILE *watchdog_file = fopen(watchdog_file_name, "w");
+  fclose(watchdog_file);
+}
+/*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(native_6lbr_watchdog, ev, data)
 {
@@ -57,12 +64,12 @@ PROCESS_THREAD(native_6lbr_watchdog, ev, data)
   PROCESS_BEGIN();
 
   LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", watchdog_interval);
+  reset_watchdog();
   etimer_set(&et, watchdog_interval);
   while(1) {
     PROCESS_YIELD();
     if(etimer_expired(&et)) {
-      FILE *watchdog_file = fopen(watchdog_file_name, "w");
-      fclose(watchdog_file);
+      reset_watchdog();
       etimer_reset(&et);
     }
   }
