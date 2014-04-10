@@ -87,8 +87,18 @@ endif
 %.hex: %.ihex
 	mv $< $@
 
+ifeq ($(MSPDEBUG),1)
+MSPDEBUG_TARGET?=uif
+MSPDEBUG_BIN?=mspdebug
+%.upload: %.hex
+	$(MSPDEBUG_BIN) $(MSPDEBUG_TARGET) "prog $<"
+
+%.upload-clean: %.hex
+	$(MSPDEBUG_BIN) $(MSPDEBUG_TARGET) erase
+else
 %.upload: %.hex
 	msp430flasher -n msp430x5438a -e ERASE_MAIN -w $< -v -z [VCC]
 
 %.upload-clean: %.hex
 	msp430flasher -n msp430x5438a -w $< -v -z [VCC]
+endif
