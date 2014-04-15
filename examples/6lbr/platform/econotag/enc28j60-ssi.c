@@ -30,6 +30,8 @@
  *
  */
 
+#define LOG6LBR_MODULE "ENC"
+
 #include "contiki.h"
 #include "enc28j60-ssi.h"
 #include <stdio.h>
@@ -37,12 +39,6 @@
 #include "eth-drv.h"
 #include "log-6lbr.h"
 
-#define DEBUG 0
-#if DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
 
 #define EIE   0x1b
 #define EIR   0x1c
@@ -251,7 +247,7 @@ softreset(void)
 static void
 reset(void)
 {
-  PRINTF("enc28j60: resetting chip\n");
+  LOG6LBR_INFO("enc28j60: resetting chip\n");
 
   enc28j60_arch_spi_init();
 
@@ -560,16 +556,16 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   while((readreg(ECON1) & ECON1_TXRTS) > 0);
 
   if((readreg(ESTAT) & ESTAT_TXABRT) != 0) {
-    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    LOG6LBR_PACKET("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff&data[0], 0xff&data[1], 0xff&data[2],
            0xff&data[3], 0xff&data[4], 0xff&data[5]);
   } else {
-    PRINTF("enc28j60: tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    LOG6LBR_PACKET("enc28j60: tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff&data[0], 0xff&data[1], 0xff&data[2],
            0xff&data[3], 0xff&data[4], 0xff&data[5]);
   }
   sent_packets++;
-  PRINTF("enc28j60: sent_packets %d\n", sent_packets);
+  LOG6LBR_PACKET("enc28j60: sent_packets %d\n", sent_packets);
   return datalen;
 }
 /*---------------------------------------------------------------------------*/
@@ -591,27 +587,27 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
     return 0;
   }
 
-  PRINTF("enc28j60: EPKTCNT 0x%02x\n", n);
+  LOG6LBR_PACKET("enc28j60: EPKTCNT 0x%02x\n", n);
 
   setregbank(ERXTX_BANK);
   /* Read the next packet pointer */
   nxtpkt[0] = readdatabyte();
   nxtpkt[1] = readdatabyte();
 
-  PRINTF("enc28j60: nxtpkt 0x%02x%02x\n", nxtpkt[1], nxtpkt[0]);
+  LOG6LBR_PACKET("enc28j60: nxtpkt 0x%02x%02x\n", nxtpkt[1], nxtpkt[0]);
 
 
   length[0] = readdatabyte();
   length[1] = readdatabyte();
 
-  PRINTF("enc28j60: length 0x%02x%02x\n", length[1], length[0]);
+  LOG6LBR_PACKET("enc28j60: length 0x%02x%02x\n", length[1], length[0]);
 
   status[0] = readdatabyte();
   status[1] = readdatabyte();
 
   /* This statement is just to avoid a compiler warning: */
   status[0] = status[0];
-  PRINTF("enc28j60: status 0x%02x%02x\n", status[1], status[0]);
+  LOG6LBR_PACKET("enc28j60: status 0x%02x%02x\n", status[1], status[0]);
 
   len = (length[1] << 8) + length[0];
   if(bufsize >= len) {
@@ -645,15 +641,15 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   writereg(ECON2, readreg(ECON2) | ECON2_PKTDEC);
 
   if(err) {
-    PRINTF("enc28j60: rx err: flushed %d\n", len);
+    LOG6LBR_INFO("enc28j60: rx err: flushed %d\n", len);
     return 0;
   }
-  PRINTF("enc28j60: rx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", len,
+  LOG6LBR_PACKET("enc28j60: rx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", len,
          0xff&buffer[0], 0xff&buffer[1], 0xff&buffer[2],
          0xff&buffer[3], 0xff&buffer[4], 0xff&buffer[5]);
 
   received_packets++;
-  PRINTF("enc28j60: received_packets %d\n", received_packets);
+  LOG6LBR_PACKET("enc28j60: received_packets %d\n", received_packets);
 #if UIP_CONF_LLH_LEN == 0
   return len - ETHERNET_LLH_LEN - 4;
 #elif UIP_CONF_LLH_LEN == 14
@@ -672,9 +668,9 @@ PROCESS_THREAD(enc_watchdog_process, ev, data)
     etimer_set(&et, RESET_PERIOD);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    PRINTF("enc28j60: test received_packet %d > sent_packets %d\n", received_packets, sent_packets);
+    LOG6LBR_DEBUG("enc28j60: test received_packet %d > sent_packets %d\n", received_packets, sent_packets);
     if(received_packets <= sent_packets) {
-      PRINTF("enc28j60: resetting chip\n");
+      LOG6LBR_DEBUG("enc28j60: resetting chip\n");
       reset();
     }
     received_packets = 0;
