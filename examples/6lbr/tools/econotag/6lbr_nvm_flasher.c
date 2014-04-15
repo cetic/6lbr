@@ -88,7 +88,7 @@ int main(void) {
 	volatile uint32_t addr,data;
 
 
-	uart_init(INC, MOD, SAMP);
+	uart_init(UART1, 115200);
 	disable_irq(UART1);
 
 	vreg_init();
