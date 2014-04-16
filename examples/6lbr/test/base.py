@@ -76,6 +76,8 @@ def init_config():
     config.econotag_bbmc=getattr(config, 'econotag_bbmc', '../../../cpu/mc1322x/tools/ftditools/bbmc')
     config.econotag_nvm_flasher=getattr(config, 'econotag_nvm_flasher', '../tools/econotag/flash.sh')
     config.econotag_flasher_delay=getattr(config, 'econotag_flasher_delay', 50000)
+    config.econotag_bin=getattr(config, 'econotag_bin', '../bin_econotag')
+    config.econotag_board=getattr(config, 'econotag_board', 'econotag')
 
     #Test configuration 
     config.ping_6lbr_timeout=getattr(config,'ping_6lbr_timeout',40)

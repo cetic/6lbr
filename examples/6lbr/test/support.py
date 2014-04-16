@@ -167,12 +167,12 @@ class LocalEconotagBR(BRProxy):
             print >> sys.stderr, "Using existing nvm"
         elif config.econotag_nvm_flasher:
             if config.econotag_bbmc:
-                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], config.econotag_bbmc, '-b', str(config.econotag_flasher_delay), '-e'])
-                sleep(1)
+                subprocess.call(args=[config.econotag_nvm_flasher, '--nvm', self.nvm_file, '--board', config.econotag_board, '--dev', self.device['dev'], '--loader', config.econotag_loader, '--bbmc', config.econotag_bbmc, '--', '-b', str(config.econotag_flasher_delay), '-e'])
+                sleep(2)
             else:
                 print >> sys.stderr, "Press the reset button"
-                subprocess.call(args=[config.econotag_nvm_flasher, self.nvm_file, self.device['dev'], 'None', '-b', str(config.econotag_flasher_delay), '-e' ])
-                sleep(1)
+                subprocess.call(args=[config.econotag_nvm_flasher, '--nvm', self.nvm_file, '--board', config.econotag_board, '--dev', self.device['dev'], '--loader', config.econotag_loader, '--bbmc', 'None', '--', '-b', str(config.econotag_flasher_delay), '-e' ])
+                sleep(2)
         else:
             print >> sys.stderr, "No flasher tool, using existing nvm"
         self.log=open(os.path.join(self.cfg_path, '6lbr%s.log' % log_stem), "w")
