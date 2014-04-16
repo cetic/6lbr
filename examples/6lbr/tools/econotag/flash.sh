@@ -45,12 +45,12 @@ fi
 FLASHER_PATH=`dirname $0`
 
 if  [ "$BBMC_BIN" != "None" ]; then
-	BBMC="-c $BBMC_BIN '-l $BBMC_LAYOUT reset'"
+	BBMC="$BBMC_BIN -l $BBMC_LAYOUT reset"
 else
-	BBMC=""
+	BBMC="ls"
 fi
 
-if [ "$FLASHER" == "" ]; then
+if [ "$FLASHER" = "" ]; then
 	FLASHER="$FLASHER_PATH/6lbr_nvm_flasher_$BOARD.bin"
 fi
 
@@ -59,6 +59,4 @@ if [ ! -e "$FLASHER" ]; then
 	exit 1
 fi
 
-echo "Extra: $*"
-
-$MC1322X_LOAD -t $DEV -f $FLASHER $BBMC -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
+$MC1322X_LOAD -t $DEV -f $FLASHER -c "$BBMC" -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
