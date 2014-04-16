@@ -45,7 +45,7 @@ class NonRegressionScenarios(base.TestScenarios):
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         self.wait_dag_stabilisation()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
-        self.assertTrue(self.support.ping_from_mote(self.support.host.ip, True, config.ping_from_mote_timeout), "Host is not responding")
+        self.assertTrue(self.support.wait_ping_from_mote(config.ping_from_mote_timeout, self.support.host.ip), "Host is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
