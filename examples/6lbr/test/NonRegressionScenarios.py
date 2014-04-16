@@ -67,9 +67,15 @@ class NonRegressionScenarios(base.TestScenarios):
             #Host is the default router (thanks to the received RA)
             #So ping packet is directly forwarded by 6LBR to host
         #    self.assertTrue(self.support.tcpdump.expect_ns(self.support.backbone.itf, [int('0x'+self.support.backbone.prefix, base=16), 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
-        self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, config.external_host, config.ping_from_mote_timeout, bg=True), "")
-        self.assertTrue(self.support.ping_from_mote(config.external_host), "")
-        self.assertTrue(self.support.tcpdump.check_result(), "Expected packet not received")
+        got_ping=False
+        for i in range(10):
+            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, config.external_host, config.ping_from_mote_timeout, bg=True), "")
+            self.assertTrue(self.support.ping_from_mote(config.external_host), "")
+            sleep(2)
+            if self.support.tcpdump.check_result():
+                got_ping=True
+                break
+        self.assertTrue(got_ping, "Expected packet not received")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
