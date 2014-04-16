@@ -47,6 +47,12 @@
 #include "packet-filter.h"
 #include "log-6lbr.h"
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
@@ -74,26 +80,26 @@ eth_drv_send(void)
   LOG6LBR_COND_FUNC(DUMP, ETH_OUT,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
+    PRINTF("0000");
     for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
+      PRINTF(" %02x", ll_header[i]);
     for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
+      PRINTF(" %02x", uip_buf[i]);
 #else
-    printf("         ");
+    PRINTF("         ");
     for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
       if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
+        PRINTF("%02x", ll_header[i]);
       } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
       }
       if((i & 3) == 3)
-        printf(" ");
+        PRINTF(" ");
       if((i & 15) == 15)
-        printf("\n         ");
+        PRINTF("\n         ");
     }
 #endif
-    printf("\n");
+    PRINTF("\n");
   )
 
   enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
@@ -106,26 +112,26 @@ eth_drv_input(void)
   LOG6LBR_COND_FUNC(DUMP, ETH_IN,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
+    PRINTF("0000");
     for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
+      PRINTF(" %02x", ll_header[i]);
     for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
+      PRINTF(" %02x", uip_buf[i]);
 #else
-    printf("         ");
+    PRINTF("         ");
     for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
       if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
+        PRINTF("%02x", ll_header[i]);
       } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
       }
       if((i & 3) == 3)
-        printf(" ");
+        PRINTF(" ");
       if((i & 15) == 15)
-        printf("\n         ");
+        PRINTF("\n         ");
     }
 #endif
-    printf("\n");
+    PRINTF("\n");
   )
 
   eth_input();
