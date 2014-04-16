@@ -5,7 +5,7 @@ function config_default () {
 
 # Configuration location
 
-if [ "$ETC_6LBR" == "" ]; then
+if [ "$ETC_6LBR" = "" ]; then
 	ETC_6LBR=/etc/6lbr
 fi
 
@@ -21,35 +21,35 @@ fi
 
 # Ethernet interface
 
-if [ "$RAW_ETH" == "" ]; then
+if [ "$RAW_ETH" = "" ]; then
 	RAW_ETH="0"
 fi
 
-if [ "$DEV_ETH" == "" ]; then
+if [ "$DEV_ETH" = "" ]; then
 	DEV_ETH="eth0"
 fi
 
-if [ "$RAW_ETH_FCS" == "" ]; then
+if [ "$RAW_ETH_FCS" = "" ]; then
 	RAW_ETH_FCS=0
 fi
 
 # TAP interface
 
-if [ "$DEV_TAP" == "" ]; then
+if [ "$DEV_TAP" = "" ]; then
 	DEV_TAP="tap0"
 fi
 
-if [ "$DEV_TAP_MAC" == "" ]; then
+if [ "$DEV_TAP_MAC" = "" ]; then
 	DEV_TAP_MAC="02:a:b:c:d:e"
 fi
 
 # Bridge
 
-if [ "$DEV_BRIDGE" == "" ]; then
+if [ "$DEV_BRIDGE" = "" ]; then
 	DEV_BRIDGE="br0"
 fi
 
-if [ "$BRIDGE" == "" ]; then
+if [ "$BRIDGE" = "" ]; then
 	BRIDGE="1"
 fi
 
@@ -57,7 +57,7 @@ if [[ "$CREATE_BRIDGE" != "0" && "$CREATE_BRIDGE" != "LAZY" && "$CREATE_BRIDGE" 
 	CREATE_BRIDGE="1"
 fi
 
-if [ "$ETH_JOIN_BRIDGE" == "" ]; then
+if [ "$ETH_JOIN_BRIDGE" = "" ]; then
 	ETH_JOIN_BRIDGE="1"
 fi
 
@@ -71,49 +71,49 @@ fi
 
 # Global configuration and setup scripts
 
-if [ "$LIB_6LBR" == "" ]; then
+if [ "$LIB_6LBR" = "" ]; then
 	LIB_6LBR=`dirname $BASH_SOURCE`
 fi
 
 
-if [ "$BIN_6LBR" == "" ]; then
+if [ "$BIN_6LBR" = "" ]; then
 	BIN_6LBR=$LIB_6LBR/bin
 fi
 
-if [ "$WWW_6LBR" == "" ]; then
+if [ "$WWW_6LBR" = "" ]; then
 	WWW_6LBR=$LIB_6LBR/www
 fi
 
-if [ "$IFUP" == "" ]; then
+if [ "$IFUP" = "" ]; then
 	IFUP=$LIB_6LBR/6lbr-ifup
 fi
 
-if [ "$IFDOWN" == "" ]; then
+if [ "$IFDOWN" = "" ]; then
 	IFDOWN=$LIB_6LBR/6lbr-ifdown
 fi
 
-if [ "$LOG_6LBR" == "" ]; then
+if [ "$LOG_6LBR" = "" ]; then
 	LOG_6LBR=/var/log
 fi
 
-if [ "$LOG_6LBR_OUT" == "" ]; then
+if [ "$LOG_6LBR_OUT" = "" ]; then
 	LOG_6LBR_OUT=$LOG_6LBR/6lbr.log
 fi
 
-if [ "$LOG_6LBR_ERR" == "" ]; then
+if [ "$LOG_6LBR_ERR" = "" ]; then
 	LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
 fi
 
 # Reliability
-if [ "$STOP_AFTER_CRASH" == "" ]; then
+if [ "$STOP_AFTER_CRASH" = "" ]; then
 	STOP_AFTER_CRASH="0"
 fi
 
-if [ "$WATCHDOG_INTERVAL" == "" ]; then
+if [ "$WATCHDOG_INTERVAL" = "" ]; then
 	WATCHDOG_INTERVAL="60"
 fi
 
-if [ "$WATCHDOG_FILE" == "" ]; then
+if [ "$WATCHDOG_FILE" = "" ]; then
 	WATCHDOG_FILE="/var/log/6lbr.timestamp"
 fi
 

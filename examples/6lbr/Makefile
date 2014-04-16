@@ -231,13 +231,7 @@ install:
 	install -d /usr/bin
 	install package/usr/bin/* /usr/bin
 	install -d /usr/lib/6lbr
-	install package/usr/lib/6lbr/6lbr /usr/lib/6lbr
-	install package/usr/lib/6lbr/6lbr-functions /usr/lib/6lbr
-	install package/usr/lib/6lbr/6lbr-ifdown /usr/lib/6lbr
-	install package/usr/lib/6lbr/6lbr-ifup /usr/lib/6lbr
-	install package/usr/lib/6lbr/6lbr_run.sh /usr/lib/6lbr
-	install -d /usr/lib/6lbr/www
-	install package/usr/lib/6lbr/www/* /usr/lib/6lbr/www
+	cp -r package/usr/lib/6lbr /usr/lib
 	install -d /usr/lib/6lbr/bin
 	install bin/* /usr/lib/6lbr/bin
 	install tools/nvm_tool /usr/lib/6lbr/bin

@@ -54,7 +54,6 @@ else
 fi
 
 if [ -e $CFG ]; then
-	echo "$0: Using config file $CFG"
 	. $CFG
 else
 	echo "$0: Configuration file $CFG not found"
@@ -67,8 +66,13 @@ export CETIC_6LBR_CONF=$CFG
 
 if [ "$LIB_6LBR" != "" ]; then
 	. $LIB_6LBR/6lbr-functions
-else
+elif [ -e `dirname $0`/6lbr-functions ]; then
+	. `dirname $0`/6lbr-functions
+elif [ -e `dirname $0`/../lib/6lbr/6lbr-functions ]; then
 	. `dirname $0`/../lib/6lbr/6lbr-functions
+else
+	echo "$0: Can not find 6lbr-functions"
+	exit 1
 fi
 
 config_default
@@ -167,6 +171,12 @@ fi
 # Launch 6LBR in a loop
 
 while ((1)); do
+	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" ]; then
+		while [ ! -e "$DEV_RADIO" ]; do
+			echo "Waiting for $DEV_RADIO"
+			sleep 10
+		done
+	fi
 	TIMESTAMP=`date`" : Starting 6LBR "
 	echo "********************************************************************************"
 	echo $TIMESTAMP
@@ -199,5 +209,6 @@ while ((1)); do
         if [ "$STOP_AFTER_CRASH" == "1" ]; then
 			break
 		fi
+		sleep 1
 	fi
 done
