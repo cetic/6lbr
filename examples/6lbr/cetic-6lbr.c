@@ -131,6 +131,8 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
   }
   LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
 
+  uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
+
   if(cetic_dag != NULL) {
     rpl_set_prefix(cetic_dag, prefix, len);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
@@ -140,7 +142,9 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
     }
   }
+#if CONTIKI_TARGET_NATIVE
   cetic_6lbr_save_ip();
+#endif
 #endif
 }
 
