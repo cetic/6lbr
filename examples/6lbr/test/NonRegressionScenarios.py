@@ -45,7 +45,7 @@ class NonRegressionScenarios(base.TestScenarios):
         self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
         self.wait_dag_stabilisation()
         self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout), "Mote is not responding")
-        self.assertTrue(self.support.ping_from_mote(self.support.host.ip, True, config.ping_from_mote_timeout), "Host is not responding")
+        self.assertTrue(self.support.wait_ping_from_mote(config.ping_from_mote_timeout, self.support.host.ip), "Host is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
@@ -67,9 +67,15 @@ class NonRegressionScenarios(base.TestScenarios):
             #Host is the default router (thanks to the received RA)
             #So ping packet is directly forwarded by 6LBR to host
         #    self.assertTrue(self.support.tcpdump.expect_ns(self.support.backbone.itf, [int('0x'+self.support.backbone.prefix, base=16), 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
-        self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, config.external_host, config.ping_from_mote_timeout, bg=True), "")
-        self.assertTrue(self.support.ping_from_mote(config.external_host), "")
-        self.assertTrue(self.support.tcpdump.check_result(), "Expected packet not received")
+        got_ping=False
+        for i in range(10):
+            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.backbone.itf, config.external_host, config.ping_from_mote_timeout, bg=True), "")
+            self.assertTrue(self.support.ping_from_mote(config.external_host), "")
+            sleep(2)
+            if self.support.tcpdump.check_result():
+                got_ping=True
+                break
+        self.assertTrue(got_ping, "Expected packet not received")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
@@ -195,6 +201,24 @@ class NonRegressionScenarios(base.TestScenarios):
             print >> sys.stderr, "Ping payload: %d" % payload
             self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout, payload=payload), "Mote is not responding")
             payload += config.ping_payload_step
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+
+    @skipUnlessTrue("S11")
+    def test_S11_ping_mote_from_subnet(self):
+        """
+        Ping mote from host.
+        """
+        self.assertTrue(self.support.start_6lbr(), "Could not start 6LBR")
+        self.set_up_network()
+        self.wait_mote_start()
+        host_ip=self.support.backbone.create_address('2')
+        self.support.platform.configure_if(self.support.backbone.itf, host_ip)
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(config.mote_in_6lbr_timeout), "Mote not detected")
+        self.wait_dag_stabilisation()
+        self.assertTrue(self.support.wait_ping_mote(config.ping_mote_timeout, source=host_ip), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")

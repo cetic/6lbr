@@ -34,7 +34,9 @@
 #include <stdarg.h>
 
 #include "dev/button-sensor.h"
+#if RADIO_DEVICE_cc2420
 #include "cc2420.h"
+#endif
 #include "dev/flash.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
@@ -67,6 +69,7 @@
 #endif
 
 extern unsigned char node_mac[8];
+extern int msp430_dco_required;
 
 //SENSORS(&button_sensor);
 /*---------------------------------------------------------------------------*/
@@ -178,7 +181,7 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  cc2420_init();
+  NETSTACK_CONF_RADIO.init();
 
   {
     uint8_t longaddr[8];
@@ -192,7 +195,9 @@ main(int argc, char **argv)
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
            longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
 
+#if RADIO_DEVICE_cc2420
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
+#endif
   }
 
   leds_off(LEDS_ALL);
@@ -203,7 +208,23 @@ main(int argc, char **argv)
     PRINTF("Node id not set.\n");
   }
 
-#if WITH_UIP6
+#if SLIP_RADIO
+  memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
+  /* Setup nullmac-like MAC for 802.15.4 */
+
+  queuebuf_init();
+
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %lu %u\n",
+         NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()),
+         CC2420_CONF_CHANNEL);
+
+#elif WITH_UIP6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 
@@ -261,7 +282,7 @@ main(int argc, char **argv)
          CC2420_CONF_CHANNEL);
 #endif /* WITH_UIP6 */
 
-#if !WITH_UIP6
+#if !WITH_UIP6 && !SLIP_RADIO
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
@@ -314,12 +335,16 @@ main(int argc, char **argv)
          were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
-      _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
-                                              statement will block
-                                              until the CPU is
-                                              woken up by an
-                                              interrupt that sets
-                                              the wake up flag. */
+      if (msp430_dco_required) {
+        _BIS_SR(GIE | CPUOFF); /* LPM1 sleep for DMA to work!. */
+      } else {
+       _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+                                                statement will block
+                                                until the CPU is
+                                                woken up by an
+                                                interrupt that sets
+                                                the wake up flag. */
+      }
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */

@@ -359,6 +359,10 @@ static
 PT_THREAD(generate_index(struct httpd_state *s))
 {
   static int i;
+#if CONTIKI_TARGET_NATIVE
+#define HOSTNAME_LEN 200
+  char hostname[HOSTNAME_LEN];
+#endif
 
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -377,6 +381,10 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add_div_home("Info");
   add("<div id=\"left_home\">");
   add("<h2>Info</h2>");
+#if CONTIKI_TARGET_NATIVE
+  gethostname(hostname, HOSTNAME_LEN);
+  add("Hostname : %s<br />", hostname);
+#endif
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
   add("Mode : ");
 #if CETIC_6LBR_SMARTBRIDGE
@@ -980,8 +988,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
 
 #define INPUT_FLAG_CB(name, nvm_name, flag, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
-    add("<input type=\"checkbox\" name=\""name"\" value=\"1\" %s> " text "<br />", \
-	  (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+      add(text " : <br />" \
+            "<input type=\"radio\" name=\""name"\" value=\"1\" %s> on ", \
+            (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+          add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> off <br />", \
+        (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
   } else { \
     add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? "on" : "off" ); \
   }
@@ -1259,6 +1270,16 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Packet overflow : %d<br />", packet_overflow);
   add("Neighbor overflow : %d<br />", neighbor_overflow);
   add("Callback count : %d<br />", callback_count);
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("Send packets : %d<br />", csma_sent_packets);
+  add("Received packets : %d<br />", csma_received_packets);
+  add("Not acked packets : %d<br />", csma_noack);
+  add("Collisions : %d<br />", csma_collisions);
+  add("Retransmissions : %d<br />", csma_retransmissions);
+  add("Dropped packets : %d<br />", csma_dropped);
+  add("Deferred packets : %d<br />", csma_deferred);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

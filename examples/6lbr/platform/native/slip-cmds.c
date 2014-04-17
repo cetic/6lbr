@@ -70,10 +70,10 @@ border_router_cmd_handler(const uint8_t * data, int len)
       LOG6LBR_DEBUG("Setting MAC address\n");
       slip_got_mac(&data[2]);
       return 1;
-    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
+    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO && len == 3) {
       LOG6LBR_DEBUG("Channel is:%d\n", data[2]);
       return 1;
-    } else if(data[1] == 'R' && command_context == CMD_CONTEXT_RADIO) {
+    } else if(data[1] == 'R' && command_context == CMD_CONTEXT_RADIO && len == 5) {
       LOG6LBR_DEBUG("Packet data report for sid:%d st:%d tx:%d\n",
              data[2], data[3], data[4]);
       packet_sent(data[2], data[3], data[4]);

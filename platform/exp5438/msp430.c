@@ -34,6 +34,10 @@
 #include "dev/leds.h"
 #include "net/ip/uip.h"
 
+/* dco_required set to 1 will cause the CPU not to go into
+   sleep modes where the DCO clock stopped */
+int msp430_dco_required;
+
 static unsigned long dco_speed;
 
 /*---------------------------------------------------------------------------*/
@@ -201,6 +205,28 @@ extern int _end;                /* Not in sys/unistd.h */
 static char *cur_break = (char *)&_end;
 #endif
 
+/*---------------------------------------------------------------------------*/
+/* add/remove_lpm_req - for requiring a specific LPM mode. currently Contiki */
+/* jumps to LPM3 to save power, but DMA will not work if DCO is not clocked  */
+/* so some modules might need to enter their LPM requirements                */
+/* NOTE: currently only works with LPM1 (e.g. DCO) requirements.             */
+/*---------------------------------------------------------------------------*/
+void
+msp430_add_lpm_req(int req)
+{
+  if(req <= MSP430_REQUIRE_LPM1) {
+    msp430_dco_required++;
+  }
+}
+
+void
+msp430_remove_lpm_req(int req)
+{
+  if(req <= MSP430_REQUIRE_LPM1) {
+    msp430_dco_required--;
+  }
+}
+
 void
 msp430_cpu_init(void)
 {
@@ -215,6 +241,8 @@ msp430_cpu_init(void)
     cur_break++;
   }
 #endif
+
+  msp430_dco_required = 0;
 }
 /*---------------------------------------------------------------------------*/
 #define asmv(arg) __asm__ __volatile__(arg)

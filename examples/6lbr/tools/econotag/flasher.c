@@ -74,10 +74,7 @@ enum parse_states {
 	MAX_STATE,
 };
 
-#define NVM_BASE 0x1E000
-static char nvm_base[0x100];
-
-int main(void) {
+void main(void) {
 	nvmType_t type=0;
 	nvmErr_t err;
 	volatile uint8_t c;
@@ -87,8 +84,8 @@ int main(void) {
 	volatile uint32_t state = SCAN_X;
 	volatile uint32_t addr,data;
 
-
 	uart_init(UART1, 115200);
+
 	disable_irq(UART1);
 
 	vreg_init();
@@ -103,25 +100,10 @@ int main(void) {
 	dbg_put_hex32(type);
 	dbg_putstr("\n\r");
 	
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)nvm_base, NVM_BASE, 0x100);
-	dbg_putstr("nvm_read returned: 0x");
-	dbg_put_hex(err);
-	dbg_putstr("\n\r");
-
 	/* erase the flash */
-	nvm_setsvar(0);
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x40000000);
+	err = nvm_erase(gNvmInternalInterface_c, type, 0x7fffffff); 
 
 	dbg_putstr("nvm_erase returned: 0x");
-	dbg_put_hex(err);
-	dbg_putstr("\n\r");
-
-	dbg_putstr(" type is: 0x");
-	dbg_put_hex32(type);
-	dbg_putstr("\n\r");
-
-	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)nvm_base, NVM_BASE, 0x100);
-	dbg_putstr("nvm_write returned: 0x");
 	dbg_put_hex(err);
 	dbg_putstr("\n\r");
 
@@ -137,12 +119,48 @@ int main(void) {
 		len += (c<<(i*8));
 	}
 
-	dbg_putstr("len: ");
+	dbg_putstr("write_len: 0x");
 	dbg_put_hex32(len);
 	dbg_putstr("\n\r");
 	
-	dbg_putstr(" type is: 0x");
-	dbg_put_hex32(type);
+	/* write the OKOK magic */
+
+#if BOOT_OK
+	((uint8_t *)buf)[0] = 'O'; ((uint8_t *)buf)[1] = 'K'; ((uint8_t *)buf)[2] = 'O'; ((uint8_t *)buf)[3] = 'K';	
+#elif BOOT_SECURE
+	((uint8_t *)buf)[0] = 'S'; ((uint8_t *)buf)[1] = 'E'; ((uint8_t *)buf)[2] = 'C'; ((uint8_t *)buf)[3] = 'U';	
+#else
+	((uint8_t *)buf)[0] = 'N'; ((uint8_t *)buf)[1] = 'O'; ((uint8_t *)buf)[2] = 'N'; ((uint8_t *)buf)[3] = 'O';
+#endif
+
+	/* don't make a valid boot image if the received length is zero */
+	if(len == 0) {
+		((uint8_t *)buf)[0] = 'N'; 
+		((uint8_t *)buf)[1] = 'O'; 
+		((uint8_t *)buf)[2] = 'N'; 
+		((uint8_t *)buf)[3] = 'O';
+	}
+
+    uint32_t err_count = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
+
+	/* read a byte, write a byte, including the first 4 len bytes */
+	for(i=0; i<len; i++) {
+		c = getc();	       
+		err_count += nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&c, 4+i, 1); 
+	}
+
+  if (err_count > 0) {
+		dbg_putstr("ALERT nvm_write error-count: ");
+		dbg_put_hex32(err_count);
+		dbg_putstr("\n\r");
+	} else {
+		dbg_putstr("write successfully done\n\r");
+	}
+
+	/* read and output real len */
+	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *) &len, 4, 4);
+	dbg_putstr("prog_len: 0x");
+	dbg_put_hex32(len);
 	dbg_putstr("\n\r");
 
 	putstr("flasher done\n\r");
@@ -172,20 +190,17 @@ int main(void) {
 				/* string is data to write */
 				data = to_u32(buf);
 				putstr("writing addr ");
-				put_hex32(NVM_BASE+addr);
+				put_hex32(addr);
 				putstr(" data ");
 				put_hex32(data);
-				err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&data, NVM_BASE+addr, 4);
-				addr += 4;
-				putstr(" err ");
-				put_hex32(err);
 				putstr("\n\r");
+				err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)&data, addr, 4);
+				addr += 4;
 			}
 			/* look for the next 'x' */
 			state=SCAN_X;
 		}
 	}
-        putstr("process flasher done\n\r");
 
 	while(1) {continue;};
 }

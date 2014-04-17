@@ -20,7 +20,7 @@
 
 #include "spi.h"
 
-#include "enc28j60.h"
+#include "enc28j60-spi.h"
 #include "eth-drv.h"
 #include "log-6lbr.h"
 
@@ -244,7 +244,7 @@ enc28j60PhyWrite(uint8_t address, uint16_t data)
 
 
 void
-enc28j60Init(uint8_t * macaddr)
+enc28j60_init(uint8_t * macaddr)
 {
   unsigned int i = 0;
 
@@ -354,7 +354,7 @@ enc28j60getrev(void)
 }
 
 void
-enc28j60PacketSend(uint16_t len, uint8_t * packet)
+enc28j60_send(uint8_t *packet, uint16_t len)
 {
   //if((enc28j60PhyRead(PHSTAT1) & PHSTAT1_LLSTAT)==0)
   //{
@@ -383,8 +383,8 @@ enc28j60PacketSend(uint16_t len, uint8_t * packet)
 //      maxlen  The maximum acceptable length of a retrieved packet.
 //      packet  Pointer where packet data should be stored.
 // Returns: Packet length in bytes if a packet was retrieved, zero otherwise.
-uint16_t
-enc28j60PacketReceive(uint16_t maxlen, uint8_t * packet)
+int
+enc28j60_read(uint8_t *packet, uint16_t maxlen)
 {
   uint16_t rxstat;
   uint16_t len;

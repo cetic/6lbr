@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,56 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Configurable Sensor Network Application
+ * Architecture for sensor nodes running the Contiki operating system.
+ *
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Created : 2005-11-03
+ * Updated : $Date: 2006/06/17 22:41:21 $
+ *           $Revision: 1.1 $
  */
 
-/**
- * \file
- *         Basic watchdog for the native Linux platform
- * \author
- *         6LBR Team <6lbr@cetic.be>
- */
+#include "contiki-conf.h"
+#include "dev/leds.h"
 
-#define LOG6LBR_MODULE "ETH"
-
-#include "contiki.h"
-#include "log-6lbr.h"
-#include <stdio.h>
-#include <time.h>
-
-#include "6lbr-watchdog.h"
-
-PROCESS(native_6lbr_watchdog, "6LBR native watchdog");
-
-int watchdog_interval = 60;
-char const * watchdog_file_name = "/var/log/6lbr.timestamp";
+/* LED ports */
+#define LEDS_CONF_RED    0x01
+#define LEDS_CONF_YELLOW 0x02
+#define LEDS_CONF_GREEN  0x04
+/* Blue is the rightmost red led */
+#define LEDS_CONF_BLUE   0x08
+/* Note that LED ports level are inverted wrt exp5438 */
 
 /*---------------------------------------------------------------------------*/
-static void
-reset_watchdog(void)
+void
+leds_arch_init(void)
 {
-  FILE *watchdog_file = fopen(watchdog_file_name, "w");
-  fclose(watchdog_file);
+  P4DIR |= LEDS_CONF_RED;
+  P4DIR |= LEDS_CONF_GREEN;
+  P4DIR |= LEDS_CONF_YELLOW;
+  P4DIR |= LEDS_CONF_BLUE;
 }
 /*---------------------------------------------------------------------------*/
-
-PROCESS_THREAD(native_6lbr_watchdog, ev, data)
+unsigned char
+leds_arch_get(void)
 {
-  static struct etimer et;
-
-  PROCESS_BEGIN();
-
-  LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", watchdog_interval);
-  reset_watchdog();
-  etimer_set(&et, watchdog_interval);
-  while(1) {
-    PROCESS_YIELD();
-    if(etimer_expired(&et)) {
-      reset_watchdog();
-      etimer_reset(&et);
-    }
-  }
-
-  PROCESS_END();
+  return (!(P4OUT & LEDS_CONF_RED) ? 0 : LEDS_RED)
+    | (!(P4OUT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN)
+  | (!(P4OUT & LEDS_CONF_YELLOW) ? 0 : LEDS_YELLOW)
+  | (!(P4OUT & LEDS_CONF_BLUE) ? 0 : LEDS_BLUE);
 }
-
 /*---------------------------------------------------------------------------*/
-
+void
+leds_arch_set(unsigned char leds)
+{
+  P4OUT = (P4OUT & ~LEDS_CONF_RED) | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED);
+  P4OUT = (P4OUT & ~LEDS_CONF_GREEN) |
+    ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  P4OUT = (P4OUT & ~LEDS_CONF_YELLOW) | ((leds & LEDS_YELLOW) ? 0 : LEDS_CONF_YELLOW );
+  P4OUT = (P4OUT & ~LEDS_CONF_BLUE) | ((leds & LEDS_BLUE) ? 0 : LEDS_CONF_BLUE);
+}
+/*---------------------------------------------------------------------------*/

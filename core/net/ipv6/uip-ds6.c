@@ -675,6 +675,11 @@ uip_ds6_send_ra_periodic(void)
 void
 uip_ds6_send_rs(void)
 {
+#if CETIC_6LBR
+  if ((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
+    return;
+  }
+#endif
   if((uip_ds6_defrt_choose() == NULL)
      && (rscount < UIP_ND6_MAX_RTR_SOLICITATIONS)) {
     PRINTF("Sending RS %u\n", rscount);

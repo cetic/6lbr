@@ -106,6 +106,15 @@
 #endif /* RPL_CONF_MAX_DAG_PER_INSTANCE */
 
 /*
+ * Maximum lifetime of a DAG
+ */
+#ifdef RPL_CONF_DAG_LIFETIME
+#define RPL_DAG_LIFETIME                    RPL_CONF_DAG_LIFETIME
+#else
+#define RPL_DAG_LIFETIME                    1200
+#endif /* RPL_CONF_DAG_LIFETIME */
+
+/*
  * 
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG

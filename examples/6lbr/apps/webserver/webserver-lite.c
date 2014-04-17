@@ -546,9 +546,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("<h3>Packet filtering</h3>");
-#endif
 #if CETIC_6LBR_ROUTER
   add("<h3>Packet filtering</h3>");
   add("Address rewrite : ");
@@ -573,10 +570,11 @@ PT_THREAD(generate_index(struct httpd_state *s))
   numticks = clock_time() - numticks + 1;
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
-#endif
   SEND_STRING(&s->sout, buf);
-  SEND_STRING(&s->sout, BOTTOM);
+  reset_buf();
+#endif
 
+  SEND_STRING(&s->sout, BOTTOM);
   PSOCK_END(&s->sout);
 }
 

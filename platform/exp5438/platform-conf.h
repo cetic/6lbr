@@ -48,7 +48,7 @@
 #endif /* 0 */
 
 /* CPU target speed in Hz */
-#define F_CPU 8000000uL // 8MHz by default
+#define F_CPU 16000000uL // 16MHz by default
 
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 128UL
@@ -69,7 +69,9 @@ typedef unsigned long clock_time_t;
 typedef unsigned long off_t;
 
 /* the low-level radio driver */
+#if RADIO_DEVICE_cc2420
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#endif
 
 /*
  * Definitions below are dictated by the hardware and not really

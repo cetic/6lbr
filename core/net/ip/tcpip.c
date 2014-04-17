@@ -629,8 +629,10 @@ tcpip_ipv6_output(void)
           return;
         } else
 #endif
-        PRINTF("tcpip_ipv6_output: no route found, using default route\n");
-        nexthop = uip_ds6_defrt_choose();
+        {
+          PRINTF("tcpip_ipv6_output: no route found, using default route\n");
+          nexthop = uip_ds6_defrt_choose();
+        }
         if(nexthop == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
