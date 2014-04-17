@@ -101,6 +101,24 @@ AUTOSTART_PROCESSES(&cetic_6lbr_process);
 
 /*---------------------------------------------------------------------------*/
 
+#if CONTIKI_TARGET_NATIVE
+static void
+cetic_6lbr_save_ip(void)
+{
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+#if CETIC_6LBR_SMARTBRIDGE
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
+#else
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+#endif
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+  }
+}
+#endif
+
 void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
@@ -122,6 +140,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
     }
   }
+  cetic_6lbr_save_ip();
 #endif
 }
 
@@ -272,17 +291,7 @@ cetic_6lbr_init(void)
 #endif
 
 #if CONTIKI_TARGET_NATIVE
-  if (ip_config_file_name) {
-    char str[INET6_ADDRSTRLEN];
-#if CETIC_6LBR_SMARTBRIDGE
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
-#else
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
-#endif
-    FILE *ip_config_file = fopen(ip_config_file_name, "w");
-    fprintf(ip_config_file, "%s\n", str);
-    fclose(ip_config_file);
-  }
+  cetic_6lbr_save_ip();
 #endif
 }
 
