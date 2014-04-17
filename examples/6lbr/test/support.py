@@ -1064,7 +1064,7 @@ class MacOSX(Platform):
     def accept_rio(self, itf):
         return False
 
-    def ping(self, target, payload=None):
+    def ping(self, target, payload=None, source=None):
         #print >> sys.stderr, "ping..."
         if payload is None: payload=config.ping_payload
         result = system("ping6 -s %d -c 1 %s > /dev/null 2>/dev/null" % (payload, target))
@@ -1119,6 +1119,7 @@ class Linux(Platform):
         self.udpsrv = None
         self.sp_ping = None
         self.threads = {}
+        self.local_host = None
 
     def tearDown(self):
         if self.radvd:
@@ -1137,6 +1138,8 @@ class Linux(Platform):
             except OSError, err:
                 pass
         self.threads.clear()
+        if self.local_host:
+            self.remove_host()
         print >> sys.stderr, "platform teardown"
     
     def configure_if(self, itf, address):
@@ -1180,6 +1183,21 @@ class Linux(Platform):
             result = system("route -A inet6 del %s/64 %s" % (dest, itf))
         return result == 0
 
+    def add_host(self, address, itf='tap1'):
+        result = system("tunctl -t %s" % itf)
+        if result != 0:
+            return False
+        self.local_host=itf
+        result = system("ip link set dev %s up" % itf)
+        if result != 0:
+            return False
+        return self.configure_if(itf, address)
+
+    def remove_host(self, itf='tap1'):
+        result = system("tunctl -d %s" % itf)
+        self.local_host=None
+        return result == 0
+
     def start_ra(self, itf, prefix):
         print >> sys.stderr, "Start RA daemon (%s)..." % prefix
         system("sysctl -q -w net.ipv6.conf.%s.forwarding=1" % itf)
@@ -1218,10 +1236,13 @@ class Linux(Platform):
         system("sysctl -q -w net.ipv6.conf.%s.accept_ra_rt_info_max_plen=64" % itf)
         return True
 
-    def ping(self, target, payload=None):
+    def ping(self, target, payload=None, source=None):
         #print "ping %s" % target
+        options=''
         if payload is None: payload=config.ping_payload
-        result = system("ping6 -s %d -W %d -c 1 %s > /dev/null" % (payload, config.ping_timeout, target))
+        if source:
+            options+='-I %s' % source
+        result = system("ping6 %s -s %d -W %d -c 1 %s > /dev/null" % (options, payload, config.ping_timeout, target))
         #if result >> 8 == 2:
         sleep(1)
         return result == 0
