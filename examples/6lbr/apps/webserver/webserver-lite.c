@@ -54,6 +54,10 @@
 #include "mc1322x.h"
 #include "contiki-maca.h"
 #endif
+#if CONTIKI_TARGET_CC2538DK
+#include "reg.h"
+#include "dev/cc2538-rf.h"
+#endif
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
@@ -485,6 +489,9 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("Channel : %d<br>", nvm_data.channel);
 #if CONTIKI_TARGET_ECONOTAG
   add("PanID : 0x%x<br>", *MACA_MACPANID);
+#endif
+#if CONTIKI_TARGET_CC2538DK
+  add("PanID : 0x%x<br>", (REG(RFCORE_FFSM_PAN_ID1)<<8) + REG(RFCORE_FFSM_PAN_ID0));
 #endif
   add("<br>");
   SEND_STRING(&s->sout, buf);
