@@ -351,6 +351,12 @@
 
 #define WEBSERVER_CONF_CFS_CONNS	1
 
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL	26
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID	0xABCD
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
 
@@ -361,13 +367,6 @@
 
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
-
-#if CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_LEARN_RPL_MAC
-//Setup 802.15.4 interface in promiscuous mode
-#define NULLRDC_CONF_ADDRESS_FILTER	0
-#undef MACA_AUTOACK
-#define MACA_AUTOACK				0
-#endif
 
 #endif
 /*------------------------------------------------------------------*/

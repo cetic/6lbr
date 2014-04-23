@@ -42,7 +42,6 @@
 #include "sicslow-ethernet.h"
 #include "nvm-config.h"
 #include "log-6lbr.h"
-//#include "mc1322x.h"
 #include "dev/leds.h"
 #include "dev/uart.h"
 #include "dev/button-sensor.h"
@@ -59,8 +58,7 @@ platform_init(void)
   mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
   LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   eth_mac_addr_ready = 1;
-//  set_channel(nvm_data.channel - 11);
-  cc2538_rf_channel_set(nvm_data.channel - 11);
+  cc2538_rf_channel_set(nvm_data.channel);
 }
 
 void
