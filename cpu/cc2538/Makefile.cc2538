@@ -3,6 +3,7 @@ CPP     = arm-none-eabi-cpp
 LD      = arm-none-eabi-gcc
 AR      = arm-none-eabi-ar
 OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
 NM      = arm-none-eabi-nm
 
 ifndef SOURCE_LDSCRIPT
@@ -10,18 +11,22 @@ SOURCE_LDSCRIPT = $(CONTIKI_CPU)/cc2538.lds
 endif
 LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 
-CFLAGS += -O2 -mcpu=cortex-m3 -mthumb -mlittle-endian
+CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
+CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -Wall
 LDFLAGS += -mcpu=cortex-m3 -mthumb -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
+LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
 LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
+OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 
 ### Are we building with code size optimisations?
 ifeq ($(SMALL),1)
-  CFLAGS += -ffunction-sections -fdata-sections
-  LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
+  CFLAGS += -Os
+else
+  CFLAGS += -O2
 endif
 
 ### If the user-specified a Node ID, pass a define
@@ -43,7 +48,7 @@ CONTIKI_CPU_DIRS += ../cc253x/usb/common ../cc253x/usb/common/cdc-acm
 
 ### CPU-dependent source files
 CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c uart.c watchdog.c
-CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c
+CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
 CONTIKI_CPU_SOURCEFILES += cc2538-rf.c udma.c lpm.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
@@ -78,6 +83,9 @@ CUSTOM_RULE_LINK=1
 
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
+
+%.lst: %.elf
+	$(OBJDUMP) $(OBJDUMP_FLAGS) $< > $@
 
 ### We don't really need the .hex and .bin for the .$(TARGET) but let's make
 ### sure they get built

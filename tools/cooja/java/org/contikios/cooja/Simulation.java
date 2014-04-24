@@ -766,6 +766,7 @@ public class Simulation extends Observable implements Runnable {
     Runnable removeMote = new Runnable() {
       public void run() {
         motes.remove(mote);
+        motesUninit.remove(mote);
         currentRadioMedium.unregisterMote(mote, Simulation.this);
 
         /* Dispose mote interface resources */
