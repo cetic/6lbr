@@ -7,7 +7,7 @@ y = [ 37305 184 7022 ; 41183 184 7178 ; 37639 184 7748 ];
 figure;
 bar(y,'stacked');
 set(gca,'XTickLabels',x); 
-legend('Code','Initialized variables','Uninitialized variables');
+legend('Code','Initialized variables','Uninitialized variables',2);
 xlabel('Entity');
 ylabel('memory (bytes)');
 title('msp430-size over 6LoWPAN-ND entities');
