@@ -3,7 +3,7 @@
 import subprocess
 import sys
 
-filetotest = ["6lh","6lr","6lbr"]
+filetotest = ["6lh","6lr","6lbr","rpl","6lr-rpl","6lbr-rpl"]
 filename = "graph.m"
 
 def  compile_msp340():
