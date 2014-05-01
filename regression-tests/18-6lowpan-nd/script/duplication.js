@@ -121,33 +121,44 @@ function buildRT(s) {
 }
 // endload()
 
-//Display NC when changement of msg was done
+
+
+/*---------------------------------------------------------------*/
+
 TIMEOUT(7200000); //2h
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
+log.log("Starting...\n");
 
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+//Waiting 1min
+GENERATE_MSG(60000, "timeout");
+YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
+log.log("Testing....\n");
+
+for(var i=0; i<30; i++) {
+    log.log("Check "+(i+1)+"...");
+    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
+    GENERATE_MSG(3000, "timeout");
+    YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
+
+    //check IP
+    var ipcheck = {1:false, 2:true, 3:false, 4:false};
+    var allm = sim.getMotes();
+    for(var id in  allm) {
+        var moteid = allm[id].getID();
+        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
+        if(ipcheck[moteid]) {
+            //Check local IP
+            if(ip.indexOf("fe80:") != 0) {
+                log.testFailed();
+            }
+        } else {
+            //Check global IP
+            if(ip.indexOf(prefix+":") != 0) {
+                log.testFailed();
+            }
+        }
+    } 
+    log.log("\tOK\n");
 }
 log.testOK();

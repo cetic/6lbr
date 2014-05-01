@@ -121,6 +121,10 @@ function buildRT(s) {
 }
 // endload()
 
+
+/*---------------------------------------------------------------*/
+
+
 //Display NC when changement of msg was done
 TIMEOUT(7200000); //2h
 WaitingStarting();
@@ -129,15 +133,16 @@ log.log("Modify RT\n");
 buildRT([
     {"mote":2, 
      "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
+         addroute(1,3,2,128);
+         //Waiting .5 sec
+         GENERATE_MSG(500, "continue");
+         WAIT_UNTIL(msg.contains("continue"));
+         addroute(1,5,2,128);
         }
     },
     {"mote":4, 
      "fct":function(){
-         addroute(2,3,4,128);
+         addroute(1,6,4,128);
          }
     }
 ]);

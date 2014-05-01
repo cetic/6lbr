@@ -1,3 +1,6 @@
+
+var newprefix = "cccc";
+
 // load(lib.js)
 var prefix = "bbbb";
 var brID = 1;
@@ -119,9 +122,46 @@ function buildRT(s) {
 	    if(alldone) return;
     }
 }
-// endload()
+// endload(lib.js)
 
-//Display NC when changement of msg was done
+
+function addCO(prefix, len) {
+    var cmd = "cp -a "+genpref(prefix)+" "+len;
+    log.log("CO added -> "+cmd+"\n");
+    write(sim.getMoteWithID(brID), cmd);
+}
+
+function rmCO(prefix, len) {
+    var cmd = "cp -r "+genpref(prefix)+" "+len;
+    log.log("CO remove -> "+cmd+"\n");
+    write(sim.getMoteWithID(brID), cmd);
+}
+
+
+function checkTable(prefixes){
+    var allm = sim.getMotes();
+    for(var id in  allm) {
+	    write(allm[id], "netd cp");
+        do{
+            YIELD();
+            for(var i in prefixes) {
+                var val = prefixes[i];
+                if((msg.contains(val.pref) && val.ok) ||
+                   (!msg.contains(val.pref) && !val.ok)) {
+                    val.found = true;
+                 }  
+            }
+        }while(!msg.contains("Contiki>"));
+	}
+    for(var i in prefixes) {
+        if(!prefixes[i].found)
+            return false;
+    }
+    return true;
+}
+
+
+/*---------------------------------------------------------------*/
 TIMEOUT(7200000); //2h
 WaitingStarting();
 
@@ -129,25 +169,50 @@ log.log("Modify RT\n");
 buildRT([
     {"mote":2, 
      "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
+         addroute(1,3,2,128);
+         //Waiting .5 sec
+         GENERATE_MSG(500, "continue");
+         WAIT_UNTIL(msg.contains("continue"));
+         addroute(1,5,2,128);
         }
     },
     {"mote":4, 
      "fct":function(){
-         addroute(2,3,4,128);
+         addroute(1,6,4,128);
          }
     }
 ]);
 
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+waitingConfig();
+log.log("Topology stable\n");
+//displayAllTable();
+
+if(!checkTable([{"pref":prefix+"::/16", "ok":1}])){
+    log.testFailed();
 }
+log.log("Context found\n");
+
+addCO(newprefix,16);
+rmCO(prefix,16);
+log.log("Modify Context Table\n");
+
+function refreshTopo(){
+	YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+	waitingConfig();
+	displayAllTable();
+	log.log("Topolgy refreshed\n");
+}
+
+refreshTopo();
+if(!checkTable([{"pref":prefix+"::/16", "ok":1},
+                {"pref":newprefix+"::/16", "ok":1}])) {
+    log.testFailed();
+}
+
+refreshTopo();
+if(!checkTable([{"pref":prefix+"::/16", "ok":0},
+                {"pref":newprefix+"::/16", "ok":1}])) {
+    log.testFailed();
+}
+
 log.testOK();

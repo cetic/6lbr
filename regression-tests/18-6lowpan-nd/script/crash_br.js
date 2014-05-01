@@ -125,29 +125,38 @@ function buildRT(s) {
 TIMEOUT(7200000); //2h
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
+function addRT(){
+    log.log("Adding RT\n");
+    buildRT([
+        {"mote":2, 
+         "fct":function(){
+            addroute(1,4,2,128);
+            GENERATE_MSG(500, "continue");
+            WAIT_UNTIL(msg.contains("continue"));
+            addroute(1,3,2,128);
+            }
+        },
+        {"mote":4, 
+         "fct":function(){
+             addroute(2,3,4,128);
+             }
         }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
-
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+    ]);
 }
+
+addRT();
+waitingConfig();
+displayAllTable();
+log.log("Sending udp packet\n");
+sendudpBR(brID);
+
+log.log("Reboot Border Router\n");
+write(sim.getMoteWithID(brID), "reboot");
+
+addRT();
+waitingConfig();
+displayAllTable();
+log.log("Sending udp packet\n");
+sendudpBR(brID);
 log.testOK();
+

@@ -121,33 +121,68 @@ function buildRT(s) {
 }
 // endload()
 
-//Display NC when changement of msg was done
-TIMEOUT(7200000); //2h
+
+
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+":")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
+
+
+/*------------------------------------------------------*/
+TIMEOUT(1800000); //30min
 WaitingStarting();
 
 log.log("Modify RT\n");
 buildRT([
     {"mote":2, 
      "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
+         addroute(1,3,2,128);
+         //Waiting .5 sec
+         GENERATE_MSG(500, "continue");
+         WAIT_UNTIL(msg.contains("continue"));
+         addroute(1,5,2,128);
         }
     },
     {"mote":4, 
      "fct":function(){
-         addroute(2,3,4,128);
+         addroute(1,6,4,128);
          }
     }
 ]);
+waitingConfig();
+log.log("Topology stable\n");
 
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+write(sim.getMoteWithID(6), "reboot");
+log.log("Rebooting...\n");
+YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+waitingConfig();
+log.log("Check\n");
+if(!checknc({
+        6:{4:true, 5:true},
+        4:{6:true},
+        5:{6:true}
+    })){
+    log.testFailed();
 }
+
 log.testOK();

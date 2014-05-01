@@ -121,33 +121,106 @@ function buildRT(s) {
 }
 // endload()
 
-//Display NC when changement of msg was done
-TIMEOUT(7200000); //2h
+/*------------------------------------------------------*/
+TIMEOUT(1800000); //30min
 WaitingStarting();
 
 log.log("Modify RT\n");
 buildRT([
     {"mote":2, 
      "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
+         addroute(1,3,2,128);
+         //Waiting .5 sec
+         GENERATE_MSG(500, "continue");
+         WAIT_UNTIL(msg.contains("continue"));
+         addroute(1,5,2,128);
         }
     },
     {"mote":4, 
      "fct":function(){
-         addroute(2,3,4,128);
+         addroute(1,6,4,128);
          }
     }
 ]);
+waitingConfig();
+log.log("Topology stable\n");
 
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+function moveTo(moteID, x, y) {
+    var pos = sim.getMoteWithID(moteID).getInterfaces().getPosition();
+    pos.setCoordinates(pos.getXCoordinate()+x, pos.getYCoordinate()+y, pos.getZCoordinate());
 }
+
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+":")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
+
+moveTo(6, 20, -30);
+log.log("Mote 6 moved, only 4 can see it\n");
+
+
+log.log("Check 1\n");
+if(!checknc({
+        6:{4:true, 5:true},
+        4:{6:true},
+        5:{6:true}
+    })){
+    log.testFailed();
+}
+
+waitingConfig();
+log.log("Check 2\n");
+if(!checknc({
+        6:{4:true, 5:false},
+        4:{6:true},
+        5:{6:false}
+    })){
+    log.testFailed();
+}
+
+moveTo(6, 30, 0);
+log.log("Mote 6 moved for isolate it\n");
+
+YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+log.log("Check 3\n");
+if(!checknc({
+        6:{4:false},
+        4:{6:false}
+    })){
+    log.testFailed();
+}
+
+moveTo(6, -50, 30);
+log.log("Mote 6 go home\n");
+
+waitingConfig();
+log.log("Check 4\n");
+if(!checknc({
+        6:{4:true, 5:true},
+        4:{6:true},
+        5:{6:true}
+    })){
+    log.testFailed();
+}
+
+
 log.testOK();

@@ -121,33 +121,53 @@ function buildRT(s) {
 }
 // endload()
 
-//Display NC when changement of msg was done
-TIMEOUT(7200000); //2h
-WaitingStarting();
-
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
-
-for(var i=0; i<=10; i++) {
-	waitingConfig();
-	log.log("Topology stable\n");
-	displayAllTable();
-	log.log("Sending udp packet\n");
-	sendudpBR(brID);
-    log.log("...OK"+i+"\n");
+function unregister(noteID, routerID) {
+    var mote = sim.getMoteWithID(noteID);
+    var cmd = "unregister "+llip(routerID);
+    log.log("MOTE "+noteID+" -> "+cmd+"\n");
+    write(mote, cmd);
 }
+
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+":")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
+
+/*---------------------------------------------------------------*/
+
+TIMEOUT(1800000); //30min
+WaitingStarting();
+waitingConfig();
+log.log("Starting...\n");
+
+//Send cmd to unregister
+unregister(6, 2);
+YIELD_THEN_WAIT_UNTIL(msg.contains("rNA"));
+if(!checknc({
+        6:{2:false, 4:true},
+        2:{6:false},
+        4:{6:true}
+    })){
+    log.testFailed();
+}
+
 log.testOK();
