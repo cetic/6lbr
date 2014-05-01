@@ -112,7 +112,7 @@ typedef struct uip_ds6_border_router {
   uint8_t rscount;
   struct stimer rs_timer;
 #endif /* !UIP_CONF_6LBR */
-  uip_ipaddr_t ipaddr; 
+  uip_ipaddr_t ipaddr; //TODO no use in 6LH
 } uip_ds6_border_router_t;
 #endif /* CONF_6LOWPAN_ND */
 
