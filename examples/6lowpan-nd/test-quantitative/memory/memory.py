@@ -1,27 +1,39 @@
 #!/usr/bin/python
 
 import subprocess
+import sys
 
 filetotest = ["6lh","6lr","6lbr"]
+filename = "graph.m"
 
 def  compile_msp340():
 	for i in filetotest:
-		command = 'cd '+i+'; make TARGET=sky; mv ../process.sky ../'+i+'.sky'
-		#print(command)
-    	process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
-    	proc_stdout = process.communicate()[0].strip()
-    	#print(proc_stdout)
+		command = 'cd '+i+'; make TARGET=sky;  cd ../; mv process.sky '+i+'.sky'
+		print(command)
+		process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
+		proc_stdout, error = process.communicate()
+		print(proc_stdout)
+		if error:
+			sys.exit("Error to compile")
 
 
 def get_msp340_size():
 	command = "msp430-size"
 	for i in filetotest:
 		command = command+" "+i+".sky"
-	#print(command)
+	print(command)
 	process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
 	proc_stdout = process.communicate()[0].strip()
-	#print(proc_stdout)
+	print(proc_stdout)
 	return proc_stdout
+
+def  compile_clean():
+	for i in filetotest:
+		command = 'cd '+i+'; rm -rf *sky* *.c *.h'
+		print(command)
+		process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
+		proc_stdout = process.communicate()[0].strip()
+		print(proc_stdout)
 
 def get_data(input_size):
 	data_out = {}
@@ -69,7 +81,10 @@ def writeToFile(filename, text):
 	f.write(text)
 	f.close()
 
-filename = "graph.m"
+
+if len(sys.argv) > 1 and sys.argv[1]=="clean":
+	compile_clean()
+
 compile_msp340()
 data = gen_matlab_vec(get_data(get_msp340_size()))
 code = addDataFile(filename, data)
