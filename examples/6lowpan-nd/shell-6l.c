@@ -323,6 +323,25 @@ PROCESS_THREAD(shell_unreg_process, ev, data)
 }
 
 #endif
+
+#if UIP_CONF_STATISTICS
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_stat_process, "stats");
+SHELL_COMMAND(stat_cmd,
+        "stats",
+        "stats: Statistics from devices",
+        &shell_stat_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_stat_process, ev, data)
+{
+  PROCESS_BEGIN();
+  printf("%d,%d,%d,%d|", uip_stat.ip.recv, uip_stat.ip.sent, uip_stat.ip.forwarded, uip_stat.ip.drop);
+  printf("%d,%d\n", uip_stat.nd6.recv, uip_stat.nd6.sent);
+
+  PROCESS_END();
+}
+#endif
+
 /*---------------------------------------------------------------------------*/
 void 
 shell_6l_init(void)
@@ -346,5 +365,8 @@ shell_6l_init(void)
   shell_register_command(&reboot_cmd);
 #if UIP_CONF_6LN
   shell_register_command(&unreg_cmd);
+#endif
+#if UIP_CONF_STATISTICS
+  shell_register_command(&stat_cmd);
 #endif
 }
