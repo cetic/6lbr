@@ -34,14 +34,16 @@ function genip(num, pref){
     for(var i=0; i<3; i++){
         ip +=":0000";
     }
-    var n;
+    var n, hex;
     ip += ":0212";
     n = 0x7400 + num;
     ip += ":"+n.toString(16);
     n = 0x0 + num;
-    ip += ":000"+n.toString(16);
+    hex = n.toString(16);
+    ip += ":00"+(hex.length==1 ? '0' : '')+hex;
     n = (0x100 * num) + num;
-    ip += ":0"+n.toString(16);
+    hex = n.toString(16);
+    ip += ":"+(hex.length==3 ? '0' : '')+hex;
     return ip;
 }
 function gpip(num) { return genip(num, prefix); }
@@ -137,7 +139,7 @@ function generate_RT_formated(){
         for(var mote_to=mote_i+1; mote_to<=numMote; mote_to++) {
             ev += "addroute("+(mote_i-1)+","+mote_to+","+mote_i+",128);";
             if(mote_to<numMote) {
-                ev += 'GENERATE_MSG(500, "continue'+mote_to+'");';
+                ev += 'GENERATE_MSG(25, "continue'+mote_to+'");';
                 ev += 'WAIT_UNTIL(msg.contains("continue'+mote_to+'"));';
             }
         }

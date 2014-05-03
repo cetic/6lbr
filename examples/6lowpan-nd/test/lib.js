@@ -33,14 +33,16 @@ function genip(num, pref){
     for(var i=0; i<3; i++){
         ip +=":0000";
     }
-    var n;
+    var n, hex;
     ip += ":0212";
     n = 0x7400 + num;
     ip += ":"+n.toString(16);
     n = 0x0 + num;
-    ip += ":000"+n.toString(16);
+    hex = n.toString(16);
+    ip += ":00"+(hex.length==1 ? '0' : '')+hex;
     n = (0x100 * num) + num;
-    ip += ":0"+n.toString(16);
+    hex = n.toString(16);
+    ip += ":"+(hex.length==3 ? '0' : '')+hex;
     return ip;
 }
 function gpip(num) { return genip(num, prefix); }
