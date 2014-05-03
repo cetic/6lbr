@@ -107,7 +107,7 @@ function buildRT(s) {
     if(!s) return;
     while(true) {
 	    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
-	    var from = msg.split(" ")[1].split("::")[1].split(":")[2];
+	    var from = parseInt(msg.split(" ")[1].split("::")[1].split(":")[2],16);
 	    var alldone = true;
 	    for(var i in s){
 	        var v = s[i];
