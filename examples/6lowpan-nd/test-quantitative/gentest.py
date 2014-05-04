@@ -1,11 +1,12 @@
 from coojagen.src import lib_generation
 
 
-
+simfile = ["line","grid"]
 
 #Generate .csc from template
-config = lib_generation.ConfigParser()
-config.parse_config_file("topology/line.py")
+for filename in simfile:
+	config = lib_generation.ConfigParser()
+	config.parse_config_file("topology/"+filename+".py")
 
 
 #Add lib in cooja script

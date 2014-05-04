@@ -64,7 +64,7 @@ PROCESS_THREAD(route_m_process, ev, data)
       str2ip(str+3, &ip);
       str2ip(str+43, &nexthop);
       l = (uint8_t) atoi(str+83);
-      uip_ds6_route_add(&ip, l, &nexthop);
+      printf("#RT%d\n",uip_ds6_route_add(&ip, l, &nexthop));
     }
   }
   PROCESS_END();

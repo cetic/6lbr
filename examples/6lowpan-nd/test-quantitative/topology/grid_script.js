@@ -112,6 +112,7 @@ function buildRT(s) {
 	    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
 	    var from = parseInt(msg.split(" ")[1].split("::")[1].split(":")[2],16);
 	    var alldone = true;
+        while(ac_retrans.length) { eval(ac_retrans.pop()) }
 	    for(var i in s){
 	        var v = s[i];
 	        if(v.mote == from) {
@@ -125,27 +126,125 @@ function buildRT(s) {
 	        }
 	        if(!v.done) alldone = false;
 	    }
+        displayAllTable();
 	    if(alldone) return;
     }
 }
 // endload()
 
+function buildRT2(s) {
+    if(!s) return;
+    while(true) {
+        YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
+        var from = parseInt(msg.split(" ")[1].split("::")[1].split(":")[2],16);
+        var alldone = true;
+        while(ac_retrans.length) { eval(ac_retrans.pop()) }
+        for(var i in s){
+            var v = s[i];
+            if(v.mote == from) {
+                if(v.fct){
+                    v.fct();
+                }
+                if(v.eval){
+                    eval(v.eval);
+                }
+                v.done = true;    
+            }
+            if(!v.done) alldone = false;
+        }
+        displayAllTable();
+        if(alldone) return;
+    }
+}
+var count = 0;
+var ac_retrans = [];
+function inRT(l) {
+    eval("addroute("+l+")");
+    count++;
+    GENERATE_MSG(50, "continue"+count);
+    WAIT_UNTIL(msg.contains("continue"+count) || msg.contains("#RT"));
+    var msgtmp;
+    if(msg.contains("continue"+count)){
+        WAIT_UNTIL(msg.contains("#RT")); 
+        msgtmp = msg;
+    } else {
+        msgtmp = msg;
+        WAIT_UNTIL(msg.contains("continue"+count));
+    }
+    if(msgtmp.equals("#RT0")) {
+        ac_retrans.push("inRT('"+l+"');");
+        log.log(ac_retrans+"<-------\n");
+    }
+}
 function generate_RT_formated(){
+    var n = Math.sqrt(sim.getMotes().length);
     var rt = [];
-    var numMote = sim.getMotes().length;
-    if(numMote<3) return false;
-    for(var mote_i=2; mote_i<numMote; mote_i++) {
-        var ev = "";
-        for(var mote_to=mote_i+1; mote_to<=numMote; mote_to++) {
-            ev += "addroute("+(mote_i-1)+","+mote_to+","+mote_i+",128);";
-            if(mote_to<numMote) {
-                ev += 'GENERATE_MSG(25, "continue'+mote_to+'");';
-                ev += 'WAIT_UNTIL(msg.contains("continue'+mote_to+'"));';
+
+    for(var i=0; i<n; i++) { 
+        for(var j=0; j<n; j++){ 
+            var my_num = (i*n)+j+1;
+            if((j-1)>=0) {
+                //Add neighbor top
+                var neigh_t = (i*n)+(j-1)+1;
+                l = getlistRT(neigh_t)[my_num];
+                rt.push({"mote":my_num, "eval":strRtEval(neigh_t, my_num, l)})
+            }
+            if((i-1)>=0) {
+                //Add neighbor top
+                var neigh_l = ((i-1)*n)+j+1;
+                l = getlistRT(neigh_l)[my_num];
+                rt.push({"mote":my_num, "eval":strRtEval(neigh_l, my_num, l)})
             }
         }
-        rt.push({"mote":mote_i, "eval":ev})
     }
-    return rt;  
+    return rt;
+}
+
+function strRtEval(mote_in, from, to){
+    var ev = "";
+    for(var t=0; t<to.length; t++) {
+        var mote_to = to[t];
+        ev += "inRT('"+mote_in+","+mote_to+","+from+",128'); ";
+        // ev += "addroute("+mote_in+","+mote_to+","+from+",128);";
+        // if(t<to.length-1) {
+        //     ev += 'GENERATE_MSG(500, "continue'+mote_to+'");';
+        //     ev += 'WAIT_UNTIL(msg.contains("continue'+mote_to+'"));';
+        // }
+    }
+    return ev;
+}
+
+function getlistRT(num) {
+    var n = Math.sqrt(sim.getMotes().length);
+
+    var y = (num-1)%n;
+    var x = ((num-1)-y)/n;
+
+    var neigh_r = ((x+1)*n)+y+1;
+    var neigh_b = (x*n)+y+2;
+
+    var b_list = [];
+    var r_list = [];
+
+    for(var i=x; i<n; i++) { 
+        for(var j=y; j<n; j++){ 
+            var cur = (i*n)+j+1; 
+            if(cur != num ){//&& cur != neigh_r && cur != neigh_b) {
+                if (j<y || i<=x) {
+                    b_list.push(cur); 
+                } else {
+                    r_list.push(cur);
+                }
+            }
+        }
+    }
+
+    r = {};
+    if(b_list.length != 0)
+        r[neigh_b] = b_list;
+    if(r_list.length != 0)
+        r[neigh_r] = r_list;
+    return r; 
 }
 
 function analysis(){
@@ -188,7 +287,7 @@ WaitingStarting();
 //Routing Table
 log.log("Modify RT\n");
 rt = generate_RT_formated();
-buildRT(rt);
+buildRT2(rt);
 log.log("- end modify RT -");
 
 // Waiting topology stable

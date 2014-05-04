@@ -68,7 +68,11 @@ data_hour = getdata_from_file("1hour", data_file)
 matlab_data = gen_matlab_vec("start", data_start)+"\n"
 matlab_data += gen_matlab_vec("hour", data_hour)
 
-writeToFile(matlab_file, addDataFile(matlab_file, matlab_data))
+dir_ouput = ""
+if len(sys.argv):
+	dir_ouput = sys.argv[1]
+
+writeToFile(dir_ouput+"_"+matlab_file, addDataFile(matlab_file, matlab_data))
 
 
 
