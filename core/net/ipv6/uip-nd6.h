@@ -75,7 +75,7 @@
 /** @} */
 #endif /* !CONF_6LOWPAN_ND */
 
-//TODO: check constant for 6LR and 6LBR
+
 /** \name RFC 4861 Router constants */
 /** @{ */
 #ifndef UIP_CONF_ND6_SEND_RA
@@ -459,7 +459,19 @@ void
 uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
 
 #if CONF_6LOWPAN_ND
-//TODO: description (if lifetime<0 -> NO ARO msg)
+/**
+ * \brief Send a neighbor solicitation, send a Neighbor Advertisement with 
+ *        adresse registration option
+ * \param src pointer to the src of the NS if known
+ * \param dest pointer to ip address to send the NS, for unicast send
+ * \param tgt  pointer to ip address to fill the target address field, must
+ * not be NULL
+ * \param lifetime registration time timeout in ARO
+ * \param sendaro flag to activate or not the adresse registation option in NS
+ *
+ * - based on RFC 6775. ARO is defined on 4.1.
+ * - We send unicast NS to check NUD, DAD and reachability
+ */
 void
 uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, 
                       uint16_t lifetime, uint8_t sendaro);
@@ -538,7 +550,10 @@ uip_nd6_ra_input(void);
  *
  * \brief process a Duplication Address Register
  *
- * TODO description
+ * - When receiving a DAR, the Border Router checks in the duplication
+ *   table to see if there are already the address in message. We send 
+ *   back a Duplication Address Confirmation to the router based on it 
+ *   existence on the table.
  */
 #if UIP_CONF_6LBR
 void uip_nd6_dar_input(void);
@@ -548,7 +563,9 @@ void uip_nd6_dar_input(void);
  *
  * \brief process a Duplication Address Confirmation
  *
- * TODO description
+ * - When receiving a DAC, we add the entry on the Neighbor Cache is it 
+ *   was a success. We send back to the host a NA to notify it of the 
+ *   decision.
  */
 #if UIP_CONF_6LR
 void uip_nd6_dac_input(void);
@@ -557,8 +574,17 @@ void uip_nd6_dac_input(void);
 /**
  *
  * \brief process a Duplication Address
- *
- * TODO description
+ * 
+ * \param destipaddr the entity to send the request or the confirmation. 
+ *        With DAR it is the Border Router address
+ * \param type of the message DAR of DAM (ICMPv6 value)
+ * \param status state of Duplication Address Detection
+ * \param hostipaddr IPv6 address to register (host IP)
+ * \param eui64 unique identifier by the EUI-64
+ * \param lifetime registration time, determined by the host
+ * 
+ * Send DAR or DAM message to solve Duplication Address Detection in 
+ * 6LoWPAN-ND
  */
 #if UIP_CONF_6L_ROUTER
 void uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,

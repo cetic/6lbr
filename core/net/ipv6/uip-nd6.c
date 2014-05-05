@@ -274,6 +274,7 @@ uip_nd6_ns_input(void)
   PRINTF(" with target address");
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NS_BUF->tgtipaddr));
   PRINTF("\n");
+  TCPIP_ANNOTATE("rNS");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_6L_ROUTER
@@ -755,9 +756,7 @@ uip_nd6_na_input(void)
               stimer_set(&nbr->reachable, uip_ntohs(nd6_opt_aro->lifetime)*60);
               break;
             case UIP_ND6_ARO_STATUS_DUPLICATE:
-              //TODO use defrt -> right br
-              uip_ds6_get_global(ADDR_TENTATIVE)->isused = 0;
-              //TODO more !
+              uip_ds6_get_global_br(ADDR_TENTATIVE, defrt->br)->isused = 0;
               break;
             case UIP_ND6_ARO_STATUS_CACHE_FULL:
               /* Host SHOULD remove this router from its default router list */
@@ -866,6 +865,7 @@ uip_nd6_rs_input(void)
   PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF(" \n");
+  TCPIP_ANNOTATE("rRS");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_6L_ROUTER
@@ -1204,6 +1204,7 @@ uip_nd6_ra_input(void)
   PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF(" \n");
+  TCPIP_ANNOTATE("rRA");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_IPV6_CHECKS
@@ -1256,7 +1257,7 @@ uip_nd6_ra_input(void)
   abro_version -= border_router->version;
   if(abro_version > 0) {
     /* New version, so remove all prefix and context */
-    //TODO not a good idea to rm all entries ?
+    //TODO not immediately remove entries but use same principle of 6CO
     uip_ds6_prefix_rm_all(border_router);
     border_router->version += abro_version;
   }
@@ -1354,7 +1355,6 @@ uip_nd6_ra_input(void)
                                             1, nd6_opt_prefix_info->flagsreserved1,
                                             0, 0);
               }
-              prefix->br = border_router;
             #else /* UIP_CONF_6L_ROUTER */
               if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
@@ -1366,6 +1366,9 @@ uip_nd6_ra_input(void)
                                             nd6_opt_prefix_info->preflen, 0);
               }
             #endif /* UIP_CONF_6L_ROUTER */
+            #if CONF_6LOWPAN_ND
+              prefix->br = border_router;
+            #endif /* CONF_6LOWPAN_ND */
             }
           } else {
             switch (nd6_opt_prefix_info->validlt) {
@@ -1472,7 +1475,6 @@ uip_nd6_ra_input(void)
       }
       if(abro_version > 0) {
         /* Update information */
-        //TODO: update all info (PIO, Context prefix) if only version increase
         border_router->version = uip_ntohs(nd6_opt_auth_br->verhigh);
         border_router->version = uip_ntohs(nd6_opt_auth_br->verlow) + (border_router->version << 16);
         uip_ipaddr_copy(&border_router->ipaddr, &nd6_opt_auth_br->address);
@@ -1556,6 +1558,7 @@ uip_nd6_dar_input(void)
   PRINTF(" with host address ");
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_DA_BUF->regipaddr));
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAR");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_IPV6_CHECKS
@@ -1637,7 +1640,7 @@ uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
   PRINTF(" with host address ");
   PRINT6ADDR(&UIP_ND6_DA_BUF->regipaddr);
   PRINTF(" with status %d\n", status);
-  TCPIP_ANNOTATE("sDA");
+  TCPIP_ANNOTATE("sDAM");
   return;
 }
 #endif /* UIP_CONF_6L_ROUTER */
@@ -1665,6 +1668,7 @@ uip_nd6_dac_input(void)
   PRINTF(" with host address ");
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_DA_BUF->regipaddr));
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAC");
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_IPV6_CHECKS

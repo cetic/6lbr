@@ -413,6 +413,7 @@ uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
 uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 #if CONF_6LOWPAN_ND
 void uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router);
+uip_ds6_prefix_t *uip_ds6_prefix_lookup_from_ipaddr(uip_ipaddr_t *ipaddr);
 #endif /* CONF_6LOWPAN_ND */
 /** @} */
 
@@ -455,6 +456,9 @@ void uip_ds6_addr_rm(uip_ds6_addr_t *addr);
 uip_ds6_addr_t *uip_ds6_addr_lookup(uip_ipaddr_t *ipaddr);
 uip_ds6_addr_t *uip_ds6_get_link_local(int8_t state);
 uip_ds6_addr_t *uip_ds6_get_global(int8_t state);
+#if CONF_6LOWPAN_ND
+uip_ds6_addr_t *uip_ds6_get_global_br(int8_t state, uip_ds6_border_router_t *br);
+#endif /* CONF_6LOWPAN_ND */
 
 /** @} */
 
