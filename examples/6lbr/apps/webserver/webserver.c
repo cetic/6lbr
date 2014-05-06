@@ -63,9 +63,12 @@
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
 #include "sys/stat.h"
-#include "node-config.h"
 #include "csma.h"
 #include "native-rdc.h"
+#endif
+
+#if CETIC_NODE_CONFIG
+#include "node-config.h"
 #endif
 
 #include <stdio.h>              /* For printf() */
@@ -511,6 +514,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
+#if CETIC_NODE_CONFIG
       if ( node_config_loaded ) {
         add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
@@ -519,6 +523,10 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
         ipaddr_add(&node_info_table[i].ipaddr);
         add("</a></td>");
       }
+#else
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("</a></td>");
+#endif
 
       if(0) {
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02
@@ -578,6 +586,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       add("]:5683/>coap</a></td>");
       if(node_info_table[i].messages_count > 0) {
         add("<td>%d</td><td>", node_info_table[i].sequence);
+#if CETIC_NODE_CONFIG
         if (node_config_loaded) {
           add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
           ipaddr_add(&node_info_table[i].ip_parent);
@@ -585,6 +594,9 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
         } else {
           ipaddr_add(&node_info_table[i].ip_parent);
         }
+#else
+        ipaddr_add(&node_info_table[i].ip_parent);
+#endif
         add("</td>");
       } else {
         add("<td></td><td></td>");
@@ -603,6 +615,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add
     ("<center>"
      "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
+#if CETIC_NODE_CONFIG
   node_config_t *  my_config = node_config_find(&uip_lladdr);
   if (my_config) {
     add("%s;", node_config_get_name(my_config));
@@ -610,9 +623,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
    add("_%04x;",
      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
   }
+#else
+  add("_%04x;",
+    (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+#endif
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
+#if CETIC_NODE_CONFIG
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
         node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
         if ( node_config ) {
@@ -640,6 +658,13 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
                 node_info_table[i].ip_parent.u8[15]);
           }
         }
+#else
+        add("_%04hx->_%04hx;",
+            (node_info_table[i].ipaddr.u8[14] << 8) +
+            node_info_table[i].ipaddr.u8[15],
+            (node_info_table[i].ip_parent.u8[14] << 8) +
+            node_info_table[i].ip_parent.u8[15]);
+#endif
       }
     }
   }
@@ -869,7 +894,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&nbr->ipaddr);
       add("\">del</a>] ");
     }
-#if CONTIKI_TARGET_NATIVE
+#if CETIC_NODE_CONFIG
     if ( node_config_loaded ) {
       add("%s : ", node_config_get_name(node_config_find(uip_ds6_nbr_get_ll(nbr))));
     }
@@ -894,6 +919,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&r->ipaddr);
       add("\">del</a>] ");
     }
+#if CETIC_NODE_CONFIG
     if ( node_config_loaded ) {
       add("%s (", node_config_get_name(node_config_find_from_ip(&r->ipaddr)));
       ipaddr_add(&r->ipaddr);
@@ -909,6 +935,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
     } else {
       ipaddr_add(uip_ds6_route_nexthop(r));
     }
+#else
+    ipaddr_add(&r->ipaddr);
+    add("/%u via ", r->length);
+    ipaddr_add(uip_ds6_route_nexthop(r));
+#endif
     if(1 || (r->state.lifetime < 600)) {
       add(" %lu s\n", r->state.lifetime);
     } else {

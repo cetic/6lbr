@@ -263,6 +263,8 @@
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
+#define CETIC_NODE_CONFIG           1
+
 #endif
 
 #if CONTIKI_TARGET_ECONOTAG
@@ -316,6 +318,8 @@
 #define MACA_AUTOACK				0
 #endif
 
+#define CETIC_NODE_CONFIG           0
+
 #endif
 
 #if CONTIKI_TARGET_CC2538DK
@@ -360,6 +364,8 @@
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
 
+#define CETIC_CSMA_STATS      0
+
 /* Do not change lines below */
 
 #define LOG6LBR_TIMESTAMP           0
@@ -367,6 +373,8 @@
 
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
+
+#define CETIC_NODE_CONFIG           0
 
 #endif
 /*------------------------------------------------------------------*/
