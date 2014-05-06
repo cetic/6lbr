@@ -1286,7 +1286,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   reset_buf();
 #else
   add("<h3>IP statistics are deactivated</h3>");
-#endif
+#endif /* UIP_STATISTICS */
 #if UIP_CONF_IPV6_RPL
   add("<h2>RPL</h2>");
 #if RPL_CONF_STATS
@@ -1310,7 +1310,9 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #else
   add("<h3>RPL statistics are deactivated</h3>");
 #endif
-#if NETSTACK_CONF_MAC == csma_driver
+#endif /* UIP_CONF_IPV6_RPL */
+#if CETIC_CSMA_STATS
+
   add("<h2>CSMA</h2>");
   add("Allocated packets : %d<br />", csma_allocated_packets());
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
@@ -1330,7 +1332,6 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#endif
 #endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");

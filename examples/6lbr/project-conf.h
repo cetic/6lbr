@@ -233,6 +233,8 @@
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
 
+#define CETIC_CSMA_STATS      1
+
 #define CSMA_CONF_MAX_NEIGHBOR_QUEUES 16
 
 #define CSMA_CONF_MAX_PACKET_PER_NEIGHBOR (QUEUEBUF_CONF_NUM/CSMA_CONF_MAX_NEIGHBOR_QUEUES)
@@ -302,6 +304,8 @@
 
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
+
+#define CETIC_CSMA_STATS      0
 
 /* Do not change lines below */
 
