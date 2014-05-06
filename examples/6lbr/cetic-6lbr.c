@@ -65,6 +65,8 @@
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
 #include <arpa/inet.h>
+#else
+#include "watchdog.h"
 #endif
 
 //Initialisation flags
@@ -301,9 +303,7 @@ cetic_6lbr_init(void)
 
 /*---------------------------------------------------------------------------*/
 
-#if CONTIKI_TARGET_NATIVE
 static struct etimer reboot_timer;
-#endif
 
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
@@ -354,10 +354,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
-#if CONTIKI_TARGET_NATIVE
   PROCESS_WAIT_EVENT();
   etimer_set(&reboot_timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT();
+#if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {
     case CETIC_6LBR_RESTART:
       LOG6LBR_INFO("Exiting...\n");
@@ -377,6 +377,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   }
   //We should never end up here...
   exit(1);
+#else
+  watchdog_reboot();
 #endif
 
   PROCESS_END();
