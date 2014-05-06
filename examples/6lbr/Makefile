@@ -23,6 +23,8 @@ CC2538DK_UDPSERVER=0
 CC2538DK_WEBSERVER_LITE=0
 CC2538DK_WEBSERVER=1
 
+CC2538DK_FW=bin
+
 # End of user configurable section
 
 all: $(CONTIKI_PROJECT)
@@ -238,27 +240,27 @@ all_red-io:
 
 bin_cc2538dk/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_SMARTBRIDGE=1 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_smart_bridge.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_smart_bridge.$(CC2538DK_FW)
 
 bin_cc2538dk/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_rpl_relay.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_rpl_relay.$(CC2538DK_FW)
 
 bin_cc2538dk/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_full_transparent_bridge.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW)
 
 bin_cc2538dk/cetic_6lbr_router:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_router.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_router.$(CC2538DK_FW)
 
 bin_cc2538dk/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_ndp_router.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_ndp_router.$(CC2538DK_FW)
 
 bin_cc2538dk/cetic_6lbr_6lr:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_6LR=1 $(CC2538DK_CONF)
-	mv cetic-6lbr.hex bin_cc2538dk/cetic_6lbr_6lr.hex
+	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_6lr.$(CC2538DK_FW)
 
 all_cc2538dk:
 	rm -rf bin_cc2538dk
