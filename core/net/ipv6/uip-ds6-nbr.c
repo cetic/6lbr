@@ -270,7 +270,6 @@ uip_ds6_neighbor_periodic(void)
         PRINTF(")\n");
         uip_ds6_nbr_rm(nbr);
     #if !UIP_CONF_6LBR
-      //TODO right ? where in rfc ?
       } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN, 
                                       UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
@@ -281,15 +280,14 @@ uip_ds6_neighbor_periodic(void)
       break;
     case NBR_TENTATIVE:
       if (nbr->isrouter == ISROUTER_YES) {
-        // TODO send until get addr ?
-        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
-          //TODO /!\ addr to register
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
-          //TODO: -1 in arg ? -> check if add is a tentative
-          if(uip_ds6_get_global(-1) != NULL) {
-            uip_nd6_ns_output_aro(&(uip_ds6_get_global(-1)->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
+          uip_ds6_addr_t* addgl = uip_ds6_get_global_br(-1, 
+                                        uip_ds6_defrt_lookup(&nbr->ipaddr)->br);
+          if(addgl != NULL) {
+            uip_nd6_ns_output_aro(&(addgl->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
                                 UIP_ND6_REGISTER_LIFETIME, 1);
           }
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
@@ -297,7 +295,6 @@ uip_ds6_neighbor_periodic(void)
       } else {
         if(stimer_expired(&nbr->reachable)) {
           uip_ds6_nbr_rm(nbr);
-          //TODO /!\ addr to register
         }
       }
       break;
@@ -309,8 +306,7 @@ uip_ds6_neighbor_periodic(void)
           nbr->state = NBR_GARBAGE_COLLECTIBLE;
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
-          //TODO border router found ?
-          uip_nd6_dar_output(&uip_ds6_br_lookup(NULL)->ipaddr,
+          uip_nd6_dar_output(&uip_ds6_prefix_lookup_from_ipaddr(&locdar->ipaddr)->br->ipaddr,
                              UIP_ND6_ARO_STATUS_SUCESS, 
                              &locdar->ipaddr,
                              uip_ds6_nbr_get_ll(nbr), 

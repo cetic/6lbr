@@ -116,7 +116,6 @@ uip_ds6_init(void)
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
 #if CONF_6LOWPAN_ND
   memset(uip_ds6_context_pref_list, 0, sizeof(uip_ds6_context_pref_list));
-  //TODO move to route file
   memset(uip_ds6_br_list, 0, sizeof(uip_ds6_br_list));
 #if UIP_CONF_6LBR
   memset(uip_ds6_dup_addr_list, 0, sizeof(uip_ds6_dup_addr_list));
@@ -402,6 +401,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
     PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    return locprefix;
   }
   return NULL;
 }
@@ -443,6 +443,21 @@ uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router)
     }
   }
 }
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_prefix_t *
+uip_ds6_prefix_lookup_from_ipaddr(uip_ipaddr_t *ipaddr)
+{
+  for(locprefix = uip_ds6_prefix_list;
+      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
+      locprefix++) {
+    if(locprefix->isused && 
+       uip_ipaddr_prefixcmp(&locprefix->ipaddr, ipaddr, locprefix->length)) {
+      return locprefix;
+    }
+  }
+  return NULL;
+}
 #endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
@@ -468,8 +483,7 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 void 
 uip_ds6_br_config()
 {
-  //TODO: increment this value when prefix or context information changes
-  /* default value of 10,000 ( ~one week) */
+  /* default value of 10,000 (~one week) */
   locbr = uip_ds6_br_add(0, 0x0, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
   /* link all context to border router */
   for(loccontext = uip_ds6_context_pref_list; 
@@ -767,6 +781,29 @@ uip_ds6_get_global(int8_t state)
   }
   return NULL;
 }
+
+/*---------------------------------------------------------------------------*/
+/*
+ * get a global address with Border Router
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+#if CONF_6LOWPAN_ND
+uip_ds6_addr_t *
+uip_ds6_get_global_br(int8_t state, uip_ds6_border_router_t *br)
+{
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if(locaddr->isused && (state == -1 || locaddr->state == state)
+       && !(uip_is_addr_link_local(&locaddr->ipaddr))
+       && (locprefix = uip_ds6_prefix_lookup_from_ipaddr(&locaddr->ipaddr))
+       && locprefix->br == br){
+      return locaddr;
+    }
+  }
+  return NULL;
+}
+#endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *

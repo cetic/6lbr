@@ -614,7 +614,6 @@ uip_ds6_defrt_choose(void)
     PRINT6ADDR(&d->ipaddr);
     PRINTF("\n");
     bestnbr = uip_ds6_nbr_lookup(&d->ipaddr);
-    //TODO adapt with 6LoWPAN-ND
     if(bestnbr != NULL && bestnbr->state != NBR_INCOMPLETE) {
       PRINTF("Defrt found, IP address ");
       PRINT6ADDR(&d->ipaddr);
@@ -656,7 +655,6 @@ uip_ds6_br_add(uint32_t version, uint16_t lifetime, uip_ipaddr_t *ipaddr)
   if(ipaddr == NULL) {
     return NULL;
   }
-//TODO optimization with uip_ds6_list_loop
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
       locbr++) {
@@ -683,9 +681,9 @@ uip_ds6_br_rm(uip_ds6_border_router_t *br)
 {
   if(br != NULL) {
     br->state = BR_ST_FREE;
-    //TODO more: rm link to context and pio
     uip_ds6_prefix_rm_all(br);
     uip_ds6_context_pref_rm_all(br);
+    uip_ds6_prefix_rm_all(br);
   }
 }
 
