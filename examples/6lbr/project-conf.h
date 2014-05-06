@@ -333,14 +333,14 @@
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     25
+#define UIP_CONF_DS6_NBR_NBU     100
 
 //Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   25
+#define UIP_CONF_DS6_ROUTE_NBU   100
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   25
+#define UIP_CONF_MAX_ROUTES   100
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
