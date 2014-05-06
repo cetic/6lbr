@@ -44,46 +44,33 @@
 #include "nvm-itf.h"
 #include "log-6lbr.h"
 
-//#include <mc1322x.h>
-//#include "config.h"
+#include "rom-util.h"
 
-//#define CETIC_6LBR_NVM_ADDRESS (MC1322X_CONFIG_PAGE + 0x100)
+#define CETIC_6LBR_NVM_SIZE 2048
+// We use the penultimate flash page as our nvm
+//TODO/ this must be updated for non 512K CC2538
+#define CETIC_6LBR_NVM_ADDRESS (0x00280000 - (2*CETIC_6LBR_NVM_SIZE))
 
 void
 nvm_data_read(void)
 {
-/*
-  nvmType_t type = 0;
-  nvmErr_t err;
-*/
-
-  LOG6LBR_INFO("TODO: Reading 6LBR NVM\n");
-/*
   LOG6LBR_INFO("Reading 6LBR NVM\n");
-  err = nvm_detect(gNvmInternalInterface_c, &type);
-  err =
-    nvm_read(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
-             CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
-*/
+  rom_util_memcpy( (void *)&nvm_data,
+   (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
 }
 
 void
 nvm_data_write(void)
 {
-/*
-  nvmType_t type = 0;
-  nvmErr_t err;
-*/
-
-  LOG6LBR_INFO("TODO: Flashing 6LBR NVM\n");
-/*
+  long err;
   LOG6LBR_INFO("Flashing 6LBR NVM\n");
-  mc1322x_config_save(&mc1322x_config);
-  err = nvm_detect(gNvmInternalInterface_c, &type);
-  err =
-    nvm_write(gNvmInternalInterface_c, type, (uint8_t *) & nvm_data,
-              CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
-  LOG6LBR_ERROR("err : %d\n", err);
-*/
+  err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
+  if ( err != 0 ) {
+    LOG6LBR_ERROR("erase error : %ld\n", err);
+  }
+  rom_util_program_flash( (uint32_t*)&nvm_data,
+   CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
+  if ( err != 0 ) {
+    LOG6LBR_ERROR("write error : %ld\n", err);
+  }
 }
