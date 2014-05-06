@@ -134,15 +134,20 @@ buildRT([
     {"mote":2, 
      "fct":function(){
          addroute(1,3,2,128);
-         //Waiting .5 sec
-         GENERATE_MSG(500, "continue");
-         WAIT_UNTIL(msg.contains("continue"));
+         GENERATE_MSG(50, "continue1");
+         WAIT_UNTIL(msg.contains("continue1"));
          addroute(1,5,2,128);
+         GENERATE_MSG(50, "continue2");
+         WAIT_UNTIL(msg.contains("continue2"));
+         addroute(1,4,2,128);
+         GENERATE_MSG(50, "continue3");
+         WAIT_UNTIL(msg.contains("continue3"));
+         addroute(1,6,2,128);
         }
     },
     {"mote":4, 
      "fct":function(){
-         addroute(1,6,4,128);
+         addroute(2,6,4,128);
          }
     }
 ]);

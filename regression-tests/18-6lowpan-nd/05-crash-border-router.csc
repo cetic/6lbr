@@ -237,7 +237,7 @@
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
       <scriptfile>[CONFIG_DIR]/script/crash_br.js</scriptfile>
-      <active>false</active>
+      <active>true</active>
     </plugin_config>
     <width>658</width>
     <z>0</z>

@@ -198,24 +198,6 @@ print_dup_addr(void) {
 }
 #endif /* UIP_CONF_6LBR */
 
-/*---------------------------------------------------------------------------*/
-PROCESS(shell_reboot_process, "reboot");
-SHELL_COMMAND(reboot_cmd,
-        "reboot",
-        "reboot: reboot the system",
-        &shell_reboot_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_reboot_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  PRINTF("Rebooting the node...");
-
-  watchdog_reboot();
-
-  PROCESS_END();
-}
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(net_display_process, ev, data)
@@ -237,6 +219,24 @@ PROCESS_THREAD(net_display_process, ev, data)
   PROCESS_END();
 }
 #endif /* DEBUG == DEBUG_PRINT */
+
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_reboot_process, "reboot");
+SHELL_COMMAND(reboot_cmd,
+        "reboot",
+        "reboot: reboot the system",
+        &shell_reboot_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_reboot_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  PRINTF("Rebooting the node...");
+
+  watchdog_reboot();
+
+  PROCESS_END();
+}
 
 #if UIP_CONF_6LBR
 /*---------------------------------------------------------------------------*/
