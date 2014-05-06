@@ -8,27 +8,39 @@ import imp
 import time
 
 class SimMoteType:
-	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description):
+	def __init__(self, shortname, fw_folder, maketarget, makeargs, serial, description, platform="sky"):
 		self.shortname = shortname
 		self.fw_folder = os.path.normpath(fw_folder)
 		self.maketarget = maketarget
 		self.makeargs = makeargs
 		self.serial = serial
 		self.description = description
+		self.platform = platform
 
 	def text_from_template(self):
-		text ="""    <motetype>
-      se.sics.cooja.mspmote.SkyMoteType
+		text = """    <motetype>
+      org.contikios.cooja.mspmote.MOTETYPE
       <identifier>SHORTNAME</identifier>
       <description>DESCRIPTION</description>
       <source EXPORT="discard">FIRMWAREPATH</source>
-      <commands EXPORT="discard">make FIRMWARE.sky TARGET=sky MAKEARGS</commands>
+      <commands EXPORT="discard">make FIRMWARE.PLATFORM TARGET=PLATFORM MAKEARGS</commands>
       <firmware EXPORT="copy">FIRMWAREBIN</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>"""
+		if self.platform is 'wismote':
+			text += """
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspButton</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDefaultSerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspLED</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>"""
+		else:
+			text += """
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
@@ -38,14 +50,17 @@ class SimMoteType:
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>"""
+		text += """
     </motetype>\r\n"""
 		text = text.replace('FIRMWAREPATH', self.fw_folder + os.path.sep + self.maketarget + '.c')
-		text = text.replace('FIRMWAREBIN', self.fw_folder + os.path.sep + self.maketarget + '.sky')
+		text = text.replace('FIRMWAREBIN', self.fw_folder + os.path.sep + self.maketarget + '.'+self.platform)
+		text = text.replace('PLATFORM', self.platform)
 		text = text.replace('SHORTNAME', self.shortname)
 		text = text.replace('DESCRIPTION', self.description)
 		text = text.replace('FIRMWARE', self.maketarget)
 		text = text.replace('MAKEARGS', self.makeargs)
+		text = text.replace('MOTETYPE', self.platform[0].upper()+self.platform[1:len(self.platform)]+"MoteType")
 		return text
 
 class SimMote:
@@ -418,12 +433,16 @@ class ConfigParser():
 				sim = Sim(template_path)
 
 				for mote_type in config_simgen.mote_types:
+					platform = 'sky'
+					if 'platform' in mote_type:
+						platform = mote_type['platform']
 					mote_type_obj = SimMoteType(    mote_type['shortname'],
 									mote_type['fw_folder'],
 									mote_type['maketarget'],
 									mote_type['makeargs'],
 									mote_type['serial'],
-									mote_type['description'])
+									mote_type['description'],
+									platform)
 					self.mote_types.append(mote_type_obj)
 					sim.insert_sky_motetype(mote_type_obj)
 
@@ -469,12 +488,16 @@ class ConfigParser():
 				sim = Sim(template_path)
 
 				for mote_type in config_simgen.mote_types:
+					platform = 'sky'
+					if 'platform' in mote_type:
+						platform = mote_type['platform']
 					mote_type_obj = SimMoteType(    mote_type['shortname'],
 									mote_type['fw_folder'],
 									mote_type['maketarget'],
 									mote_type['makeargs'],
 									mote_type['serial'],
-									mote_type['description'])
+									mote_type['description'],
+									platform)
 					self.mote_types.append(mote_type_obj)
 					sim.insert_sky_motetype(mote_type_obj)
 
