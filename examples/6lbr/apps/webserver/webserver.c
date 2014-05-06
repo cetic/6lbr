@@ -121,8 +121,24 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 #define BUF_SIZE (2*256)
+#if CONTIKI_TARGET_NATIVE
 static const char *TOP =
   "<html><head><title>6LBR</title><link rel=\"stylesheet\" type=\"text/css\" href=\"6lbr_layout.css\" />";
+#else
+static const char *TOP =
+  "<html><head><title>6LBR</title><style type=\"text/css\">"
+  "body{font-family:Verdana;color:#333333;padding:20px;}"
+  "#banner{background-color: #779945;color: #ffffff;}"
+  "#barre_nav{background-color: #669934; color: #fff;}"
+  ".menu-general a{padding: 3px 10px 4px;}"
+  "h1,h2{margin:40px 0 0;padding:0;font-weight:bold;}"
+  "h1{font-size:16px;line-height:18px;}"
+  "h2{font-size:14px;color:#669934;line-height:16px;}"
+  "h3{font-size:12px;font-weight:bold;line-height:14px;}"
+  "#h{margin:0;}"
+  "#footer{border-top:1px solid black;margin-top: 1em;font-size: 9px;}"
+  "</style></head>";
+#endif
 static const char *BODY =
   "</head><body class=\"page_rubrique\"><div id=\"container\">"
   "<div id=\"banner\">"
@@ -178,7 +194,7 @@ ipaddr_add(const uip_ipaddr_t * addr)
     }
   }
 }
-#if CONTIKI_TARGET_NATIVE
+
 static void
 ipaddr_add_u8(const uint8_t * addr)
 {
@@ -200,7 +216,7 @@ ipaddr_add_u8(const uint8_t * addr)
     }
   }
 }
-#endif
+
 static void
 lladdr_add(const uip_lladdr_t * addr)
 {
@@ -1316,12 +1332,14 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   reset_buf();
 #endif
 #endif
+#if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");
   add("Messages sent : %d<br />", slip_message_sent);
   add("Messages received : %d<br />", slip_message_received);
   add("Bytes sent : %d<br />", slip_sent);
   add("Bytes received : %d<br />", slip_received);
   add("<br />");
+#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -1351,6 +1369,7 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   reset_buf();
 
   add("<h2>Administration</h2>");
+#if CONTIKI_TARGET_NATIVE
   add("<h3>Logs</h3>");
   add("<form action=\"log\" method=\"get\">");
   add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
@@ -1360,16 +1379,20 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
   add("<h3>Restart</h3>");
   add("<form action=\"restart\" method=\"get\">");
   add("<input type=\"submit\" value=\"Restart 6LBR\"/></form><br />");
+#if CONTIKI_TARGET_NATIVE
   add("<form action=\"reboot\" method=\"get\">");
   add("<input type=\"submit\" value=\"Reboot 6LBR\"/></form><br />");
-
+#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CONTIKI_TARGET_NATIVE
   add("<form action=\"halt\" method=\"get\">");
   add("<input type=\"submit\" value=\"Halt 6LBR\"/></form><br />");
+#endif
   add("<h3>Configuration</h3>");
   add("<form action=\"reset_config\" method=\"get\">");
   add("<input type=\"submit\" value=\"Reset NVM to factory default\"/></form><br />");
@@ -1587,12 +1610,13 @@ httpd_simple_get_script(const char *name)
   static uip_ds6_route_t *route;
   static uip_ds6_nbr_t *neighbor;
   static uip_ipaddr_t ipaddr;
+#if CONTIKI_TARGET_NATIVE
   static char filename[HTTPD_PATHLEN];
 
   strcpy(filename, slip_config_www_root);
   strcat(filename, "/");
   strcat(filename, name);
-
+#endif
   redirect = 0;
 
   int admin = (nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0;
