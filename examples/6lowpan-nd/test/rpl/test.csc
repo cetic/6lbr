@@ -44,9 +44,9 @@
       org.contikios.cooja.mspmote.WismoteMoteType
       <identifier>wismote3</identifier>
       <description>Router</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/6lowpan-nd/6lr/ex-6lowpannd-6lr.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/6lowpan-nd/6lr-rpl/ex-6lowpannd-6lr.c</source>
       <commands EXPORT="discard">make ex-6lowpannd-6lr.wismote TARGET=wismote</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/6lowpan-nd/6lr/ex-6lowpannd-6lr.wismote</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/6lowpan-nd/6lr-rpl/ex-6lowpannd-6lr.wismote</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -64,9 +64,9 @@
       org.contikios.cooja.mspmote.WismoteMoteType
       <identifier>wismote4</identifier>
       <description>Border Router</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/6lowpan-nd/6lbr/ex-6lowpannd-6lbr.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/6lowpan-nd/6lbr-rpl/ex-6lowpannd-6lbr.c</source>
       <commands EXPORT="discard">make ex-6lowpannd-6lbr.wismote TARGET=wismote</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/6lowpan-nd/6lbr/ex-6lowpannd-6lbr.wismote</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/6lowpan-nd/6lbr-rpl/ex-6lowpannd-6lbr.wismote</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>

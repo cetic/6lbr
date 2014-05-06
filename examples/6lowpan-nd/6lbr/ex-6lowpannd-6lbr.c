@@ -37,7 +37,6 @@
 #include "sys/etimer.h"
 
 #define DEBUG DEBUG_PRINT
-#include "net/rpl/rpl.h"
 #include "net/ip/uip-debug.h"
 
 void send_packet(uip_ipaddr_t * server_ipaddr);
@@ -165,7 +164,6 @@ send_packet(uip_ipaddr_t * server_ipaddr)
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
-  struct uip_ds6_addr *root_if;
   static struct etimer periodic_timer;
   char *appdata;
   static uint16_t pref = PREFIX_INIT;
@@ -195,18 +193,6 @@ PROCESS_THREAD(test_router, ev, data)
   set_context_prefix_address(pref);
   uip_ds6_br_config();
 
-  /* Config RPL root */
-  root_if = uip_ds6_addr_lookup(ipaddr);
-  if(root_if != NULL) {
-    rpl_dag_t *dag;
-    dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)ipaddr);
-    //rpl_set_prefix(dag, &pref, 64);
-    printf("created a new RPL dag\n");
-  } else {
-    printf("failed to create a new RPL DAG\n");
-  }
-
-
   server_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL);
   if(server_conn == NULL) {
     PRINTF("No UDP connection available, exiting the process!\n");
@@ -219,6 +205,14 @@ PROCESS_THREAD(test_router, ev, data)
   PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
+  //routing table
+  /*
+  uip_ipaddr_t prefix;
+  uip_ipaddr_t ipaddr6LR2;
+  uip_ip6addr(&prefix, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr6LR2, pref, 0, 0, 0, 0x212, 0x7402, 0x2, 0x202);
+  uip_ds6_route_add(&prefix, 32, &ipaddr6LR2);
+  */
 
   while(1) {
     PROCESS_YIELD();

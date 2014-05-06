@@ -26,47 +26,64 @@
  * This file is part of the Contiki operating system.
  */
 
- #define SHELL 1
-
+#define SHELL 1
+ 
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
-#include "net/netstack.h"
 #include "sys/etimer.h"
 
-#include <stdio.h>
-#include <string.h>
-
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
+#include "net/rpl/rpl.h"
 #include "net/ip/uip-debug.h"
 
 void send_packet(uip_ipaddr_t * server_ipaddr);
+
+#include <stdio.h>
+#include <string.h>
 
 #if SHELL
 #include "../shell-6l.h"
 #endif
 
+
 #define UDP_PORT 8765
 #define MAX_PAYLOAD_LEN   30
 
 #define SEND_INTERVAL   (1 * CLOCK_SECOND)
+#define CHANGING_INTERVAL (10 * 60 * CLOCK_SECOND)
+
+#define PREFIX_INIT 0xbbbb
+
+#define CHANGE_PREFIX 0
 
  static struct uip_udp_conn *server_conn;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_router, "Test process of 6LoWPAN ND router");
+#if CHANGE_PREFIX
+PROCESS(change_prefix, "Test process of changing prefix");
+AUTOSTART_PROCESSES(&test_router, &change_prefix);
+#else
 AUTOSTART_PROCESSES(&test_router);
+#endif
+
+
 
 /*---------------------------------------------------------------------------*/
-void
-display_add()
+static uip_ipaddr_t *
+set_global_address(uint16_t pref)
 {
-#if DEBUG
+  static uip_ipaddr_t ipaddr;
   int i;
   uint8_t state;
+
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
   PRINTF("IPv6 addresses: ");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
@@ -78,8 +95,56 @@ display_add()
     }
   }
   PRINTF("\n");
-#endif
+
+  return &ipaddr;
 }
+
+/*---------------------------------------------------------------------------*/
+void
+rm_global_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+
+  uip_ds6_addr_rm(uip_ds6_addr_lookup(&ipaddr));
+}
+
+/*---------------------------------------------------------------------------*/
+void
+set_prefix_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_prefix_add(&ipaddr, 64, 1, 0xc0, 86400, 14400);
+
+}
+
+/*---------------------------------------------------------------------------*/
+void
+set_context_prefix_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_context_pref_add(&ipaddr, 16, 10);
+}
+
+/*---------------------------------------------------------------------------*/
+void
+rm_context_prefix_address(uint16_t pref)
+{
+  static uip_ipaddr_t ipaddr;
+  uip_ds6_context_pref_t *context;
+  uip_ip6addr(&ipaddr, pref, 0, 0, 0, 0, 0, 0, 0);
+
+  context = uip_ds6_context_pref_lookup(&ipaddr);
+  uip_ds6_context_pref_rm(context);
+}
+
 
 /*---------------------------------------------------------------------------*/
 void
@@ -100,15 +165,17 @@ send_packet(uip_ipaddr_t * server_ipaddr)
 PROCESS_THREAD(test_router, ev, data)
 {
   uip_ipaddr_t *ipaddr;
+  struct uip_ds6_addr *root_if;
   static struct etimer periodic_timer;
   char *appdata;
+  static uint16_t pref = PREFIX_INIT;
 
 	PROCESS_BEGIN();
  
-#if UIP_CONF_6LR
-  printf("STARTING router (6LR)...  \n");
+#if UIP_CONF_6LBR
+  PRINTF("STARTING router (6LBR)...  \n");
 #else
-  printf("STARTING unknown device...\n");
+  PRINTF("STARTING unknown device...\n");
 #endif	
 
 #if SHELL
@@ -123,7 +190,22 @@ PROCESS_THREAD(test_router, ev, data)
 #endif
 */
 
-  display_add();
+  ipaddr = set_global_address(pref);
+  set_prefix_address(pref);
+  set_context_prefix_address(pref);
+  uip_ds6_br_config();
+
+  /* Config RPL root */
+  root_if = uip_ds6_addr_lookup(ipaddr);
+  if(root_if != NULL) {
+    rpl_dag_t *dag;
+    dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)ipaddr);
+    //rpl_set_prefix(dag, &pref, 64);
+    printf("created a new RPL dag\n");
+  } else {
+    printf("failed to create a new RPL DAG\n");
+  }
+
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_PORT), NULL);
   if(server_conn == NULL) {
@@ -137,19 +219,7 @@ PROCESS_THREAD(test_router, ev, data)
   PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
-  //routing table
-/*
-  uip_ipaddr_t prefix;
-  uip_ipaddr_t ipaddr6LBR;
-  uip_ipaddr_t ipaddr6LH;
-  uint16_t pref = 0xbbbb;
-  uip_ip6addr(&prefix, pref, 0, 0, 0, 0, 0, 0, 0);
-  uip_ip6addr(&ipaddr6LBR, pref, 0, 0, 0, 0x212, 0x7401, 0x1, 0x101);
-  uip_ip6addr(&ipaddr6LH, pref, 0, 0, 0, 0x212, 0x7403, 0x3, 0x103);
-  uip_ds6_route_add(&prefix, 32, &ipaddr6LBR);
-  uip_ds6_route_add(&ipaddr6LH, 128, &ipaddr6LH);
-*/
-  
+
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event && uip_newdata()) {
@@ -161,5 +231,34 @@ PROCESS_THREAD(test_router, ev, data)
 
 
   PROCESS_END();
-  PRINTF("END PROCESS :() \n");
 }
+
+/*---------------------------------------------------------------------------*/
+#if CHANGE_PREFIX
+PROCESS_THREAD(change_prefix, ev, data)
+{
+  static struct etimer periodic_timer;
+  PROCESS_BEGIN();
+
+  static uint16_t pref;
+
+  pref = PREFIX_INIT;
+
+  etimer_set(&periodic_timer, CHANGING_INTERVAL);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    //CHANGING
+    printf("---- CHANGING VERSION -----");
+    rm_global_address(pref);
+    rm_context_prefix_address(pref);
+    pref += 0x1111;
+    printf("--> %x\n", pref);
+    set_global_address(pref);
+    set_context_prefix_address(pref);
+    etimer_set(&periodic_timer, CHANGING_INTERVAL);
+  }
+
+  PROCESS_END();
+}
+#endif
