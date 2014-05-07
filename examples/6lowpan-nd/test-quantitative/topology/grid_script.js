@@ -34,16 +34,25 @@ function genip(num, pref){
     for(var i=0; i<3; i++){
         ip +=":0000";
     }
-    var n, hex;
-    ip += ":0212";
-    n = 0x7400 + num;
-    ip += ":"+n.toString(16);
-    n = 0x0 + num;
-    hex = n.toString(16);
-    ip += ":00"+(hex.length==1 ? '0' : '')+hex;
-    n = (0x100 * num) + num;
-    hex = n.toString(16);
-    ip += ":"+(hex.length==3 ? '0' : '')+hex;
+    // Platform Wismote
+    if(platform == "wismote") {
+        ip += ":0200:0000:0000:"
+        hex = num.toString(16);
+        for(var i=0; i<4-hex.length; i++) ip += "0"
+        ip += hex;
+    // Platform Sky
+    } else {
+        var n, hex;
+        ip += ":0212";
+        n = 0x7400 + num;
+        ip += ":"+n.toString(16);
+        n = 0x0 + num;
+        hex = n.toString(16);
+        ip += ":00"+(hex.length==1 ? '0' : '')+hex;
+        n = (0x100 * num) + num;
+        hex = n.toString(16);
+        ip += ":"+(hex.length==3 ? '0' : '')+hex;
+    }
     return ip;
 }
 function gpip(num) { return genip(num, prefix); }
@@ -112,7 +121,6 @@ function buildRT(s) {
 	    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
 	    var from = parseInt(msg.split(" ")[1].split("::")[1].split(":")[2],16);
 	    var alldone = true;
-        while(ac_retrans.length) { eval(ac_retrans.pop()) }
 	    for(var i in s){
 	        var v = s[i];
 	        if(v.mote == from) {
@@ -126,7 +134,6 @@ function buildRT(s) {
 	        }
 	        if(!v.done) alldone = false;
 	    }
-        displayAllTable();
 	    if(alldone) return;
     }
 }

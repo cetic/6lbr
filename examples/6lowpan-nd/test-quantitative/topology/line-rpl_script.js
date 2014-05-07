@@ -139,24 +139,6 @@ function buildRT(s) {
 }
 // endload()
 
-function generate_RT_formated(){
-    var rt = [];
-    var numMote = sim.getMotes().length;
-    if(numMote<3) return false;
-    for(var mote_i=2; mote_i<numMote; mote_i++) {
-        var ev = "";
-        for(var mote_to=mote_i+1; mote_to<=numMote; mote_to++) {
-            ev += "addroute("+(mote_i-1)+","+mote_to+","+mote_i+",128);";
-            if(mote_to<numMote) {
-                ev += 'GENERATE_MSG(25, "continue'+mote_to+'");';
-                ev += 'WAIT_UNTIL(msg.contains("continue'+mote_to+'"));';
-            }
-        }
-        rt.push({"mote":mote_i, "eval":ev})
-    }
-    return rt;  
-}
-
 function analysis(){
     //ANALYSIS
     var json = "{"
@@ -167,6 +149,7 @@ function analysis(){
     msg_in_out = {"ip":[0,0,0,0], "nd6":[0,0]}
     var allm = sim.getMotes();
     for(var id in  allm) {
+        log.log("stats\n");
         write(allm[id], "stats");
         YIELD_THEN_WAIT_UNTIL(msg.contains("|"));
         msg_type = msg.split('|');
@@ -194,11 +177,6 @@ function analysis(){
 TIMEOUT(18000000); //5h
 WaitingStarting();
 
-//Routing Table
-log.log("Modify RT\n");
-rt = generate_RT_formated();
-buildRT(rt);
-log.log("- end modify RT -");
 
 // Waiting topology stable
 waitingConfig();
