@@ -8,8 +8,7 @@ simu: line.simu
 %.simu:
 	sh sim.sh $*
 
-matlab:
-	cd graph/; python adddata.py; cd ../
+matlab: line.matlab
 
 %.matlab:
 	cd graph/; python adddata.py $*; cd ../
@@ -18,5 +17,5 @@ matlab:
 %.all: gen
 	make $*.simu; make $*.matlab
 
-rmsky:
-	cd ../../6lbr/; rm -rf *sky*; cd ../6lr/; rm -rf *sky*; cd ../6lh/; rm -rf *sky*; cd ../test-quantitative/topology/
+rmdevice:
+	cd ../../; rm -rf 6l*/*sky* 6l*/*wismote* 6l*/*z1*; cd test-quantitative/topology/
