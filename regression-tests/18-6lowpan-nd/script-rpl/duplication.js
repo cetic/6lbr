@@ -1,5 +1,5 @@
 
-var newprefix = "cccc";
+var platform = "wismote"
 
 // load(lib.js)
 var prefix = "bbbb";
@@ -140,72 +140,46 @@ function buildRT(s) {
 	    if(alldone) return;
     }
 }
-// endload(lib.js)
+// endload()
 
 
-function addPrefix(prefix, len) {
-    var cmd = "prefix -a "+genpref(prefix)+" "+len;
-    log.log("Prefix added -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
-
-function rmPrefix(prefix, len) {
-    var cmd = "prefix -r "+genpref(prefix)+" "+len;
-    log.log("Prefix remove -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
 
 /*---------------------------------------------------------------*/
-TIMEOUT(1800000); //30min
+
+TIMEOUT(7200000); //2h
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
+log.log("Starting...\n");
 
-waitingConfig();
-log.log("Topology stable\n");
-//displayAllTable();
+//Waiting 1min
+GENERATE_MSG(60000, "timeout");
+YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
+log.log("Testing....\n");
 
+for(var i=0; i<30; i++) {
+    log.log("Check "+(i+1)+"...");
+    YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
+    GENERATE_MSG(3000, "timeout");
+    YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
 
-log.log("Change Prefix\n");
-rmPrefix(prefix, 64);
-addPrefix(newprefix, 64);
-
-moteIdMustChange = [2,3,4];
-while(true) {
-    YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-    waitingConfig(); 
+    //check IP
+    var ipcheck = {1:false, 2:true, 3:false, 4:false};
     var allm = sim.getMotes();
-    var numOK = 0;
     for(var id in  allm) {
         var moteid = allm[id].getID();
         var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
-            numOK++;
+        if(ipcheck[moteid]) {
+            //Check local IP
+            if(ip.indexOf("fe80:") != 0) {
+                log.testFailed();
+            }
+        } else {
+            //Check global IP
+            if(ip.indexOf(prefix+":") != 0) {
+                log.testFailed();
+            }
         }
     } 
-    if(numOK == moteIdMustChange.length) {
-        break;
-    } 
+    log.log("\tOK\n");
 }
-
-
-log.log("Sending udp packet...\n");
-sendudpBR(brID);
-log.log("...OK\n");
-
 log.testOK();

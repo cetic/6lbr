@@ -1,4 +1,5 @@
 
+var platform = "wismote"
 var newprefix = "cccc";
 
 // load(lib.js)
@@ -143,69 +144,77 @@ function buildRT(s) {
 // endload(lib.js)
 
 
-function addPrefix(prefix, len) {
-    var cmd = "prefix -a "+genpref(prefix)+" "+len;
-    log.log("Prefix added -> "+cmd+"\n");
+function addCO(prefix, len) {
+    var cmd = "cp -a "+genpref(prefix)+" "+len;
+    log.log("CO added -> "+cmd+"\n");
     write(sim.getMoteWithID(brID), cmd);
 }
 
-function rmPrefix(prefix, len) {
-    var cmd = "prefix -r "+genpref(prefix)+" "+len;
-    log.log("Prefix remove -> "+cmd+"\n");
+function rmCO(prefix, len) {
+    var cmd = "cp -r "+genpref(prefix)+" "+len;
+    log.log("CO remove -> "+cmd+"\n");
     write(sim.getMoteWithID(brID), cmd);
 }
+
+
+function checkTable(prefixes){
+    var allm = sim.getMotes();
+    for(var id in  allm) {
+	    write(allm[id], "netd cp");
+        do{
+            YIELD();
+            for(var i in prefixes) {
+                var val = prefixes[i];
+                if((msg.contains(val.pref) && val.ok) ||
+                   (!msg.contains(val.pref) && !val.ok)) {
+                    val.found = true;
+                 }  
+            }
+        }while(!msg.contains("Contiki>"));
+	}
+    for(var i in prefixes) {
+        if(!prefixes[i].found)
+            return false;
+    }
+    return true;
+}
+
 
 /*---------------------------------------------------------------*/
-TIMEOUT(1800000); //30min
+TIMEOUT(7200000); //2h
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
 
 waitingConfig();
 log.log("Topology stable\n");
 //displayAllTable();
 
+if(!checkTable([{"pref":prefix+"::/16", "ok":1}])){
+    log.testFailed();
+}
+log.log("Context found\n");
 
-log.log("Change Prefix\n");
-rmPrefix(prefix, 64);
-addPrefix(newprefix, 64);
+addCO(newprefix,16);
+rmCO(prefix,16);
+log.log("Modify Context Table\n");
 
-moteIdMustChange = [2,3,4];
-while(true) {
-    YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-    waitingConfig(); 
-    var allm = sim.getMotes();
-    var numOK = 0;
-    for(var id in  allm) {
-        var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
-            numOK++;
-        }
-    } 
-    if(numOK == moteIdMustChange.length) {
-        break;
-    } 
+function refreshTopo(){
+	YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+	waitingConfig();
+	displayAllTable();
+	log.log("Topolgy refreshed\n");
 }
 
+refreshTopo();
+if(!checkTable([{"pref":prefix+"::/16", "ok":1},
+                {"pref":newprefix+"::/16", "ok":1}])) {
+    log.testFailed();
+}
 
-log.log("Sending udp packet...\n");
-sendudpBR(brID);
-log.log("...OK\n");
+refreshTopo();
+if(!checkTable([{"pref":prefix+"::/16", "ok":0},
+                {"pref":newprefix+"::/16", "ok":1}])) {
+    log.testFailed();
+}
 
 log.testOK();

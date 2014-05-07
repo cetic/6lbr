@@ -1,5 +1,5 @@
 
-var newprefix = "cccc";
+var platform = "wismote"
 
 // load(lib.js)
 var prefix = "bbbb";
@@ -140,72 +140,22 @@ function buildRT(s) {
 	    if(alldone) return;
     }
 }
-// endload(lib.js)
+// endload()
 
-
-function addPrefix(prefix, len) {
-    var cmd = "prefix -a "+genpref(prefix)+" "+len;
-    log.log("Prefix added -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
-
-function rmPrefix(prefix, len) {
-    var cmd = "prefix -r "+genpref(prefix)+" "+len;
-    log.log("Prefix remove -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
 
 /*---------------------------------------------------------------*/
-TIMEOUT(1800000); //30min
+
+
+//Display NC when changement of msg was done
+TIMEOUT(7200000); //2h
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
-
-waitingConfig();
-log.log("Topology stable\n");
-//displayAllTable();
-
-
-log.log("Change Prefix\n");
-rmPrefix(prefix, 64);
-addPrefix(newprefix, 64);
-
-moteIdMustChange = [2,3,4];
-while(true) {
-    YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-    waitingConfig(); 
-    var allm = sim.getMotes();
-    var numOK = 0;
-    for(var id in  allm) {
-        var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
-            numOK++;
-        }
-    } 
-    if(numOK == moteIdMustChange.length) {
-        break;
-    } 
+for(var i=0; i<=10; i++) {
+	waitingConfig();
+	log.log("Topology stable\n");
+	displayAllTable();
+	log.log("Sending udp packet\n");
+	sendudpBR(brID);
+    log.log("...OK"+i+"\n");
 }
-
-
-log.log("Sending udp packet...\n");
-sendudpBR(brID);
-log.log("...OK\n");
-
 log.testOK();

@@ -937,6 +937,9 @@ void
 uip_rpl_input(void)
 {
   PRINTF("Received an RPL control message\n");
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+  printf("#rRPL\n");
+#endif  /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
 
 #if CONF_6LOWPAN_ND
   uip_ds6_nbr_t *nbr;

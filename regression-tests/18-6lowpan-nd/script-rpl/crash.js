@@ -1,5 +1,5 @@
 
-var newprefix = "cccc";
+var platform = "wismote"
 
 // load(lib.js)
 var prefix = "bbbb";
@@ -140,72 +140,51 @@ function buildRT(s) {
 	    if(alldone) return;
     }
 }
-// endload(lib.js)
+// endload()
 
 
-function addPrefix(prefix, len) {
-    var cmd = "prefix -a "+genpref(prefix)+" "+len;
-    log.log("Prefix added -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
+
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+" ")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
 }
 
-function rmPrefix(prefix, len) {
-    var cmd = "prefix -r "+genpref(prefix)+" "+len;
-    log.log("Prefix remove -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
 
-/*---------------------------------------------------------------*/
+/*------------------------------------------------------*/
 TIMEOUT(1800000); //30min
 WaitingStarting();
 
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
-
 waitingConfig();
 log.log("Topology stable\n");
-//displayAllTable();
 
+write(sim.getMoteWithID(6), "reboot");
+log.log("Rebooting...\n");
+YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+waitingConfig();
+log.log("Check\n");
 
-log.log("Change Prefix\n");
-rmPrefix(prefix, 64);
-addPrefix(newprefix, 64);
-
-moteIdMustChange = [2,3,4];
-while(true) {
-    YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-    waitingConfig(); 
-    var allm = sim.getMotes();
-    var numOK = 0;
-    for(var id in  allm) {
-        var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
-            numOK++;
-        }
-    } 
-    if(numOK == moteIdMustChange.length) {
-        break;
-    } 
+if(!(checknc({6:{4:true}, 4:{6:true}}) || 
+     checknc({6:{5:true}, 5:{6:true}}))) {
+    log.testFailed();
 }
-
-
-log.log("Sending udp packet...\n");
-sendudpBR(brID);
-log.log("...OK\n");
 
 log.testOK();

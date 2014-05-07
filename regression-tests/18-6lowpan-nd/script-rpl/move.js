@@ -1,5 +1,5 @@
 
-var newprefix = "cccc";
+var platform = "wismote"
 
 // load(lib.js)
 var prefix = "bbbb";
@@ -140,72 +140,94 @@ function buildRT(s) {
 	    if(alldone) return;
     }
 }
-// endload(lib.js)
+// endload()
 
-
-function addPrefix(prefix, len) {
-    var cmd = "prefix -a "+genpref(prefix)+" "+len;
-    log.log("Prefix added -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
-
-function rmPrefix(prefix, len) {
-    var cmd = "prefix -r "+genpref(prefix)+" "+len;
-    log.log("Prefix remove -> "+cmd+"\n");
-    write(sim.getMoteWithID(brID), cmd);
-}
-
-/*---------------------------------------------------------------*/
-TIMEOUT(1800000); //30min
+/*------------------------------------------------------*/
+TIMEOUT(3600000); //1h
 WaitingStarting();
-
-log.log("Modify RT\n");
-buildRT([
-    {"mote":2, 
-     "fct":function(){
-        addroute(1,4,2,128);
-        GENERATE_MSG(500, "continue");
-        WAIT_UNTIL(msg.contains("continue"));
-        addroute(1,3,2,128);
-        }
-    },
-    {"mote":4, 
-     "fct":function(){
-         addroute(2,3,4,128);
-         }
-    }
-]);
 
 waitingConfig();
 log.log("Topology stable\n");
-//displayAllTable();
+displayAllTable();
+
+function moveTo(moteID, x, y) {
+    var pos = sim.getMoteWithID(moteID).getInterfaces().getPosition();
+    pos.setCoordinates(pos.getXCoordinate()+x, pos.getYCoordinate()+y, pos.getZCoordinate());
+}
+
+function checknc(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd nc");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+" ")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
+
+// Move
+moveTo(6, 20, -30);
+log.log("Mote 6 moved, only 4 can see it\n");
 
 
-log.log("Change Prefix\n");
-rmPrefix(prefix, 64);
-addPrefix(newprefix, 64);
+// Check
+while(true) {
+    waitingConfig();
+    log.log("Check: only 4 can see  6\n");
+    if(checknc({
+            6:{4:true, 5:false},
+            4:{6:true},
+            5:{6:false}
+        })){
+        break;
+    }
+}
 
-moteIdMustChange = [2,3,4];
+// Move
+moveTo(6, 30, 0);
+log.log("Mote 6 moved for isolate it\n");
+
+
+// Check
 while(true) {
     YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-    waitingConfig(); 
-    var allm = sim.getMotes();
-    var numOK = 0;
-    for(var id in  allm) {
-        var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
-            numOK++;
-        }
-    } 
-    if(numOK == moteIdMustChange.length) {
+    log.log("Check: isolation\n");
+    if(checknc({
+            6:{4:false, 5:false},
+            4:{6:false},
+            5:{6:false}
+        })){
+        break;
+    }
+}
+
+// Move
+moveTo(6, -50, 30);
+log.log("Mote 6 go home\n");
+
+//Check
+while(true) {
+    waitingConfig();
+    log.log("Check: initial position\n");
+    if(checknc({6:{4:true}, 4:{6:true}}) || 
+       checknc({6:{5:true}, 5:{6:true}})) {
         break;
     } 
 }
 
-
-log.log("Sending udp packet...\n");
-sendudpBR(brID);
-log.log("...OK\n");
 
 log.testOK();
