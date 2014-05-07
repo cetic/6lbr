@@ -3,7 +3,7 @@
 import sys
 import json
 
-data_file = "../line/data.log"
+data_file = "data.log"
 matlab_file = "graph.m"
 
 def getdata_from_file(tag, filename):
@@ -62,17 +62,20 @@ def writeToFile(filename, text):
 	f.close()
 
 
-data_start = getdata_from_file("start", data_file)
-data_hour = getdata_from_file("1hour", data_file)
+if len(sys.argv)>1:
 
-matlab_data = gen_matlab_vec("start", data_start)+"\n"
-matlab_data += gen_matlab_vec("hour", data_hour)
+	dir_type = sys.argv[1]
 
-dir_ouput = ""
-if len(sys.argv):
-	dir_ouput = sys.argv[1]
+	data_path = "../"+dir_type+"/"+data_file
 
-writeToFile(dir_ouput+"_"+matlab_file, addDataFile(matlab_file, matlab_data))
+	data_start = getdata_from_file("start", data_path)
+	data_hour = getdata_from_file("1hour", data_path)
+
+	matlab_data = gen_matlab_vec("start", data_start)+"\n"
+	matlab_data += gen_matlab_vec("hour", data_hour)
+
+
+	writeToFile(dir_type+"-"+matlab_file, addDataFile(matlab_file, matlab_data))
 
 
 
