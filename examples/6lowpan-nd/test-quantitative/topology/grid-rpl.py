@@ -1,12 +1,13 @@
 
-outputfolder = 'topology/line-rpl'
+outputfolder = 'topology/grid-rpl'
 template = 'coojagen/templates/cooja-template-6lx.csc'
 radio_model = 'udgm'
-tx_range = 300
-tx_interference = 400
-topology = 'line'
-step = 30
-mote_count = range(2,16,1)
+tx_range = 250
+tx_interference = 250
+topology = 'grid_ratio'
+ratio = "1:1"
+step = 35
+mote_count = range(4,26,1)
 assignment = {'all':'6lr-rpl', '0':'6lbr-rpl', '-1':'6lh'} 
 multi_br=0
 script_file = "[CONFIG_DIR]/../rpl_script.js"

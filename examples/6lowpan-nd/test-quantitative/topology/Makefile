@@ -3,13 +3,12 @@ all: gen simu matlab
 gen:
 	cd ../; python gentest.py; cd topology/
 
-simu: line-rpl.simu
+simu: line-rpl.simu grid-rpl.simu
 
 %.simu:
 	sh sim.sh $*
 
-matlab:
-	cd graph/; python adddata.py; cd ../
+matlab: line-rpl.matlab grid-rpl.matlab
 
 %.matlab:
 	cd graph/; python adddata.py $*; cd ../

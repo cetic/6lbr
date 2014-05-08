@@ -149,7 +149,6 @@ function analysis(){
     msg_in_out = {"ip":[0,0,0,0], "nd6":[0,0]}
     var allm = sim.getMotes();
     for(var id in  allm) {
-        log.log("stats\n");
         write(allm[id], "stats");
         YIELD_THEN_WAIT_UNTIL(msg.contains("|"));
         msg_type = msg.split('|');
@@ -181,6 +180,7 @@ WaitingStarting();
 // Waiting topology stable
 waitingConfig();
 log.log("Topology stable\n");
+displayAllTable();
 // Analysis
 log.log("#start->"+sim.getMotes().length+":"+analysis());
 
