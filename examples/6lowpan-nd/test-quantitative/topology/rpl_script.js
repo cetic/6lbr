@@ -144,7 +144,7 @@ function analysis(){
     var json = "{"
 
     //timing of convergence
-    json += '"time":'+(sim.getSimulationTimeMillis()-75000);
+    json += '"time":'+(sim.getSimulationTimeMillis()-30000);
 
     msg_in_out = {"ip":[0,0,0,0], "nd6":[0,0]}
     var allm = sim.getMotes();
@@ -169,6 +169,53 @@ function analysis(){
     json += "}\n";
 
     return json;
+}
+
+function checkrt(tocheck){
+    for(var moteID in tocheck) {
+        var item = tocheck[moteID];
+        write(sim.getMoteWithID(moteID), "netd rt");
+        var found = [];
+        do{
+            YIELD();
+            for(var targetID in item){
+                var val = item[targetID];
+                if(msg.contains(":"+targetID+"/")){
+                    found.push(targetID);
+                }
+            }
+        }while(!msg.contains("Contiki>"));
+        for(var targetID in item){
+            var val = item[targetID];
+            if(val && found.indexOf(targetID)==-1) return false;
+            if(!val && found.indexOf(targetID)!=-1) return false;
+        }
+
+    }
+    return true;
+}
+
+function allinBR() {
+    var allnote = {};
+    for(var i=2; i<=sim.getMotes().length; i++) {
+        allnote[i] = true;
+    }
+    return checknc({brID: allnote});
+}
+
+function rpl_stable() {
+    var lastid = 0;
+    for(var i=0;; i++) {
+        YIELD_THEN_WAIT_UNTIL(msg.contains("#s") || msg.contains("#r") || msg.contains("timeout"));
+        if(msg.contains("#s") || msg.contains("#r")){
+            GENERATE_MSG(30000, "timeout"+lastid);
+            lastid++;
+        }else if(msg.equals("timeout"+(lastid-1))) {
+            if(allinBR()) {
+                return;
+            }
+        }
+    }
 }
 
 
