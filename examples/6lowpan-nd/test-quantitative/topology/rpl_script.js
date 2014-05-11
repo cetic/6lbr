@@ -198,9 +198,9 @@ function checkrt(tocheck){
 function allinBR() {
     var allnote = {};
     for(var i=2; i<=sim.getMotes().length; i++) {
-        allnote[i] = true;
+        allnote[i.toString(16)] = true;
     }
-    return checknc({brID: allnote});
+    return checkrt({1: allnote});
 }
 
 function rpl_stable() {
@@ -225,7 +225,7 @@ WaitingStarting();
 
 
 // Waiting topology stable
-waitingConfig();
+rpl_stable();
 log.log("Topology stable\n");
 displayAllTable();
 // Analysis
