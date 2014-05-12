@@ -10,7 +10,7 @@ step = 35
 mote_count = range(4,26,1)
 assignment = {'all':'6lr-rpl', '0':'6lbr-rpl', '-1':'6lh'} 
 multi_br=0
-script_file = "[CONFIG_DIR]/../rpl_script.js"
+script_file = "[CONFIG_DIR]/../rpl_grid_script.js"
 
 mote_types = []
 
