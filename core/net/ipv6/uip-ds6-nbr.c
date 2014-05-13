@@ -280,7 +280,6 @@ uip_ds6_neighbor_periodic(void)
       break;
     case NBR_TENTATIVE:
       if (nbr->isrouter == ISROUTER_YES) {
-        //TODO use macro to activate optimisation:  "&& uip_ds6_get_global(ADDR_PREFERRED) != NULL"
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
