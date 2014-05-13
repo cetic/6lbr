@@ -1102,8 +1102,10 @@ uip_ds6_send_rs(void)
     PRINTF("Sending RS slower %u\n", rscount);
     uip_nd6_rs_output();
     rscount++;
-    r = (random_rand() % ((2<<(rscount<10 ? 10 : rscount))-1) - 1) * UIP_ND6_RTR_SOLICITATION_INTERVAL;
-    r = r < UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL ? r : UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL;
+    r = (((uint16_t)random_rand()) % ((2<<(rscount-1)-1)+1)) * UIP_ND6_RTR_SOLICITATION_INTERVAL;
+    if(r >= UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL) {
+      r = UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL;
+    }
     etimer_set(&uip_ds6_timer_rs, r* CLOCK_SECOND);
 #endif /* CONF_6LOWPAN_ND */
   } else {
