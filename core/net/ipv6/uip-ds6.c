@@ -264,7 +264,7 @@ uip_ds6_periodic(void)
       if(stimer_expired(&(locprefix->vlifetime))) {
         uip_ds6_prefix_rm(locprefix);
   #if UIP_CONF_6LR || UIP_CONF_6LN
-      }else if(is_timeout_percent(&loccontext->vlifetime, UIP_DS6_RS_PERCENT_LIFETIME_RETRAN, 
+      }else if(is_timeout_percent(&locprefix->vlifetime, UIP_DS6_RS_PERCENT_LIFETIME_RETRAN, 
                                       UIP_DS6_RS_MINLIFETIME_RETRAN)){
         if(locprefix->br->state != BR_ST_SENDING_RS){
           locprefix->br->state = BR_ST_MUST_SEND_RS;
