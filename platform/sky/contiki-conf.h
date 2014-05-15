@@ -110,9 +110,9 @@
 #define SHELL_VARS_CONF_RAM_END 0x2000
 
 #define PROFILE_CONF_ON 0
-#define UIP_CONF_TCP 0
+//#define UIP_CONF_TCP 0
 #ifndef ENERGEST_CONF_ON
-#define ENERGEST_CONF_ON 0
+#define ENERGEST_CONF_ON 1 // 0 or 1
 #endif /* ENERGEST_CONF_ON */
 
 #define ELFLOADER_CONF_TEXT_IN_ROM 0
