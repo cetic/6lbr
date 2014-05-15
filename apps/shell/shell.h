@@ -372,7 +372,7 @@ struct shell_input {
  * @}
  */
 
-/*
+ 
 #include "shell-base64.h"
 #include "shell-blink.h"
 #include "shell-collect-view.h"
@@ -410,10 +410,9 @@ struct shell_input {
 #include "shell-udpsend.h"
 #include "shell-vars.h"
 #include "shell-wget.h"
-*/
  
 #endif /* SHELL_H_ */
-
+ 
 
 /** @} */
 /** @} */
