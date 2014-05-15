@@ -1,3 +1,5 @@
+var platform = "sky"
+
 // load(lib.js)
 var prefix = "bbbb";
 var brID = 1;
@@ -201,10 +203,6 @@ function checknc(tocheck){
     return true;
 }
 
-moveTo(6, 20, -30);
-log.log("Mote 6 moved, only 4 can see it\n");
-
-waitingConfig();
 log.log("Check 1\n");
 if(!checknc({
         6:{4:true, 5:true},
@@ -213,6 +211,9 @@ if(!checknc({
     })){
     log.testFailed();
 }
+
+moveTo(6, 20, -30);
+log.log("Mote 6 moved, only 4 can see it\n");
 
 waitingConfig();
 log.log("Check 2\n");
