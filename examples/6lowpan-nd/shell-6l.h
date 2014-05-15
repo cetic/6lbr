@@ -7,6 +7,7 @@
 
 #include "contiki.h"
 #include "shell.h"
+#include "serial-shell.h"
 #include "dev/serial-line.h"
 #include "net/ip/uip.h"
 #include "net/ip/uip-debug.h"
