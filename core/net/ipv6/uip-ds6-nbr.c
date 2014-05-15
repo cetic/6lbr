@@ -184,16 +184,12 @@ uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   if(ipaddr != NULL) {
     while(nbr != NULL) {
-      PRINTF(" , ");
-      PRINT6ADDR(&nbr->ipaddr);
       if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
-  PRINTF("<-OK-\n");
         return nbr;
       }
       nbr = nbr_table_next(ds6_neighbors, nbr);
     }
   }
-  PRINTF("<-KO-\n");
   return NULL;
 }
 /*---------------------------------------------------------------------------*/

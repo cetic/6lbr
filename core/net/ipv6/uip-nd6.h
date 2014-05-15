@@ -497,6 +497,16 @@ uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tg
 void
 uip_nd6_na_input(void);
 
+/**
+ * \brief Send a Neighbor Advertisement
+ *
+ */
+#if UIP_CONF_6L_ROUTER
+void uip_nd6_na_output(uint8_t flags, uint8_t aro_state);
+#else /* UIP_CONF_6L_ROUTER */
+void uip_nd6_na_output(uint8_t flags);
+#endif /* UIP_CONF_6L_ROUTER */
+
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
 /**
