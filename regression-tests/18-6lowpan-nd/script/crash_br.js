@@ -69,7 +69,7 @@ function waitingConfig(){
 	for(var i=0;; i++) {
 	    YIELD_THEN_WAIT_UNTIL(msg.contains("#s") || msg.contains("timeout"));
         if(msg.contains("#s")){
-	        GENERATE_MSG(75000, "timeout"+lastid);
+	        GENERATE_MSG(60000, "timeout"+lastid);
 	        lastid++;
 	    }else if(msg.equals("timeout"+(lastid-1))) {
 	        return;
