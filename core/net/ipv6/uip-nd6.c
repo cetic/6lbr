@@ -181,10 +181,10 @@ create_aro(uint8_t *aro, uint8_t status, uint8_t lifetime, uip_lladdr_t* lladdr)
 
 /*------------------------------------------------------------------*/
 #if UIP_CONF_6L_ROUTER
-static void
+void
 uip_nd6_na_output(uint8_t flags, uint8_t aro_state)
 #else /* UIP_CONF_6L_ROUTER */
-static void
+void
 uip_nd6_na_output(uint8_t flags)
 #endif /* UIP_CONF_6L_ROUTER */
 {
