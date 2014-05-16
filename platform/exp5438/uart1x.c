@@ -44,19 +44,23 @@
 #include "dev/leds.h"
 #include "isr_compat.h"
 
-#define RX_WITH_DMA 1
-
 static int (*uart1_input_handler)(unsigned char c);
 
 static volatile uint8_t transmitting;
 
-#if RX_WITH_DMA
+#ifdef UART1_CONF_RX_WITH_DMA
+#define RX_WITH_DMA UART1_CONF_RX_WITH_DMA
+#else /* UART1_CONF_RX_WITH_DMA */
+#define RX_WITH_DMA 1
+#endif /* UART1_CONF_RX_WITH_DMA */
 
 #ifdef UART1_CONF_RXBUFSIZE
 #define RXBUFSIZE UART1_CONF_RXBUFSIZE
 #else /* UART1_CONF_RX_WITH_DMA */
 #define RXBUFSIZE 128
 #endif /* UART1_CONF_RX_WITH_DMA */
+
+#if RX_WITH_DMA
 
 static uint8_t rxbuf[RXBUFSIZE];
 static uint16_t last_size;
@@ -67,6 +71,7 @@ handle_rxdma_timer(void *ptr)
 {
   uint16_t size;
   size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
+  if(size > RXBUFSIZE) size = RXBUFSIZE;
   while(last_size != size) {
 /*     printf("read: %c [%d,%d]\n", (unsigned char)rxbuf[RXBUFSIZE - last_size],*/
 /*         last_size, size);*/

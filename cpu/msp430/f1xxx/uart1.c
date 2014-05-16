@@ -86,6 +86,7 @@ handle_rxdma_timer(void *ptr)
 {
   uint16_t size;
   size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
+  if(size > RXBUFSIZE) size = RXBUFSIZE;
   while(last_size != size) {
 /*     printf("read: %c [%d,%d]\n", (unsigned char)rxbuf[RXBUFSIZE - last_size], */
 /* 	   last_size, size); */
