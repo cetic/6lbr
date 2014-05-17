@@ -81,7 +81,7 @@
 
 /* Context Prefix list */
 #ifndef UIP_CONF_DS6_CONTEXT_PREF_NB
-#define UIP_DS6_CONTEXT_PREF_NB  5 //TODO: default value 1 ?
+#define UIP_DS6_CONTEXT_PREF_NB  UIP_DS6_PREFIX_NBU
 #else
 #define UIP_DS6_CONTEXT_PREF_NB UIP_CONF_DS6_CONTEXT_PREF_NB
 #endif
@@ -99,7 +99,7 @@
 /* Duplication Address Detection list */
 #if UIP_CONF_6LBR
 #ifndef UIP_CONF_DS6_DUPADDR_NB
-#define UIP_DS6_DUPADDR_NB  20 //TODO default value ?
+#define UIP_DS6_DUPADDR_NB  UIP_DS6_ROUTE_NB
 #else
 #define UIP_DS6_DUPADDR_NB UIP_CONF_DS6_DUPADDR_NB
 #endif
