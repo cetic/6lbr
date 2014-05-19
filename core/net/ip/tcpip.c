@@ -696,7 +696,6 @@ tcpip_ipv6_output(void)
     } else {
 #if UIP_ND6_SEND_NA
   #if CONF_6LOWPAN_ND
-      //TODO if(nbr->state == NBR_TENTATIVE) { ?
       if(nbr->state == -1) {
   #else /* CONF_6LOWPAN_ND */
       if(nbr->state == NBR_INCOMPLETE) {
@@ -713,7 +712,7 @@ tcpip_ipv6_output(void)
         uip_len = 0;
         return;
       }
-    #if !CONF_6LOWPAN_ND //TODO right to add macro ?
+    #if !CONF_6LOWPAN_ND
       /* Send in parallel if we are running NUD (nbc state is either STALE,
          DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
       if(nbr->state == NBR_STALE) {

@@ -429,11 +429,6 @@ uip_nd6_ns_input(void)
     if(nbr->state == NBR_TENTATIVE_DAD) {
       if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
         stimer_set(&nbr->reachable, UIP_ND6_MAX_RTR_SOLICITATIONS);
-        /*TODO 
-         find a way to get a border router bound with ipsrc
-         uip_ds6_prefix_lookup(&UIP_IP_BUF->srcipaddr,???)->br
-         */
-        border_router = uip_ds6_br_lookup(NULL);
         uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
       }
       goto discard;
@@ -1038,7 +1033,11 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
       UIP_ND6_OPT_PREFIX_BUF->flagsreserved1 = prefix->l_a_reserved;
+#if UIP_CONF_6L_ROUTER
+      UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl((stimer_remaining(&prefix->vlifetime)/60)+1);
+#else /* UIP_CONF_6L_ROUTER */
       UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime_val);
+#endif /* UIP_CONF_6L_ROUTER */
       UIP_ND6_OPT_PREFIX_BUF->preferredlt = uip_htonl(prefix->plifetime);
       UIP_ND6_OPT_PREFIX_BUF->reserved2 = 0;
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
@@ -1101,8 +1100,13 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_6CO_BUF->res_c_cid = context_pref->cid | 
                 (CONTEXT_PREF_USE_COMPRESS(context_pref->state)? UIP_ND6_6CO_FLAG_C : 0);
       UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
+#if UIP_CONF_6LR
+      UIP_ND6_OPT_6CO_BUF->lifetime = context_pref->state == CONTEXT_PREF_ST_RM ?
+           0 : uip_htons((stimer_remaining(&context_pref->lifetime)/60)+1);
+#else /* UIP_CONF_6LR */
       UIP_ND6_OPT_6CO_BUF->lifetime = context_pref->state == CONTEXT_PREF_ST_RM ?
                                         0 : uip_htons(context_pref->vlifetime);
+#endif /* UIP_CONF_6LR */
       uip_ipaddr_copy(&(UIP_ND6_OPT_6CO_BUF->prefix), &(context_pref->ipaddr));
       nd6_opt_offset += len * 8;
       uip_len += len * 8;
