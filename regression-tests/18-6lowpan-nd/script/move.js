@@ -215,40 +215,58 @@ if(!checknc({
 moveTo(6, 20, -30);
 log.log("Mote 6 moved, only 4 can see it\n");
 
-waitingConfig();
-log.log("Check 2\n");
-if(!checknc({
-        6:{4:true, 5:false},
-        4:{6:true},
-        5:{6:false}
-    })){
-    log.testFailed();
+for(var i=0; ; i++) {
+    waitingConfig();
+    log.log("Check 2\n");
+    var c = checknc({
+            6:{4:true, 5:false},
+            4:{6:true},
+            5:{6:false}
+        });
+    if(c){
+        break;
+    } else if(i==4) {
+        log.testFailed();
+    }
+    waitingConfig();
 }
 
 moveTo(6, 30, 0);
 log.log("Mote 6 moved for isolate it\n");
 
-YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
-log.log("Check 3\n");
-if(!checknc({
+
+for(var i=0; ; i++) {
+    YIELD_THEN_WAIT_UNTIL(msg.contains("#sRS"));
+    log.log("Check 3\n");
+    var c = checknc({
         6:{4:false},
         4:{6:false}
-    })){
-    log.testFailed();
+    });
+    if(c){
+        break;
+    } else if(i==10) {
+        log.testFailed();
+    }
 }
 
 moveTo(6, -50, 30);
 log.log("Mote 6 go home\n");
 
-waitingConfig();
-log.log("Check 4\n");
-if(!checknc({
+for(var i=0; ; i++) {
+    waitingConfig();
+    log.log("Check 4\n");
+    var c = checknc({
         6:{4:true, 5:true},
         4:{6:true},
         5:{6:true}
-    })){
-    log.testFailed();
+    });
+    if(c){
+        break;
+    } else if(i==4) {
+        log.testFailed();
+    }
 }
+
 
 
 log.testOK();
