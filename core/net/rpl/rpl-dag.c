@@ -1125,8 +1125,8 @@ rpl_recalculate_ranks(void)
    */
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
-    if(p->dag != NULL && p->dag->instance && p->updated) {
-      p->updated = 0;
+    if(p->dag != NULL && p->dag->instance && (p->flags & RPL_PARENT_FLAG_UPDATED)) {
+      p->flags &= ~RPL_PARENT_FLAG_UPDATED;
       updated = 1;
       PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
@@ -1335,7 +1335,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   //Parent info has been updated, trigger rank recalculation
-  p->updated = 1;
+  p->flags |= RPL_PARENT_FLAG_UPDATED;
 
   PRINTF("RPL: preferred DAG ");
   PRINT6ADDR(&instance->current_dag->dag_id);

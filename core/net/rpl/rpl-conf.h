@@ -195,6 +195,9 @@
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
 
+/*
+ * DAG preference field
+ */
 #ifdef RPL_CONF_PREFERENCE
 #define RPL_PREFERENCE              RPL_CONF_PREFERENCE
 #else
