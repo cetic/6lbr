@@ -865,6 +865,7 @@ uip_nd6_rs_input(void)
 
 #if UIP_CONF_6L_ROUTER
   if(non_router()) {
+    PRINTF("RS discard because no yet router\n");
     goto discard;
   }
 #endif

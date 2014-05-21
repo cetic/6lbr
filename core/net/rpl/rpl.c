@@ -106,7 +106,6 @@ rpl_purge_routes(void)
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
 
-#if !CONF_6LOWPAN_ND
   /* First pass, decrement lifetime */
   r = uip_ds6_route_head();
 
@@ -121,13 +120,16 @@ rpl_purge_routes(void)
     }
     r = uip_ds6_route_next(r);
   }
-#endif /* !CONF_6LOWPAN_ND */
 
   /* Second pass, remove dead routes */
   r = uip_ds6_route_head();
 
   while(r != NULL) {
+#if CONF_6LOWPAN_ND
+    if(r->state.lifetime < 1 && r->state.learned_from != RPL_ROUTE_FROM_6LOWPANND) {
+#else /* CONF_6LOWPAN_ND */
     if(r->state.lifetime < 1) {
+#endif /* CONF_6LOWPAN_ND */
       /* Routes with lifetime == 1 have only just been decremented from 2 to 1,
        * thus we want to keep them. Hence < and not <= */
       uip_ipaddr_copy(&prefix, &r->ipaddr);

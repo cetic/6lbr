@@ -56,6 +56,10 @@
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
+#if CONF_6LOWPAN_ND
+#include "net/rpl/rpl-private.h"
+#endif /* CONF_6LOWPAN_ND */
+
 /*--------------------------------------------------*/
 /** \brief Possible states for the nbr cache entries */
 #define  NBR_INCOMPLETE 0

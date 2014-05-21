@@ -133,7 +133,9 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
       nbr_table_unlock(ds6_neighbors, nbr);
     }
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
-    uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr)->state.lifetime = 0;
+    uip_ds6_route_t * r = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
+    r->state.lifetime = 0;
+    r->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
 #else /* UIP_DS6_ROUTE_STATE_TYPE */
     uip_ds6_route_rm(uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr));
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
@@ -180,7 +182,6 @@ uip_ds6_nbr_num(void)
 uip_ds6_nbr_t *
 uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
 {
-      PRINT6ADDR(ipaddr);
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   if(ipaddr != NULL) {
     while(nbr != NULL) {

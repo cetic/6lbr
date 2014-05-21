@@ -372,7 +372,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
 #if CONF_6LOWPAN_ND
-  r->state.lifetime = 1;
+  r->state.learned_from = RPL_ROUTE_FROM_6LOWPANND;
 #endif /* CONF_6LOWPAN_ND */
 #endif
 

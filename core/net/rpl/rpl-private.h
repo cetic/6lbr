@@ -168,6 +168,7 @@
 #define RPL_ROUTE_FROM_UNICAST_DAO      1
 #define RPL_ROUTE_FROM_MULTICAST_DAO    2
 #define RPL_ROUTE_FROM_DIO              3
+#define RPL_ROUTE_FROM_6LOWPANND        4
 
 /* DAG Mode of Operation */
 #define RPL_MOP_NO_DOWNWARD_ROUTES      0
