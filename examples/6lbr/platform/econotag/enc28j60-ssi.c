@@ -33,7 +33,7 @@
 #define LOG6LBR_MODULE "ENC"
 
 #include "contiki.h"
-#include "enc28j60-ssi.h"
+#include "enc28j60-arch.h"
 #include <stdio.h>
 #include <string.h>
 #include "eth-drv.h"

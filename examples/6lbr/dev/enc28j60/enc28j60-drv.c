@@ -47,8 +47,12 @@
 #include "packet-filter.h"
 #include "log-6lbr.h"
 
-#include "isr.h"
-
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
@@ -57,13 +61,6 @@ uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
 
 extern void eth_input(void);
-
-//TEMPORARY
-uint16_t
-uip_ipchksum(void)
-{
-  return 0;
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -74,31 +71,31 @@ eth_drv_send(void)
   LOG6LBR_COND_FUNC(DUMP, ETH_OUT,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
+    PRINTF("0000");
     for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
+      PRINTF(" %02x", ll_header[i]);
     for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
+      PRINTF(" %02x", uip_buf[i]);
 #else
-    printf("         ");
+    PRINTF("         ");
     for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
       if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
+        PRINTF("%02x", ll_header[i]);
       } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
       }
       if((i & 3) == 3)
-        printf(" ");
+        PRINTF(" ");
       if((i & 15) == 15)
-        printf("\n         ");
+        PRINTF("\n         ");
     }
 #endif
-    printf("\n");
+    PRINTF("\n");
   )
 
   enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
 }
-
+/*---------------------------------------------------------------------------*/
 void
 eth_drv_input(void)
 {
@@ -106,69 +103,55 @@ eth_drv_input(void)
   LOG6LBR_COND_FUNC(DUMP, ETH_IN,
     int i;
 #if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
+    PRINTF("0000");
     for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
+      PRINTF(" %02x", ll_header[i]);
     for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
+      PRINTF(" %02x", uip_buf[i]);
 #else
-    printf("         ");
+    PRINTF("         ");
     for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
       if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
+        PRINTF("%02x", ll_header[i]);
       } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
+        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
       }
       if((i & 3) == 3)
-        printf(" ");
+        PRINTF(" ");
       if((i & 15) == 15)
-        printf("\n         ");
+        PRINTF("\n         ");
     }
 #endif
-    printf("\n");
+    PRINTF("\n");
   )
 
   eth_input();
 }
-
-/*
- * Placeholder - switching off enc28 chip wasn't yet considered
- */
+/*---------------------------------------------------------------------------*/
 void
 eth_drv_exit(void)
 {
 }
-
-/*
- * Wrapper for lowlevel enc28j60 init code
- * in current configuration it reads the Ethernet driver MAC address
- * from EEPROM memory
- */
+/*---------------------------------------------------------------------------*/
 void
 eth_drv_init()
 {
   LOG6LBR_INFO("ENC28J60 init\n");
   enc28j60_init(eth_mac_addr);
 }
-
 /*---------------------------------------------------------------------------*/
 void
 enc28j60_pollhandler(void)
 {
-  //process_poll(&enc28j60_process);
-
   uip_len = enc28j60_read(uip_buf, UIP_BUFSIZE);
 
   if(uip_len > 0) {
     eth_drv_input();
   }
 }
-
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
-  //PROCESS_POLLHANDLER(enc28j60_pollhandler());
-
   PROCESS_BEGIN();
 
   LOG6LBR_INFO("ENC-28J60 Process started\n");

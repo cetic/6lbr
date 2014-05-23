@@ -23,6 +23,8 @@ CC2538DK_UDPSERVER=0
 CC2538DK_WEBSERVER_LITE=0
 CC2538DK_WEBSERVER=1
 
+CC2538_ENC28J60_ARCH=gpio
+
 CC2538DK_FW=bin
 
 # End of user configurable section
@@ -39,10 +41,13 @@ ifeq ($(TARGET),native)
 PROJECTDIRS += platform/native
 endif
 ifeq ($(TARGET),econotag)
-PROJECTDIRS += platform/econotag
+PROJECTDIRS += platform/econotag dev/enc28j60
+endif
+ifeq ($(TARGET),red-io)
+PROJECTDIRS += platform/econotag dev/enc28j60
 endif
 ifeq ($(TARGET),cc2538dk)
-PROJECTDIRS += platform/cc2538dk
+PROJECTDIRS += platform/cc2538dk dev/enc28j60
 endif
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -97,12 +102,12 @@ PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-spi.c enc28j60-dr
 endif
 
 ifeq ($(TARGET),red-io)
-PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-ssi.c enc28j60-drv.c enc28j60-red-io-arch.c
+PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c enc28j60-red-io-arch.c
 override TARGET=econotag
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch.c
+PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-$(CC2538_ENC28J60_ARCH).c
 endif
 
 UIP_CONF_RPL?=1

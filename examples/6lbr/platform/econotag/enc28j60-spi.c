@@ -20,7 +20,7 @@
 
 #include "spi.h"
 
-#include "enc28j60-spi.h"
+#include "enc28j60-def.h"
 #include "eth-drv.h"
 #include "log-6lbr.h"
 

@@ -1,8 +1,8 @@
 /*
+ * Copyright (c) 2014, CETIC.
+ * Modified by Kiril Petrov <ice@geomi.org>
  * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
- *
- * Modified by Kiril Petrov <ice@geomi.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,18 +31,17 @@
  *
  */
 
+#define LOG6LBR_MODULE "ENC"
+
 #include "contiki.h"
 #include "enc28j60.h"
-#include "eth-drv.h"
+#include "enc28j60-def.h"
+#include "enc28j60-arch.h"
 #include <stdio.h>
 #include <string.h>
+#include "eth-drv.h"
+#include "log-6lbr.h"
 
-#define DEBUG 0
-#if DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
 
 PROCESS(enc_watchdog_process, "Enc28j60 watchdog");
 
@@ -118,9 +117,20 @@ writedata(uint8_t *data, int datalen)
   enc28j60_arch_spi_select();
   /* The Write Buffer Memory (WBM) command is 0 1 1 1 1 0 1 0  */
   enc28j60_arch_spi_write(ENC28J60_WRITE_BUF_MEM);
+#if UIP_CONF_LLH_LEN == 0
+  for(i = 0; i < ETHERNET_LLH_LEN; i++) {
+    enc28j60_arch_spi_write(ll_header[i]);
+  }
+  for(i = 0; i < datalen - ETHERNET_LLH_LEN; i++) {
+    enc28j60_arch_spi_write(data[i]);
+  }
+#elif UIP_CONF_LLH_LEN == 14
   for(i = 0; i < datalen; i++) {
     enc28j60_arch_spi_write(data[i]);
   }
+#else
+#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
+#endif
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
@@ -136,50 +146,41 @@ readdatabyte(void)
   return r;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 readdata(uint8_t *buf, int len)
 {
-  int i;
   enc28j60_arch_spi_select();
   /* THe Read Buffer Memory (RBM) command is 0 0 1 1 1 0 1 0 */
   enc28j60_arch_spi_write(ENC28J60_READ_BUF_MEM);
-
-  i = 0;
 #if UIP_CONF_LLH_LEN == 0
+  int i = 0;
   while(i < ETHERNET_LLH_LEN) {
     len--;
     /* read data */
     ll_header[i] = enc28j60_arch_spi_read();
     i++;
   }
-  i = 0;
   while(len) {
     len--;
     /* read data */
     *buf = enc28j60_arch_spi_read();
     buf++;
-    i++;
   }
-  *buf = '\0';
 #elif UIP_CONF_LLH_LEN == 14
   while(len) {
     len--;
     /* read data */
     *buf = enc28j60_arch_spi_read();
     buff++;
-    i++;
   }
-  *buf = '\0';
 #else
 #error "UIP_CONF_LLH_LEN value neither 0 nor 14."
 #endif
-
   enc28j60_arch_spi_deselect();
-  return i;
 }
-
-void
-enc28j60PhyWrite(uint8_t address, uint16_t data)
+/*---------------------------------------------------------------------------*/
+static void
+writephy(uint8_t address, uint16_t data)
 {
   /* set the PHY register address */
   writereg(MIREGADR, address);
@@ -202,12 +203,11 @@ softreset(void)
   enc28j60_arch_spi_write(0xff);
   enc28j60_arch_spi_deselect();
 }
-
 /*---------------------------------------------------------------------------*/
 static void
 reset(void)
 {
-  PRINTF("enc28j60: resetting chip\n");
+  LOG6LBR_INFO("resetting chip\n");
 
   enc28j60_arch_spi_init();
 
@@ -252,7 +252,7 @@ reset(void)
   writereg(MACON2, 0x00);
   /* enable automatic padding to 60bytes and CRC operations */
   writereg(MACON3, readreg(MACON3) | (MACON3_PADCFG0 + MACON3_TXCRCEN +
-                                      MACON3_FRMLNEN));
+                                      MACON3_FULDPX + MACON3_FRMLNEN));
   /* set inter-frame gap (non-back-to-back) */
   writereg(MAIPGL, 0x12);
   writereg(MAIPGH, 0x0C);
@@ -274,12 +274,14 @@ reset(void)
   writereg(MAADR0, enc_mac_addr[5]);
 
   /* no loopback of transmitted frames */
-  enc28j60PhyWrite(PHCON2, PHCON2_HDLDIS);
+  writephy(PHCON2, PHCON2_HDLDIS);
   /* Turn on reception */
   writereg(ECON1, ECON1_RXEN);
   clock_delay(10);
-  enc28j60PhyWrite(PHLCON, 0x476);
+  writephy(PHLCON, 0x476);
   clock_delay(20);
+
+  LOG6LBR_DEBUG("REV %u\n", readreg(EREVID));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -357,9 +359,6 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   writereg(ETXNDL, (TXSTART_INIT + datalen + 0 + padding) & 0xff);
   writereg(ETXNDH, (TXSTART_INIT + datalen + 0 + padding) >> 8);
 
-#if UIP_CONF_LLH_LEN == 0
-  writedata(ll_header, ETHERNET_LLH_LEN);
-#endif
   writedata(data, datalen);
   if(padding > 0) {
     uint8_t padding_buf[60];
@@ -377,19 +376,18 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   while((readreg(ECON1) & ECON1_TXRTS) > 0);
 
   if((readreg(ESTAT) & ESTAT_TXABRT) != 0) {
-    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    LOG6LBR_PACKET("tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff&data[0], 0xff&data[1], 0xff&data[2],
            0xff&data[3], 0xff&data[4], 0xff&data[5]);
   } else {
-    PRINTF("enc28j60: tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    LOG6LBR_PACKET("tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff&data[0], 0xff&data[1], 0xff&data[2],
            0xff&data[3], 0xff&data[4], 0xff&data[5]);
   }
   sent_packets++;
-  PRINTF("enc28j60: sent_packets %d\n", sent_packets);
+  LOG6LBR_PACKET("sent_packets %d\n", sent_packets);
   return datalen;
 }
-
 /*---------------------------------------------------------------------------*/
 int
 enc28j60_read(uint8_t *buffer, uint16_t bufsize)
@@ -402,7 +400,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   if((n = readreg(EPKTCNT)) == 0){
     return (0);
   }
-  PRINTF("enc28j60: EPKTCNT 0x%02x\n", n);
+  LOG6LBR_PACKET("EPKTCNT 0x%02x\n", n);
 
   /* Set the read pointer to the start of the received packet */
   writereg(ERDPTL, (NextPacketPtr));
@@ -429,7 +427,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
     len = 0;
   } else {
     /* copy the packet from the receive buffer */
-    n = readdata(buffer, len);
+    readdata(buffer, len);
   }
 
   /* Move the RX read pointer to the start of the next received packet */
@@ -439,12 +437,12 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   /* decrement the packet counter indicate we are done with this packet */
   writereg(ECON2, readreg(ECON2) | ECON2_PKTDEC);
 
-  PRINTF("enc28j60: rx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", len,
+  LOG6LBR_PACKET("rx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", len,
          0xff&buffer[0], 0xff&buffer[1], 0xff&buffer[2],
          0xff&buffer[3], 0xff&buffer[4], 0xff&buffer[5]);
 
   received_packets++;
-  PRINTF("enc28j60: received_packets %d\n", received_packets);
+  LOG6LBR_PACKET("received_packets %d\n", received_packets);
 #if UIP_CONF_LLH_LEN == 0
   return (len - ETHERNET_LLH_LEN);
 #elif UIP_CONF_LLH_LEN == 14
@@ -463,9 +461,9 @@ PROCESS_THREAD(enc_watchdog_process, ev, data)
     etimer_set(&et, RESET_PERIOD);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    PRINTF("enc28j60: test received_packet %d > sent_packets %d\n", received_packets, sent_packets);
+    LOG6LBR_DEBUG("test received_packet %d > sent_packets %d\n", received_packets, sent_packets);
     if(received_packets <= sent_packets) {
-      PRINTF("enc28j60: resetting chip\n");
+      LOG6LBR_DEBUG("resetting chip\n");
       reset();
     }
     received_packets = 0;

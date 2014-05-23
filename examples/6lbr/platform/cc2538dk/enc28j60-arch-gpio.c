@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, CETIC.
  * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
@@ -31,37 +32,53 @@
 
 #include "clock.h"
 
-/*
-  RF1.16_SCK LV_SPI_SCK RF1.16 PA2
-  RF1.18_MOSI LV_SPI_MOSI RF1.18 PA4
-  RF1.20_MISO LV_SPI_MISO RF1.20 PA5
-  RF2.10 ¯¯¯¯¯¯¯¯¯¯¯ LV_ACC_CS RF2.10 PD5
-*/
-
-/* CLK = CLocK */
 #undef SPI_CLK_PORT
-#define SPI_CLK_PORT  GPIO_A_BASE
-#define SPI_CLK_BIT   (1 << 2)
-#define SPI_CLK       SPI_CLK_PORT, SPI_CLK_BIT
+#ifndef CC2538_ENC28J60_CONF_CLK_PORT
+#define SPI_CLK_PORT   GPIO_A_BASE
+#else
+#define SPI_CLK_PORT   CC2538_ENC28J60_CONF_CLK_PORT
+#endif
+#ifndef CC2538_ENC28J60_CONF_CLK_PIN
+#define SPI_CLK_BIT    (1 << 2)
+#else
+#define SPI_CLK_BIT    (1 << CC2538_ENC28J60_CONF_CLK_PIN)
+#endif
 
-/* MOSI = Master Output, Slave Input */
 #undef SPI_MOSI_PORT
-#define SPI_MOSI_PORT GPIO_A_BASE
-#define SPI_MOSI_BIT  (1 << 4)
-#define SPI_MOSI      SPI_MOSI_PORT, SPI_MOSI_BIT
+#ifndef CC2538_ENC28J60_CONF_MOSI_PORT
+#define SPI_MOSI_PORT   GPIO_A_BASE
+#else
+#define SPI_MOSI_PORT   CC2538_ENC28J60_CONF_MOSI_PORT
+#endif
+#ifndef CC2538_ENC28J60_CONF_MOSI_PIN
+#define SPI_MOSI_BIT    (1 << 4)
+#else
+#define SPI_MOSI_BIT    (1 << CC2538_ENC28J60_CONF_MOSI_PIN)
+#endif
 
-/* MISO = Master Input, Slave Output */
 #undef SPI_MISO_PORT
-#define SPI_MISO_PORT GPIO_A_BASE
-#define SPI_MISO_BIT  (1 << 5)
-#define SPI_MISO      SPI_MISO_PORT, SPI_MISO_BIT
+#ifndef CC2538_ENC28J60_CONF_MISO_PORT
+#define SPI_MISO_PORT   GPIO_A_BASE
+#else
+#define SPI_MISO_PORT   CC2538_ENC28J60_CONF_MISO_PORT
+#endif
+#ifndef CC2538_ENC28J60_CONF_MISO_PIN
+#define SPI_MISO_BIT    (1 << 5)
+#else
+#define SPI_MISO_BIT    (1 << CC2538_ENC28J60_CONF_MISO_PIN)
+#endif
 
-/* CS = Chip Select */
 #undef SPI_CS_PORT
+#ifndef CC2538_ENC28J60_CONF_CS_PORT
 #define SPI_CS_PORT   GPIO_B_BASE
+#else
+#define SPI_CS_PORT   CC2538_ENC28J60_CONF_CS_PORT
+#endif
+#ifndef CC2538_ENC28J60_CONF_CS_PIN
 #define SPI_CS_BIT    (1 << 5)
-#define SPI_CS        SPI_CS_PORT, SPI_CS_BIT
-
+#else
+#define SPI_CS_BIT    (1 << CC2538_ENC28J60_CONF_CS_PIN)
+#endif
 
 /* Delay in us */
 #define DELAY 10
@@ -105,16 +122,16 @@ enc28j60_arch_spi_init(void)
 
   /* The CS pin is active low, so we set it high when we haven't
      selected the chip. */
-  gpio_set(SPI_CS);
+  gpio_set(SPI_CS_PORT, SPI_CS_BIT);
 
   /* The CLK is active low, we set it high when we aren't using it. */
-  gpio_reset(SPI_CLK);
+  gpio_reset(SPI_CLK_PORT, SPI_CLK_BIT);
 }
 /*---------------------------------------------------------------------------*/
 void
 enc28j60_arch_spi_select(void)
 {
-  gpio_reset(SPI_CS);
+  gpio_reset(SPI_CS_PORT, SPI_CS_BIT);
   /* SPI delay */
   delay();
 }
@@ -122,7 +139,7 @@ enc28j60_arch_spi_select(void)
 void
 enc28j60_arch_spi_deselect(void)
 {
-  gpio_set(SPI_CS);
+  gpio_set(SPI_CS_PORT, SPI_CS_BIT);
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -137,26 +154,26 @@ enc28j60_arch_spi_write(uint8_t output)
 
     /* Write data on MOSI pin */
     if(output & 0x80) {
-      gpio_set(SPI_MOSI);
+      gpio_set(SPI_MOSI_PORT, SPI_MOSI_BIT);
     } else {
-      gpio_reset(SPI_MOSI);
+      gpio_reset(SPI_MOSI_PORT, SPI_MOSI_BIT);
     }
     output <<= 1;
 
     /* Set clock high  */
-    gpio_set(SPI_CLK);
+    gpio_set(SPI_CLK_PORT, SPI_CLK_BIT);
 
     /* SPI delay */
     delay();
 
     /* Read data from MISO pin */
     input <<= 1;
-    if(gpio_get(SPI_MISO) != 0) {
+    if(gpio_get(SPI_MISO_PORT, SPI_MISO_BIT) != 0) {
       input |= 0x1;
     }
 
     /* Set clock low */
-    gpio_reset(SPI_CLK);
+    gpio_reset(SPI_CLK_PORT, SPI_CLK_BIT);
 
     /* SPI delay */
     delay();
