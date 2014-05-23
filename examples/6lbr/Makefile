@@ -102,7 +102,7 @@ PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-spi.c enc28j60-dr
 endif
 
 ifeq ($(TARGET),red-io)
-PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c enc28j60-red-io-arch.c
+PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-gpio.c
 override TARGET=econotag
 endif
 
