@@ -1034,11 +1034,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
       UIP_ND6_OPT_PREFIX_BUF->flagsreserved1 = prefix->l_a_reserved;
-#if UIP_CONF_6L_ROUTER
-      UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl((stimer_remaining(&prefix->vlifetime)/60)+1);
-#else /* UIP_CONF_6L_ROUTER */
       UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime_val);
-#endif /* UIP_CONF_6L_ROUTER */
       UIP_ND6_OPT_PREFIX_BUF->preferredlt = uip_htonl(prefix->plifetime);
       UIP_ND6_OPT_PREFIX_BUF->reserved2 = 0;
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
@@ -1102,8 +1098,17 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
                 (CONTEXT_PREF_USE_COMPRESS(context_pref->state)? UIP_ND6_6CO_FLAG_C : 0);
       UIP_ND6_OPT_6CO_BUF->reserved = 0x0;
 #if UIP_CONF_6LR
-      UIP_ND6_OPT_6CO_BUF->lifetime = context_pref->state == CONTEXT_PREF_ST_RM ?
-           0 : uip_htons((stimer_remaining(&context_pref->lifetime)/60)+1);
+      switch(context_pref->state) {
+        case CONTEXT_PREF_ST_RM:
+          UIP_ND6_OPT_6CO_BUF->lifetime = 0;
+          break;
+        case CONTEXT_PREF_ST_ADD:
+          UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons(context_pref->vlifetime);
+          break;
+        default:
+          UIP_ND6_OPT_6CO_BUF->lifetime = uip_htons((stimer_remaining(&context_pref->lifetime)/60)+1);
+          break;
+      }
 #else /* UIP_CONF_6LR */
       UIP_ND6_OPT_6CO_BUF->lifetime = context_pref->state == CONTEXT_PREF_ST_RM ?
                                         0 : uip_htons(context_pref->vlifetime);
