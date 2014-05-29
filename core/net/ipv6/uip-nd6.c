@@ -229,7 +229,7 @@ uip_nd6_na_output(uint8_t flags)
       /* Destination addr must be a local addr and derived from the EUI-64 of 
        * ARO when ARO with status > 0 
        */
-      if(aro_state != UIP_ND6_ARO_STATUS_SUCESS) {
+      if(aro_state != UIP_ND6_ARO_STATUS_SUCCESS) {
         uip_create_linklocal_prefix(&UIP_IP_BUF->destipaddr);
         uip_ds6_set_addr_iid(&UIP_IP_BUF->destipaddr, (uip_lladdr_t*)&nd6_opt_aro->eui64);
       }
@@ -331,12 +331,12 @@ uip_nd6_ns_input(void)
               nbr->state = NBR_GARBAGE_COLLECTIBLE;
             }
             stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
-            aro_state = UIP_ND6_ARO_STATUS_SUCESS;
+            aro_state = UIP_ND6_ARO_STATUS_SUCCESS;
           } else {
             aro_state = UIP_ND6_ARO_STATUS_CACHE_FULL;
           }
         } else {
-          aro_state = UIP_ND6_ARO_STATUS_SUCESS;
+          aro_state = UIP_ND6_ARO_STATUS_SUCCESS;
         }
     #else /* UIP_CONF_6L_ROUTER */
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
@@ -391,7 +391,7 @@ uip_nd6_ns_input(void)
     if(nd6_opt_aro->lifetime == 0) {
       uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
       uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
-      uip_nd6_na_output(UIP_ND6_NA_FLAG_OVERRIDE, UIP_ND6_ARO_STATUS_SUCESS);
+      uip_nd6_na_output(UIP_ND6_NA_FLAG_OVERRIDE, UIP_ND6_ARO_STATUS_SUCCESS);
       tcpip_ipv6_output();
       uip_ds6_nbr_rm(nbr);
       goto discard;
@@ -400,7 +400,7 @@ uip_nd6_ns_input(void)
 
   #if UIP_CONF_6LBR
     //check duplication of addr
-    if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+    if (aro_state == UIP_ND6_ARO_STATUS_SUCCESS) {
       dupaddr = uip_ds6_dup_addr_lookup(&UIP_IP_BUF->srcipaddr);
       if((dupaddr != NULL || uip_ds6_addr_lookup(&UIP_IP_BUF->srcipaddr)!=NULL) &&
         memcmp(&dupaddr->eui64, 
@@ -409,7 +409,7 @@ uip_nd6_ns_input(void)
       }
     }
     //add to all table
-    if (aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+    if (aro_state == UIP_ND6_ARO_STATUS_SUCCESS) {
       if(uip_ds6_route_lookup(&UIP_IP_BUF->srcipaddr) == NULL){
         uip_ds6_route_add(&UIP_IP_BUF->srcipaddr, 128, &nbr->ipaddr);
       }
@@ -427,7 +427,7 @@ uip_nd6_ns_input(void)
   #if UIP_CONF_6LR
     /* Process to DAD */
     if(nbr->state == NBR_TENTATIVE_DAD) {
-      if(aro_state == UIP_ND6_ARO_STATUS_SUCESS) {
+      if(aro_state == UIP_ND6_ARO_STATUS_SUCCESS) {
         stimer_set(&nbr->reachable, UIP_ND6_MAX_RTR_SOLICITATIONS);
         uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
       }
@@ -459,7 +459,7 @@ uip_nd6_ns_input(void)
                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 
                         ISROUTER_NODEFINE, NBR_GARBAGE_COLLECTIBLE);
         stimer_set(&nbr->reachable, UIP_ND6_TENTATIVE_NCE_LIFETIME);
-        aro_state = UIP_ND6_ARO_STATUS_SUCESS;
+        aro_state = UIP_ND6_ARO_STATUS_SUCCESS;
     #endif /* UIP_CONF_6L_ROUTER */
         goto create_na;
       } else {
@@ -743,7 +743,7 @@ uip_nd6_na_input(void)
             }
           } else {
             switch(nd6_opt_aro->status) {
-            case UIP_ND6_ARO_STATUS_SUCESS:
+            case UIP_ND6_ARO_STATUS_SUCCESS:
               addr = uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr);
               nbr->state = NBR_REGISTERED;
               nbr->nscount = 0;
@@ -1587,14 +1587,14 @@ uip_nd6_dar_input(void)
                                    uip_ntohs(UIP_ND6_DA_BUF->lifetime), 
                                    &UIP_ND6_DA_BUF->eui64);
     status_return = dupaddr==NULL ? UIP_ND6_ARO_STATUS_CACHE_FULL : 
-                                      UIP_ND6_ARO_STATUS_SUCESS;
+                                      UIP_ND6_ARO_STATUS_SUCCESS;
   } else if(UIP_ND6_DA_BUF->lifetime == 0){
     uip_ds6_dup_addr_rm(dupaddr);
-    status_return = UIP_ND6_ARO_STATUS_SUCESS;
+    status_return = UIP_ND6_ARO_STATUS_SUCCESS;
   } else if(!memcmp(&dupaddr->eui64, &UIP_ND6_DA_BUF->eui64, UIP_LLADDR_LEN)){
     /* Update entry */
     stimer_set(&dupaddr->lifetime, uip_ntohs(UIP_ND6_DA_BUF->lifetime) * 60);
-    status_return = UIP_ND6_ARO_STATUS_SUCESS;
+    status_return = UIP_ND6_ARO_STATUS_SUCCESS;
   } else {
     /* send back with duplication */
     status_return = UIP_ND6_ARO_STATUS_DUPLICATE;
@@ -1696,11 +1696,11 @@ uip_nd6_dac_input(void)
      !uip_ipaddr_cmp(&dar->ipaddr, &UIP_ND6_DA_BUF->regipaddr)) {
     /* No in NCE, so silently ignored */
     goto discard;
-  } else if(UIP_ND6_DA_BUF->status == UIP_ND6_ARO_STATUS_SUCESS){
+  } else if(UIP_ND6_DA_BUF->status == UIP_ND6_ARO_STATUS_SUCCESS){
     nbr->state = NBR_REGISTERED;
     stimer_set(&nbr->reachable, uip_ntohs(UIP_ND6_DA_BUF->lifetime)*60);
     uip_ds6_route_add(&dar->ipaddr, 128, &nbr->ipaddr);
-    aro_state = UIP_ND6_ARO_STATUS_SUCESS;
+    aro_state = UIP_ND6_ARO_STATUS_SUCCESS;
   } else {
     aro_state = UIP_ND6_DA_BUF->status;
   }
@@ -1718,7 +1718,7 @@ uip_nd6_dac_input(void)
 
   /* remove all entries */
   uip_ds6_dar_rm(dar);
-  if(aro_state != UIP_ND6_ARO_STATUS_SUCESS) {
+  if(aro_state != UIP_ND6_ARO_STATUS_SUCCESS) {
     tcpip_ipv6_output(); //force to send before remove NCE
     uip_ds6_nbr_rm(nbr);
   }
