@@ -304,7 +304,7 @@ uip_ds6_neighbor_periodic(void)
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
           uip_nd6_dar_output(&uip_ds6_prefix_lookup_from_ipaddr(&locdar->ipaddr)->br->ipaddr,
-                             UIP_ND6_ARO_STATUS_SUCESS, 
+                             UIP_ND6_ARO_STATUS_SUCCESS, 
                              &locdar->ipaddr,
                              uip_ds6_nbr_get_ll(nbr), 
                              locdar->lifetime);

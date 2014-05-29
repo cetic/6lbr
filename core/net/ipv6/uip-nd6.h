@@ -217,7 +217,7 @@
 /* 6LoWPAN ND assignement */
 #if CONF_6LOWPAN_ND
 /* ARO value of status field */
-#define UIP_ND6_ARO_STATUS_SUCESS       0
+#define UIP_ND6_ARO_STATUS_SUCCESS      0
 #define UIP_ND6_ARO_STATUS_DUPLICATE    1
 #define UIP_ND6_ARO_STATUS_CACHE_FULL   2
 #endif /* CONF_6LOWPAN_ND */
