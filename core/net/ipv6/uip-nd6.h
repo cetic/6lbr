@@ -600,6 +600,7 @@ void dac_input(void);
  * Send DAR or DAM message to solve Duplication Address Detection in 
  * 6LoWPAN-ND
  */
+ #if UIP_CONF_6L_ROUTER
 void da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
             uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
 #if UIP_CONF_6LR
