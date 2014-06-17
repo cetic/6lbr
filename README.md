@@ -1,6 +1,6 @@
 #The 6LoWPAN-ND implementation on Contiki
 
-[![Build Status](https://secure.travis-ci.org/sdefauw/contiki.png)](http://travis-ci.org/sdefauw/contiki)
+[![Build Status](https://travis-ci.org/sdefauw/contiki.svg?branch=dev)](https://travis-ci.org/sdefauw/contiki)
 
 Implementation of Neighbor Discovery Optimization for IPv6 over Low-Power Wireless Personal Area Networks on Contiki operating system (fork).
 
