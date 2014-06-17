@@ -63,6 +63,10 @@
 #define ICMP6_NS                        135  /**< Neighbor Solicitation */
 #define ICMP6_NA                        136  /**< Neighbor advertisement */
 #define ICMP6_REDIRECT                  137  /**< Redirect */
+#if CONF_6LOWPAN_ND
+#define ICMP6_DAR						157  /**< Duplication Address Request */
+#define ICMP6_DAC						158  /**< Duplication Address Confirmation */
+#endif /* CONF_6LOWPAN_ND */
 
 #define ICMP6_RPL                       155  /**< RPL */
 #define ICMP6_PRIV_EXP_100              100  /**< Private Experimentation */

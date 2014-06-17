@@ -1,19 +1,34 @@
-The Contiki Operating System
-============================
+#The 6LoWPAN-ND implementation on Contiki
 
-[![Build Status](https://secure.travis-ci.org/contiki-os/contiki.png)](http://travis-ci.org/contiki-os/contiki)
+[![Build Status](https://secure.travis-ci.org/sdefauw/contiki.png)](http://travis-ci.org/sdefauw/contiki)
 
-Contiki is an open source operating system that runs on tiny low-power
-microcontrollers and makes it possible to develop applications that
-make efficient use of the hardware while providing standardized
-low-power wireless communication for a range of hardware platforms.
+Implementation of Neighbor Discovery Optimization for IPv6 over Low-Power Wireless Personal Area Networks on Contiki operating system (fork).
 
-Contiki is used in numerous commercial and non-commercial systems,
-such as city sound monitoring, street lights, networked electrical
-power meters, industrial monitoring, radiation monitoring,
-construction site monitoring, alarm systems, remote house monitoring,
-and so on.
+Integration is based on [RFC6775](http://tools.ietf.org/html/rfc6775) to optimize IPv6 NDP this tiny Operating system.
 
-For more information, see the Contiki website:
+Through this fork, we implement 6LoWPAN-ND on Contiki as accurately as possible. Some issues and optimization are discussed in the master's thesis report (section source)
 
-[http://contiki-os.org](http://contiki-os.org)
+##How to use
+
+###User
+Add 6LoWPAN-ND entity macro in the Makefile:
+
+* UIP_CONF_6LN: 6LoWPAN-ND Host
+* UIP_CONF_6LR: 6LoWPAN-ND Router
+* UIP_CONF_6LBR: 6LoWPAN-ND Border Router
+
+###Git repository
+
+* pur : implementation et validation of 6LoWPAN-ND with manuel routing
+* rpl : implementation et validation of 6LoWPAN-ND with routing by RPL
+* optimization: implementation and validation of optimization between 6LoWPAN-ND and RPL
+* depl_cetic : micro deployment in CETIC
+
+
+##Documentation
+Master's thesis report (in French): [dir](https://bitbucket.org/sdefauw/memoire/) [pdf](https://bytebucket.org/sdefauw/memoire/raw/bbcea8351661e62f5aecf97bc66a58536f79fc39/me%CC%81moire.pdf)
+
+
+##Source
+* contiki OS: [http://contiki-os.org](http://contiki-os.org)
+* fork : [https://github.com/contiki-os/contiki](https://github.com/contiki-os/contiki)

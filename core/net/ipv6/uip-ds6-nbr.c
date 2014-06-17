@@ -70,11 +70,19 @@ void LINK_NEIGHBOR_CALLBACK(const linkaddr_t *addr, int status, int numtx);
 
 NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 
+#if UIP_CONF_6LR
+uip_ds6_dar_t uip_ds6_dar_list[UIP_DS6_DAR_NB]; /* \brief Duplication addresse request list */
+static uip_ds6_dar_t *locdar;
+#endif /* UIP_CONF_6LR */
+
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_neighbors_init(void)
 {
   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
+#if UIP_CONF_6LR
+  memset(uip_ds6_dar_list, 0, sizeof(uip_ds6_dar_t));
+#endif /* UIP_CONF_6LR */
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
@@ -86,6 +94,11 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
     nbr->isrouter = isrouter;
     nbr->state = state;
+  #if CONF_6LOWPAN_ND
+    if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
+      nbr_table_lock(ds6_neighbors, nbr);
+    }
+  #endif /* CONF_6LOWPAN_ND */
   #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
   #endif /* UIP_CONF_IPV6_QUEUE_PKT */
@@ -115,6 +128,13 @@ void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
+#if CONF_6LOWPAN_ND
+    if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
+      nbr_table_unlock(ds6_neighbors, nbr);
+    }
+    uip_ds6_route_rm(uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr));
+    uip_ds6_defrt_rm(uip_ds6_defrt_lookup(&nbr->ipaddr));
+#endif /* CONF_6LOWPAN_ND */
 #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
@@ -225,6 +245,68 @@ uip_ds6_neighbor_periodic(void)
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {
+#if CONF_6LOWPAN_ND
+    case NBR_GARBAGE_COLLECTIBLE:
+      if(stimer_expired(&nbr->reachable)) {
+        PRINTF("GARBAGE_COLLECTIBLE: remove entry (");
+        PRINT6ADDR(&nbr->ipaddr);
+        PRINTF(")\n");
+        uip_ds6_nbr_rm(nbr);
+      }
+      break;
+    case NBR_REGISTERED:
+      if(stimer_expired(&nbr->reachable)) {
+        PRINTF("REGISTERED: remove entry (");
+        PRINT6ADDR(&nbr->ipaddr);
+        PRINTF(")\n");
+        uip_ds6_nbr_rm(nbr);
+    #if !UIP_CONF_6LBR
+      } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN, 
+                                      UIP_DS6_NS_MINLIFETIME_RETRAN)) {
+        PRINTF("REGISTERED: move to TENTATIVE\n");
+        nbr->state = NBR_TENTATIVE;
+        nbr->nscount = 0;
+    #endif /* !UIP_CONF_6LBR */
+      }
+      break;
+    case NBR_TENTATIVE:
+      if (nbr->isrouter == ISROUTER_YES) {
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+          uip_ds6_nbr_rm(nbr);
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          uip_ds6_addr_t* addgl = uip_ds6_get_global_br(-1, 
+                                        uip_ds6_defrt_lookup(&nbr->ipaddr)->br);
+          if(addgl != NULL) {
+            uip_nd6_ns_output_aro(&(addgl->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
+                                UIP_ND6_REGISTER_LIFETIME, 1);
+          }
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+      } else {
+        if(stimer_expired(&nbr->reachable)) {
+          uip_ds6_nbr_rm(nbr);
+        }
+      }
+      break;
+  #if UIP_CONF_6LR
+    case NBR_TENTATIVE_DAD:
+        locdar = uip_ds6_dar_lookup_by_nbr(nbr);
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+          uip_ds6_dar_rm(locdar);
+          nbr->state = NBR_GARBAGE_COLLECTIBLE;
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          uip_nd6_dar_output(&uip_ds6_prefix_lookup_from_ipaddr(&locdar->ipaddr)->br->ipaddr,
+                             UIP_ND6_ARO_STATUS_SUCCESS, 
+                             &locdar->ipaddr,
+                             uip_ds6_nbr_get_ll(nbr), 
+                             locdar->lifetime);
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+      break;
+  #endif  /* UIP_CONF_6LR */
+#else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
         PRINTF("REACHABLE: moving to STALE (");
@@ -270,6 +352,7 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
 #endif /* UIP_ND6_SEND_NA */
+#endif /* CONF_6LOWPAN_ND */
     default:
       break;
     }
@@ -297,3 +380,54 @@ uip_ds6_get_least_lifetime_neighbor(void)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
+
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_6LR
+uip_ds6_dar_t *
+uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr == NULL) {
+      uip_ipaddr_copy(&locdar->ipaddr, ipaddr);
+      locdar->nbr = nbr;
+      locdar->lifetime = lifetime;
+      return locdar;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+void 
+uip_ds6_dar_rm(uip_ds6_dar_t *dar)
+{
+  dar->nbr = NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_dar_t *
+uip_ds6_dar_lookup(uip_ipaddr_t *ipaddr)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr != NULL && uip_ipaddr_cmp(&locdar->ipaddr, ipaddr)) {
+      return locdar;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_dar_t *
+uip_ds6_dar_lookup_by_nbr( uip_ds6_nbr_t* nbr)
+{
+  for(locdar = uip_ds6_dar_list;
+      locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
+      locdar++) {
+    if(locdar->nbr != NULL && locdar->nbr == nbr) {
+      return locdar;
+    }
+  }
+  return NULL;
+}
+#endif /* UIP_CONF_6LR */

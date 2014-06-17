@@ -101,7 +101,9 @@ typedef unsigned short uip_stats_t;
 
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
+#ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 1
+#endif
 #ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL               1
 #endif /* UIP_CONF_IPV6_RPL */
