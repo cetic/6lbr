@@ -37,6 +37,7 @@ symbols.*
 Makefile.target
 doc/html
 patches-*
+tools/tunslip
 tools/tunslip6
 build
 tools/coffee-manager/build/

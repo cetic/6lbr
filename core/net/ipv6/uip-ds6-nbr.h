@@ -151,3 +151,4 @@ uip_ds6_dar_t *uip_ds6_dar_lookup_by_nbr(uip_ds6_nbr_t* nbr);
 /** @} */
 
 #endif /* UIP_DS6_NEIGHBOR_H_ */
+/** @} */

@@ -171,7 +171,13 @@
 #define  ADDR_MANUAL 3
 
 /** \brief General DS6 definitions */
-#define UIP_DS6_PERIOD   (CLOCK_SECOND/10)  /** Period for uip-ds6 periodic task*/
+/** Period for uip-ds6 periodic task*/
+#ifndef UIP_DS6_CONF_PERIOD
+#define UIP_DS6_PERIOD   (CLOCK_SECOND/10)
+#else
+#define UIP_DS6_PERIOD UIP_DS6_CONF_PERIOD
+#endif
+
 #define FOUND 0
 #define FREESPACE 1
 #define NOSPACE 2
@@ -362,9 +368,6 @@ extern struct etimer uip_ds6_timer_periodic;
 
 #if UIP_CONF_ROUTER
 extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];
-#if CONF_6LOWPAN_ND
-extern uip_ds6_border_router_t *locbr;
-#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
 #if !UIP_CONF_ROUTER || UIP_CONF_6LR
 extern struct etimer uip_ds6_timer_rs;
