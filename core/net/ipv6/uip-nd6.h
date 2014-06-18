@@ -47,6 +47,9 @@
 
 #include "net/ip/uip.h"
 #include "sys/stimer.h"
+#if CONF_6LOWPAN_ND
+#include "net/ipv6/uip-ds6-route.h"
+#endif /* CONF_6LOWPAN_ND */
 /**
  *  \name General
  * @{
@@ -495,7 +498,11 @@ void uip_nd6_na_output(uint8_t flags);
  *
  * Only for router, for periodic as well as sollicited RA
  */
-void uip_nd6_ra_output(uip_ipaddr_t *dest);
+#if UIP_CONF_6L_ROUTER
+void uip_nd6_ra_output(uip_ipaddr_t * dest, uip_ds6_border_router_t *locbr);
+#else /* UIP_CONF_6L_ROUTER */
+void uip_nd6_ra_output(uip_ipaddr_t * dest);
+#endif /* UIP_CONF_6L_ROUTER */
 #endif /* UIP_ND6_SEND_RA */
 #endif /*UIP_CONF_ROUTER*/
 

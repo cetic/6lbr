@@ -64,9 +64,8 @@ LIST(notificationlist);
 #endif
 
 #if CONF_6LOWPAN_ND
-//TODO modify to LIST
 uip_ds6_border_router_t uip_ds6_br_list[UIP_DS6_BR_NB];  /** \brief Border router list */
-uip_ds6_border_router_t *locbr;
+static uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 
 static int num_routes = 0;

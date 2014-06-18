@@ -97,7 +97,7 @@ static uip_ds6_context_pref_t *loccontext;
 #if UIP_CONF_6LBR
 static uip_ds6_dup_addr_t *locdad;
 #endif /* UIP_CONF_6LBR */
-uip_ds6_border_router_t *locbr;
+static uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
@@ -434,7 +434,6 @@ uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 void
 uip_ds6_prefix_rm_all(uip_ds6_border_router_t *border_router)
 {
-  //TODO what to do when prefix rm and it's use in address
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
       locprefix++) {
@@ -1043,7 +1042,7 @@ uip_ds6_send_ra_unicast_sollicited(uip_ipaddr_t *dest)
   for(locbr = uip_ds6_br_list;
       locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
       locbr++) {
-    uip_nd6_ra_output(dest);
+    uip_nd6_ra_output(dest, locbr);
     tcpip_ipv6_output();
   }
 }
@@ -1059,7 +1058,7 @@ uip_ds6_send_ra_periodic(void)
     for(locbr = uip_ds6_br_list;
         locbr < uip_ds6_br_list + UIP_DS6_BR_NB;
         locbr++) {
-      uip_nd6_ra_output(NULL);
+      uip_nd6_ra_output(NULL, locbr);
     }
 #else
     uip_nd6_ra_output(NULL);

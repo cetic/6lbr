@@ -987,8 +987,13 @@ discard:
 }
 
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_6L_ROUTER
+void
+uip_nd6_ra_output(uip_ipaddr_t * dest, uip_ds6_border_router_t *locbr)
+#else /* UIP_CONF_6L_ROUTER */
 void
 uip_nd6_ra_output(uip_ipaddr_t * dest)
+#endif /* UIP_CONF_6L_ROUTER */
 {
 #if UIP_CONF_6L_ROUTER
   int len;
