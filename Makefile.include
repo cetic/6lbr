@@ -22,22 +22,16 @@ endif
 ifeq ($(UIP_CONF_6LN), 1) # 6LoWPAN Host/Node
   CFLAGS += -DUIP_CONF_6LN=1
   CONF_6LOWPAN_ND=1
-else
-  CFLAGS += -DUIP_CONF_6LN=0
 endif
 
 ifeq ($(UIP_CONF_6LR), 1) # 6LoWPAN Router
   CFLAGS += -DUIP_CONF_6LR=1
   UIP_CONF_6L_ROUTER = 1
-else
-  CFLAGS += -DUIP_CONF_6LR=0
 endif
 
 ifeq ($(UIP_CONF_6LBR), 1) # 6LoWPAN Border Router
   CFLAGS += -DUIP_CONF_6LBR=1
   UIP_CONF_6L_ROUTER = 1
-else
-  CFLAGS += -DUIP_CONF_6LBR=0
 endif
 
 ifeq ($(UIP_CONF_6L_ROUTER), 1)
@@ -51,8 +45,8 @@ endif
 
 ifeq ($(CONF_6LOWPAN_ND), 1)
   CFLAGS += -DCONF_6LOWPAN_ND=1
-else
-  CFLAGS += -DCONF_6LOWPAN_ND=0
+  CFLAGS += -DUIP_CONF_ND6_SEND_RA=1
+  CFLAGS += -DUIP_CONF_ND6_SEND_NA=1
 endif
 # ----------------
 

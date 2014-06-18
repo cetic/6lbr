@@ -245,5 +245,58 @@
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 
+/*---------------------------------------------------------------------------*/
+/* 6LoWPAN Neigbor Discovery Protocol configuration.
+ * 
+ * TODO add more comment
+ */
+
+#ifndef CONF_6LOWPAN_ND
+#define CONF_6LOWPAN_ND 0
+#endif /* CONF_6LOWPAN_ND */
+
+#ifndef UIP_CONF_6LN
+#define UIP_CONF_6LN 0
+#endif /* UIP_CONF_6LN */
+
+#ifndef UIP_CONF_6LR
+#define UIP_CONF_6LR 0
+#endif /* UIP_CONF_6LR */
+
+#ifndef UIP_CONF_6LBR
+#define UIP_CONF_6LBR 0
+#endif /* UIP_CONF_6LBR */
+
+#ifndef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER 0
+#endif /* UIP_CONF_ROUTER */
+
+/* Check error with compatible macro */
+//TODO add comments
+/* 6LoWPAN-ND entity */
+#if CONF_6LOWPAN_ND && !(UIP_CONF_ND6_SEND_RA && UIP_CONF_ND6_SEND_NA)
+#error "6LoWPAN-ND entity must en NA and RA."
+#endif
+
+/* 6LoWPAN-ND Host */
+#if UIP_CONF_6LN && !CONF_6LOWPAN_ND
+#error "6LoWPAN-ND Host is not a 6LoWPAN-ND entity."
+#endif
+
+/* 6LoWPAN-ND Router */
+#if UIP_CONF_6LR && !UIP_CONF_6L_ROUTER
+#error "6LoWPAN-ND Router is not a 6LoWPAN-ND router entity."
+#endif
+
+/* 6LoWPAN-ND Border Router */
+#if UIP_CONF_6LBR && !UIP_CONF_6L_ROUTER
+#error "6LoWPAN-ND Border Router is not a 6LoWPAN-ND router entity."
+#endif
+
+/* 6LoWPAN-ND router entity */
+#if UIP_CONF_6LBR && !UIP_CONF_ROUTER
+#error "6LoWPAN-ND router entity must be a router."
+#endif
+
 
 #endif /* CONTIKI_DEFAULT_CONF_H */

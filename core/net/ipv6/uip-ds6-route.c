@@ -247,6 +247,7 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
   return found_route;
 }
 /*---------------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
 uip_ds6_route_t *
 uip_ds6_route_lookup_by_nexthop(uip_ipaddr_t *ipaddr)
 {
@@ -260,6 +261,7 @@ uip_ds6_route_lookup_by_nexthop(uip_ipaddr_t *ipaddr)
   }
   return NULL;
 }
+#endif /* CONF_6LOWPAN_ND */
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
 uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
