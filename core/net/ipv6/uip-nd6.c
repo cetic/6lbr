@@ -739,7 +739,9 @@ na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
+  #if !CONF_6LOWPAN_ND
     uip_lladdr_t *lladdr;
+  #endif /* CONF_6LOWPAN_ND */
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
     if(nbr == NULL) {
       goto discard;
