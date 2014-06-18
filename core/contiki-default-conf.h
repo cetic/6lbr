@@ -267,9 +267,9 @@
 #define UIP_CONF_6LBR 0
 #endif /* UIP_CONF_6LBR */
 
-#ifndef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER 0
-#endif /* UIP_CONF_ROUTER */
+#ifndef UIP_CONF_6L_ROUTER
+#define UIP_CONF_6L_ROUTER 0
+#endif /* UIP_CONF_6L_ROUTER */
 
 /* Check error with compatible macro */
 //TODO add comments
@@ -294,7 +294,7 @@
 #endif
 
 /* 6LoWPAN-ND router entity */
-#if UIP_CONF_6LBR && !UIP_CONF_ROUTER
+#if UIP_CONF_6L_ROUTER && !UIP_CONF_ROUTER
 #error "6LoWPAN-ND router entity must be a router."
 #endif
 
