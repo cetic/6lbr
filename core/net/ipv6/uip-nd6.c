@@ -1575,6 +1575,15 @@ discard:
 
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LBR
+/**
+ *
+ * \brief process a Duplication Address Register
+ *
+ * - When receiving a DAR, the Border Router checks in the duplication
+ *   table to see if there are already the address in message. We send 
+ *   back a Duplication Address Confirmation to the router based on it 
+ *   existence on the table.
+ */
 void
 dar_input(void)
 {
@@ -1683,6 +1692,14 @@ dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
   da_output(destipaddr, ICMP6_DAR, status, hostipaddr, eui64, lifetime);
 }
 /*---------------------------------------------------------------------------*/
+/**
+ *
+ * \brief process a Duplication Address Confirmation
+ *
+ * - When receiving a DAC, we add the entry on the Neighbor Cache is it 
+ *   was a success. We send back to the host a NA to notify it of the 
+ *   decision.
+ */
 void
 dac_input(void)
 {
