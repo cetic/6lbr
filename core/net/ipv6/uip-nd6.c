@@ -1635,7 +1635,7 @@ dar_input(void)
     /* send back with duplication */
     status_return = UIP_ND6_ARO_STATUS_DUPLICATE;
   }
-  da_output(&UIP_IP_BUF->srcipaddr, ICMP6_DAC,
+  uip_nd6_da_output(&UIP_IP_BUF->srcipaddr, ICMP6_DAC,
                       status_return, &UIP_ND6_DA_BUF->regipaddr,
                       &UIP_ND6_DA_BUF->eui64, uip_ntohs(UIP_ND6_DA_BUF->lifetime));
   return;
@@ -1649,7 +1649,7 @@ discard:
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6L_ROUTER
 void
-da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
+uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
               uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime)
 {
   UIP_IP_BUF->vtc = 0x60;
@@ -1693,10 +1693,10 @@ da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
 #if UIP_CONF_6LR
 /*---------------------------------------------------------------------------*/
 void 
-dar_output(uip_ipaddr_t* destipaddr, uint8_t status, 
+uip_nd6_dar_output(uip_ipaddr_t* destipaddr, uint8_t status, 
             uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime)
 {
-  da_output(destipaddr, ICMP6_DAR, status, hostipaddr, eui64, lifetime);
+  uip_nd6_da_output(destipaddr, ICMP6_DAR, status, hostipaddr, eui64, lifetime);
 }
 /*---------------------------------------------------------------------------*/
 /**

@@ -545,10 +545,10 @@ void uip_nd6_init(void);
  * 6LoWPAN-ND
  */
  #if UIP_CONF_6L_ROUTER
-void da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
+void uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
             uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
 #if UIP_CONF_6LR
-void dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
+void uip_nd6_dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
             uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
 #endif/* UIP_CONF_6LR */
 #endif /* UIP_CONF_6L_ROUTER */
