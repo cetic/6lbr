@@ -196,9 +196,7 @@ rpl_update_header_empty(void)
     }
     break;
 #if CONF_6LOWPAN_ND
-  //TODO right ?
   case UIP_PROTO_ICMP6:
-    //TODO MACRO DAR & DAC
     switch(((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])->type) {
     case 157:
     case 158:

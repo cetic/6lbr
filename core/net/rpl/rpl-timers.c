@@ -337,7 +337,6 @@ handle_host_timer(void *ptr)
   nbr = nbr_table_head(ds6_neighbors);
 
   while(nbr != NULL) {
-    //TODO problem of timer when TESTING
     if(nbr->isrouter == ISROUTER_TESTING) {
       nbr->isrouter = ISROUTER_NO;
       route = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
@@ -365,7 +364,6 @@ rpl_host_determination(rpl_instance_t *instance)
     nbr = nbr_table_next(ds6_neighbors, nbr);
   }
   if(num != 0) {
-    //TODO use macro for time in timer
     ctimer_set(&instance->host_timer, 60*CLOCK_SECOND, &handle_host_timer, instance);
   }
 }
