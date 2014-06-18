@@ -739,6 +739,7 @@ na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
+    uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
     if(nbr == NULL) {
       goto discard;
@@ -780,7 +781,6 @@ na_input(void)
         }
       }
   #else /* CONF_6LOWPAN_ND */
-    uip_lladdr_t *lladdr;
     lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
     if(nd6_opt_llao != 0) {
       is_llchange =
