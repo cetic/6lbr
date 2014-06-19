@@ -92,6 +92,12 @@ extern rpl_of_t RPL_OF;
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+#define TCPIP_ANNOTATE(m) printf("#%s\n", m);
+#else /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+#define TCPIP_ANNOTATE(m)
+#endif  /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+/*---------------------------------------------------------------------------*/
 /* Initialise RPL ICMPv6 message handlers */
 UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
 UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
@@ -156,6 +162,7 @@ dis_input(void)
   PRINTF("RPL: Received a DIS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDIS");
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
       instance < end; ++instance) {
@@ -237,6 +244,7 @@ dio_input(void)
   PRINTF("RPL: Received a DIO from ");
   PRINT6ADDR(&from);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDIO");
 
   #if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
@@ -615,6 +623,7 @@ dao_input(void)
   PRINTF("RPL: Received a DAO from ");
   PRINT6ADDR(&dao_sender_addr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAO");
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
@@ -939,6 +948,7 @@ dao_ack_input(void)
     sequence, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAO-ACK");
 #endif /* DEBUG */
   uip_len = 0;
 }
@@ -965,10 +975,6 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence)
 void
 rpl_icmp6_register_handlers()
 {
-#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
-  printf("#rRPL %d\n", UIP_ICMP_BUF->icode);
-#endif  /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
-
   uip_icmp6_register_input_handler(&dis_handler);
   uip_icmp6_register_input_handler(&dio_handler);
   uip_icmp6_register_input_handler(&dao_handler);
