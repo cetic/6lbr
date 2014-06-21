@@ -107,9 +107,9 @@ typedef struct uip_ds6_nbr {
 #if UIP_CONF_6LR
 typedef struct uip_ds6_dar {
   uip_ipaddr_t ipaddr;
-  uip_ds6_nbr_t* nbr;
+  uip_ds6_nbr_t *nbr;
   uint16_t lifetime;
-} uip_ds6_dar_t; 
+} uip_ds6_dar_t;
 #endif /* UIP_CONF_6LR */
 
 void uip_ds6_neighbors_init(void);
@@ -139,14 +139,13 @@ int uip_ds6_nbr_num(void);
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
-
 /** \name Duplication Address Request list basic routines */
 /** @{ */
 #if UIP_CONF_6LR
-uip_ds6_dar_t *uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime);
+uip_ds6_dar_t *uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t *nbr, uint16_t lifetime);
 void uip_ds6_dar_rm(uip_ds6_dar_t *dad);
 uip_ds6_dar_t *uip_ds6_dar_lookup(uip_ipaddr_t *ipaddr);
-uip_ds6_dar_t *uip_ds6_dar_lookup_by_nbr(uip_ds6_nbr_t* nbr);
+uip_ds6_dar_t *uip_ds6_dar_lookup_by_nbr(uip_ds6_nbr_t *nbr);
 #endif /* UIP_CONF_6LR */
 /** @} */
 

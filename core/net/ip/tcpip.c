@@ -662,11 +662,11 @@ tcpip_ipv6_output(void)
 #else /* UIP_CONF_6LN */
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
-  #if CONF_6LOWPAN_ND
+#if CONF_6LOWPAN_ND
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, ISROUTER_YES, NBR_TENTATIVE)) == NULL) {
-  #else /* CONF_6LOWPAN_ND */
+#else /* CONF_6LOWPAN_ND */
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
-  #endif /* CONF_6LOWPAN_ND */
+#endif /* CONF_6LOWPAN_ND */
         uip_len = 0;
         return;
       } else {
@@ -695,11 +695,11 @@ tcpip_ipv6_output(void)
 #endif /* UIP_ND6_SEND_NA */
     } else {
 #if UIP_ND6_SEND_NA
-  #if CONF_6LOWPAN_ND
+#if CONF_6LOWPAN_ND
       if(nbr->state == -1) {
-  #else /* CONF_6LOWPAN_ND */
+#else /* CONF_6LOWPAN_ND */
       if(nbr->state == NBR_INCOMPLETE) {
-  #endif /* CONF_6LOWPAN_ND */
+#endif /* CONF_6LOWPAN_ND */
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* Copy outgoing pkt in the queuing buffer for later transmit and set
@@ -712,7 +712,7 @@ tcpip_ipv6_output(void)
         uip_len = 0;
         return;
       }
-    #if !CONF_6LOWPAN_ND
+#if !CONF_6LOWPAN_ND
       /* Send in parallel if we are running NUD (nbc state is either STALE,
          DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
       if(nbr->state == NBR_STALE) {
@@ -721,7 +721,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
-    #endif /* !CONF_6LOWPAN_ND */
+#endif /* !CONF_6LOWPAN_ND */
 #endif /* UIP_ND6_SEND_NA */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
@@ -744,9 +744,9 @@ tcpip_ipv6_output(void)
       uip_len = 0;
       return;
     }
-  #if CONF_6LOWPAN_ND
+#if CONF_6LOWPAN_ND
     tcpip_output(NULL);
-  #endif /* CONF_6LOWPAN_ND */
+#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_6LN */
     return;
   }
