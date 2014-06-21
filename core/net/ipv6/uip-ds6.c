@@ -100,7 +100,7 @@ static uip_ds6_dup_addr_t *locdad;
 static uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
 #if CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER
-  uint8_t rpl_started;
+uint8_t rpl_started;
 #endif /* CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER */
 
 /*---------------------------------------------------------------------------*/
