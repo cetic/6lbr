@@ -96,7 +96,7 @@ static uip_mcast6_route_t *mcast_group;
 #define TCPIP_ANNOTATE(m) printf("#%s\n", m);
 #else /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
 #define TCPIP_ANNOTATE(m)
-#endif  /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
 /*---------------------------------------------------------------------------*/
 /* Initialise RPL ICMPv6 message handlers */
 UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
@@ -246,7 +246,7 @@ dio_input(void)
   PRINTF("\n");
   TCPIP_ANNOTATE("rDIO");
 
-  #if !CONF_6LOWPAN_ND
+#if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -269,7 +269,7 @@ dio_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
-  #endif /* CONF_6LOWPAN_ND */
+#endif /* CONF_6LOWPAN_ND */
 
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
 

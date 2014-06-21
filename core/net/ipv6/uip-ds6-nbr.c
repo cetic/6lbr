@@ -132,7 +132,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
       nbr_table_unlock(ds6_neighbors, nbr);
     }
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
-    uip_ds6_route_t * r = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
+    uip_ds6_route_t *r = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
     r->state.lifetime = 0;
     r->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
 #else /* UIP_DS6_ROUTE_STATE_TYPE */
@@ -270,7 +270,7 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
     case NBR_TENTATIVE:
-      if (nbr->isrouter == ISROUTER_YES) {
+      if(nbr->isrouter == ISROUTER_YES) {
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT && uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {

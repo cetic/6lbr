@@ -379,7 +379,6 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 #endif /* CONF_6LOWPAN_ND */
 #endif
 
-
   PRINTF("uip_ds6_route_add: adding route: ");
   PRINT6ADDR(ipaddr);
   PRINTF(" via ");
