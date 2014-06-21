@@ -99,6 +99,9 @@ static uip_ds6_dup_addr_t *locdad;
 #endif /* UIP_CONF_6LBR */
 static uip_ds6_border_router_t *locbr;
 #endif /* CONF_6LOWPAN_ND */
+#if CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER
+  uint8_t rpl_started;
+#endif /* CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER */
 
 /*---------------------------------------------------------------------------*/
 void
@@ -164,6 +167,9 @@ uip_ds6_init(void)
                               CLOCK_SECOND));
 #endif /* UIP_CONF_ROUTER */
   etimer_set(&uip_ds6_timer_periodic, UIP_DS6_PERIOD);
+#if CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER
+  rpl_started = 0;
+#endif /* CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER */
 
   return;
 }
@@ -173,6 +179,15 @@ uip_ds6_init(void)
 void
 uip_ds6_periodic(void)
 {
+
+#if CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER
+  /* Start RPL only when the device has global IPv6 */
+  if(!rpl_started && uip_ds6_get_global(ADDR_PREFERRED)) {
+    rpl_init();
+    rpl_started = 1;
+  }
+#endif /* CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER */
+
   /* Periodic processing on unicast addresses */
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {

@@ -270,6 +270,12 @@
 #define UIP_CONF_6L_ROUTER 0
 #endif /* UIP_CONF_6L_ROUTER */
 
+/* Start RPL only when 6LoWPAN-ND has successfully get the global 
+   IPv6 address. */
+#ifndef CONF_6LOWPAN_ND_OPTI_START
+#define CONF_6LOWPAN_ND_OPTI_START 1
+#endif /* CONF_6LOWPAN_ND_OPTI_START */
+
 /* Check error with compatible macro */
 /* TODO add comments */
 /* 6LoWPAN-ND entity */

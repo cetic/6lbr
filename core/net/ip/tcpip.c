@@ -845,7 +845,9 @@ PROCESS_THREAD(tcpip_process, ev, data)
 #endif
 /* initialize RPL if configured for using RPL */
 #if UIP_CONF_IPV6 && UIP_CONF_IPV6_RPL
+#if !CONF_6LOWPAN_ND_OPTI_START
   rpl_init();
+#endif /* !CONF_6LOWPAN_ND_OPTI_START */
 #endif /* UIP_CONF_IPV6_RPL */
 
   while(1) {
