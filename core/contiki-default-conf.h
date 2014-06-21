@@ -273,7 +273,11 @@
 /* Start RPL only when 6LoWPAN-ND has successfully get the global
    IPv6 address. */
 #ifndef CONF_6LOWPAN_ND_OPTI_START
+#if CONF_6LOWPAN_ND
 #define CONF_6LOWPAN_ND_OPTI_START 1
+#else /* CONF_6LOWPAN_ND */
+#define CONF_6LOWPAN_ND_OPTI_START 0
+#endif /* CONF_6LOWPAN_ND */
 #endif /* CONF_6LOWPAN_ND_OPTI_START */
 
 /* Use a truncated binary exponential backoff to retransmit NS
