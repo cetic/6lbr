@@ -281,7 +281,18 @@ uip_ds6_neighbor_periodic(void)
             uip_nd6_ns_output_aro(&(addgl->ipaddr), &nbr->ipaddr, &nbr->ipaddr,
                                   UIP_ND6_REGISTER_LIFETIME, 1);
           }
+#if CONF_6LOWPAN_ND_OPTI_NS
+          uint16_t r = ((uint16_t)random_rand()) % ((2 << (nbr->nscount - 1) - 1) + 1);
+          r = r * UIP_ND6_RTR_SOLICITATION_INTERVAL;
+          if(r >= UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL) {
+            r = UIP_ND6_MAX_RTR_SOLICITATION_INTERVAL;
+          } else if(r < uip_ds6_if.retrans_timer / 1000) {
+            r = uip_ds6_if.retrans_timer / 1000;
+          }
+          stimer_set(&nbr->sendns, r);
+#else /* CONF_6LOWPAN_ND_OPTI_NS */
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+#endif /* CONF_6LOWPAN_ND_OPTI_NS */
         }
       } else {
         if(stimer_expired(&nbr->reachable)) {
