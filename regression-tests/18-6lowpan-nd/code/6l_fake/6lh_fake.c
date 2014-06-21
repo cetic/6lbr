@@ -99,6 +99,12 @@ PROCESS_THREAD(test_host, ev, data)
   printf("Contiki>\n");
 #endif
 
+  //Fake mac address
+  uip_lladdr.addr[3] = 0x02;
+  uip_lladdr.addr[5] = 0x02;
+  uip_lladdr.addr[6] = 0x02;
+  uip_lladdr.addr[7] = 0x02;
+
   display_add();
 
   while(1) {

@@ -919,7 +919,6 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
 }
 
 /*---------------------------------------------------------------------------*/
-#if !UIP_FAKE
 void
 uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 {
@@ -938,7 +937,6 @@ uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 #error uip-ds6.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
 }
-#endif /* !UIP_FAKE */
 
 /*---------------------------------------------------------------------------*/
 uint8_t
