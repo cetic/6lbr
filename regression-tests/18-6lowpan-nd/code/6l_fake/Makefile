@@ -3,7 +3,7 @@ APPS=6lowpannd
 
 APPS += serial-shell
 
-PROJECT_SOURCEFILES += ../shell-6l.c fake.c
+PROJECT_SOURCEFILES += ../shell-6l.c
 
 UIP_CONF_IPV6=1
 UIP_CONF_RPL=0

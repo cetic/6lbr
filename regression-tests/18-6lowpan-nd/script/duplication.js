@@ -162,23 +162,27 @@ for(var i=0; i<30; i++) {
     YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
 
     //check IP
-    var ipcheck = {1:false, 2:true, 3:false, 4:false};
+    function islocalip(ip) {return ip.indexOf("fe80:") == 0};
+    function isglobalip(ip) {return ip.indexOf(prefix+":") == 0;}
+    var fakenode = [2,3];
+    var numfake = 0;
     var allm = sim.getMotes();
     for(var id in  allm) {
         var moteid = allm[id].getID();
         var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
-        if(ipcheck[moteid]) {
-            //Check local IP
-            if(ip.indexOf("fe80:") != 0) {
-                log.testFailed();
-            }
+        if(fakenode.indexOf(moteid) != -1) {
+            //Fake mote
+            if(!islocalip(ip))
+                numfake++;
         } else {
-            //Check global IP
-            if(ip.indexOf(prefix+":") != 0) {
+            //Not fake mote
+            if(!isglobalip(ip))
                 log.testFailed();
-            }
         }
     } 
+    if(numfake != 1) {
+        log.testFailed();
+    }
     log.log("\tOK\n");
 }
 log.testOK();
