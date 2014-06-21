@@ -155,7 +155,7 @@ GENERATE_MSG(60000, "timeout");
 YIELD_THEN_WAIT_UNTIL(msg.contains("timeout"));
 log.log("Testing....\n");
 
-for(var i=0; i<30; i++) {
+for(var i=0; i<10; i++) {
     log.log("Check "+(i+1)+"...");
     YIELD_THEN_WAIT_UNTIL(msg.contains("#rNA"));
     GENERATE_MSG(3000, "timeout");
