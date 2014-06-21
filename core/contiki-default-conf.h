@@ -166,7 +166,6 @@
 #define UIP_CONF_MAX_CONNECTIONS 8
 #endif /* UIP_CONF_MAX_CONNECTIONS */
 
-
 /* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
    each maximum-sized TCP segment is split into two, to avoid the
    performance degradation that is caused by delayed ACKs. */
@@ -247,7 +246,7 @@
 
 /*---------------------------------------------------------------------------*/
 /* 6LoWPAN Neigbor Discovery Protocol configuration.
- * 
+ *
  * TODO add more comment
  */
 
@@ -272,7 +271,7 @@
 #endif /* UIP_CONF_6L_ROUTER */
 
 /* Check error with compatible macro */
-//TODO add comments
+/* TODO add comments */
 /* 6LoWPAN-ND entity */
 #if CONF_6LOWPAN_ND && !(UIP_CONF_ND6_SEND_RA && UIP_CONF_ND6_SEND_NA)
 #error "6LoWPAN-ND entity must en NA and RA."
@@ -297,6 +296,5 @@
 #if UIP_CONF_6L_ROUTER && !UIP_CONF_ROUTER
 #error "6LoWPAN-ND router entity must be a router."
 #endif
-
 
 #endif /* CONTIKI_DEFAULT_CONF_H */

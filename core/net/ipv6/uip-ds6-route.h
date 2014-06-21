@@ -105,7 +105,7 @@ typedef struct uip_ds6_border_router {
   uint8_t state;
   uint32_t version;
 #if UIP_CONF_6L_ROUTER
-  uint8_t lifetime;        /* in 60sec */ 
+  uint8_t lifetime;        /* in 60sec */
 #endif /* UIP_CONF_6L_ROUTER */
 #if !UIP_CONF_6LBR
   struct stimer timeout;
@@ -151,11 +151,10 @@ typedef struct uip_ds6_defrt {
 #endif /* CONF_6LOWPAN_ND */
 } uip_ds6_defrt_t;
 
-
 /** \name Border router list basic routines */
 /** @{ */
 #if CONF_6LOWPAN_ND
-uip_ds6_border_router_t *uip_ds6_br_add(uint32_t version, uint16_t lifetime, 
+uip_ds6_border_router_t *uip_ds6_br_add(uint32_t version, uint16_t lifetime,
                                         uip_ipaddr_t *ipaddr);
 void uip_ds6_br_rm(uip_ds6_border_router_t *br);
 uip_ds6_border_router_t *uip_ds6_br_lookup(uip_ipaddr_t *ipaddr);

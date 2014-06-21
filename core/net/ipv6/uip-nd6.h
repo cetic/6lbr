@@ -65,7 +65,7 @@
 /** @{ */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
-#define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
+#define UIP_ND6_MAX_RTR_SOLICITATIONS    3
 /** @} */
 #else /* !CONF_6LOWPAN_ND */
 
@@ -200,7 +200,7 @@
 #define UIP_ND6_NA_LEN                  20
 #define UIP_ND6_NS_LEN                  20
 #define UIP_ND6_RA_LEN                  12
-#define UIP_ND6_RS_LEN                  4  
+#define UIP_ND6_RS_LEN                  4
 #if UIP_CONF_6L_ROUTER
 #define UIP_ND6_DA_LEN                  28
 #endif /* UIP_CONF_6L_ROUTER */
@@ -463,7 +463,7 @@ uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
 
 #if CONF_6LOWPAN_ND
 /**
- * \brief Send a neighbor solicitation, send a Neighbor Advertisement with 
+ * \brief Send a neighbor solicitation, send a Neighbor Advertisement with
  *        adresse registration option
  * \param src pointer to the src of the NS if known
  * \param dest pointer to ip address to send the NS, for unicast send
@@ -476,7 +476,7 @@ uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
  * - We send unicast NS to check NUD, DAD and reachability
  */
 void
-uip_nd6_ns_output_aro(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt, 
+uip_nd6_ns_output_aro(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt,
                       uint16_t lifetime, uint8_t sendaro);
 #endif /* CONF_6LOWPAN_ND */
 
@@ -499,9 +499,9 @@ void uip_nd6_na_output(uint8_t flags);
  * Only for router, for periodic as well as sollicited RA
  */
 #if UIP_CONF_6L_ROUTER
-void uip_nd6_ra_output(uip_ipaddr_t * dest, uip_ds6_border_router_t *locbr);
+void uip_nd6_ra_output(uip_ipaddr_t *dest, uip_ds6_border_router_t *locbr);
 #else /* UIP_CONF_6L_ROUTER */
-void uip_nd6_ra_output(uip_ipaddr_t * dest);
+void uip_nd6_ra_output(uip_ipaddr_t *dest);
 #endif /* UIP_CONF_6L_ROUTER */
 #endif /* UIP_ND6_SEND_RA */
 #endif /*UIP_CONF_ROUTER*/
@@ -519,41 +519,38 @@ void uip_nd6_ra_output(uip_ipaddr_t * dest);
  */
 void uip_nd6_rs_output(void);
 #if CONF_6LOWPAN_ND
-void uip_nd6_rs_unicast_output(uip_ipaddr_t* ipaddr);
+void uip_nd6_rs_unicast_output(uip_ipaddr_t *ipaddr);
 #endif /* CONF_6LOWPAN_ND */
-
 
 /**
  * \brief Initialise the uIP ND core
  */
 void uip_nd6_init(void);
 
-
 /**
  *
  * \brief process a Duplication Address
- * 
- * \param destipaddr the entity to send the request or the confirmation. 
+ *
+ * \param destipaddr the entity to send the request or the confirmation.
  *        With DAR it is the Border Router address
  * \param type of the message DAR of DAM (ICMPv6 value)
  * \param status state of Duplication Address Detection
  * \param hostipaddr IPv6 address to register (host IP)
  * \param eui64 unique identifier by the EUI-64
  * \param lifetime registration time, determined by the host
- * 
- * Send DAR or DAM message to solve Duplication Address Detection in 
+ *
+ * Send DAR or DAM message to solve Duplication Address Detection in
  * 6LoWPAN-ND
  */
- #if UIP_CONF_6L_ROUTER
-void uip_nd6_da_output(uip_ipaddr_t* destipaddr, uint8_t type, uint8_t status,
-            uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
+#if UIP_CONF_6L_ROUTER
+void uip_nd6_da_output(uip_ipaddr_t *destipaddr, uint8_t type, uint8_t status,
+                       uip_ipaddr_t *hostipaddr, uip_lladdr_t *eui64, uint16_t lifetime);
 #if UIP_CONF_6LR
-void uip_nd6_dar_output(uip_ipaddr_t* destipaddr, uint8_t status,
-            uip_ipaddr_t* hostipaddr, uip_lladdr_t* eui64, uint16_t lifetime);
-#endif/* UIP_CONF_6LR */
+void uip_nd6_dar_output(uip_ipaddr_t *destipaddr, uint8_t status,
+                        uip_ipaddr_t *hostipaddr, uip_lladdr_t *eui64, uint16_t lifetime);
+#endif /* UIP_CONF_6LR */
 #endif /* UIP_CONF_6L_ROUTER */
 /** @} */
-
 
 void
 uip_appserver_addr_get(uip_ipaddr_t *ipaddr);
@@ -725,12 +722,12 @@ uip_appserver_addr_get(uip_ipaddr_t *ipaddr);
  *    0                   1                   2                   3
  *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |     Type      |   Length = 2  |    Status     |    Reserved   | 
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- *    |            Reserved           |     Registration Lifetime     | 
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- *    |                                                               | 
- *    +                            EUI-64                             + 
+ *    |     Type      |   Length = 2  |    Status     |    Reserved   |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |            Reserved           |     Registration Lifetime     |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                                                               |
+ *    +                            EUI-64                             +
  *    |                                                               |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
@@ -738,29 +735,29 @@ uip_appserver_addr_get(uip_ipaddr_t *ipaddr);
  *    0                   1                   2                   3
  *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |     Type      |    Length     |Context Length | Res |C|  CID  | 
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |     Type      |    Length     |Context Length | Res |C|  CID  |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |            Reserved           |         Valid Lifetime        |
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- *    .                                                               . 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    .                                                               .
  *    .                         Context Prefix                        .
  *    .                                                               .
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
  * Authoritative Border Router Option
  *    0                   1                   2                   3
  *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |     Type      |   Length = 3  |         Version Low           | 
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- *    |         Version High          |        Valide Lifetime        | 
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+ *    |     Type      |   Length = 3  |         Version Low           |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |         Version High          |        Valide Lifetime        |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |                                                               |
  *    +                                                               +
- *    |                                                               | 
+ *    |                                                               |
  *    +                         6LBR Address                          +
  *    |                                                               |
- *    +                                                               + 
+ *    +                                                               +
  *    |                                                               |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *

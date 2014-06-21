@@ -76,7 +76,6 @@
 #endif
 #define UIP_DS6_PREFIX_NB UIP_DS6_PREFIX_NBS + UIP_DS6_PREFIX_NBU
 
-
 #if CONF_6LOWPAN_ND
 
 /* Context Prefix list */
@@ -109,7 +108,7 @@
 #if UIP_CONF_6L_ROUTER
 #ifndef UIP_CONF_DS6_DAR_NB
 #define UIP_DS6_DAR_NB 2
-#else  /* UIP_CONF_6L_ROUTER */
+#else /* UIP_CONF_6L_ROUTER */
 #define UIP_DS6_DAR_NB UIP_CONF_DS6_DAR_NB
 #endif
 #endif /* UIP_CONF_6L_ROUTER */
@@ -191,8 +190,8 @@
 #define CONTEXT_PREF_ST_SENDING 3
 #define CONTEXT_PREF_ST_ADD 4
 #define CONTEXT_PREF_ST_RM 5
-#define CONTEXT_PREF_USE_COMPRESS(X) (X==CONTEXT_PREF_ST_COMPRESS || X==CONTEXT_PREF_ST_SENDING)
-#define CONTEXT_PREF_USE_UNCOMPRESS(X) (X!=CONTEXT_PREF_ST_FREE)
+#define CONTEXT_PREF_USE_COMPRESS(X) (X == CONTEXT_PREF_ST_COMPRESS || X == CONTEXT_PREF_ST_SENDING)
+#define CONTEXT_PREF_USE_UNCOMPRESS(X) (X != CONTEXT_PREF_ST_FREE)
 
 /** \brief Possible states for context prefix states */
 #define BR_ST_FREE 0
@@ -219,7 +218,7 @@
 #else
 #define UIP_DS6_RS_PERCENT_LIFETIME_RETRAN UIP_CONF_DS6_RS_PERCENT_LIFETIME_RETRAN
 #endif
-#endif /* UIP_ND6_SEND_RA || CONF_6LOWPAN_ND */ 
+#endif /* UIP_ND6_SEND_RA || CONF_6LOWPAN_ND */
 #if CONF_6LOWPAN_ND
 #ifndef UIP_CONF_DS6_NS_MINLIFETIME_RETRAN
 #define UIP_DS6_NS_MINLIFETIME_RETRAN 60
@@ -234,8 +233,8 @@
 #endif /* CONF_6LOWPAN_ND */
 
 #define is_timeout_percent(timer, per, bound) ( \
-    (100-per) * stimer_remaining(timer) < per * stimer_elapsed(timer) || \
-    stimer_remaining(timer) < bound) 
+    (100 - per) * stimer_remaining(timer) < per * stimer_elapsed(timer) || \
+    stimer_remaining(timer) < bound)
 
 /*--------------------------------------------------*/
 
@@ -259,7 +258,7 @@ typedef struct uip_ds6_prefix {
   uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
 #if CONF_6LOWPAN_ND
-  uip_ds6_border_router_t* br;
+  uip_ds6_border_router_t *br;
 #endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #else /* UIP_CONF_ROUTER */
@@ -270,11 +269,10 @@ typedef struct uip_ds6_prefix {
   struct stimer vlifetime;
   uint8_t isinfinite;
 #if CONF_6LOWPAN_ND
-  uip_ds6_border_router_t* br;
+  uip_ds6_border_router_t *br;
 #endif /* CONF_6LOWPAN_ND */
 } uip_ds6_prefix_t;
 #endif /*UIP_CONF_ROUTER */
-
 
 /** \brief A Context prefix list entry */
 #if CONF_6LOWPAN_ND
@@ -288,7 +286,7 @@ typedef struct uip_ds6_context_pref {
 #if !UIP_CONF_6LBR
   uint16_t router_lifetime;
 #endif /* !UIP_CONF_6LBR */
-  uip_ds6_border_router_t* br;
+  uip_ds6_border_router_t *br;
 } uip_ds6_context_pref_t;
 #endif /* CONF_6LOWPAN_ND */
 
@@ -299,7 +297,7 @@ typedef struct uip_ds6_dup_addr {
   uip_ipaddr_t ipaddr;
   uip_lladdr_t eui64;
   struct stimer lifetime;
-} uip_ds6_dup_addr_t; 
+} uip_ds6_dup_addr_t;
 #endif /* UIP_CONF_6LBR */
 
 /** * \brief Unicast address structure */
@@ -423,7 +421,7 @@ uip_ds6_prefix_t *uip_ds6_prefix_lookup_from_ipaddr(uip_ipaddr_t *ipaddr);
 /** \name Context prefix list basic routines */
 /** @{ */
 #if UIP_CONF_6LBR
-uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length, 
+uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                                  uint16_t lifetime);
 #else /* UIP_CONF_6LBR */
 uip_ds6_context_pref_t *uip_ds6_context_pref_add(uip_ipaddr_t *ipaddr, uint8_t length,
@@ -437,13 +435,12 @@ uip_ds6_context_pref_t *uip_ds6_context_pref_lookup_by_cid(uint8_t cid);
 
 /** @} */
 
-
 #endif /* CONF_6LOWPAN_ND */
 
 /** \name Duplication Address Detection list basic routines */
 /** @{ */
 #if UIP_CONF_6LBR
-uip_ds6_dup_addr_t *uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime, 
+uip_ds6_dup_addr_t *uip_ds6_dup_addr_add(uip_ipaddr_t *ipaddr, uint16_t lifetime,
                                          uip_lladdr_t *eui64);
 void uip_ds6_dup_addr_rm(uip_ds6_dup_addr_t *dad);
 uip_ds6_dup_addr_t *uip_ds6_dup_addr_lookup(uip_ipaddr_t *ipaddr);

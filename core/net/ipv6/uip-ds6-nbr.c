@@ -89,19 +89,19 @@ uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t *)lladdr);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
     nbr->isrouter = isrouter;
     nbr->state = state;
-  #if CONF_6LOWPAN_ND
+#if CONF_6LOWPAN_ND
     if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
       nbr_table_lock(ds6_neighbors, nbr);
     }
-  #endif /* CONF_6LOWPAN_ND */
-  #if UIP_CONF_IPV6_QUEUE_PKT
+#endif /* CONF_6LOWPAN_ND */
+#if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
-  #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
     /* timers are set separately, for now we put them in expired state */
     stimer_set(&nbr->reachable, 0);
     stimer_set(&nbr->sendns, 0);
@@ -122,7 +122,6 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     return NULL;
   }
 }
-
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
@@ -143,14 +142,12 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   }
   return;
 }
-
 /*---------------------------------------------------------------------------*/
 const uip_ipaddr_t *
 uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr)
 {
   return (nbr != NULL) ? &nbr->ipaddr : NULL;
 }
-
 /*---------------------------------------------------------------------------*/
 const uip_lladdr_t *
 uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr)
@@ -191,9 +188,8 @@ uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
 uip_ds6_nbr_t *
 uip_ds6_nbr_ll_lookup(const uip_lladdr_t *lladdr)
 {
-  return nbr_table_get_from_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
+  return nbr_table_get_from_lladdr(ds6_neighbors, (linkaddr_t *)lladdr);
 }
-
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
 uip_ds6_nbr_ipaddr_from_lladdr(const uip_lladdr_t *lladdr)
@@ -201,7 +197,6 @@ uip_ds6_nbr_ipaddr_from_lladdr(const uip_lladdr_t *lladdr)
   uip_ds6_nbr_t *nbr = uip_ds6_nbr_ll_lookup(lladdr);
   return nbr ? &nbr->ipaddr : NULL;
 }
-
 /*---------------------------------------------------------------------------*/
 const uip_lladdr_t *
 uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr)
@@ -235,7 +230,6 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
     }
   }
 #endif /* UIP_DS6_LL_NUD */
-
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -260,26 +254,26 @@ uip_ds6_neighbor_periodic(void)
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
         uip_ds6_nbr_rm(nbr);
-    #if !UIP_CONF_6LBR
-      } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN, 
-                                      UIP_DS6_NS_MINLIFETIME_RETRAN)) {
+#if !UIP_CONF_6LBR
+      } else if(is_timeout_percent(&nbr->reachable, UIP_DS6_NS_PERCENT_LIFETIME_RETRAN,
+                                   UIP_DS6_NS_MINLIFETIME_RETRAN)) {
         PRINTF("REGISTERED: move to TENTATIVE\n");
         nbr->state = NBR_TENTATIVE;
         nbr->nscount = 0;
-    #endif /* !UIP_CONF_6LBR */
+#endif /* !UIP_CONF_6LBR */
       }
       break;
     case NBR_TENTATIVE:
-      if (nbr->isrouter == ISROUTER_YES) {
+      if(nbr->isrouter == ISROUTER_YES) {
         if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
-          uip_ds6_addr_t* addgl = uip_ds6_get_global_br(-1, 
-                                        uip_ds6_defrt_lookup(&nbr->ipaddr)->br);
+          uip_ds6_addr_t *addgl = uip_ds6_get_global_br(-1,
+                                                        uip_ds6_defrt_lookup(&nbr->ipaddr)->br);
           if(addgl != NULL) {
-            uip_nd6_ns_output_aro(&(addgl->ipaddr), &nbr->ipaddr, &nbr->ipaddr, 
-                                UIP_ND6_REGISTER_LIFETIME, 1);
+            uip_nd6_ns_output_aro(&(addgl->ipaddr), &nbr->ipaddr, &nbr->ipaddr,
+                                  UIP_ND6_REGISTER_LIFETIME, 1);
           }
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
@@ -289,23 +283,23 @@ uip_ds6_neighbor_periodic(void)
         }
       }
       break;
-  #if UIP_CONF_6LR
+#if UIP_CONF_6LR
     case NBR_TENTATIVE_DAD:
-        locdar = uip_ds6_dar_lookup_by_nbr(nbr);
-        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
-          uip_ds6_dar_rm(locdar);
-          nbr->state = NBR_GARBAGE_COLLECTIBLE;
-        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
-          nbr->nscount++;
-          uip_nd6_dar_output(&uip_ds6_prefix_lookup_from_ipaddr(&locdar->ipaddr)->br->ipaddr,
-                             UIP_ND6_ARO_STATUS_SUCCESS, 
-                             &locdar->ipaddr,
-                             uip_ds6_nbr_get_ll(nbr), 
-                             locdar->lifetime);
-          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
-        }
+      locdar = uip_ds6_dar_lookup_by_nbr(nbr);
+      if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+        uip_ds6_dar_rm(locdar);
+        nbr->state = NBR_GARBAGE_COLLECTIBLE;
+      } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+        nbr->nscount++;
+        uip_nd6_dar_output(&uip_ds6_prefix_lookup_from_ipaddr(&locdar->ipaddr)->br->ipaddr,
+                           UIP_ND6_ARO_STATUS_SUCCESS,
+                           &locdar->ipaddr,
+                           uip_ds6_nbr_get_ll(nbr),
+                           locdar->lifetime);
+        stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+      }
       break;
-  #endif  /* UIP_CONF_6LR */
+#endif /* UIP_CONF_6LR */
 #else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
@@ -384,7 +378,7 @@ uip_ds6_get_least_lifetime_neighbor(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_6LR
 uip_ds6_dar_t *
-uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime)
+uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t *nbr, uint16_t lifetime)
 {
   for(locdar = uip_ds6_dar_list;
       locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
@@ -399,7 +393,7 @@ uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t* nbr, uint16_t lifetime)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 uip_ds6_dar_rm(uip_ds6_dar_t *dar)
 {
   dar->nbr = NULL;
@@ -419,7 +413,7 @@ uip_ds6_dar_lookup(uip_ipaddr_t *ipaddr)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_dar_t *
-uip_ds6_dar_lookup_by_nbr( uip_ds6_nbr_t* nbr)
+uip_ds6_dar_lookup_by_nbr(uip_ds6_nbr_t *nbr)
 {
   for(locdar = uip_ds6_dar_list;
       locdar < uip_ds6_dar_list + UIP_DS6_DAR_NB;
