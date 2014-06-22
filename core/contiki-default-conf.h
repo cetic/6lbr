@@ -247,25 +247,30 @@
 /*---------------------------------------------------------------------------*/
 /* 6LoWPAN Neigbor Discovery Protocol configuration.
  *
- * TODO add more comment
+ * By default 6LoWPAN-ND entities is disabled.
  */
 
+/* CONF_6LOWPAN_ND specifies if 6LoWPAN-ND protocol is disbale or not. */
 #ifndef CONF_6LOWPAN_ND
 #define CONF_6LOWPAN_ND 0
 #endif /* CONF_6LOWPAN_ND */
 
+/* 6LoWPAN-ND Host */
 #ifndef UIP_CONF_6LN
 #define UIP_CONF_6LN 0
 #endif /* UIP_CONF_6LN */
 
+/* 6LoWPAN-ND Router */
 #ifndef UIP_CONF_6LR
 #define UIP_CONF_6LR 0
 #endif /* UIP_CONF_6LR */
 
+/* 6LoWPAN-ND Border Router */
 #ifndef UIP_CONF_6LBR
 #define UIP_CONF_6LBR 0
 #endif /* UIP_CONF_6LBR */
 
+/* 6LoWPAN-ND router entity */
 #ifndef UIP_CONF_6L_ROUTER
 #define UIP_CONF_6L_ROUTER 0
 #endif /* UIP_CONF_6L_ROUTER */
@@ -287,30 +292,35 @@
 #endif /* CONF_6LOWPAN_ND_OPTI_NS */
 
 /* Check error with compatible macro */
-/* TODO add comments */
-/* 6LoWPAN-ND entity */
+
+/* All 6LoWPAN-ND entities must be disabled when CONF_6LOWPAN_ND is disabled */
+#if !CONF_6LOWPAN_ND && (UIP_CONF_6LN || UIP_CONF_6LR || UIP_CONF_6LBR || UIP_CONF_6L_ROUTER)
+#error "6LoWPAN-ND is disabled and entities should also be used."
+#endif
+
+/* 6LoWPAN-ND entity should sent RA and NA messages */
 #if CONF_6LOWPAN_ND && !(UIP_CONF_ND6_SEND_RA && UIP_CONF_ND6_SEND_NA)
 #error "6LoWPAN-ND entity must en NA and RA."
 #endif
 
-/* 6LoWPAN-ND Host */
+/* 6LoWPAN-ND Host should used 6LoWPAN-NDP */
 #if UIP_CONF_6LN && !CONF_6LOWPAN_ND
 #error "6LoWPAN-ND Host is not a 6LoWPAN-ND entity."
 #endif
 
-/* 6LoWPAN-ND Router */
+/* 6LoWPAN-ND Router should be 6LoWPAN-ND router entity */
 #if UIP_CONF_6LR && !UIP_CONF_6L_ROUTER
 #error "6LoWPAN-ND Router is not a 6LoWPAN-ND router entity."
 #endif
 
-/* 6LoWPAN-ND Border Router */
+/* 6LoWPAN-ND Border Router should be 6LoWPAN-ND router entity */
 #if UIP_CONF_6LBR && !UIP_CONF_6L_ROUTER
 #error "6LoWPAN-ND Border Router is not a 6LoWPAN-ND router entity."
 #endif
 
-/* 6LoWPAN-ND router entity */
-#if UIP_CONF_6L_ROUTER && !UIP_CONF_ROUTER
-#error "6LoWPAN-ND router entity must be a router."
+/* 6LoWPAN-ND router entity sould be a router and used 6LoWPAN-ND */
+#if UIP_CONF_6L_ROUTER && !(UIP_CONF_ROUTER || CONF_6LOWPAN_ND)
+#error "6LoWPAN-ND router entity must be a router and used 6LoWPAN-ND."
 #endif
 
 #endif /* CONTIKI_DEFAULT_CONF_H */
