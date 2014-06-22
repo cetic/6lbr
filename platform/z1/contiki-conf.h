@@ -148,7 +148,9 @@
 /* Handle 10 routes    */
 #define UIP_CONF_MAX_ROUTES   15
 
-#define UIP_CONF_ND6_SEND_RA		1
+#ifndef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA		0
+#endif /* UIP_CONF_ND6_SEND_RA */
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 

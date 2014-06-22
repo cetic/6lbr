@@ -14,7 +14,7 @@
 #endif /* NETSTACK_CONF_MAC */
 
 #ifndef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     contikimac_driver //contikimac_driver - nullrdc_driver
+#define NETSTACK_CONF_RDC     contikimac_driver
 #endif /* NETSTACK_CONF_RDC */
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
@@ -110,9 +110,8 @@
 #define SHELL_VARS_CONF_RAM_END 0x2000
 
 #define PROFILE_CONF_ON 0
-//#define UIP_CONF_TCP 0
 #ifndef ENERGEST_CONF_ON
-#define ENERGEST_CONF_ON 1 // 0 or 1
+#define ENERGEST_CONF_ON 1
 #endif /* ENERGEST_CONF_ON */
 
 #define ELFLOADER_CONF_TEXT_IN_ROM 0
