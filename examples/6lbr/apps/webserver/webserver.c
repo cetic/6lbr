@@ -63,8 +63,11 @@
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
 #include "sys/stat.h"
-#include "csma.h"
 #include "native-rdc.h"
+#endif
+
+#if CETIC_CSMA_STATS
+#include "csma.h"
 #endif
 
 #if CETIC_NODE_CONFIG
@@ -1318,7 +1321,9 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
   add("Packet overflow : %d<br />", packet_overflow);
   add("Neighbor overflow : %d<br />", neighbor_overflow);
+#if CONTIKI_TARGET_NATIVE
   add("Callback count : %d<br />", callback_count);
+#endif
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
