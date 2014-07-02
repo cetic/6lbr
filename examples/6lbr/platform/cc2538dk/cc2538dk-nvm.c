@@ -63,14 +63,25 @@ void
 nvm_data_write(void)
 {
   long err;
-  LOG6LBR_INFO("Flashing 6LBR NVM\n");
-  err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
-  if ( err != 0 ) {
-    LOG6LBR_ERROR("erase error : %ld\n", err);
+  int retry = 4;
+  while (retry > 0 ) {
+    LOG6LBR_INFO("Flashing 6LBR NVM\n");
+    err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("erase error : %ld\n", err);
+    }
+    rom_util_program_flash( (uint32_t*)&nvm_data,
+     CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("write error : %ld\n", err);
+    }
+    if(rom_util_memcmp( (void *)&nvm_data, (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t)) == 0) {
+      break;
+    }
+    LOG6LBR_ERROR("verify NVM failed, retry\n");
+    retry--;
   }
-  rom_util_program_flash( (uint32_t*)&nvm_data,
-   CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
-  if ( err != 0 ) {
-    LOG6LBR_ERROR("write error : %ld\n", err);
+  if(retry == 0) {
+    LOG6LBR_FATAL("Could not program 6LBR NVM !\n");
   }
 }
