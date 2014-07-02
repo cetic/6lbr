@@ -8,8 +8,9 @@ BBMC_BIN='bbmc'
 FLASHER=''
 BBMC_BIN=`dirname $0`/../../../../cpu/mc1322x/tools/ftditools/bbmc
 BBMC_LAYOUT='econotag'
+DELAY=5000
 
-OPTS=`getopt -o h -l nvm:,dev:,board:,loader:,bbmc:,bbmc-layout:,flasher: -- "$@"`
+OPTS=`getopt -o h -l delay:,nvm:,dev:,board:,loader:,bbmc:,bbmc-layout:,flasher: -- "$@"`
 if [ $? != 0 ]
 then
     exit 1
@@ -27,6 +28,7 @@ while true ; do
         --bbmc) BBMC_BIN=$2; shift 2;;
         --bbmc-layout) BBMC_LAYOUT=$2; shift 2;;
         --flasher) FLASHER=$2; shift 2;;
+	--delay) DELAY=$2; shift 2;;
         --) shift; break;;
     esac
 done
@@ -59,4 +61,4 @@ if [ ! -e "$FLASHER" ]; then
 	exit 1
 fi
 
-$MC1322X_LOAD -t $DEV -f $FLASHER -c "$BBMC" -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
+$MC1322X_LOAD -b $DELAY -t $DEV -f $FLASHER -c "$BBMC" -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
