@@ -97,6 +97,7 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
+PROCESS_NAME(udp_client_process);
 PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
 AUTOSTART_PROCESSES(&cetic_6lbr_process);
@@ -350,6 +351,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
+#endif
+#if UDPCLIENT
+  process_start(&udp_client_process, NULL);
 #endif
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
