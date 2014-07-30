@@ -62,6 +62,7 @@
 #include "node-info.h"
 
 #if CONTIKI_TARGET_NATIVE
+#include "plugin.h"
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
 #include <arpa/inet.h>
@@ -345,6 +346,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   packet_filter_init();
   cetic_6lbr_init();
+
+#if CONTIKI_TARGET_NATIVE
+  plugins_load();
+#endif
 
 #if WEBSERVER
   process_start(&webserver_nogui_process, NULL);

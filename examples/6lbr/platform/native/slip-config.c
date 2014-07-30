@@ -65,6 +65,7 @@ uint8_t ethernet_has_fcs = 0;
 const char *slip_config_ifup_script = NULL;
 const char *slip_config_ifdown_script = NULL;
 char const *slip_config_www_root = "../www";
+char const *slip_config_plugins = "../plugins";
 char const *ip_config_file_name = NULL;
 char const *  node_config_file_name = NULL;
 

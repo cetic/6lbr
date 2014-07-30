@@ -30,7 +30,13 @@ CC2538DK_FW=bin
 
 # End of user configurable section
 
+PLUGINS=${shell find plugins/* -type d -prune}
+PLUGINS_DIRS=$(PLUGINS)
+PLUGINS_FILES=${addsuffix .so,$(PLUGINS_DIRS)}
+
 all: $(CONTIKI_PROJECT)
+
+plugins: $(PLUGINS_FILES)
 
 UIP_CONF_IPV6=1
 CFLAGS += -DUIP_CONF_IPV6=1
@@ -38,6 +44,9 @@ CFLAGS += -DUIP_CONF_IPV6=1
 CONTIKI = ../..
 
 PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info ../6lbr-demo/apps/udp-client
+ifndef ($(TARGET))
+PROJECTDIRS += platform/native
+endif
 ifeq ($(TARGET),native)
 PROJECTDIRS += platform/native
 endif
@@ -50,6 +59,8 @@ endif
 ifeq ($(TARGET),cc2538dk)
 PROJECTDIRS += platform/cc2538dk dev/enc28j60
 endif
+
+PROJECTDIRS += $(PLUGINS_DIRS)
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
@@ -100,7 +111,7 @@ endif
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c
 ifeq ($(TARGET),native)
 APPS = slip-cmd
-PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c
+PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c plugin.c
 endif
 
 ifeq ($(TARGET),econotag)
@@ -338,4 +349,17 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools
+ifeq ($(HOST_OS),Darwin)
+PLUGIN_LDFLAGS=-dynamiclib -Wl,-undefined,dynamic_lookup
+else
+PLUGIN_LDFLAGS=-shared
+CFLAGS+=-fPIC
+TARGET_LIBFILES+=-ldl
+endif
+
+plugins/%.so: $(OBJECTDIR)/%.o
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
+
+CLEAN += plugins/*.so
+
+.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools plugins

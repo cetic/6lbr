@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +29,29 @@
 
 /**
  * \file
- *         Header file for the Slip configuration
+ *         6LBR demo plugin
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
+#define LOG6LBR_MODULE "DUMMY"
 
-#ifndef SLIP_CONFIG_H_
-#define SLIP_CONFIG_H_
+//TODO: Fix mode definition
+#undef CETIC_6LBR_ROUTER
+#define CETIC_6LBR_ROUTER 1
 
-#include <stdint.h>
-#include <termios.h>
+#include "contiki.h"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "log-6lbr.h"
+#include "plugin.h"
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+static int init(void) {
+  LOG6LBR_INFO("Dummy init\n");
+  return 0;
+}
 
-extern int slip_config_flowcontrol;
-extern int slip_config_timestamp;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern char const *default_nvm_file;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
-extern speed_t slip_config_b_rate;
-extern char const *slip_config_ifup_script;
-extern char const *slip_config_ifdown_script;
-extern char const *slip_config_www_root;
-extern char const *slip_config_plugins;
-extern int watchdog_interval;
-extern char const * watchdog_file_name;
-extern char const * ip_config_file_name;
-extern char const *  node_config_file_name;
-
-#endif
+sixlbr_plugin_t sixlbr_plugin_info = {
+  .api_version = SIXLBR_PLUGIN_API_VERSION,
+  .id = "dummy",
+  .description = "Dummy plugin",
+  . init = init
+};
