@@ -30,6 +30,8 @@
 static uint8_t Enc28j60Bank;
 static uint16_t NextPacketPtr;
 
+static uint8_t enc28j60getrev(void);
+
 #define csactive() { *SPI_SETUP = (*SPI_SETUP & ~SPI_SS_SETUP_MASK) | ( 2 << SPI_SS_SETUP_OFFSET); }
 #define cspassive() { *SPI_SETUP = (*SPI_SETUP & ~SPI_SS_SETUP_MASK) | ( 3 << SPI_SS_SETUP_OFFSET); }
 #define waitspi() { int clock = clock_time(); while ( (*SPI_CLK_CTRL & SPI_SCK_COUNT_MASK) > 0 && (clock_time() - clock) < 100) ; if (clock_time()-clock >=100) printf("waitspi() timeout\n");}
