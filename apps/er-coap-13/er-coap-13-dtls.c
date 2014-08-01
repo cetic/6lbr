@@ -33,22 +33,18 @@
 
 /*---------------------------------------------------------------------------*/
 
-static struct uip_udp_conn *server_conn;
-
-static dtls_context_t *dtls_context;
-
 static int
-send_to_peer(struct dtls_context_t *ctx,
+send_to_peer(struct coap_default_context_t *ctx,
              session_t *session, uint8 *data, size_t len);
 
 static int
-read_from_peer(struct dtls_context_t *ctx,
+read_from_peer(struct coap_default_context_t *ctx,
                session_t *session, uint8 *data, size_t len);
 
 /*-----------------------------------------------------------------------------------*/
 #if DTLS_VERSION_0_4_0
 static int
-get_key(struct dtls_context_t *ctx,
+get_key(struct coap_default_context_t *ctx,
         const session_t *session,
         const unsigned char *id, size_t id_len,
         const dtls_key_t **result) {
@@ -66,7 +62,7 @@ get_key(struct dtls_context_t *ctx,
 }
 #else
 static int
-get_psk_key(struct dtls_context_t *ctx,
+get_psk_key(struct coap_default_context_t *ctx,
             const session_t *session,
             const unsigned char *id, size_t id_len,
             const dtls_psk_key_t **result) {
@@ -99,21 +95,21 @@ coap_init_communication_layer(uint16_t port)
 #endif
   };
 
-  server_conn = udp_new(NULL, 0, NULL);
+  struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
 
   dtls_set_log_level(LOG_DEBUG);
 
-  dtls_context = dtls_new_context(server_conn);
-  if (dtls_context)
-    dtls_set_handler(dtls_context, &cb);
+  coap_default_context = dtls_new_context(server_conn);
+  if (coap_default_context)
+    dtls_set_handler(coap_default_context, &cb);
 
   /* new connection with remote host */
   printf("COAP-DTLS listening on port %u\n", uip_ntohs(server_conn->lport));
 }
 /*-----------------------------------------------------------------------------------*/
 static int
-send_to_peer(struct dtls_context_t *ctx,
+send_to_peer(struct coap_default_context_t *ctx,
              session_t *session, uint8 *data, size_t len) {
 
   struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
@@ -143,7 +139,7 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 }
 /*-----------------------------------------------------------------------------------*/
 static int
-read_from_peer(struct dtls_context_t *ctx,
+read_from_peer(struct coap_default_context_t *ctx,
                session_t *session, uint8 *data, size_t len) {
   uip_len = len;
   memmove(uip_appdata, data, len);
@@ -161,6 +157,6 @@ coap_handle_receive()
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
 
-    dtls_handle_message(dtls_context, &session, uip_appdata, uip_datalen());
+    dtls_handle_message(coap_default_context, &session, uip_appdata, uip_datalen());
   }
 }

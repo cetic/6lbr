@@ -430,7 +430,7 @@ separate_finalize_handler()
   if (separate_active)
   {
     coap_transaction_t *transaction = NULL;
-    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
+    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, separate_store->request_metadata.ctx, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
     {
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
