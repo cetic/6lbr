@@ -349,6 +349,7 @@ tools:
 
 include $(CONTIKI)/Makefile.include
 
+ifeq ($(TARGET),native)
 ifeq ($(HOST_OS),Darwin)
 PLUGIN_LDFLAGS=-dynamiclib -Wl,-undefined,dynamic_lookup
 else
@@ -361,5 +362,6 @@ plugins/%.so: $(OBJECTDIR)/%.o
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
 
 CLEAN += plugins/*.so
+endif
 
 .PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools plugins
