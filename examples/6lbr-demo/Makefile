@@ -68,7 +68,9 @@ ifneq ($(WITH_COAPSERVER),0)
 WITH_COAP=13
 CFLAGS += -DWITH_COAP=13
 CFLAGS += -DREST=coap_rest_implementation
+ifneq ($(TARGET),native)
 CFLAGS += -DUIP_CONF_TCP=0
+endif
 APPS += er-coap-13
 APPS += erbium
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
