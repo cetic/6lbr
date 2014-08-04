@@ -95,5 +95,7 @@
 
 #define UART1_CONF_RXBUFSIZE             512
 
+#define IEEE802154_CONF_PANID            0xABCD
+
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* PROJECT_CONF_H_ */
