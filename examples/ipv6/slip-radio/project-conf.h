@@ -64,9 +64,7 @@
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
 
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
-/*#define NETSTACK_CONF_RDC     contikimac_driver*/
+/* NETSTACK_CONF_RDC is defined in Makefile */
 
 #if CONTIKI_TARGET_ECONOTAG
 #undef NULLRDC_CONF_802154_AUTOACK
