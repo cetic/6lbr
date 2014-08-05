@@ -349,10 +349,6 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   packet_filter_init();
   cetic_6lbr_init();
 
-#if CONTIKI_TARGET_NATIVE
-  plugins_load();
-#endif
-
 #if WEBSERVER
   process_start(&webserver_nogui_process, NULL);
 #endif
@@ -364,6 +360,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 #if WITH_COAP
   process_start(&coap_server_process, NULL);
+#endif
+
+#if CONTIKI_TARGET_NATIVE
+  plugins_load();
 #endif
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
