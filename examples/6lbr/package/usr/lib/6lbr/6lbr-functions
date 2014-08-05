@@ -84,6 +84,9 @@ if [ "$WWW_6LBR" = "" ]; then
 	WWW_6LBR=$LIB_6LBR/www
 fi
 
+if [ "$PLUGINS_6LBR" = "" ]; then
+	PLUGINS_6LBR=$LIB_6LBR/plugins
+fi
 if [ "$IFUP" = "" ]; then
 	IFUP=$LIB_6LBR/6lbr-ifup
 fi

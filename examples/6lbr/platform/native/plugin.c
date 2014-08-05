@@ -82,6 +82,8 @@ void plugins_load() {
   DIR *dirp;
   struct dirent *dp;
 
+  if (slip_config_plugins == NULL) return;
+
   if ((dirp = opendir(slip_config_plugins)) == NULL) {
     LOG6LBR_ERROR("couldn't open '%s' : %s\n", slip_config_plugins, strerror(errno));
     return;
