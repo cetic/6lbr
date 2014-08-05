@@ -40,6 +40,8 @@
 #include "log-6lbr.h"
 #include <stdio.h>
 #include <time.h>
+#include <errno.h>
+#include <string.h>
 
 #include "6lbr-watchdog.h"
 
@@ -53,7 +55,11 @@ static void
 reset_watchdog(void)
 {
   FILE *watchdog_file = fopen(watchdog_file_name, "w");
-  fclose(watchdog_file);
+  if (watchdog_file != NULL) {
+    fclose(watchdog_file);
+  } else {
+	LOG6LBR_ERROR("Can not reset watchdog : %s\n", strerror(errno));
+  }
 }
 /*---------------------------------------------------------------------------*/
 
