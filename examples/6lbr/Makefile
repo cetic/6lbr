@@ -35,11 +35,8 @@ CC2538DK_FW=bin
 
 PLUGINS=${shell find plugins/* -type d -prune}
 PLUGINS_DIRS=$(PLUGINS)
-PLUGINS_FILES=${addsuffix .so,$(PLUGINS_DIRS)}
 
 all: $(CONTIKI_PROJECT)
-
-plugins: $(PLUGINS_FILES)
 
 UIP_CONF_IPV6=1
 CFLAGS += -DUIP_CONF_IPV6=1
@@ -363,6 +360,10 @@ tools:
 include $(CONTIKI)/Makefile.include
 
 ifeq ($(TARGET),native)
+
+PLUGINS_FILES=${patsubst plugins/%, $(OBJECTDIR)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
+plugins: $(PLUGINS_FILES)
+
 ifeq ($(HOST_OS),Darwin)
 PLUGIN_LDFLAGS=-dynamiclib -Wl,-undefined,dynamic_lookup
 else
@@ -371,10 +372,10 @@ CFLAGS+=-fPIC
 TARGET_LIBFILES+=-ldl
 endif
 
-plugins/%.so: $(OBJECTDIR)/%.o
+$(OBJECTDIR)/%.so: $(OBJECTDIR)/%.o
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
 
-CLEAN += plugins/*.so
+CLEAN += $(OBJECTDIR)/*.so
 endif
 
 .PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools plugins
