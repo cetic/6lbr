@@ -43,7 +43,7 @@ CFLAGS += -DUIP_CONF_IPV6=1
 
 CONTIKI = ../..
 
-PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client
+PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client ../6lbr-demo/apps/coap
 ifndef ($(TARGET))
 PROJECTDIRS += platform/native
 endif
@@ -114,7 +114,7 @@ CFLAGS += -DWITH_COAP=13
 CFLAGS += -DREST=coap_rest_implementation
 APPS += er-coap-13
 APPS += erbium
-PROJECT_SOURCEFILES += coap-server.c
+PROJECT_SOURCEFILES += coap-server.c block-transfer.c
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c
