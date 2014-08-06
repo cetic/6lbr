@@ -77,6 +77,8 @@
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE				1280
 
+#define REST_MAX_CHUNK_SIZE                 64 // Avoid 6lowpan fragmentation
+
 #undef UIP_FALLBACK_INTERFACE
 
 #if CETIC_6LBR_SMARTBRIDGE
