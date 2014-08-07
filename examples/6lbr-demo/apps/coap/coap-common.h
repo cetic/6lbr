@@ -7,8 +7,7 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "erbium.h"
-#include "er-coap-13.h"
+#include "er-coap.h"
 #include "ipso-profile.h"
 
 #ifdef REST_CONF_DEFAULT_PERIOD

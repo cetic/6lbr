@@ -65,14 +65,13 @@ PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-WITH_COAP=13
-CFLAGS += -DWITH_COAP=13
+CFLAGS += -DWITH_COAPSERVER=1
 CFLAGS += -DREST=coap_rest_implementation
 ifneq ($(TARGET),native)
 CFLAGS += -DUIP_CONF_TCP=0
 endif
-APPS += er-coap-13
-APPS += erbium
+APPS += er-coap
+APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
 	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
 	radio-sensor-resource.c \

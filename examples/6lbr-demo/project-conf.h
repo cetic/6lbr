@@ -42,7 +42,11 @@
 /*---------------------------------------------------------------------------*/
 
 #define IEEE802154_CONF_PANID 0xABCD
+
+#ifndef RF_CHANNEL
 #define RF_CHANNEL 26
+#endif
+#define CC2538_RF_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
 /* COAP                                                                      */

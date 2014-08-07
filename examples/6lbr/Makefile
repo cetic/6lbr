@@ -109,11 +109,10 @@ PROJECT_SOURCEFILES += node-info.c
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-WITH_COAP=13
-CFLAGS += -DWITH_COAP=13
+CFLAGS += -DWITH_COAPSERVER=1
 CFLAGS += -DREST=coap_rest_implementation
-APPS += er-coap-13
-APPS += erbium
+APPS += er-coap
+APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c block-transfer.c
 endif
 

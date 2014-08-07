@@ -42,14 +42,6 @@
 #include "sicslow-ethernet.h"
 #include "nvm-config.h"
 #include "log-6lbr.h"
-#include "dev/leds.h"
-#include "dev/uart.h"
-#include "dev/button-sensor.h"
-//#include "dev/adc-sensor.h"
-#include "dev/cc2538-rf.h"
-#include "dev/watchdog.h"
-#include "dev/serial-line.h"
-#include "dev/sys-ctrl.h"
 
 void
 platform_init(void)
@@ -58,7 +50,7 @@ platform_init(void)
   mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
   LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   eth_mac_addr_ready = 1;
-  cc2538_rf_channel_set(nvm_data.channel);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
 }
 
 void

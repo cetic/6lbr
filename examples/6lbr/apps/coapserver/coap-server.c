@@ -36,8 +36,8 @@
 
 #include "contiki.h"
 
-#include "erbium.h"
-#include "er-coap-13.h"
+#include "rest-engine.h"
+#include "er-coap.h"
 
 PROCESS(coap_server_process, "Coap Server");
 

@@ -36,19 +36,7 @@
 #ifndef BLOCK_TRANSFER_H_
 #define BLOCK_TRANSFER_H_
 
-#if WITH_COAP == 3
-#include "er-coap-03-engine.h"
-#elif WITH_COAP == 6
-#include "er-coap-06-engine.h"
-#elif WITH_COAP == 7
-#include "er-coap-07-engine.h"
-#elif WITH_COAP == 12
-#include "er-coap-12-engine.h"
-#elif WITH_COAP == 13
-#include "er-coap-13-engine.h"
-#else
-#error "CoAP version defined by WITH_COAP not implemented"
-#endif
+#include "er-coap-engine.h"
 
 typedef void(*block_handler)(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 

@@ -358,7 +358,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
 #endif
-#if WITH_COAP
+#if WITH_COAPSERVER
   process_start(&coap_server_process, NULL);
 #endif
 
