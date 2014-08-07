@@ -230,7 +230,13 @@ uip_ds6_neighbor_periodic(void)
         PRINTF("REACHABLE: moving to STALE (");
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
-        nbr->state = NBR_STALE;
+        if(uip_ds6_defrt_lookup(&nbr->ipaddr) != NULL) {
+          nbr->state = NBR_DELAY;
+          stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+          nbr->nscount = 0;
+        } else {
+          nbr->state = NBR_STALE;
+        }
       }
       break;
 #if UIP_ND6_SEND_NA
