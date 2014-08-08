@@ -77,7 +77,11 @@
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE				1280
 
-#define REST_MAX_CHUNK_SIZE                 64 // Avoid 6lowpan fragmentation
+// Avoid 6lowpan fragmentation
+#define REST_MAX_CHUNK_SIZE                 64
+
+// Temporary, to avoid duplicate removal of frame header size
+#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD     127
 
 #undef UIP_FALLBACK_INTERFACE
 
