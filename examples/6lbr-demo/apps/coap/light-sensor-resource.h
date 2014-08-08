@@ -62,22 +62,11 @@
 
 #if REST_RES_LIGHT_SOLAR
 
-#if REST_RES_LIGHT_SOLAR_PERIODIC
-
-#define REST_RES_LIGHT_SOLAR_DEFINE() extern periodic_resource_t periodic_resource_light_solar;
-#define REST_RES_LIGHT_SOLAR_INIT() \
-  SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_light_solar);
-
-#else
-
 #define REST_RES_LIGHT_SOLAR_DEFINE() extern resource_t resource_light_solar;
 
 #define REST_RES_LIGHT_SOLAR_INIT() \
   SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_resource(&resource_light_solar);
-
-#endif
+  rest_activate_resource(&resource_light_solar, LIGHT_SOLAR_SENSOR_RES);
 
 #else
 
@@ -88,21 +77,10 @@
 
 #if REST_RES_LIGHT_PHOTO
 
-#if REST_RES_LIGHT_PHOTO_PERIODIC
-
-#define REST_RES_LIGHT_PHOTO_DEFINE()  extern periodic_resource_t periodic_resource_light_photo;
-#define REST_RES_LIGHT_PHOTO_INIT() \
-  SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_light_photo);
-
-#else
-
 #define REST_RES_LIGHT_PHOTO_DEFINE() extern resource_t resource_light_photo;
 #define REST_RES_LIGHT_PHOTO_INIT() \
   SENSORS_ACTIVATE(light_sensor); \
-  rest_activate_resource(&resource_light_photo);
-
-#endif
+  rest_activate_resource(&resource_light_photo, LIGHT_PHOTOSYNTHETIC_SENSOR_RES);
 
 #else
 

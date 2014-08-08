@@ -37,25 +37,12 @@
 
 #if REST_RES_BATTERY
 
-#if REST_RES_BATTERY_PERIODIC
-
-#define REST_RES_BATTERY_DEFINE() \
-  extern periodic_resource_t periodic_resource_battery;
-
-#define REST_RES_BATTERY_INIT() \
-  SENSORS_ACTIVATE(battery_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_battery);
-
-#else
-
 #define REST_RES_BATTERY_DEFINE() \
   extern resource_t resource_battery;
 
 #define REST_RES_BATTERY_INIT() \
   SENSORS_ACTIVATE(battery_sensor); \
-  rest_activate_resource(&resource_battery);
-
-#endif
+  rest_activate_resource(&resource_battery, DEVICE_POWER_SUPPLY_RES "0" DEVICE_POWER_SUPPLY_VOLTAGE_RES);
 
 #else
 

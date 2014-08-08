@@ -13,7 +13,6 @@
 
 REST_RES_BUTTON_RESOURCE(button,
     ,
-    GPIO_BUTTON_RES "0",
     IF_SENSOR,
     GPIO_BUTTON_RT,
     REST_FORMAT_ONE_INT("count", button_sensor.value(0)))

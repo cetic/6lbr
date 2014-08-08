@@ -18,7 +18,7 @@
 #if REST_RES_DEVICE_MODEL_SW
 
 #define REST_RES_DEVICE_MODEL_SW_DEFINE() extern resource_t resource_device_model_sw;
-#define REST_RES_DEVICE_MODEL_SW_INIT() rest_activate_resource(&resource_device_model_sw);
+#define REST_RES_DEVICE_MODEL_SW_INIT() rest_activate_resource(&resource_device_model_sw, DEVICE_MODEL_SW_RES);
 
 #else
 
@@ -30,7 +30,7 @@
 #if REST_RES_DEVICE_UPTIME
 
 #define REST_RES_DEVICE_UPTIME_DEFINE() extern resource_t resource_device_uptime;
-#define REST_RES_DEVICE_UPTIME_INIT() rest_activate_resource(&resource_device_uptime);
+#define REST_RES_DEVICE_UPTIME_INIT() rest_activate_resource(&resource_device_uptime, DEVICE_UPTIME_RES);
 
 #else
 

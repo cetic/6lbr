@@ -62,22 +62,11 @@
 
 #if REST_RES_RADIO_LQI
 
-#if REST_RES_RADIO_LQI_PERIODIC
-
-#define REST_RES_RADIO_LQI_DEFINE() extern periodic_resource_t periodic_resource_radio_lqi;
-#define REST_RES_RADIO_LQI_INIT() \
-  SENSORS_ACTIVATE(radio_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_radio_lqi);
-
-#else
-
 #define REST_RES_RADIO_LQI_DEFINE() extern resource_t resource_radio_lqi;
 
 #define REST_RES_RADIO_LQI_INIT() \
   SENSORS_ACTIVATE(radio_sensor); \
-  rest_activate_resource(&resource_radio_lqi);
-
-#endif
+  rest_activate_resource(&resource_radio_lqi, RADIO_LQI_SENSOR_RES);
 
 #else
 
@@ -88,21 +77,10 @@
 
 #if REST_RES_RADIO_RSSI
 
-#if REST_RES_RADIO_RSSI_PERIODIC
-
-#define REST_RES_RADIO_RSSI_DEFINE()  extern periodic_resource_t periodic_resource_radio_rssi;
-#define REST_RES_RADIO_RSSI_INIT() \
-  SENSORS_ACTIVATE(radio_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_radio_rssi);
-
-#else
-
 #define REST_RES_RADIO_RSSI_DEFINE() extern resource_t resource_radio_rssi;
 #define REST_RES_RADIO_RSSI_INIT() \
   SENSORS_ACTIVATE(radio_sensor); \
-  rest_activate_resource(&resource_radio_rssi);
-
-#endif
+  rest_activate_resource(&resource_radio_rssi, RADIO_RSSI_SENSOR_RES);
 
 #else
 

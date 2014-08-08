@@ -32,7 +32,7 @@
 #if REST_RES_LED_R
 
 #define REST_RES_LED_R_DEFINE() extern resource_t resource_led_r;
-#define REST_RES_LED_R_INIT() rest_activate_resource(&resource_led_r);
+#define REST_RES_LED_R_INIT() rest_activate_resource(&resource_led_r, LIGHT_PATH "r" LIGHT_CONTROL_RES);
 
 #else
 
@@ -43,7 +43,7 @@
 
 #if REST_RES_LED_G
 #define REST_RES_LED_G_DEFINE() extern resource_t resource_led_g;
-#define REST_RES_LED_G_INIT() rest_activate_resource(&resource_led_g);
+#define REST_RES_LED_G_INIT() rest_activate_resource(&resource_led_g, LIGHT_PATH "g" LIGHT_CONTROL_RES);
 
 #else
 
@@ -54,7 +54,7 @@
 
 #if REST_RES_LED_B
 #define REST_RES_LED_B_DEFINE() extern resource_t resource_led_b;
-#define REST_RES_LED_B_INIT() rest_activate_resource(&resource_led_b);
+#define REST_RES_LED_B_INIT() rest_activate_resource(&resource_led_b, LIGHT_PATH "b" LIGHT_CONTROL_RES);
 
 #else
 

@@ -121,11 +121,12 @@
 
 #endif
 
+#define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
 #define REST_RESOURCE_RESPONSE(format) { \
-  const uint16_t *accept = NULL; \
-  int num = REST.get_header_accept(request, &accept); \
-  if ((num==0) || (num && accept[0]==REST_TYPE)) \
+  unsigned int accept = -1; \
+  REST.get_header_accept(request, &accept); \
+  if ((accept==-1) || (accept==REST_TYPE)) \
   { \
     REST.set_header_content_type(response, REST_TYPE); \
     format; \
@@ -137,106 +138,72 @@
   } \
 }
 
-#define REST_ACTUATOR_RESPONSE(resource_name, format, actuator_set) { \
-  const uint16_t *accept = NULL; \
-  int num = REST.get_header_accept(request, &accept); \
-  if (REST.get_method_type(request) & METHOD_GET) {\
-    if ((num==0) || (num && accept[0]==REST_TYPE)) \
-    { \
-      REST.set_header_content_type(response, REST_TYPE); \
-      format; \
-      REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer)); \
-    } else { \
-      REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
-      const char *msg = REST_TYPE_ERROR; \
-      REST.set_response_payload(response, msg, strlen(msg)); \
+#define REST_ACTUATOR_RESPONSE(resource_name, actuator_set) { \
+  const uint8_t * payload; \
+  char * endstr; \
+  int success = 0; \
+  size_t len = REST.get_request_payload(request, &payload); \
+  if (len) { \
+    int value = strtol((char const *)payload, &endstr, 10); \
+    if ( ! *endstr ) { \
+        success = actuator_set(value); \
     } \
-  }  else {\
-    const uint8_t * payload; \
-    char * endstr; \
-    int success = 0; \
-    size_t len = REST.get_request_payload(request, &payload); \
-    if (len) { \
-      int value = strtol((char const *)payload, &endstr, 10); \
-      if ( ! *endstr ) { \
-          success = actuator_set(value); \
-      } \
-    } \
-    if (!success) { \
-      REST.set_response_status(response, REST.status.BAD_REQUEST); \
-    } \
+  } \
+  if (!success) { \
+    REST.set_response_status(response, REST.status.BAD_REQUEST); \
   } \
 }
 
-#define REST_NOTIFY(resource_name, format) { \
-  static uint16_t obs_counter = 0; \
-  static char buffer[REST_MAX_CHUNK_SIZE]; \
-  ++obs_counter; \
-  coap_packet_t notification[1]; \
-  coap_init_message(notification, COAP_TYPE_NON, REST.status.OK, 0 ); \
-  coap_set_header_content_type(notification, REST_TYPE); \
-  format; \
-  coap_set_payload(notification, buffer, strlen((char *)buffer)); \
-  REST.notify_subscribers(r, obs_counter, notification); \
-}
-
-#define REST_EVENT(resource_name, format) { \
-  static uint16_t obs_counter = 0; \
-  static char buffer[REST_MAX_CHUNK_SIZE]; \
-  ++obs_counter; \
-  coap_packet_t notification[1]; \
-  coap_init_message(notification, COAP_TYPE_CON, REST.status.OK, 0 ); \
-  coap_set_header_content_type(notification, REST_TYPE); \
-  format; \
-  coap_set_payload(notification, buffer, strlen((char *)buffer)); \
-  REST.notify_subscribers(r, obs_counter, notification); \
-}
-
-#define REST_RESOURCE_HANDLER(resource_name, format) \
+#define REST_RESOURCE_GET_HANDLER(resource_name, format) \
   void \
-  resource_name##_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
     REST_RESOURCE_RESPONSE(format); \
   }
 
-#define REST_ACTUATOR_HANDLER(resource_name, format, actuator) \
+#define REST_RESOURCE_PUT_HANDLER(resource_name, actuator) \
   void \
-  resource_name##_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    REST_ACTUATOR_RESPONSE(resource_name, format, actuator); \
+    REST_ACTUATOR_RESPONSE(resource_name, actuator); \
   }
 
-#define REST_RESOURCE_PERIODIC_HANDLER(resource_name, format) \
+#define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
   void \
-  resource_name##_periodic_handler(resource_t *r) \
+  resource_##resource_name##_periodic_handler(void) \
   { \
-    REST_NOTIFY(resource_name, format); \
+    REST.notify_subscribers(&resource_##resource_name);\
   }
 
-#define REST_RESOURCE_EVENT_HANDLER(resource_name, format) \
+#define REST_RESOURCE_EVENT_HANDLER(resource_name) \
   void \
-  resource_name##_event_handler(resource_t *r) \
+  resource_##resource_name##_event_handler(void) \
   { \
-    REST_EVENT(resource_name, format); \
+    REST.notify_subscribers(&resource_##resource_name);\
   }
 
 
-#define REST_RESOURCE(resource_name, ignore, resource_path, resource_if, resource_type, format) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT); \
-  REST_RESOURCE_HANDLER(resource_name, format)
+#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
-#define REST_ACTUATOR(resource_name, ignore, resource_path, resource_if, resource_type, format, actuator) \
-  RESOURCE(resource_name, METHOD_GET | METHOD_PUT, resource_path, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT); \
-  REST_ACTUATOR_HANDLER(resource_name, format, actuator)
+#define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, actuator) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_PUT_HANDLER(resource_name, actuator) \
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
-#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_path, resource_if, resource_type, format) \
-  PERIODIC_RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, (resource_period * CLOCK_SECOND)); \
-  REST_RESOURCE_HANDLER(resource_name, format) \
-  REST_RESOURCE_PERIODIC_HANDLER(resource_name, format) \
+#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
+  PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 
-#define REST_EVENT_RESOURCE(resource_name, ignore, resource_path, resource_if, resource_type, format) \
-  RESOURCE(resource_name, METHOD_GET, resource_path, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT); \
-  REST_RESOURCE_HANDLER(resource_name, format) \
-  REST_RESOURCE_EVENT_HANDLER(resource_name, format) \
+#define REST_EVENT_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_EVENT_HANDLER(resource_name) \
+  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
 #endif /* COAP_COMMON_H */

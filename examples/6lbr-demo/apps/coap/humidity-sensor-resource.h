@@ -37,25 +37,12 @@
 
 #if REST_RES_HUMIDITY
 
-#if REST_RES_HUMIDITY_PERIODIC
-
-#define REST_RES_HUMIDITY_DEFINE() \
-  extern periodic_resource_t periodic_resource_humidity;
-
-#define REST_RES_HUMIDITY_INIT() \
-  SENSORS_ACTIVATE(sht11_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_humidity);
-
-#else
-
 #define REST_RES_HUMIDITY_DEFINE() \
   extern resource_t resource_humidity;
 
 #define REST_RES_HUMIDITY_INIT() \
   SENSORS_ACTIVATE(sht11_sensor); \
-  rest_activate_resource(&resource_humidity);
-
-#endif
+  rest_activate_resource(&resource_humidity, HUMIDITY_SENSOR_RES);
 
 #else
 

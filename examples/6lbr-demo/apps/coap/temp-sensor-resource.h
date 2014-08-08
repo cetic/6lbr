@@ -37,25 +37,12 @@
 
 #if REST_RES_TEMP
 
-#if REST_RES_TEMP_PERIODIC
-
-#define REST_RES_TEMP_DEFINE() \
-  extern periodic_resource_t periodic_resource_temp;
-
-#define REST_RES_TEMP_INIT() \
-  SENSORS_ACTIVATE(sht11_sensor); \
-  rest_activate_periodic_resource(&periodic_resource_temp);
-
-#else
-
 #define REST_RES_TEMP_DEFINE() \
   extern resource_t resource_temp;
 
 #define REST_RES_TEMP_INIT() \
   SENSORS_ACTIVATE(sht11_sensor); \
-  rest_activate_resource(&resource_temp);
-
-#endif
+  rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
 
 #else
 

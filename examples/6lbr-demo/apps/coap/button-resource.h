@@ -22,27 +22,20 @@
 
 #if REST_RES_BUTTON
 
-#if REST_RES_BUTTON_EVENT
-
-#define REST_RES_BUTTON_DEFINE() extern resource_t resource_button; \
-  void button_event_handler(resource_t *r);
-
-#define REST_RES_BUTTON_INIT() \
-  SENSORS_ACTIVATE(button_sensor); \
-  rest_activate_event_resource(&resource_button);
-
-#define REST_RES_BUTTON_EVENT_HANDLER(ev, data) \
-    if (ev == sensors_event && data == &button_sensor) { \
-      button_event_handler(&resource_button); \
-    }
-
-#else
-
 #define REST_RES_BUTTON_DEFINE() extern resource_t resource_button;
 
 #define REST_RES_BUTTON_INIT() \
   SENSORS_ACTIVATE(button_sensor); \
-  rest_activate_resource(&resource_button);
+  rest_activate_resource(&resource_button, GPIO_BUTTON_RES "0");
+
+#if REST_RES_BUTTON_EVENT
+
+#define REST_RES_BUTTON_EVENT_HANDLER(ev, data) \
+    if (ev == sensors_event && data == &button_sensor) { \
+      resource_button.trigger(); \
+    }
+
+#else
 
 #define REST_RES_BUTTON_EVENT_HANDLER(...)
 
