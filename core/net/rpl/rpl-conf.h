@@ -204,4 +204,13 @@
 #define RPL_PREFERENCE              0
 #endif
 
+/*
+ * Hop-by-hop option
+ */
+#ifdef RPL_CONF_INSERT_HBH_OPTION
+#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
+#else
+#define RPL_INSERT_HBH_OPTION       1
+#endif
+
 #endif /* RPL_CONF_H */
