@@ -71,6 +71,7 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
   state->block_num = 0;
   state->response = NULL;
   state->process = PROCESS_CURRENT();
+  state->status = 0;
 
   more = 0;
   res_block = 0;
@@ -98,6 +99,7 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
       if (!state->response)
       {
         PRINTF("Server not responding\n");
+        state->status = 1;
         PT_EXIT(&state->pt);
       }
 
@@ -118,9 +120,12 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
     else
     {
       PRINTF("Could not allocate transaction buffer");
+      state->status = 1;
       PT_EXIT(&state->pt);
     }
   } while (more && block_error<COAP_MAX_ATTEMPTS);
+
+  state->status = more ? 1 : 0;
 
   PT_END(&state->pt);
 }

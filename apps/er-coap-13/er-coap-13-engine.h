@@ -76,6 +76,7 @@ struct request_state_t {
     coap_transaction_t *transaction;
     coap_packet_t *response;
     uint32_t block_num;
+    uint32_t status;
 };
 
 typedef void (*blocking_response_handler) (void* response);

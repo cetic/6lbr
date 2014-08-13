@@ -57,14 +57,17 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request, block_handler block_callback));
 
-#define COAP_BLOCKING_REQUEST_BLOCK(ctx, server_addr, server_port, request, block_callback) \
-{ \
-  static struct request_state_t request_state; \
+#define COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, block_callback) \
   PT_SPAWN(process_pt, &request_state.pt, \
            coap_blocking_request_block(&request_state, ev, \
                                  ctx, server_addr, server_port, \
                                  request, block_callback) \
-  ); \
+  );
+
+#define COAP_BLOCKING_REQUEST_BLOCK(ctx, server_addr, server_port, request, block_callback) \
+{ \
+  static struct request_state_t request_state; \
+  COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, block_callback) \
 }
 
 #endif
