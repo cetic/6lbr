@@ -297,6 +297,12 @@
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   25
 
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE     512
+
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM          8
+
 #else
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     100
@@ -315,7 +321,7 @@
 #define WEBSERVER_CONF_CFS_CONNS	1
 
 #undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
 
 #define CETIC_CSMA_STATS      0
 
@@ -381,7 +387,7 @@
 #define IEEE802154_CONF_PANID	0xABCD
 
 #undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
 
 #define CETIC_CSMA_STATS      0
 
