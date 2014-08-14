@@ -138,7 +138,10 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_LEVEL_TRACE 70
 
 #define LOG6LBR_LEVEL_ALL 127
+
+#ifndef LOG6LBR_LEVEL_DEFAULT
 #define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
+#endif
 
 #define LOG6LBR_SERVICE_GLOBAL    0x00000001
 #define LOG6LBR_SERVICE_ETH_IN    0x00000002
@@ -154,7 +157,10 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_SERVICE_SLIP_DBG  0x00000800
 
 #define LOG6LBR_SERVICE_ALL       0xFFFFFFFF
+
+#ifndef LOG6LBR_SERVICE_DEFAULT
 #define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
+#endif
 
 #if LOG6LBR_TIMESTAMP
 extern void log6lbr_timestamp();
