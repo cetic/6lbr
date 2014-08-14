@@ -298,18 +298,18 @@ bin_cc2538dk/cetic_6lbr_6lr:
 all_cc2538dk:
 	rm -rf bin_cc2538dk
 	mkdir -p bin_cc2538dk
-#	$(MAKE) TARGET=cc2538dk clean
-#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_smart_bridge
-#	$(MAKE) TARGET=cc2538dk clean
-#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_rpl_relay
-#	$(MAKE) TARGET=cc2538dk clean
-#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_full_transparent_bridge
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_smart_bridge
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_rpl_relay
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_full_transparent_bridge
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_router
-#	$(MAKE) TARGET=cc2538dk clean
-#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_ndp_router
-#	$(MAKE) TARGET=cc2538dk clean
-#	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_6lr
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_ndp_router
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk bin_cc2538dk/cetic_6lbr_6lr
 
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
