@@ -327,6 +327,11 @@ echo_reply_input(void)
   uint8_t temp_ext_len;
 #endif /* UIP_CONF_IPV6_RPL */
 
+#if CETIC_6LBR_TRACE_PING
+  //TODO: Replace with proper callback
+  printf("Received an icmp6 echo reply\n");
+#endif
+
   uip_ipaddr_copy(&sender, &UIP_IP_BUF->srcipaddr);
   ttl = UIP_IP_BUF->ttl;
 
