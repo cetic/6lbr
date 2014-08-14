@@ -282,6 +282,10 @@
 /* ECONOTAG 6LBR                                                    */
 /*------------------------------------------------------------------*/
 
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
+
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
+
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     25
@@ -338,6 +342,10 @@
 /*------------------------------------------------------------------*/
 /* CC2538DK 6LBR                                                    */
 /*------------------------------------------------------------------*/
+
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
+
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
