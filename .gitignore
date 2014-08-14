@@ -17,6 +17,7 @@
 *.esb
 *.avr-raven
 *.exp5438
+*.trxeb
 *.mbxxx
 *.win32
 *.apple2enh
