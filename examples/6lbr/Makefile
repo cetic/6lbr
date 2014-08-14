@@ -33,8 +33,9 @@ CC2538DK_FW=bin
 
 # End of user configurable section
 
-PLUGINS=${shell find plugins/* -type d -prune}
-PLUGINS_DIRS=$(PLUGINS)
+PLUGINS=${shell cd plugins  && find * -type d -prune}
+PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
+PLUGINS_FILES=${patsubst plugins/%, $(OBJECTDIR)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
 
 all: $(CONTIKI_PROJECT)
 
@@ -327,6 +328,9 @@ install:
 	cp -r package/usr/lib/6lbr /usr/lib
 	install -d /usr/lib/6lbr/bin
 	install bin/* /usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	install $(PLUGINS_FILES) /usr/lib/6lbr/plugins
+endif
 	install tools/nvm_tool /usr/lib/6lbr/bin
 	update-rc.d 6lbr defaults
 
@@ -336,6 +340,9 @@ rpi_deb:
 	cp -R control-deb $(DEB)/DEBIAN
 	mkdir -p $(DEB)/usr/lib/6lbr/bin
 	cp bin/* $(DEB)/usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	cp $(PLUGINS_FILES) $(DEB)/usr/lib/6lbr/plugins
+endif
 	cp tools/nvm_tool $(DEB)/usr/lib/6lbr/bin
 	dpkg --build $(DEB) .
 
@@ -345,6 +352,9 @@ ipk:
 	cp -R package $(IPK)
 	mkdir -p $(IPK)/usr/lib/6lbr/bin
 	cp bin/* $(IPK)/usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	cp $(PLUGINS_FILES) $(IPK)/usr/lib/6lbr/plugins
+endif
 	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
@@ -361,7 +371,6 @@ include $(CONTIKI)/Makefile.include
 
 ifeq ($(TARGET),native)
 
-PLUGINS_FILES=${patsubst plugins/%, $(OBJECTDIR)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
 plugins: $(PLUGINS_FILES)
 
 ifeq ($(HOST_OS),Darwin)
