@@ -275,6 +275,7 @@ main(int argc, char **argv)
   }
 #else /* UIP_CONF_IPV6 */
 
+#if !UIP_DS6_NO_STATIC_ADDRESS
 #if !UIP_CONF_IPV6_RPL
   {
     uip_ipaddr_t ipaddr;
@@ -304,6 +305,7 @@ main(int argc, char **argv)
     }
   }
 #endif /* !UIP_CONF_IPV6_RPL */
+#endif /* !UIP_DS6_NO_STATIC_ADDRESS */
 
 #endif /* !UIP_CONF_IPV6 */
 

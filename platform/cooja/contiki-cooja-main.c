@@ -304,7 +304,8 @@ contiki_init()
 	     lladdr->ipaddr.u8[15]);
     }
 
-    if(1) {
+#if !UIP_DS6_NO_STATIC_ADDRESS
+    {
       uip_ipaddr_t ipaddr;
       int i;
       uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
@@ -318,6 +319,7 @@ contiki_init()
       printf("%02x%02x\n",
              ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
     }
+#endif /* !UIP_DS6_NO_STATIC_ADDRESS */
   }
 #endif /* WITH_UIP6 */
 

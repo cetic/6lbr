@@ -138,6 +138,13 @@
 #define UIP_DS6_PERIOD UIP_DS6_CONF_PERIOD
 #endif
 
+/** \brief Should we assign a global statically configured address at boot ? */
+#ifndef UIP_DS6_CONF_NO_STATIC_ADDRESS
+#define UIP_DS6_NO_STATIC_ADDRESS 0
+#else
+#define UIP_DS6_NO_STATIC_ADDRESS UIP_DS6_CONF_NO_STATIC_ADDRESS
+#endif
+
 #define FOUND 0
 #define FREESPACE 1
 #define NOSPACE 2
