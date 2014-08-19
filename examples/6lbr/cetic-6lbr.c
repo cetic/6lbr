@@ -265,6 +265,11 @@ cetic_6lbr_init(void)
     uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
   }
 #endif
+  if ((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) != 0 ) {
+    LOG6LBR_INFO("RA Daemon enabled\n");
+  } else {
+    LOG6LBR_INFO("RA Daemon disabled\n");
+  }
 #endif
 
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
