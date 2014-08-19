@@ -131,6 +131,47 @@ ifeq ($(CETIC_TESTBED),1)
 CFLAGS+=-DCETIC_TESTBED=1
 endif
 
+all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
+all_z1: bin_z1/6lbr-demo-coapserver.z1
+all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
+all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+
+bin_sky/6lbr-demo-webserver.sky:
+	mkdir -p bin_sky
+	$(MAKE) TARGET=sky clean
+	$(MAKE) TARGET=sky WITH_UDPCLIENT=0 WITH_WEBSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.sky bin_sky/6lbr-demo-webserver.sky
+
+bin_sky/6lbr-demo-coapserver.sky:
+	mkdir -p bin_sky
+	$(MAKE) TARGET=sky clean
+	$(MAKE) TARGET=sky WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.sky bin_sky/6lbr-demo-coapserver.sky
+
+bin_z1/6lbr-demo-coapserver.z1:
+	mkdir -p bin_z1
+	$(MAKE) TARGET=z1 clean
+	$(MAKE) TARGET=z1 MSP430_20BITS=0 WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.z1 bin_z1/6lbr-demo-coapserver.z1
+
+bin_econotag/6lbr-demo-coapserver.econotag:
+	mkdir -p bin_econotag
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo_econotag.bin bin_econotag/6lbr-demo-coapserver.econotag
+
+bin_cc2538dk/6lbr-demo-coapserver.cc2538dk:
+	mkdir -p bin_cc2538dk
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.cc2538dk bin_cc2538dk/6lbr-demo-coapserver.cc2538dk
+
+bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk:
+	mkdir -p bin_cc2538dk
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+
 testbed-firmwares:
 	$(MAKE) TARGET=sky clean
 	$(MAKE) TARGET=sky CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
