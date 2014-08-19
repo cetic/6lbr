@@ -60,7 +60,7 @@
 /* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
 #if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 
-#define REST_CONF_RES_BATTERY 1
+#define REST_CONF_RES_BATTERY 0
 #define REST_CONF_RES_BATTERY_PERIODIC 0
 #define REST_CONF_RES_BUTTON 0
 #define REST_CONF_RES_BUTTON_EVENT 0
