@@ -34,17 +34,17 @@
 /*---------------------------------------------------------------------------*/
 
 static int
-send_to_peer(struct coap_default_context_t *ctx,
+send_to_peer(struct dtls_context_t *ctx,
              session_t *session, uint8 *data, size_t len);
 
 static int
-read_from_peer(struct coap_default_context_t *ctx,
+read_from_peer(struct dtls_context_t *ctx,
                session_t *session, uint8 *data, size_t len);
 
 /*-----------------------------------------------------------------------------------*/
 #if DTLS_VERSION_0_4_0
 static int
-get_key(struct coap_default_context_t *ctx,
+get_key(struct dtls_context_t *ctx,
         const session_t *session,
         const unsigned char *id, size_t id_len,
         const dtls_key_t **result) {
@@ -62,7 +62,7 @@ get_key(struct coap_default_context_t *ctx,
 }
 #else
 static int
-get_psk_key(struct coap_default_context_t *ctx,
+get_psk_key(struct dtls_context_t *ctx,
             const session_t *session,
             const unsigned char *id, size_t id_len,
             const dtls_psk_key_t **result) {
@@ -109,7 +109,7 @@ coap_init_communication_layer(uint16_t port)
 }
 /*-----------------------------------------------------------------------------------*/
 static int
-send_to_peer(struct coap_default_context_t *ctx,
+send_to_peer(struct dtls_context_t *ctx,
              session_t *session, uint8 *data, size_t len) {
 
   struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
@@ -139,7 +139,7 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 }
 /*-----------------------------------------------------------------------------------*/
 static int
-read_from_peer(struct coap_default_context_t *ctx,
+read_from_peer(struct dtls_context_t *ctx,
                session_t *session, uint8 *data, size_t len) {
   uip_len = len;
   memmove(uip_appdata, data, len);
