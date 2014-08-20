@@ -185,3 +185,5 @@ testbed-upload:
 	ssh root@192.168.99.15 tb_action prog -t sky -f /root/bin/6lbr-demo-$(shell git describe)-ch24.sky
 
 include $(CONTIKI)/Makefile.include
+
+.PHONY: all_sky all_z1 all_econotag all_cc2538dk bin_sky/* bin_z1/* bin_econotag/* bin_cc2538dk/*
