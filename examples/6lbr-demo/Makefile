@@ -20,6 +20,10 @@ WITH_DTLS_COAP?=0
 UDP_PERIOD?=5
 WITH_UDP_CLIENT_AUTOSTART?=1
 
+# Platform specific
+
+CC2538DK_FW=bin
+
 # End of user configuration section
 
 all: $(PROJECT)
@@ -164,13 +168,13 @@ bin_cc2538dk/6lbr-demo-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.cc2538dk bin_cc2538dk/6lbr-demo-coapserver.cc2538dk
+	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-coapserver.$(CC2538DK_FW)
 
 bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538DK_FW)
 
 testbed-firmwares:
 	$(MAKE) TARGET=sky clean
