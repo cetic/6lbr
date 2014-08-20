@@ -387,4 +387,4 @@ $(OBJECTDIR)/%.so: $(OBJECTDIR)/%.o
 CLEAN += $(OBJECTDIR)/*.so
 endif
 
-.PHONY: all_native all_econotag all_red-io deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools plugins
+.PHONY: all_native all_econotag all_red-io all_cc2538dk deb ipk tools bin/* bin_econotag/* bin_red-io/* bin_cc2538dk/* tools plugins
