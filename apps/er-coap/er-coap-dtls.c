@@ -1,8 +1,8 @@
 #include "contiki.h"
 #include "contiki-net.h"
-#include "er-coap-13.h"
-#include "er-coap-13-engine.h"
-#include "er-coap-13-dtls.h"
+#include "er-coap.h"
+#include "er-coap-engine.h"
+#include "er-coap-dtls.h"
 
 #include "dtls.h"
 #include "debug.h"
