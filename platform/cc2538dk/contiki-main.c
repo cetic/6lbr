@@ -177,6 +177,10 @@ main(void)
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
   PRINTF("%s\n", NETSTACK_RDC.name);
+  PRINTF(" Channel: ");
+  PRINTF("%d\n", CC2538_RF_CHANNEL);
+  PRINTF(" PAN-ID: ");
+  PRINTF("%x\n", IEEE802154_PANID);
 
   /* Initialise the H/W RNG engine. */
   random_init(0);
