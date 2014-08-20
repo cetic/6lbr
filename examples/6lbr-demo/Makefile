@@ -181,8 +181,11 @@ testbed-firmwares:
 	$(MAKE) TARGET=sky CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
 	$(MAKE) TARGET=z1 clean
 	$(MAKE) TARGET=z1 MSP430_20BITS=0 CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
 	cp 6lbr-demo.sky 6lbr-demo-$(shell git describe)-ch24.sky
 	cp 6lbr-demo.z1 6lbr-demo-$(shell git describe)-ch24.z1
+	cp 6lbr-demo.$(CC2538DK_FW) 6lbr-demo-$(shell git describe)-ch24.$(CC2538DK_FW)
 
 testbed-upload:
 	scp 6lbr-demo-$(shell git describe)* root@192.168.99.15:/root/bin

@@ -267,6 +267,10 @@
 
 #ifdef CETIC_TESTBED
 
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
+
+#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
+
 #undef REST_CONF_RES_LED_R
 #define REST_CONF_RES_LED_R 0
 
@@ -281,6 +285,8 @@
 
 #undef REST_CONF_RES_RADIO_RSSI
 #define REST_CONF_RES_RADIO_RSSI 1
+
+#endif
 
 #endif
 
