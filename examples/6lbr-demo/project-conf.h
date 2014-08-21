@@ -64,7 +64,13 @@
 #define REST_CONF_RES_BATTERY_PERIODIC 0
 #define REST_CONF_RES_BUTTON 0
 #define REST_CONF_RES_BUTTON_EVENT 0
+#define REST_CONF_RES_DEVICE_MANUFACTURER 0
+#define REST_CONF_RES_DEVICE_MODEL 0
+#define REST_CONF_RES_DEVICE_MODEL_HW 0
 #define REST_CONF_RES_DEVICE_MODEL_SW 1
+#define REST_CONF_RES_DEVICE_SERIAL 0
+#define REST_CONF_RES_DEVICE_NAME 0
+#define REST_CONF_RES_DEVICE_TIME 0
 #define REST_CONF_RES_DEVICE_UPTIME 1
 #define REST_CONF_RES_HUMIDITY 0
 #define REST_CONF_RES_HUMIDITY_PERIODIC 0
@@ -95,7 +101,13 @@
 #define REST_CONF_RES_BATTERY_PERIODIC 1
 #define REST_CONF_RES_BUTTON 1
 #define REST_CONF_RES_BUTTON_EVENT 1
+#define REST_CONF_RES_DEVICE_MANUFACTURER 1
+#define REST_CONF_RES_DEVICE_MODEL 1
+#define REST_CONF_RES_DEVICE_MODEL_HW 1
 #define REST_CONF_RES_DEVICE_MODEL_SW 1
+#define REST_CONF_RES_DEVICE_SERIAL 1
+#define REST_CONF_RES_DEVICE_NAME 1
+#define REST_CONF_RES_DEVICE_TIME 1
 #define REST_CONF_RES_DEVICE_UPTIME 1
 #define REST_CONF_RES_HUMIDITY 1
 #define REST_CONF_RES_HUMIDITY_PERIODIC 1
@@ -261,11 +273,17 @@
 
 /* Disable ENERGEST to save code */
 
+#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
+#endif
 
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA 0
+
+/*---------------------------------------------------------------------------*/
+/* CETIC Testbed                                                             */
+/*---------------------------------------------------------------------------*/
 
 #ifdef CETIC_TESTBED
 
@@ -283,7 +301,7 @@
 #define REST_CONF_RES_LIGHT_SOLAR 0
 
 #undef REST_CONF_RES_RADIO_LQI
-#define REST_CONF_RES_RADIO_LQI 1
+#define REST_CONF_RES_RADIO_LQI 0
 
 #undef REST_CONF_RES_RADIO_RSSI
 #define REST_CONF_RES_RADIO_RSSI 1
