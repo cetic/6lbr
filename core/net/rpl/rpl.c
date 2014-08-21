@@ -231,8 +231,10 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
   uip_ds6_route_t *rep;
 
   rep = uip_ds6_route_lookup(prefix);
-  if(rep == NULL) {
-	PRINTF("RPL: Add route for prefix ");
+  if(rep == NULL ||
+     (uip_ds6_route_nexthop(rep) != NULL &&
+      !uip_ipaddr_cmp(uip_ds6_route_nexthop(rep), next_hop))) {
+    PRINTF("RPL: Add route for prefix ");
     PRINT6ADDR(prefix);
     PRINTF(" to ");
     PRINT6ADDR(next_hop);
