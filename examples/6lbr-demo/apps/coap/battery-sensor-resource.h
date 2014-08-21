@@ -42,7 +42,7 @@
 
 #define REST_RES_BATTERY_INIT() \
   SENSORS_ACTIVATE(battery_sensor); \
-  rest_activate_resource(&resource_battery, DEVICE_POWER_SUPPLY_RES "0" DEVICE_POWER_SUPPLY_VOLTAGE_RES);
+  rest_activate_resource(&resource_battery, DEVICE_POWER_SUPPLY_PATH DEVICE_POWER_SUPPLY_ENUM_LINE DEVICE_POWER_SUPPLY_VOLTAGE_RES);
 
 #else
 

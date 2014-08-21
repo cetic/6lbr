@@ -23,8 +23,7 @@ REST_RES_BUTTON_DEFINE();
 REST_RES_LED_R_DEFINE();
 REST_RES_LED_G_DEFINE();
 REST_RES_LED_B_DEFINE();
-REST_RES_DEVICE_MODEL_SW_DEFINE();
-REST_RES_DEVICE_UPTIME_DEFINE();
+REST_RES_DEVICE_DEFINE();
 REST_RES_RADIO_LQI_DEFINE();
 REST_RES_RADIO_RSSI_DEFINE();
 
@@ -33,11 +32,6 @@ PROCESS(coap_server_process, "Coap Server");
 PROCESS_THREAD(coap_server_process, ev, data)
 {
   PROCESS_BEGIN();
-
-  PRINTF("uIP buffer: %u\n", UIP_BUFSIZE);
-  PRINTF("LL header: %u\n", UIP_LLH_LEN);
-  PRINTF("IP+UDP header: %u\n", UIP_IPUDPH_LEN);
-  PRINTF("REST max chunk: %u\n", REST_MAX_CHUNK_SIZE);
 
   rest_init_engine();
 
@@ -51,10 +45,11 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_LED_R_INIT();
   REST_RES_LED_G_INIT();
   REST_RES_LED_B_INIT();
-  REST_RES_DEVICE_MODEL_SW_INIT();
-  REST_RES_DEVICE_UPTIME_INIT();
+  REST_RES_DEVICE_INIT();
   REST_RES_RADIO_LQI_INIT();
   REST_RES_RADIO_RSSI_INIT();
+
+  printf("CoAP server started\n");
 
   while(1) {
     PROCESS_WAIT_EVENT();

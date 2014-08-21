@@ -121,6 +121,18 @@
 
 #endif
 
+#define REST_PARSE_ONE_INT(payload, len, actuator_set) { \
+  char * endstr; \
+  int value = strtol((char const *)payload, &endstr, 10); \
+  if ( ! *endstr ) { \
+    success = actuator_set(value); \
+  } \
+}
+
+#define REST_PARSE_ONE_STR(payload, len, actuator_set) {\
+  success = actuator_set(payload, len); \
+}
+
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
 #define REST_RESOURCE_RESPONSE(format) { \
@@ -138,16 +150,12 @@
   } \
 }
 
-#define REST_ACTUATOR_RESPONSE(resource_name, actuator_set) { \
+#define REST_ACTUATOR_RESPONSE(resource_name, parser, actuator_set) { \
   const uint8_t * payload; \
-  char * endstr; \
   int success = 0; \
   size_t len = REST.get_request_payload(request, &payload); \
   if (len) { \
-    int value = strtol((char const *)payload, &endstr, 10); \
-    if ( ! *endstr ) { \
-        success = actuator_set(value); \
-    } \
+    parser(payload, len, actuator_set); \
   } \
   if (!success) { \
     REST.set_response_status(response, REST.status.BAD_REQUEST); \
@@ -161,11 +169,11 @@
     REST_RESOURCE_RESPONSE(format); \
   }
 
-#define REST_RESOURCE_PUT_HANDLER(resource_name, actuator) \
+#define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    REST_ACTUATOR_RESPONSE(resource_name, actuator); \
+    REST_ACTUATOR_RESPONSE(resource_name, parser, actuator); \
   }
 
 #define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
@@ -188,10 +196,10 @@
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
-#define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, actuator) \
+#define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
-  REST_RESOURCE_PUT_HANDLER(resource_name, actuator) \
+  REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
 #define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
@@ -206,4 +214,7 @@
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
+#define INIT_RESOURCE(resource_name, path) \
+    extern resource_t resource_##resource_name; \
+    rest_activate_resource(&resource_##resource_name, path);
 #endif /* COAP_COMMON_H */

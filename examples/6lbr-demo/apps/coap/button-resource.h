@@ -26,7 +26,7 @@
 
 #define REST_RES_BUTTON_INIT() \
   SENSORS_ACTIVATE(button_sensor); \
-  rest_activate_resource(&resource_button, GPIO_BUTTON_RES "0");
+  rest_activate_resource(&resource_button, GPIO_BUTTON_PATH "0");
 
 #if REST_RES_BUTTON_EVENT
 
