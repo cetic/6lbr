@@ -16,6 +16,12 @@
 #define REST_DEFAULT_PERIOD 10
 #endif
 
+#ifdef REST_CONF_MAX_BATCH_BUFFER_SIZE
+#define REST_MAX_BATCH_BUFFER_SIZE REST_CONF_MAX_BATCH_BUFFER_SIZE
+#else
+#define REST_MAX_BATCH_BUFFER_SIZE 256
+#endif
+
 #if ( defined REST_TYPE_TEXT_PLAIN && (defined REST_TYPE_APPLICATION_XML || defined REST_TYPE_APPLICATION_JSON) ) || \
     (defined REST_TYPE_APPLICATION_XML && defined REST_TYPE_APPLICATION_JSON)
 #error "Only one type of REST TYPE can be enabled"
@@ -196,6 +202,49 @@
     REST.notify_subscribers(&resource_##resource_name);\
   }
 
+#define REST_RESOURCE_BATCH_LIST(resource_name, ...) \
+  const resource_t *resource_##resource_name##_batch_list[] = {__VA_ARGS__};
+
+#define REST_RESOURCE_BATCH_LIST_SIZE(resource_name) (sizeof(resource_##resource_name##_batch_list) / sizeof(resource_t *))
+
+#define REST_RESOURCE_BATCH_HANDLER(resource_name, ...) \
+  REST_RESOURCE_BATCH_LIST(resource_name, __VA_ARGS__); \
+  void \
+  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    static uint8_t batch_buffer[REST_MAX_BATCH_BUFFER_SIZE+1]; \
+    static int batch_buffer_size = 0; \
+    int i; \
+    int32_t tmp = 0; \
+    const uint8_t *tmp_payload; \
+    if (*offset > batch_buffer_size) {\
+      coap_set_status_code(response, BAD_OPTION_4_02); \
+      coap_set_payload(response, "BlockOutOfScope", 15); \
+      return; \
+    } \
+    if ( *offset == 0 ) { \
+      batch_buffer_size = 0; \
+      for (i = 0; i < REST_RESOURCE_BATCH_LIST_SIZE(resource_name); ++i) { \
+        resource_##resource_name##_batch_list[i]->get_handler(request, response, batch_buffer + batch_buffer_size, REST_MAX_BATCH_BUFFER_SIZE - batch_buffer_size, &tmp); \
+        batch_buffer_size += REST.get_request_payload(response, &tmp_payload); \
+        if (i + 1 < REST_RESOURCE_BATCH_LIST_SIZE(resource_name) ) { \
+          batch_buffer[batch_buffer_size++] = ','; \
+        } \
+      } \
+    } \
+    coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > batch_buffer_size ? batch_buffer_size - *offset : preferred_size); \
+    coap_set_header_content_format(response, REST_TYPE); \
+    if (*offset + preferred_size >= batch_buffer_size) { \
+      *offset = -1; \
+    } else { \
+      *offset += preferred_size; \
+    } \
+  }
+
+#define BATCH_RESOURCE(resource_name, resource_if, resource_type, ...) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_BATCH_HANDLER(resource_name, __VA_ARGS__) \
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
