@@ -7,52 +7,74 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if REST_RES_DEVICE_BATCH
+#define REST_RES_DEVICE_BATCH_RESOURCE BATCH_RESOURCE
+#else
+#define REST_RES_DEVICE_BATCH_RESOURCE(...)
+#endif
+
 #if REST_RES_DEVICE_MANUFACTURER
 #define REST_RES_DEVICE_MANUFACTURER_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_MANUFACTURER_REF &resource_device_manufacturer,
 #else
 #define REST_RES_DEVICE_MANUFACTURER_RESOURCE(...)
+#define REST_RES_DEVICE_MANUFACTURER_REF
 #endif
 
 #if REST_RES_DEVICE_MODEL
 #define REST_RES_DEVICE_MODEL_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_MODEL_REF &resource_device_model,
 #else
 #define REST_RES_DEVICE_MODEL_RESOURCE(...)
+#define REST_RES_DEVICE_MODEL_REF
 #endif
 
 #if REST_RES_DEVICE_MODEL_HW
 #define REST_RES_DEVICE_MODEL_HW_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_MODEL_HW_REF &resource_device_model_hw,
 #else
 #define REST_RES_DEVICE_MODEL_HW_RESOURCE(...)
+#define REST_RES_DEVICE_MODEL_HW_REF
 #endif
 
 #if REST_RES_DEVICE_MODEL_SW
 #define REST_RES_DEVICE_MODEL_SW_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_MODEL_SW_REF &resource_device_model_sw,
 #else
 #define REST_RES_DEVICE_MODEL_SW_RESOURCE(...)
+#define REST_RES_DEVICE_MODEL_SW_REF
 #endif
 
 #if REST_RES_DEVICE_SERIAL
 #define REST_RES_DEVICE_SERIAL_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_SERIAL_REF &resource_device_serial,
 #else
 #define REST_RES_DEVICE_SERIAL_RESOURCE(...)
+#define REST_RES_DEVICE_SERIAL_REF
 #endif
 
 #if REST_RES_DEVICE_NAME
 #define REST_RES_DEVICE_NAME_RESOURCE REST_ACTUATOR
+#define REST_RES_DEVICE_NAME_REF &resource_device_name,
 #else
 #define REST_RES_DEVICE_NAME_RESOURCE(...)
+#define REST_RES_DEVICE_NAME_REF
 #endif
 
 #if REST_RES_DEVICE_TIME
 #define REST_RES_DEVICE_TIME_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_TIME_REF &resource_device_time,
 #else
 #define REST_RES_DEVICE_TIME_RESOURCE(...)
+#define REST_RES_DEVICE_TIME_REF
 #endif
 
 #if REST_RES_DEVICE_UPTIME
 #define REST_RES_DEVICE_UPTIME_RESOURCE REST_RESOURCE
+#define REST_RES_DEVICE_UPTIME_REF &resource_device_uptime,
 #else
 #define REST_RES_DEVICE_UPTIME_RESOURCE(...)
+#define REST_RES_DEVICE_UPTIME_REF
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -198,3 +220,16 @@ REST_RES_DEVICE_UPTIME_RESOURCE(device_uptime,
     IF_SENSOR,
     DEVICE_UPTIME_RT,
     REST_FORMAT_ONE_ULONG("uptime", RES_DEVICE_UPTIME_VALUE))
+
+/*---------------------------------------------------------------------------*/
+REST_RES_DEVICE_BATCH_RESOURCE(device, IF_BATCH, DEVICE_RT,
+    REST_RES_DEVICE_MANUFACTURER_REF
+    REST_RES_DEVICE_MODEL_REF
+    REST_RES_DEVICE_MODEL_HW_REF
+    REST_RES_DEVICE_MODEL_SW_REF
+    REST_RES_DEVICE_SERIAL_REF
+    REST_RES_DEVICE_NAME_REF
+    REST_RES_DEVICE_TIME_REF
+    REST_RES_DEVICE_UPTIME_REF
+    )
+/*---------------------------------------------------------------------------*/

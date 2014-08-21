@@ -25,6 +25,8 @@
 
 // DEVICE
 
+#define DEVICE_RES "dev"
+
 #define DEVICE_MANUFACTURER_RES DEVICE_PATH "mfg"
 
 #define DEVICE_MODEL_RES DEVICE_PATH "mdl"
