@@ -200,6 +200,8 @@
  */
 #define BOARD_STRING "TI SmartRF06 + cc2538EM"
 /** @} */
+/*---------------------------------------------------------------------------*/
+#define PLATFORM_HAS_RADIO 1
 
 #endif /* BOARD_H_ */
 

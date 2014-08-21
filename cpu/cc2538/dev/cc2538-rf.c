@@ -154,6 +154,9 @@ static const output_config_t output_power[] = {
 /* Max and Min Output Power in dBm */
 #define OUTPUT_POWER_MIN    (output_power[OUTPUT_CONFIG_COUNT - 1].power)
 #define OUTPUT_POWER_MAX    (output_power[0].power)
+
+int cc2538_last_rssi;
+int cc2538_last_correlation;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
@@ -696,7 +699,9 @@ read(void *buf, unsigned short bufsize)
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
   if(crc_corr & CRC_BIT_MASK) {
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+    cc2538_last_rssi = rssi;
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+    cc2538_last_correlation = crc_corr & LQI_BIT_MASK;
     RIMESTATS_ADD(llrx);
   } else {
     RIMESTATS_ADD(badcrc);
