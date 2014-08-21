@@ -24,6 +24,10 @@
 #include "dtls-echo.h"
 #endif
 
+#if WITH_NVM
+#include "nvm-config.h"
+#endif
+
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
 #if WEBSERVER
@@ -62,6 +66,10 @@ start_apps(void)
 PROCESS_THREAD(demo_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
+
+#if WITH_NVM
+  load_nvm_config();
+#endif
 
 #ifdef CONTIKI_TARGET_ECONOTAG
   set_channel(RF_CHANNEL - 11);
