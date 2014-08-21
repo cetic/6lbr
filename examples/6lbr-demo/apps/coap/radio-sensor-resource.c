@@ -1,7 +1,7 @@
 #include "coap-common.h"
 #include "radio-sensor-resource.h"
 
-#if UDP_CLIENT_STORE_RADIO_INFO
+#if UDPCLIENT && UDP_CLIENT_STORE_RADIO_INFO
 extern int udp_client_lqi;
 extern int udp_client_rssi;
 #endif
@@ -26,7 +26,7 @@ extern int udp_client_rssi;
 #define REST_RES_RADIO_RSSI_RESOURCE(...)
 #endif
 
-#if UDP_CLIENT_STORE_RADIO_INFO
+#if UDPCLIENT && UDP_CLIENT_STORE_RADIO_INFO
 #define RADIO_LQI_VALUE_SOURCE udp_client_lqi
 #define RADIO_RSSI_VALUE_SOURCE udp_client_rssi
 #else
