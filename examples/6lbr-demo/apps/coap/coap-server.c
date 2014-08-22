@@ -9,6 +9,7 @@
 #include "button-resource.h"
 #include "leds-resource.h"
 #include "device-resource.h"
+#include "coap-push.h"
 
 #define DEBUG 0
 #include "uip-debug.h"
@@ -34,6 +35,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   PROCESS_BEGIN();
 
   rest_init_engine();
+  coap_push_init();
 
   //Init all resources
   REST_RES_LIGHT_SOLAR_INIT();

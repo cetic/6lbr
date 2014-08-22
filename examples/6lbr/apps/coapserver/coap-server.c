@@ -38,6 +38,7 @@
 
 #include "rest-engine.h"
 #include "er-coap.h"
+#include "coap-push.h"
 
 PROCESS(coap_server_process, "Coap Server");
 
@@ -46,6 +47,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   PROCESS_BEGIN();
 
   rest_init_engine();
+  coap_push_init();
 
   PROCESS_END();
 }

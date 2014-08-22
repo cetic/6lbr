@@ -181,8 +181,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
 
 #define REST_RESOURCE_RESPONSE(format) { \
   unsigned int accept = -1; \
-  REST.get_header_accept(request, &accept); \
-  if ((accept==-1) || (accept==REST_TYPE)) \
+  if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE)) \
   { \
     REST.set_header_content_type(response, REST_TYPE); \
     format; \

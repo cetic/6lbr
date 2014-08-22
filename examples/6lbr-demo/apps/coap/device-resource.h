@@ -2,6 +2,7 @@
 #define DEVICE_RESOURCE_H_
 
 #include "contiki.h"
+#include "coap-common.h"
 
 #ifdef REST_CONF_RES_DEVICE_BATCH
 #define REST_RES_DEVICE_BATCH REST_CONF_RES_DEVICE_BATCH
