@@ -65,28 +65,28 @@
 #define REST_FORMAT_CT ";ct=41"
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%d\"/>", (resource_value))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d\" />", (resource_value))
 
 #define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%u\"/>", (resource_value))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%u\"/>", (resource_value))
 
 #define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%ld\"/>", (resource_value))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%ld\" />", (resource_value))
 
 #define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%lu\"/>", (resource_value))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%lu\" />", (resource_value))
 
 #define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value, sensor_int, sensor_float) \
  { \
     int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%d.%u\"/>", (sensor_int), (sensor_float)); \
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%u\" />", (sensor_int), (sensor_float)); \
  }
 
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "< "resource_name"=\"%s\"/>", (sensor_value))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%s\" />", (sensor_value))
 
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%d\" "sensor_b_name"=\"%d\"/>", (sensor_a), (sensor_b))
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%d\" "sensor_b_name"=\"%d\" />", (sensor_a), (sensor_b))
 
 #define REST_TYPE REST.type.APPLICATION_XML
 
