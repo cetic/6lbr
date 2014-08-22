@@ -31,13 +31,21 @@ coap_push_add_binding(coap_binding_t * binding)
 
   PRINTF("Activating %s to %s\n", binding->resource->url, binding->uri);
 
+  binding->last_push = clock_seconds();
+
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
 trigger_push(coap_binding_t * binding)
 {
-  return 1;
+  if (binding->last_push + binding->pmin <= clock_seconds()) {
+    //if (binding->pmax != 0 && binding->last_push + binding->pmax >= clock_seconds()) {
+    //  return 1;
+    //}
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #define COAP_BLOCKING_PUSH_STATE(request_state, ctx, server_addr, server_port, request, resource_handler) \
@@ -121,6 +129,7 @@ PROCESS_THREAD(coap_push_process, ev, data)
           binding; binding = binding->next) {
         if (trigger_push(binding)) {
           static coap_packet_t request[1];
+          binding->last_push = clock_seconds();
           PRINTF("Pushing %s to %s\n", binding->resource->url, binding->uri);
           coap_init_message(request, COAP_TYPE_CON, COAP_PUT, 0);
           coap_set_header_uri_path(request, binding->uri);

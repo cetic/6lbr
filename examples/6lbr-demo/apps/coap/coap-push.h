@@ -3,6 +3,9 @@
 
 #include "contiki.h"
 
+#define COAP_PUSH_CONF_DEFAULT_PMIN 10
+#define COAP_PUSH_CONF_DEFAULT_PMAX 0
+
 struct coap_binding_s {
   struct coap_binding_s* next;
   resource_t * resource;
@@ -14,13 +17,15 @@ struct coap_binding_s {
   int step;
   int less_than;
   int greater_than;
+
+  unsigned long last_push;
 };
 
 typedef struct coap_binding_s coap_binding_t;
 
 #define COAP_BINDING(name, resource_name) \
   extern resource_t resource_##resource_name; \
-  coap_binding_t binding_##name = { NULL, &resource_##resource_name };
+  coap_binding_t binding_##name = { NULL, &resource_##resource_name, {}, COAP_DEFAULT_PORT, {}, COAP_PUSH_CONF_DEFAULT_PMIN, COAP_PUSH_CONF_DEFAULT_PMAX };
 
 void
 coap_push_init();
