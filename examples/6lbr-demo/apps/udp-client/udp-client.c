@@ -121,6 +121,7 @@ timeout_handler(void)
   uip_ip6addr_t *globaladdr = NULL;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : CETIC_6LBR_NODE_INFO_PORT;
   int has_dest=0;
+  uip_ipaddr_t * defrt;
 
   if ( use_user_dest_addr ) {
     uip_ipaddr_copy(&dest_addr, &user_dest_addr);
@@ -137,7 +138,7 @@ timeout_handler(void)
         has_dest = 1;
       }
 #else
-      uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
+      defrt = uip_ds6_defrt_choose();
       if ( defrt != NULL ) {
         uip_ipaddr_copy(&dest_addr, defrt);
         has_dest=1;
@@ -187,6 +188,12 @@ timeout_handler(void)
         rpl_dag_t *dag = rpl_get_any_dag();
         if(dag && dag->instance->def_route) {
           add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        } else {
+          sprintf(buf + i, "(null)");
+        }
+#else
+        if (defrt != NULL) {
+          add_ipaddr(buf + i, defrt);
         } else {
           sprintf(buf + i, "(null)");
         }
