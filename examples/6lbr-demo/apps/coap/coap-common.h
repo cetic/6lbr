@@ -63,6 +63,10 @@
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u", (sensor_a), (sensor_b))
 
+#define REST_FORMAT_BATCH_START(buffer, size, pos)
+#define REST_FORMAT_BATCH_END(buffer, size, pos)
+#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+
 #endif
 
 #ifdef REST_TYPE_APPLICATION_XML
@@ -92,6 +96,18 @@
 
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%d\" "sensor_b_name"=\"%d\" />", (sensor_a), (sensor_b))
+
+#define REST_FORMAT_BATCH_START(buffer, size, pos) \
+  if (pos < size) { \
+    pos += snprintf((char *)buffer + pos, size - pos, "<batch>"); \
+    if (pos > size) pos = size; \
+  }
+#define REST_FORMAT_BATCH_END(buffer, size, pos) \
+  if (pos < size) { \
+    pos += snprintf((char *)buffer + pos, size - pos, "</batch>"); \
+    if (pos > size) pos = size; \
+  }
+#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos)
 
 #define REST_TYPE REST.type.APPLICATION_XML
 
@@ -127,6 +143,19 @@
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"#resource_name"':{'"sensor_a_name"':%d,'"sensor_b_name"':%d}}", (sensor_a), (sensor_b))
 
+#define REST_FORMAT_BATCH_START(buffer, size, pos) \
+  if (pos < size) { \
+    pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
+    if (pos > size) pos = size; \
+  }
+#define REST_FORMAT_BATCH_END(buffer, size, pos) \
+  if (pos < size) { \
+    pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
+    if (pos > size) pos = size; \
+  }
+
+#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+
 #define REST_TYPE REST.type.APPLICATION_JSON
 
 #define REST_TYPE_ERROR "Supporting content-type: application/json"
@@ -144,6 +173,9 @@
 #define REST_PARSE_ONE_STR(payload, len, actuator_set) {\
   success = actuator_set(payload, len); \
 }
+
+extern void
+resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
@@ -214,31 +246,7 @@
   { \
     static uint8_t batch_buffer[REST_MAX_BATCH_BUFFER_SIZE+1]; \
     static int batch_buffer_size = 0; \
-    int i; \
-    int32_t tmp = 0; \
-    const uint8_t *tmp_payload; \
-    if (*offset > batch_buffer_size) {\
-      coap_set_status_code(response, BAD_OPTION_4_02); \
-      coap_set_payload(response, "BlockOutOfScope", 15); \
-      return; \
-    } \
-    if ( *offset == 0 ) { \
-      batch_buffer_size = 0; \
-      for (i = 0; i < REST_RESOURCE_BATCH_LIST_SIZE(resource_name); ++i) { \
-        resource_##resource_name##_batch_list[i]->get_handler(request, response, batch_buffer + batch_buffer_size, REST_MAX_BATCH_BUFFER_SIZE - batch_buffer_size, &tmp); \
-        batch_buffer_size += REST.get_request_payload(response, &tmp_payload); \
-        if (i + 1 < REST_RESOURCE_BATCH_LIST_SIZE(resource_name) ) { \
-          batch_buffer[batch_buffer_size++] = ','; \
-        } \
-      } \
-    } \
-    coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > batch_buffer_size ? batch_buffer_size - *offset : preferred_size); \
-    coap_set_header_content_format(response, REST_TYPE); \
-    if (*offset + preferred_size >= batch_buffer_size) { \
-      *offset = -1; \
-    } else { \
-      *offset += preferred_size; \
-    } \
+    resource_batch_get_handler(batch_buffer, &batch_buffer_size, resource_##resource_name##_batch_list, REST_RESOURCE_BATCH_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
   }
 
 #define BATCH_RESOURCE(resource_name, resource_if, resource_type, ...) \
