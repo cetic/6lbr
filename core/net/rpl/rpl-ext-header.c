@@ -205,11 +205,6 @@ rpl_update_header_empty(void)
     if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
       PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
       uip_ext_len = last_uip_ext_len;
-      return;
-    }
-    if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
-      PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
-      uip_ext_len = last_uip_ext_len;
       return 0;
     }
     instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
