@@ -101,6 +101,8 @@ PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
 PROCESS_NAME(coap_server_process);
 
+process_event_t cetic_6lbr_restart_event;
+
 PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
 AUTOSTART_PROCESSES(&cetic_6lbr_process);
@@ -318,6 +320,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  cetic_6lbr_restart_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
 #if CONTIKI_TARGET_NATIVE
@@ -373,9 +376,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
-  PROCESS_WAIT_EVENT();
+  PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
   etimer_set(&reboot_timer, CLOCK_SECOND);
-  PROCESS_WAIT_EVENT();
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 #if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {
     case CETIC_6LBR_RESTART:
