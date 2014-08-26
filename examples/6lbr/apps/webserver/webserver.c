@@ -1470,7 +1470,7 @@ PT_THREAD(generate_restart_page(struct httpd_state *s))
   SEND_STRING(&s->sout, BOTTOM);
 
   if ( cetic_6lbr_restart_type != CETIC_6LBR_NO_RESTART) {
-    process_post(&cetic_6lbr_process, 0, NULL);
+    process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
   }
 
   PSOCK_END(&s->sout);

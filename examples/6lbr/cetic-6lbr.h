@@ -41,6 +41,8 @@
 
 PROCESS_NAME(cetic_6lbr_process);
 
+extern process_event_t cetic_6lbr_restart_event;
+
 extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                                   uip_ipaddr_t * ipaddr);
 
