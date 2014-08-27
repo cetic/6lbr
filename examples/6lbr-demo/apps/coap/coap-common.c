@@ -1,34 +1,84 @@
+/*
+ * Copyright (c) 2014, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Simple CoAP Library
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
 #include "coap-common.h"
 
-void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+#define DEBUG 0
+#include "net/ip/uip-debug.h"
+
+/*---------------------------------------------------------------------------*/
+resource_t*
+rest_find_resource_by_url(const char *url)
 {
-  int i;
-  int32_t tmp = 0;
-  const uint8_t *tmp_payload;
-  if (*offset > *batch_buffer_size) {
-    coap_set_status_code(response, BAD_OPTION_4_02);
-    coap_set_payload(response, "BlockOutOfScope", 15);
-    return;
-  }
-  if ( *offset == 0 ) {
-    *batch_buffer_size = 0;
-    REST_FORMAT_BATCH_START(batch_buffer, REST_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
-    for (i = 0; i < batch_resource_list_size; ++i) {
-      tmp = 0;
-      batch_resource_list[i]->get_handler(request, response, batch_buffer + *batch_buffer_size, REST_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
-      *batch_buffer_size += REST.get_request_payload(response, &tmp_payload);
-      if (i + 1 < batch_resource_list_size ) {
-        REST_FORMAT_BATCH_SEPARATOR(batch_buffer, REST_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
-      }
+  resource_t *resource;
+  size_t len = strlen(url);
+  for(resource = (resource_t *)list_head(rest_get_resources());
+      resource; resource = resource->next) {
+    if((len == strlen(resource->url)
+        || (len > strlen(resource->url)
+            && (resource->flags & HAS_SUB_RESOURCES)))
+       && strncmp(resource->url, url, strlen(resource->url)) == 0) {
+      return resource;
     }
-    REST_FORMAT_BATCH_END(batch_buffer, REST_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
   }
-  coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
-  coap_set_header_content_format(response, REST_TYPE);
-  if (*offset + preferred_size >= *batch_buffer_size) {
-    *offset = -1;
-  } else {
-    *offset += preferred_size;
-  }
+  return NULL;
 }
+/*---------------------------------------------------------------------------*/
+int
+coap_add_ipaddr(char * buf, int size, const uip_ipaddr_t *addr)
+{
+  uint16_t a;
+  unsigned int i;
+  int f;
+  int pos = 0;
+
+  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+    a = (addr->u8[i] << 8) + addr->u8[i + 1];
+    if(a == 0 && f >= 0) {
+      if(f++ == 0) {
+        pos += snprintf(buf + pos, size - pos, "::");
+      }
+    } else {
+      if(f > 0) {
+        f = -1;
+      } else if(i > 0) {
+        pos += snprintf(buf + pos, size - pos, ":");
+      }
+      pos += snprintf(buf + pos, size - pos, "%x", a);
+    }
+  }
+  return pos;
+}
+/*---------------------------------------------------------------------------*/

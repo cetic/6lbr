@@ -38,8 +38,11 @@
 
 #include "rest-engine.h"
 #include "er-coap.h"
-#include "device-resource.h"
 #include "coap-push.h"
+#include "core-interface.h"
+#include "device-resource.h"
+
+COAP_BINDING(device_model_sw, device_model_sw);
 
 PROCESS(coap_server_process, "Coap Server");
 
@@ -48,7 +51,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
   PROCESS_BEGIN();
 
   rest_init_engine();
+#if COAP_PUSH_ENABLED
   coap_push_init();
+#endif
+  core_interface_init();
 
   REST_RES_DEVICE_INIT();
 

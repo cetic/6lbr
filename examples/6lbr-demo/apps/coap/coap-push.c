@@ -1,10 +1,45 @@
+/*
+ * Copyright (c) 2014, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Simple CoAP Library
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
 #include "contiki.h"
 
 #include "er-coap-engine.h"
 #include "coap-common.h"
 #include "coap-push.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #include "net/ip/uip-debug.h"
 
 extern void coap_blocking_request_callback(void *callback_data, void *response);
@@ -16,12 +51,10 @@ PROCESS(coap_push_process, "CoAP Push");
 
 LIST(coap_push_binding);
 /*---------------------------------------------------------------------------*/
-void
-coap_push_init(void)
+list_t
+coap_push_get_bindings(void)
 {
-  list_init(coap_push_binding);
-
-  process_start(&coap_push_process, NULL);
+  return coap_push_binding;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -32,6 +65,16 @@ coap_push_add_binding(coap_binding_t * binding)
   PRINTF("Activating %s to %s\n", binding->resource->url, binding->uri);
 
   binding->last_push = clock_seconds();
+
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+int
+coap_push_remove_binding(coap_binding_t * binding)
+{
+  list_remove(coap_push_binding, binding);
+
+  PRINTF("Remove binding of %s to %s\n", binding->resource->url, binding->uri);
 
   return 1;
 }
@@ -141,5 +184,12 @@ PROCESS_THREAD(coap_push_process, ev, data)
   }
 
   PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+coap_push_init(void)
+{
+  list_init(coap_push_binding);
+  process_start(&coap_push_process, NULL);
 }
 /*---------------------------------------------------------------------------*/

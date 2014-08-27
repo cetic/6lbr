@@ -114,7 +114,7 @@ CFLAGS += -DWITH_COAPSERVER=1
 CFLAGS += -DREST=coap_rest_implementation
 APPS += er-coap
 APPS += rest-engine
-PROJECT_SOURCEFILES += coap-server.c block-transfer.c device-resource.c coap-common.c coap-push.c
+PROJECT_SOURCEFILES += coap-server.c block-transfer.c device-resource.c coap-common.c core-interface.c coap-push.c
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c

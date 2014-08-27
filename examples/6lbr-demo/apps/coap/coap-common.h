@@ -1,3 +1,38 @@
+/*
+ * Copyright (c) 2014, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Simple CoAP Library
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
 #ifndef COAP_COMMON_H
 #define COAP_COMMON_H
 
@@ -8,7 +43,6 @@
 #include "contiki-net.h"
 
 #include "er-coap.h"
-#include "ipso-profile.h"
 
 #ifdef REST_CONF_DEFAULT_PERIOD
 #define REST_DEFAULT_PERIOD REST_CONF_DEFAULT_PERIOD
@@ -16,11 +50,7 @@
 #define REST_DEFAULT_PERIOD 10
 #endif
 
-#ifdef REST_CONF_MAX_BATCH_BUFFER_SIZE
-#define REST_MAX_BATCH_BUFFER_SIZE REST_CONF_MAX_BATCH_BUFFER_SIZE
-#else
-#define REST_MAX_BATCH_BUFFER_SIZE 256
-#endif
+/*---------------------------------------------------------------------------*/
 
 #if ( defined REST_TYPE_TEXT_PLAIN && (defined REST_TYPE_APPLICATION_XML || defined REST_TYPE_APPLICATION_JSON) ) || \
     (defined REST_TYPE_APPLICATION_XML && defined REST_TYPE_APPLICATION_JSON)
@@ -31,13 +61,17 @@
 #define REST_TYPE_TEXT_PLAIN
 #endif
 
+/*---------------------------------------------------------------------------*/
+
+/* double expansion */
+#define TO_STRING2(x)  # x
+#define TO_STRING(x)  TO_STRING2(x)
+
 #ifdef REST_TYPE_TEXT_PLAIN
 
-#define REST_TYPE REST.type.TEXT_PLAIN
+#define REST_TYPE 0 //REST.type.TEXT_PLAIN
 
 #define REST_TYPE_ERROR "Supporting content-type: text/plain"
-
-#define REST_FORMAT_CT ";ct=0"
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (resource_value))
@@ -71,7 +105,7 @@
 
 #ifdef REST_TYPE_APPLICATION_XML
 
-#define REST_FORMAT_CT ";ct=41"
+#define REST_TYPE 41 //REST.type.APPLICATION_XML
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d\" />", (resource_value))
@@ -109,15 +143,13 @@
   }
 #define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos)
 
-#define REST_TYPE REST.type.APPLICATION_XML
-
 #define REST_TYPE_ERROR "Supporting content-type: application/xml"
 
 #endif
 
 #ifdef REST_TYPE_APPLICATION_JSON
 
-#define REST_FORMAT_CT ";ct=50"
+#define REST_TYPE 50 //REST.type.APPLICATION_JSON
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'"resource_name"':%d}", (resource_value))
@@ -156,8 +188,6 @@
 
 #define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
 
-#define REST_TYPE REST.type.APPLICATION_JSON
-
 #define REST_TYPE_ERROR "Supporting content-type: application/json"
 
 #endif
@@ -174,49 +204,48 @@
   success = actuator_set(payload, len); \
 }
 
-extern void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+/*---------------------------------------------------------------------------*/
+
+int
+coap_add_ipaddr(char * buf, int size, const uip_ipaddr_t *addr);
+
+resource_t*
+rest_find_resource_by_url(const char *url);
+
+/*---------------------------------------------------------------------------*/
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
-
-#define REST_RESOURCE_RESPONSE(format) { \
-  unsigned int accept = -1; \
-  if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE)) \
-  { \
-    REST.set_header_content_type(response, REST_TYPE); \
-    format; \
-    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer)); \
-  } else { \
-    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
-    const char *msg = REST_TYPE_ERROR; \
-    REST.set_response_payload(response, msg, strlen(msg)); \
-  } \
-}
-
-#define REST_ACTUATOR_RESPONSE(resource_name, parser, actuator_set) { \
-  const uint8_t * payload; \
-  int success = 0; \
-  size_t len = REST.get_request_payload(request, &payload); \
-  if (len) { \
-    parser(payload, len, actuator_set); \
-  } \
-  if (!success) { \
-    REST.set_response_status(response, REST.status.BAD_REQUEST); \
-  } \
-}
 
 #define REST_RESOURCE_GET_HANDLER(resource_name, format) \
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    REST_RESOURCE_RESPONSE(format); \
+    unsigned int accept = -1; \
+    if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE)) \
+    { \
+      REST.set_header_content_type(response, REST_TYPE); \
+      format; \
+      REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer)); \
+    } else { \
+      REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
+      const char *msg = REST_TYPE_ERROR; \
+      REST.set_response_payload(response, msg, strlen(msg)); \
+    } \
   }
 
-#define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
+#define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    REST_ACTUATOR_RESPONSE(resource_name, parser, actuator); \
+    const uint8_t * payload; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    if (len) { \
+      parser(payload, len, actuator_set); \
+    } \
+    if (!success) { \
+      REST.set_response_status(response, REST.status.BAD_REQUEST); \
+    } \
   }
 
 #define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
@@ -233,50 +262,33 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
     REST.notify_subscribers(&resource_##resource_name);\
   }
 
-#define REST_RESOURCE_BATCH_LIST(resource_name, ...) \
-  const resource_t *resource_##resource_name##_batch_list[] = {__VA_ARGS__};
-
-#define REST_RESOURCE_BATCH_LIST_SIZE(resource_name) (sizeof(resource_##resource_name##_batch_list) / sizeof(resource_t *))
-
-#define REST_RESOURCE_BATCH_HANDLER(resource_name, ...) \
-  REST_RESOURCE_BATCH_LIST(resource_name, __VA_ARGS__); \
-  void \
-  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
-  { \
-    static uint8_t batch_buffer[REST_MAX_BATCH_BUFFER_SIZE+1]; \
-    static int batch_buffer_size = 0; \
-    resource_batch_get_handler(batch_buffer, &batch_buffer_size, resource_##resource_name##_batch_list, REST_RESOURCE_BATCH_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
-  }
-
-#define BATCH_RESOURCE(resource_name, resource_if, resource_type, ...) \
-  RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_BATCH_HANDLER(resource_name, __VA_ARGS__) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL);
+/*---------------------------------------------------------------------------*/
 
 #define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL);
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\"" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
 #define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
-  PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
+  PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 
 #define REST_EVENT_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
-  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs" REST_FORMAT_CT, resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
+  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
 #define INIT_RESOURCE(resource_name, path) \
     extern resource_t resource_##resource_name; \
     rest_activate_resource(&resource_##resource_name, path);
+
 #endif /* COAP_COMMON_H */

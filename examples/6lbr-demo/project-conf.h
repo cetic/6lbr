@@ -57,13 +57,14 @@
 
 #define COAP_SERVER_PORT 5683
 
-/* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
+/* Unless compiling in LARGE mode, only a few resources can be enabled at a time with RPL enabled*/
+#if UIP_CONF_IPV6_RPL && (defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS))
 
 #define REST_CONF_RES_BATTERY 0
 #define REST_CONF_RES_BATTERY_PERIODIC 0
 #define REST_CONF_RES_BUTTON 0
 #define REST_CONF_RES_BUTTON_EVENT 0
+#define REST_CONF_RES_DEVICE_BATCH 0
 #define REST_CONF_RES_DEVICE_MANUFACTURER 0
 #define REST_CONF_RES_DEVICE_MODEL 0
 #define REST_CONF_RES_DEVICE_MODEL_HW 0
@@ -71,10 +72,10 @@
 #define REST_CONF_RES_DEVICE_SERIAL 0
 #define REST_CONF_RES_DEVICE_NAME 0
 #define REST_CONF_RES_DEVICE_TIME 0
-#define REST_CONF_RES_DEVICE_UPTIME 1
+#define REST_CONF_RES_DEVICE_UPTIME 0
 #define REST_CONF_RES_HUMIDITY 0
 #define REST_CONF_RES_HUMIDITY_PERIODIC 0
-#define REST_CONF_RES_LED_R 1
+#define REST_CONF_RES_LED_R 0
 #define REST_CONF_RES_LED_G 0
 #define REST_CONF_RES_LED_B 0
 #define REST_CONF_RES_LIGHT_SOLAR 0
@@ -89,8 +90,10 @@
 #define REST_CONF_RES_RADIO_RSSI_PERIODIC 0
 
 /* Disable .well-known/core filtering to save code */
-#undef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING      0
+
+/* Disable coap push */
+#define COAP_PUSH_CONF_ENABLED 0
 
 /* Uncomment to remove /.well-known/core resource to save code */
 //#define WITH_WELL_KNOWN_CORE            0
@@ -101,6 +104,7 @@
 #define REST_CONF_RES_BATTERY_PERIODIC 1
 #define REST_CONF_RES_BUTTON 1
 #define REST_CONF_RES_BUTTON_EVENT 1
+#define REST_CONF_RES_DEVICE_BATCH 1
 #define REST_CONF_RES_DEVICE_MANUFACTURER 1
 #define REST_CONF_RES_DEVICE_MODEL 1
 #define REST_CONF_RES_DEVICE_MODEL_HW 1
@@ -289,7 +293,7 @@
 
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
 
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
+#if UIP_CONF_IPV6_RPL && (defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS))
 
 #undef REST_CONF_RES_LED_R
 #define REST_CONF_RES_LED_R 0
