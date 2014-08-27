@@ -73,6 +73,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
 #if COAP_PUSH_ENABLED
   coap_push_init();
 #endif
+  core_interface_init();
 
   //Init all resources
   REST_RES_LIGHT_SOLAR_INIT();
