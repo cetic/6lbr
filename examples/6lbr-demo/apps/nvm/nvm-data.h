@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 
-/*---------------------------------------------------------------------------*/
-
-#define MAX_DEVICE_NAME_LENGTH 40
+#include "core-interface.h"
+#include "device-resource.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -13,9 +12,11 @@ typedef struct {
   //NVM header
   uint16_t magic;
   uint16_t version;
+  uint16_t size;
 
   //Version 0 Configuration data
-  char device_name[MAX_DEVICE_NAME_LENGTH+1];
+  REST_RES_DEVICE_NVM;
+  CORE_INTERFACE_BINDING_TABLE_NVM;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/

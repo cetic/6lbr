@@ -37,6 +37,7 @@
 #define CORE_INTERFACE_H
 
 #include "coap-common.h"
+#include "coap-push.h"
 
 #ifdef CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
 #define CORE_ITF_MAX_BATCH_BUFFER_SIZE CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
@@ -173,5 +174,16 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_BATCH_LINKED_LIST_HANDLER(resource_name, __VA_ARGS__) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=\"" TO_STRING(40) " " TO_STRING(REST_TYPE) "\"", resource_##resource_name##_get_handler, NULL, NULL, NULL);
+
+// NVM
+
+#if REST_RES_BINDING_TABLE
+#define CORE_INTERFACE_BINDING_TABLE_NVM \
+  nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
+#else
+#define CORE_INTERFACE_BINDING_TABLE_NVM
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
+#endif
 
 #endif /* CORE_INTERFACE_H */

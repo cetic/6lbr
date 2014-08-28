@@ -132,6 +132,16 @@
 #define REST_CONF_RES_RADIO_RSSI 1
 #define REST_CONF_RES_RADIO_RSSI_PERIODIC 1
 
+#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
+/* Disable .well-known/core filtering to save code */
+#define COAP_LINK_FORMAT_FILTERING      0
+
+/* disable device batch */
+#undef REST_CONF_RES_DEVICE_BATCH
+#define REST_CONF_RES_DEVICE_BATCH 0
+
+#endif
+
 #endif
 
 /* COAP content type definition */

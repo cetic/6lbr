@@ -182,14 +182,13 @@
 #if WITH_NVM
 #define DEVICE_NAME_VALUE nvm_data.device_name
 #else
-#define MAX_DEVICE_NAME_LENGTH 40
-static char device_name_value[MAX_DEVICE_NAME_LENGTH+1];
+static char device_name_value[REST_MAX_DEVICE_NAME_LENGTH];
 
 #define DEVICE_NAME_VALUE device_name_value
 #endif
 
 inline int device_name_set(uint8_t const* name, int len) {
-  if (len <= MAX_DEVICE_NAME_LENGTH) {
+  if (len < REST_MAX_DEVICE_NAME_LENGTH) {
     strcpy(DEVICE_NAME_VALUE, (char const *)name);
 #if WITH_NVM
     store_nvm_config();

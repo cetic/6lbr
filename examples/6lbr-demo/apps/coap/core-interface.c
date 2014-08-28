@@ -42,6 +42,12 @@
 #include "core-interface.h"
 #include "coap-push.h"
 
+#if WITH_NVM
+#include "nvm-config.h"
+#endif
+
+#include <string.h>
+
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
@@ -167,8 +173,8 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
 }
 #if REST_RES_BINDING_TABLE
 /*---------------------------------------------------------------------------*/
-int
-coap_binding_format(char *buffer, int size, coap_binding_t const* binding)
+static int
+resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
 {
   int pos = 0;
   pos += snprintf(buffer + pos, size - pos, "<coap://[");
@@ -184,8 +190,8 @@ coap_binding_format(char *buffer, int size, coap_binding_t const* binding)
   return pos;
 }
 /*---------------------------------------------------------------------------*/
-int
-coap_binding_parse(char *buffer, coap_binding_t *binding)
+static int
+resource_binding_parse(char *buffer, coap_binding_t *binding)
 {
   int status = 0;
   char *p = buffer;
@@ -195,6 +201,8 @@ coap_binding_parse(char *buffer, coap_binding_t *binding)
   int anchor = 0;
   int method = 0;
   int pmin = 1;
+
+  memset((void*)binding, 0, sizeof(coap_binding_t));
   do {
     if (strncmp(p, "<coap://", 8) != 0) break;
     p += 8;
@@ -248,6 +256,7 @@ coap_binding_parse(char *buffer, coap_binding_t *binding)
         }
         if (*data == '\0' && int_value > 0) {
           binding->pmin = int_value;
+          binding->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
         } else {
           pmin = 0;
         }
@@ -272,6 +281,54 @@ coap_binding_parse(char *buffer, coap_binding_t *binding)
   return status;
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_NVM
+static void
+resource_binding_store_nvm_bindings(void)
+{
+  coap_binding_t * binding;
+  int nvm_binding = 0;
+  for(binding = (coap_binding_t *)list_head(coap_push_get_bindings()); binding;
+      binding = binding->next) {
+    if (memb_inmemb(&binding_memb, binding)) {
+      coap_binding_serialize(binding, &nvm_data.binding_data[nvm_binding]);
+      nvm_binding++;
+    }
+  }
+  for (;nvm_binding < CORE_ITF_USER_BINDING_NB; ++nvm_binding) {
+    nvm_data.binding_data[nvm_binding].flags = ~COAP_BINDING_FLAGS_NVM_BINDING_VALID;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+resource_binding_load_nvm_bindings(void)
+{
+  int success = 0;
+  int nvm_binding;
+  for (nvm_binding = 0; nvm_binding < CORE_ITF_USER_BINDING_NB; ++nvm_binding) {
+    if(memb_count(&binding_memb) > 0 ) {
+      coap_binding_t * binding = memb_alloc(&binding_memb);
+      success = coap_binding_deserialize(&nvm_data.binding_data[nvm_binding], binding);
+      if (success) {
+        coap_push_add_binding(binding);
+      } else {
+        memb_free(&binding_memb, binding);
+      }
+    } else {
+      PRINTF("Too many bindings in NVM\n");
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+resource_binding_clear_nvm_bindings(void)
+{
+  int nvm_binding;
+  for (nvm_binding = 0;nvm_binding < CORE_ITF_USER_BINDING_NB; ++nvm_binding) {
+    nvm_data.binding_data[nvm_binding].flags = ~COAP_BINDING_FLAGS_NVM_BINDING_VALID;
+  }
+}
+#endif
+/*---------------------------------------------------------------------------*/
 static void
 resource_binding_table_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
@@ -281,9 +338,13 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
   if(memb_count(&binding_memb) > 0 ) {
     if(coap_block1_handler(request, response, data_store, &data_size, sizeof(data_store)) == 0) {
       coap_binding_t * binding = memb_alloc(&binding_memb);
-      success = coap_binding_parse((char*)data_store, binding);
+      success = resource_binding_parse((char*)data_store, binding);
       if (success) {
         coap_push_add_binding(binding);
+#if WITH_NVM
+        resource_binding_store_nvm_bindings();
+        store_nvm_config();
+#endif
       } else {
         erbium_status_code = REST.status.BAD_REQUEST;
         coap_error_message = "Message invalid";
@@ -307,6 +368,10 @@ resource_binding_table_delete_handler(void* request, void* response, uint8_t *bu
     }
   }
   list_init(coap_push_get_bindings());
+#if WITH_NVM
+  resource_binding_clear_nvm_bindings();
+  store_nvm_config();
+#endif
   erbium_status_code = REST.status.DELETED;
 }
 /*---------------------------------------------------------------------------*/
@@ -319,11 +384,6 @@ resource_binding_table_get_handler(void* request, void* response, uint8_t *buffe
   if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==APPLICATION_LINK_FORMAT))
   {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);
-    if (*offset > binding_table_buffer_size) {
-      coap_set_status_code(response, BAD_OPTION_4_02);
-      coap_set_payload(response, "BlockOutOfScope", 15);
-      return;
-    }
     if ( *offset == 0 ) {
       binding_table_buffer_size = 0;
       coap_binding_t * binding;
@@ -332,8 +392,14 @@ resource_binding_table_get_handler(void* request, void* response, uint8_t *buffe
         if (binding_table_buffer_size > 0 && binding_table_buffer_size < sizeof(binding_table_buffer)) {
           binding_table_buffer[binding_table_buffer_size++] = ',';
         }
-        binding_table_buffer_size += coap_binding_format((char *)binding_table_buffer + binding_table_buffer_size, sizeof(binding_table_buffer) - binding_table_buffer_size, binding);
+        binding_table_buffer_size += resource_binding_format((char *)binding_table_buffer + binding_table_buffer_size, sizeof(binding_table_buffer) - binding_table_buffer_size, binding);
       }
+    }
+    if (*offset > binding_table_buffer_size) {
+      printf("O: %d, S: %d\n", *offset, binding_table_buffer_size);
+      coap_set_status_code(response, BAD_OPTION_4_02);
+      coap_set_payload(response, "BlockOutOfScope", 15);
+      return;
     }
     coap_set_payload(response, binding_table_buffer + *offset, *offset + preferred_size > binding_table_buffer_size ? binding_table_buffer_size - *offset : preferred_size);
     if (*offset + preferred_size >= binding_table_buffer_size) {
@@ -353,6 +419,9 @@ core_interface_init(void)
 #if REST_RES_BINDING_TABLE
   memb_init(&binding_memb);
   rest_activate_resource(&resource_binding_table, BINDING_TABLE_RES);
+#if WITH_NVM
+  resource_binding_load_nvm_bindings();
+#endif
 #endif
 }
 /*---------------------------------------------------------------------------*/

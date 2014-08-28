@@ -44,15 +44,25 @@
 #define COAP_PUSH_ENABLED 1
 #endif
 
+#ifdef COAP_PUSH_CONF_MAX_URI_SIZE
+#define COAP_PUSH_MAX_URI_SIZE COAP_PUSH_CONF_MAX_URI_SIZE
+#else
+#define COAP_PUSH_MAX_URI_SIZE 40
+#endif
+
 #define COAP_PUSH_CONF_DEFAULT_PMIN 10
 #define COAP_PUSH_CONF_DEFAULT_PMAX 0
+
+#define COAP_BINDING_FLAGS_PMIN_VALID 0x0001
+#define COAP_BINDING_FLAGS_NVM_BINDING_VALID 0x8000
 
 struct coap_binding_s {
   struct coap_binding_s* next;
   resource_t * resource;
   uip_ip6addr_t dest_addr;
   uint16_t dest_port;
-  char uri[40];
+  char uri[COAP_PUSH_MAX_URI_SIZE];
+  int flags;
   int pmin;
   int pmax;
   int step;
@@ -64,9 +74,22 @@ struct coap_binding_s {
 
 typedef struct coap_binding_s coap_binding_t;
 
+typedef struct {
+  uint8_t dest_addr[16];
+  uint16_t dest_port;
+  char uri[COAP_PUSH_MAX_URI_SIZE];
+  char resource[COAP_PUSH_MAX_URI_SIZE];
+  int flags;
+  int pmin;
+  int pmax;
+  int step;
+  int less_than;
+  int greater_than;
+} nvm_binding_data_t;
+
 #define COAP_BINDING(name, resource_name) \
   extern resource_t resource_##resource_name; \
-  coap_binding_t binding_##name = { NULL, &resource_##resource_name, {}, COAP_DEFAULT_PORT, {}, COAP_PUSH_CONF_DEFAULT_PMIN, COAP_PUSH_CONF_DEFAULT_PMAX };
+  coap_binding_t binding_##name = { NULL, &resource_##resource_name, {}, COAP_DEFAULT_PORT, {}, 0, COAP_PUSH_CONF_DEFAULT_PMIN, COAP_PUSH_CONF_DEFAULT_PMAX };
 
 void
 coap_push_init();
@@ -79,5 +102,11 @@ coap_push_add_binding(coap_binding_t * binding);
 
 int
 coap_push_remove_binding(coap_binding_t * binding);
+
+void
+coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store);
+
+int
+coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding);
 
 #endif /* COAP_PUSH_H_ */

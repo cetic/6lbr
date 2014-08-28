@@ -56,6 +56,17 @@ nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/
 
+static void
+nvm_reset_version_0(nvm_data_t * nvm_data)
+{
+  nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
+  nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
+  nvm_data->size = sizeof(nvm_data_t);
+
+  REST_RES_DEVICE_NVM_INIT(nvm_data);
+  CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
+}
+
 void
 check_nvm(nvm_data_t * nvm_data, int reset)
 {
@@ -69,10 +80,13 @@ check_nvm(nvm_data_t * nvm_data, int reset)
       LOG6LBR_ERROR
         ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
     }
-    nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
-    nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
-
-    memset( nvm_data->device_name, 0, MAX_DEVICE_NAME_LENGTH+1);
+    nvm_reset_version_0(nvm_data);
+    flash = 1;
+  }
+  if (nvm_data->size != sizeof(nvm_data_t)) {
+    LOG6LBR_ERROR
+      ("Invalid NVM size, reseting it...\n");
+    nvm_reset_version_0(nvm_data);
     flash = 1;
   }
 
@@ -88,6 +102,7 @@ load_nvm_config(void)
 
   LOG6LBR_INFO("NVM Magic : %x\n", nvm_data.magic);
   LOG6LBR_INFO("NVM Version : %x\n", nvm_data.version);
+  LOG6LBR_INFO("NVM Size : %d\n", nvm_data.size);
 
   check_nvm(&nvm_data, 0);
 }

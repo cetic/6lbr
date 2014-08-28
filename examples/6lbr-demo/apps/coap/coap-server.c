@@ -45,6 +45,7 @@
 #include "leds-resource.h"
 #include "device-resource.h"
 #include "coap-push.h"
+#include "core-interface.h"
 
 #define DEBUG 0
 #include "uip-debug.h"
@@ -73,7 +74,6 @@ PROCESS_THREAD(coap_server_process, ev, data)
 #if COAP_PUSH_ENABLED
   coap_push_init();
 #endif
-  core_interface_init();
 
   //Init all resources
   REST_RES_LIGHT_SOLAR_INIT();
@@ -88,6 +88,9 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_DEVICE_INIT();
   REST_RES_RADIO_LQI_INIT();
   REST_RES_RADIO_RSSI_INIT();
+
+  /* Core interface must be initialized after all the resources */
+  core_interface_init();
 
   printf("CoAP server started\n");
 
