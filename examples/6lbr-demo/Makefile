@@ -126,6 +126,12 @@ LDFLAGS+=-Wl,-Ttext=0x8000
 endif
 endif
 
+ifeq ($(TARGET),sky)
+PROJECTDIRS += $(PROJECTDIR)/platform/sky
+PROJECT_SOURCEFILES += f1611-nvm.c
+WITH_NVM=0
+endif
+
 ifeq ($(TARGET),cc2538dk)
 PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk
 PROJECT_SOURCEFILES += cc2538dk-nvm.c

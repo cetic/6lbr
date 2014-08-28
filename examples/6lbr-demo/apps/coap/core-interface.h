@@ -186,4 +186,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
 #define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
 #endif
 
+void
+resource_binding_clear_nvm_bindings(void);
+
 #endif /* CORE_INTERFACE_H */
