@@ -128,14 +128,18 @@ endif
 
 ifeq ($(TARGET),sky)
 PROJECTDIRS += $(PROJECTDIR)/platform/sky
-PROJECT_SOURCEFILES += f1611-nvm.c
 WITH_NVM=0
+ifeq ($(WITH_NVM),1)
+PROJECT_SOURCEFILES += f1611-nvm.c
+endif
 endif
 
 ifeq ($(TARGET),cc2538dk)
 PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk
-PROJECT_SOURCEFILES += cc2538dk-nvm.c
 WITH_NVM=1
+ifeq ($(WITH_NVM),1)
+PROJECT_SOURCEFILES += cc2538dk-nvm.c
+endif
 endif
 
 ifeq ($(WITH_NVM),1)
