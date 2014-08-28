@@ -127,13 +127,13 @@ endif
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk $(PROJECTDIR)/apps/nvm
+PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk
 PROJECT_SOURCEFILES += cc2538dk-nvm.c
 WITH_NVM=1
 endif
 
 ifeq ($(WITH_NVM),1)
-PROJECTDIRS += $(PROJECTDIR)/app/nvm
+PROJECTDIRS += $(PROJECTDIR)/apps/nvm
 CFLAGS+=-DWITH_NVM=1
 PROJECT_SOURCEFILES += nvm-config.c
 endif
