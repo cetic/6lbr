@@ -95,6 +95,9 @@
 /* Disable coap push */
 #define COAP_PUSH_CONF_ENABLED 0
 
+/* Disable core interface binding table */
+#define REST_CONF_RES_BINDING_TABLE 0
+
 /* Uncomment to remove /.well-known/core resource to save code */
 //#define WITH_WELL_KNOWN_CORE            0
 

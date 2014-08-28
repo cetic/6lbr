@@ -165,6 +165,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
     *offset += preferred_size;
   }
 }
+#if REST_RES_BINDING_TABLE
 /*---------------------------------------------------------------------------*/
 int
 coap_binding_format(char *buffer, int size, coap_binding_t const* binding)
@@ -344,6 +345,7 @@ resource_binding_table_get_handler(void* request, void* response, uint8_t *buffe
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 core_interface_init(void)
