@@ -33,63 +33,23 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#ifndef BATTERY_SENSOR_RESOURCE_H
-#define BATTERY_SENSOR_RESOURCE_H
+#ifndef SENSORS_BATCH_RESOURCE_H_
+#define SENSORS_BATCH_RESOURCE_H_
 
 #include "contiki.h"
 #include "coap-common.h"
 #include "ipso-profile.h"
 
-#if PLATFORM_HAS_BATTERY
-#include "dev/battery-sensor.h"
-#endif
-
-#if PLATFORM_HAS_BATTERY
-#ifdef REST_CONF_RES_BATTERY
-#define REST_RES_BATTERY REST_CONF_RES_BATTERY
+#ifdef REST_CONF_RES_SENSORS_BATCH
+#define REST_RES_SENSORS_BATCH REST_CONF_RES_SENSORS_BATCH
 #else
-#define REST_RES_BATTERY 1
+#define REST_RES_SENSORS_BATCH 1
 #endif
+
+#if REST_RES_SENSORS_BATCH
+#define REST_RES_SENSORS_BATCH_INIT() INIT_RESOURCE(sensors, SENSORS_RES);
 #else
-#define REST_RES_BATTERY 0
+#define REST_RES_SENSORS_BATCH_INIT()
 #endif
 
-#ifdef REST_CONF_RES_BATTERY_PERIODIC
-#define REST_RES_BATTERY_PERIODIC REST_CONF_RES_BATTERY_PERIODIC
-#else
-#define REST_RES_BATTERY_PERIODIC 0
-#endif
-
-#ifdef REST_CONF_RES_BATTERY_PERIOD
-#define REST_RES_BATTERY_PERIOD REST_CONF_RES_BATTERY_PERIOD
-#else
-#define REST_RES_BATTERY_PERIOD REST_DEFAULT_PERIOD
-#endif
-
-#ifdef REST_RES_BATTERY_RAW
-#define REST_RES_BATTERY_RAW REST_CONF_RES_BATTERY_RAW
-#else
-#define REST_RES_BATTERY_RAW 0
-#endif
-
-#if REST_RES_BATTERY
-
-#define REST_RES_BATTERY_DEFINE() \
-  extern resource_t resource_battery;
-
-#define REST_RES_BATTERY_INIT() \
-  SENSORS_ACTIVATE(battery_sensor); \
-  rest_activate_resource(&resource_battery, DEVICE_POWER_SUPPLY_PATH DEVICE_POWER_SUPPLY_ENUM_LINE DEVICE_POWER_SUPPLY_VOLTAGE_RES);
-
-#define REST_RES_BATTERY_REF &resource_battery,
-
-#else
-
-#define REST_RES_BATTERY_DEFINE()
-#define REST_RES_BATTERY_INIT()
-
-#define REST_RES_BATTERY_REF
-
-#endif
-
-#endif /* BATTERY_SENSOR_RESOURCE_H */
+#endif /* DEVICE_RESOURCE_H_ */

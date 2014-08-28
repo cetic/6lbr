@@ -33,63 +33,45 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#ifndef BATTERY_SENSOR_RESOURCE_H
-#define BATTERY_SENSOR_RESOURCE_H
-
-#include "contiki.h"
 #include "coap-common.h"
-#include "ipso-profile.h"
+#include "core-interface.h"
+#include "sensors-batch-resource.h"
 
-#if PLATFORM_HAS_BATTERY
-#include "dev/battery-sensor.h"
+#include "battery-sensor-resource.h"
+#include "humidity-sensor-resource.h"
+#include "light-sensor-resource.h"
+#include "radio-sensor-resource.h"
+#include "temp-sensor-resource.h"
+
+#if WITH_NVM
+#include "nvm-config.h"
 #endif
 
-#if PLATFORM_HAS_BATTERY
-#ifdef REST_CONF_RES_BATTERY
-#define REST_RES_BATTERY REST_CONF_RES_BATTERY
+/*---------------------------------------------------------------------------*/
+
+#if REST_RES_SENSORS_BATCH
+#define REST_RES_SENSORS_BATCH_RESOURCE BATCH_RESOURCE
 #else
-#define REST_RES_BATTERY 1
-#endif
-#else
-#define REST_RES_BATTERY 0
+#define REST_RES_SENSORS_BATCH_RESOURCE(...)
 #endif
 
-#ifdef REST_CONF_RES_BATTERY_PERIODIC
-#define REST_RES_BATTERY_PERIODIC REST_CONF_RES_BATTERY_PERIODIC
-#else
-#define REST_RES_BATTERY_PERIODIC 0
-#endif
+/*---------------------------------------------------------------------------*/
 
-#ifdef REST_CONF_RES_BATTERY_PERIOD
-#define REST_RES_BATTERY_PERIOD REST_CONF_RES_BATTERY_PERIOD
-#else
-#define REST_RES_BATTERY_PERIOD REST_DEFAULT_PERIOD
-#endif
+REST_RES_LIGHT_SOLAR_DEFINE();
+REST_RES_LIGHT_PHOTO_DEFINE();
+REST_RES_TEMP_DEFINE();
+REST_RES_HUMIDITY_DEFINE();
+REST_RES_BATTERY_DEFINE();
+REST_RES_RADIO_LQI_DEFINE();
+REST_RES_RADIO_RSSI_DEFINE();
 
-#ifdef REST_RES_BATTERY_RAW
-#define REST_RES_BATTERY_RAW REST_CONF_RES_BATTERY_RAW
-#else
-#define REST_RES_BATTERY_RAW 0
-#endif
-
-#if REST_RES_BATTERY
-
-#define REST_RES_BATTERY_DEFINE() \
-  extern resource_t resource_battery;
-
-#define REST_RES_BATTERY_INIT() \
-  SENSORS_ACTIVATE(battery_sensor); \
-  rest_activate_resource(&resource_battery, DEVICE_POWER_SUPPLY_PATH DEVICE_POWER_SUPPLY_ENUM_LINE DEVICE_POWER_SUPPLY_VOLTAGE_RES);
-
-#define REST_RES_BATTERY_REF &resource_battery,
-
-#else
-
-#define REST_RES_BATTERY_DEFINE()
-#define REST_RES_BATTERY_INIT()
-
-#define REST_RES_BATTERY_REF
-
-#endif
-
-#endif /* BATTERY_SENSOR_RESOURCE_H */
+REST_RES_SENSORS_BATCH_RESOURCE(sensors, IF_BATCH, SENSOR_RT,
+    REST_RES_LIGHT_SOLAR_REF
+    REST_RES_LIGHT_PHOTO_REF
+    REST_RES_TEMP_REF
+    REST_RES_HUMIDITY_REF
+    REST_RES_BATTERY_REF
+    REST_RES_RADIO_LQI_REF
+    REST_RES_RADIO_RSSI_REF
+  )
+/*---------------------------------------------------------------------------*/

@@ -105,10 +105,13 @@
   SENSORS_ACTIVATE(light_sensor); \
   rest_activate_resource(&resource_light_solar, LIGHT_SOLAR_SENSOR_RES);
 
+#define REST_RES_LIGHT_SOLAR_REF &resource_light_solar,
+
 #else
 
 #define REST_RES_LIGHT_SOLAR_DEFINE()
 #define REST_RES_LIGHT_SOLAR_INIT()
+#define REST_RES_LIGHT_SOLAR_REF
 
 #endif
 
@@ -118,11 +121,12 @@
 #define REST_RES_LIGHT_PHOTO_INIT() \
   SENSORS_ACTIVATE(light_sensor); \
   rest_activate_resource(&resource_light_photo, LIGHT_PHOTOSYNTHETIC_SENSOR_RES);
-
+#define REST_RES_LIGHT_PHOTO_REF &resource_light_photo,
 #else
 
 #define REST_RES_LIGHT_PHOTO_DEFINE()
 #define REST_RES_LIGHT_PHOTO_INIT()
+#define REST_RES_LIGHT_PHOTO_REF
 
 #endif
 

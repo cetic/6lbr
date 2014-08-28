@@ -44,6 +44,8 @@
 #include "button-resource.h"
 #include "leds-resource.h"
 #include "device-resource.h"
+#include "sensors-batch-resource.h"
+
 #include "coap-push.h"
 #include "core-interface.h"
 
@@ -88,6 +90,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_DEVICE_INIT();
   REST_RES_RADIO_LQI_INIT();
   REST_RES_RADIO_RSSI_INIT();
+  REST_RES_SENSORS_BATCH_INIT();
 
   /* Core interface must be initialized after all the resources */
   core_interface_init();

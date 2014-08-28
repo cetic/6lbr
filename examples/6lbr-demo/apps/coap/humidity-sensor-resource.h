@@ -81,10 +81,13 @@
   SENSORS_ACTIVATE(sht11_sensor); \
   rest_activate_resource(&resource_humidity, HUMIDITY_SENSOR_RES);
 
+#define REST_RES_HUMIDITY_REF &resource_humidity,
+
 #else
 
 #define REST_RES_HUMIDITY_DEFINE()
 #define REST_RES_HUMIDITY_INIT()
+#define REST_RES_HUMIDITY_REF
 
 #endif
 

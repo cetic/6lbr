@@ -104,11 +104,13 @@
 #define REST_RES_RADIO_LQI_INIT() \
   SENSORS_ACTIVATE(radio_sensor); \
   rest_activate_resource(&resource_radio_lqi, RADIO_LQI_SENSOR_RES);
+#define REST_RES_RADIO_LQI_REF &resource_radio_lqi,
 
 #else
 
 #define REST_RES_RADIO_LQI_DEFINE()
 #define REST_RES_RADIO_LQI_INIT()
+#define REST_RES_RADIO_LQI_REF
 
 #endif
 
@@ -118,11 +120,13 @@
 #define REST_RES_RADIO_RSSI_INIT() \
   SENSORS_ACTIVATE(radio_sensor); \
   rest_activate_resource(&resource_radio_rssi, RADIO_RSSI_SENSOR_RES);
+#define REST_RES_RADIO_RSSI_REF &resource_radio_rssi,
 
 #else
 
 #define REST_RES_RADIO_RSSI_DEFINE()
 #define REST_RES_RADIO_RSSI_INIT()
+#define REST_RES_RADIO_RSSI_REF
 
 #endif
 

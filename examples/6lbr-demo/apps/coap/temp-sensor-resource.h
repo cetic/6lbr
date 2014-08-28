@@ -81,10 +81,13 @@
   SENSORS_ACTIVATE(sht11_sensor); \
   rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
 
+#define REST_RES_TEMP_REF &resource_temp,
+
 #else
 
 #define REST_RES_TEMP_DEFINE()
 #define REST_RES_TEMP_INIT()
+#define REST_RES_TEMP_REF
 
 #endif
 

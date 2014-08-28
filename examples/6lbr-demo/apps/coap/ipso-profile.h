@@ -129,6 +129,8 @@
 
 // SENSOR
 
+#define SENSORS_RES "sen"
+
 #define SENSOR_MOTION_STATUS_RES "/status"
 #define SENSOR_CONTACT_STATUS_RES "/status"
 
