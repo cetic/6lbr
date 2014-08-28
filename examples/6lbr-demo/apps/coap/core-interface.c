@@ -396,7 +396,6 @@ resource_binding_table_get_handler(void* request, void* response, uint8_t *buffe
       }
     }
     if (*offset > binding_table_buffer_size) {
-      printf("O: %d, S: %d\n", *offset, binding_table_buffer_size);
       coap_set_status_code(response, BAD_OPTION_4_02);
       coap_set_payload(response, "BlockOutOfScope", 15);
       return;
