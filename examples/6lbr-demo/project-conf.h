@@ -140,6 +140,10 @@
 #undef REST_CONF_RES_DEVICE_BATCH
 #define REST_CONF_RES_DEVICE_BATCH 0
 
+/* NVM is too limited */
+#define COAP_PUSH_CONF_MAX_URI_SIZE 16
+#define CORE_ITF_CONF_USER_BINDING_NB 1
+
 #endif
 
 #endif
