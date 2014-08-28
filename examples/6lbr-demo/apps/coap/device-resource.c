@@ -179,6 +179,7 @@
 #define RES_DEVICE_NAME_VALUE "Unknown"
 #endif
 
+#if REST_RES_DEVICE_NAME
 #if WITH_NVM
 #define DEVICE_NAME_VALUE nvm_data.device_name
 #else
@@ -198,6 +199,7 @@ inline int device_name_set(uint8_t const* name, int len) {
     return 0;
   }
 }
+#endif
 
 #ifdef RES_CONF_DEVICE_TIME_VALUE
 #define RES_DEVICE_TIME_VALUE RES_CONF_DEVICE_TIME_VALUE
