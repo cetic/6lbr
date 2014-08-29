@@ -29,40 +29,56 @@
 
 /**
  * \file
- *         6LBR CoAP Server
+ *         Simple CoAP Library
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef BINDING_TABLE_RESOURCE_H
+#define BINDING_TABLE_RESOURCE_H
 
-#include "contiki.h"
-
-#include "rest-engine.h"
-#include "er-coap.h"
+#include "coap-common.h"
 #include "coap-push.h"
 #include "core-interface.h"
-#include "device-resource.h"
-#include "config-stack-resource.h"
-#include "linked-batch-resource.h"
-#include "binding-table-resource.h"
 
-COAP_BINDING(device_model_sw, device_model_sw);
+/*---------------------------------------------------------------------------*/
 
-PROCESS(coap_server_process, "Coap Server");
-
-PROCESS_THREAD(coap_server_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  rest_init_engine();
-#if COAP_PUSH_ENABLED
-  coap_push_init();
+#ifdef REST_CONF_RES_BINDING_TABLE
+#define REST_RES_BINDING_TABLE REST_CONF_RES_BINDING_TABLE
+#else
+#define REST_RES_BINDING_TABLE 1
 #endif
-  REST_RES_DEVICE_INIT();
-  REST_RES_CONFIG_STACK_INIT();
 
-  /* Linked batch and binding tables must be initialized after all the resources */
-  REST_RES_LINKED_BATCH_INIT();
-  REST_RES_BINDING_TABLE_INIT();
+#ifdef CORE_ITF_CONF_MAX_BINDING_SIZE
+#define CORE_ITF_MAX_BINDING_SIZE CORE_ITF_CONF_MAX_BINDING_SIZE
+#else
+#define CORE_ITF_MAX_BINDING_SIZE 256
+#endif
 
-  PROCESS_END();
-}
+#ifdef CORE_ITF_CONF_USER_BINDING_NB
+#define CORE_ITF_USER_BINDING_NB CORE_ITF_CONF_USER_BINDING_NB
+#else
+#define CORE_ITF_USER_BINDING_NB 2
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+#if REST_RES_BINDING_TABLE
+#define REST_RES_BINDING_TABLE_INIT() binding_table_init();
+#define CORE_INTERFACE_BINDING_TABLE_NVM \
+  nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
+#else
+#define REST_RES_BINDING_TABLE_INIT()
+#define CORE_INTERFACE_BINDING_TABLE_NVM
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+void
+binding_table_init(void);
+
+void
+resource_binding_clear_nvm_bindings(void);
+
+#endif /* BINDING_TABLE_RESOURCE_H */

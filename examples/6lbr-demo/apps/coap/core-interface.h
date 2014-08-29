@@ -45,24 +45,6 @@
 #define CORE_ITF_MAX_BATCH_BUFFER_SIZE 256
 #endif
 
-#ifdef CORE_ITF_CONF_MAX_BINDING_SIZE
-#define CORE_ITF_MAX_BINDING_SIZE CORE_ITF_CONF_MAX_BINDING_SIZE
-#else
-#define CORE_ITF_MAX_BINDING_SIZE 256
-#endif
-
-#ifdef CORE_ITF_CONF_USER_BINDING_NB
-#define CORE_ITF_USER_BINDING_NB CORE_ITF_CONF_USER_BINDING_NB
-#else
-#define CORE_ITF_USER_BINDING_NB 2
-#endif
-
-#ifdef REST_CONF_RES_BINDING_TABLE
-#define REST_RES_BINDING_TABLE REST_CONF_RES_BINDING_TABLE
-#else
-#define REST_RES_BINDING_TABLE 1
-#endif
-
 // Resources path
 
 #define BINDING_TABLE_RES "bnd"
@@ -78,9 +60,6 @@
 #define IF_RO_PARAMETER "core.rp"
 #define IF_ACTUATOR "core.a"
 #define IF_BINDING "core.bnd"
-
-void
-core_interface_init(void);
 
 // Resource handlers
 
@@ -175,19 +154,5 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_BATCH_LINKED_LIST_HANDLER(resource_name, __VA_ARGS__) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=\"" TO_STRING(40) " " TO_STRING(REST_TYPE) "\"", resource_##resource_name##_get_handler, NULL, NULL, NULL);
-
-// NVM
-
-#if REST_RES_BINDING_TABLE
-#define CORE_INTERFACE_BINDING_TABLE_NVM \
-  nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
-#else
-#define CORE_INTERFACE_BINDING_TABLE_NVM
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
-#endif
-
-void
-resource_binding_clear_nvm_bindings(void);
 
 #endif /* CORE_INTERFACE_H */

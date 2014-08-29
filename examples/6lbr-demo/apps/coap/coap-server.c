@@ -50,6 +50,7 @@
 #include "coap-push.h"
 #include "core-interface.h"
 #include "linked-batch-resource.h"
+#include "binding-table-resource.h"
 
 #define DEBUG 0
 #include "uip-debug.h"
@@ -94,10 +95,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_RADIO_RSSI_INIT();
   REST_RES_SENSORS_BATCH_INIT();
   REST_RES_CONFIG_STACK_INIT();
-  REST_RES_LINKED_BATCH_INIT();
 
-  /* Core interface must be initialized after all the resources */
-  core_interface_init();
+  /* Linked batch and binding tables must be initialized after all the resources */
+  REST_RES_LINKED_BATCH_INIT();
+  REST_RES_BINDING_TABLE_INIT();
 
   printf("CoAP server started\n");
 

@@ -117,7 +117,7 @@ static void
 resource_linked_batch_table_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int success = 0;
-  static uint8_t data_store[CORE_ITF_MAX_BINDING_SIZE];
+  static uint8_t data_store[CORE_ITF_MAX_BATCH_BUFFER_SIZE];
   static size_t data_size = 0;
   if(coap_block1_handler(request, response, data_store, &data_size, sizeof(data_store)) == 0) {
     resource_t *tmp_linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB];
