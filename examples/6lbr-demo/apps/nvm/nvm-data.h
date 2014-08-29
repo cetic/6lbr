@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "core-interface.h"
 #include "device-resource.h"
+#include "binding-table-resource.h"
 
 /*---------------------------------------------------------------------------*/
 
