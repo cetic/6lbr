@@ -37,6 +37,11 @@
 #ifndef CETIC_6LBR_DEMO_PROJECT_CONF_H
 #define CETIC_6LBR_DEMO_PROJECT_CONF_H
 
+/* include the project config */
+#ifdef USER_PROJECT_CONF_H
+#include USER_PROJECT_CONF_H
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Radio                                                                     */
 /*---------------------------------------------------------------------------*/

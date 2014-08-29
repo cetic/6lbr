@@ -149,6 +149,9 @@ PROJECT_SOURCEFILES += nvm-config.c
 endif
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+ifneq  ($(PROJECT_CONF),)
+CFLAGS += -DUSER_PROJECT_CONF_H=\"$(PROJECT_CONF)\"
+endif
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c 
 
