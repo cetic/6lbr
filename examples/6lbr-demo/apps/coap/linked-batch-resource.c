@@ -76,6 +76,9 @@ resource_linked_batch_parse(char *buffer, resource_t *linked_batch_table[], int 
   memset((void*)linked_batch_table, 0, sizeof(resource_t *)*CORE_ITF_USER_LINKED_BATCH_NB);
   *size = 0;
   while (*p && *size < CORE_ITF_USER_LINKED_BATCH_NB) {
+    if (p > buffer) {
+      if (*p++ != ',') break;
+    }
     if (*p++ != '<') break;
     sep = strchr(p, '>');
     if (sep == NULL) break;
