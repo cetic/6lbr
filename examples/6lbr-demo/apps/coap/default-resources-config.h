@@ -135,6 +135,7 @@
 
 #if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 /* NVM is too limited */
+#define REST_CONF_MAX_DEVICE_NAME_LENGTH 16
 #define COAP_PUSH_CONF_MAX_URI_SIZE 16
 #define CORE_ITF_CONF_USER_BINDING_NB 1
 #endif
