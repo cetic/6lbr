@@ -190,7 +190,7 @@
 
 /* COAP content type definition */
 
-#define REST_TYPE_TEXT_PLAIN
+//#define REST_TYPE_TEXT_PLAIN
 //#define REST_TYPE_APPLICATION_XML
 //#define REST_TYPE_APPLICATION_JSON
 
