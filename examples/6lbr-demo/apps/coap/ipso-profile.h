@@ -153,6 +153,21 @@
 
 // CONFIGURATION
 
+#define SERVICE_RES CONFIGURATION_PATH "services"
+#define STACK_RES CONFIGURATION_PATH "stack"
+#define STACK_PATH CONFIGURATION_PATH "stack/"
+
+#define STACK_PHY_RES STACK_PATH "phy"
+#define STACK_MAC_RES STACK_PATH "mac"
+#define STACK_NET_RES STACK_PATH "net"
+#define STACK_RTG_RES STACK_PATH "rtg"
+
+#define SERVICE_RT CONFIGURATION_RT ".services"
+#define STACK_RT CONFIGURATION_RT ".stack"
+#define STACK_PHY_RT STACK_RT ".phy"
+#define STACK_MAC_RT STACK_RT ".mac"
+#define STACK_NET_RT STACK_RT ".net"
+#define STACK_RTG_RT STACK_RT ".rtg"
 
 // OTHER
 

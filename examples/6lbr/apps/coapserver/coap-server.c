@@ -41,6 +41,7 @@
 #include "coap-push.h"
 #include "core-interface.h"
 #include "device-resource.h"
+#include "config-stack-resource.h"
 #include "linked-batch-resource.h"
 
 COAP_BINDING(device_model_sw, device_model_sw);
@@ -56,6 +57,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   coap_push_init();
 #endif
   REST_RES_DEVICE_INIT();
+  REST_RES_CONFIG_STACK_INIT();
   REST_RES_LINKED_BATCH_INIT();
 
   core_interface_init();

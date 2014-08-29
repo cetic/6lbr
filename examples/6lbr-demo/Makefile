@@ -78,7 +78,7 @@ APPS += er-coap
 APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
 	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
-	radio-sensor-resource.c sensors-batch-resource.c linked-batch-resource.c \
+	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
 	block-transfer.c coap-common.c coap-push.c core-interface.c
 endif
 
