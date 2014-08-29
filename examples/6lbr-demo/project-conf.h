@@ -99,6 +99,9 @@
 /* Disable core interface binding table */
 #define REST_CONF_RES_BINDING_TABLE 0
 
+/* Disable core interface linked batch table */
+#define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
 /* Uncomment to remove /.well-known/core resource to save code */
 //#define WITH_WELL_KNOWN_CORE            0
 
@@ -133,6 +136,8 @@
 #define REST_CONF_RES_RADIO_LQI_PERIODIC 1
 #define REST_CONF_RES_RADIO_RSSI 1
 #define REST_CONF_RES_RADIO_RSSI_PERIODIC 1
+#define REST_CONF_RES_BINDING_TABLE 1
+#define REST_CONF_RES_LINKED_BATCH_TABLE 1
 
 #if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 /* Disable .well-known/core filtering to save code */
@@ -148,6 +153,10 @@
 /* NVM is too limited */
 #define COAP_PUSH_CONF_MAX_URI_SIZE 16
 #define CORE_ITF_CONF_USER_BINDING_NB 1
+
+/* Disable core interface linked batch table */
+#undef REST_CONF_RES_LINKED_BATCH_TABLE
+#define REST_CONF_RES_LINKED_BATCH_TABLE 0
 
 #endif
 

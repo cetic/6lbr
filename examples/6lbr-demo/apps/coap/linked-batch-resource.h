@@ -33,76 +33,33 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef LINKED_BATCH_RESOURCE_H_
+#define LINKED_BATCH_RESOURCE_H_
+
 #include "contiki.h"
-
 #include "coap-common.h"
-#include "light-sensor-resource.h"
-#include "temp-sensor-resource.h"
-#include "humidity-sensor-resource.h"
-#include "battery-sensor-resource.h"
-#include "radio-sensor-resource.h"
-#include "button-resource.h"
-#include "leds-resource.h"
-#include "device-resource.h"
-#include "sensors-batch-resource.h"
+#include "ipso-profile.h"
 
-#include "coap-push.h"
-#include "core-interface.h"
-#include "linked-batch-resource.h"
-
-#define DEBUG 0
-#include "uip-debug.h"
-
-//Define all resources
-REST_RES_LIGHT_SOLAR_DEFINE();
-REST_RES_LIGHT_PHOTO_DEFINE();
-REST_RES_TEMP_DEFINE();
-REST_RES_HUMIDITY_DEFINE();
-REST_RES_BATTERY_DEFINE();
-REST_RES_BUTTON_DEFINE();
-REST_RES_LED_R_DEFINE();
-REST_RES_LED_G_DEFINE();
-REST_RES_LED_B_DEFINE();
-REST_RES_DEVICE_DEFINE();
-REST_RES_RADIO_LQI_DEFINE();
-REST_RES_RADIO_RSSI_DEFINE();
-
-PROCESS(coap_server_process, "Coap Server");
-
-PROCESS_THREAD(coap_server_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  rest_init_engine();
-#if COAP_PUSH_ENABLED
-  coap_push_init();
+#ifdef REST_CONF_RES_LINKED_BATCH_TABLE
+#define REST_RES_LINKED_BATCH_TABLE REST_CONF_RES_LINKED_BATCH_TABLE
+#else
+#define REST_RES_LINKED_BATCH_TABLE 1
 #endif
 
-  //Init all resources
-  REST_RES_LIGHT_SOLAR_INIT();
-  REST_RES_LIGHT_PHOTO_INIT();
-  REST_RES_TEMP_INIT();
-  REST_RES_HUMIDITY_INIT();
-  REST_RES_BATTERY_INIT();
-  REST_RES_BUTTON_INIT();
-  REST_RES_LED_R_INIT();
-  REST_RES_LED_G_INIT();
-  REST_RES_LED_B_INIT();
-  REST_RES_DEVICE_INIT();
-  REST_RES_RADIO_LQI_INIT();
-  REST_RES_RADIO_RSSI_INIT();
-  REST_RES_SENSORS_BATCH_INIT();
-  REST_RES_LINKED_BATCH_INIT();
+#ifdef CORE_ITF_CONF_USER_LINKED_BATCH_NB
+#define CORE_ITF_USER_LINKED_BATCH_NB CORE_ITF_CONF_USER_LINKED_BATCH_NB
+#else
+#define CORE_ITF_USER_LINKED_BATCH_NB 2
+#endif
 
-  /* Core interface must be initialized after all the resources */
-  core_interface_init();
+void
+linked_batch_table_init(void);
 
-  printf("CoAP server started\n");
+#if REST_RES_LINKED_BATCH_TABLE
+#define REST_RES_LINKED_BATCH_INIT() \
+  linked_batch_table_init();
+#else
+#define REST_RES_LINKED_BATCH_INIT()
+#endif
 
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    REST_RES_BUTTON_EVENT_HANDLER(ev, data);
-  }
-
-  PROCESS_END();
-}
+#endif /* DEVICE_RESOURCE_H_ */

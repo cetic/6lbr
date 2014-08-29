@@ -66,6 +66,7 @@
 // Resources path
 
 #define BINDING_TABLE_RES "bnd"
+#define LINKED_BATCH_TABLE_RES "l"
 
 // Interface Description
 
