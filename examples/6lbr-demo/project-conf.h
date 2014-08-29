@@ -194,8 +194,6 @@
 //#define REST_TYPE_APPLICATION_XML
 //#define REST_TYPE_APPLICATION_JSON
 
-/* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
-/* Not sure why, set it to 64 */
 #define REST_MAX_CHUNK_SIZE     64
 
 /*---------------------------------------------------------------------------*/
