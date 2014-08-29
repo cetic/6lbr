@@ -150,7 +150,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
         resource_batch_get_handler(batch_buffer, &batch_buffer_size, resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
       } else if (accept==APPLICATION_LINK_FORMAT) \
       { \
-        REST.set_header_content_type(response, REST_TYPE); \
+        REST.set_header_content_type(response, APPLICATION_LINK_FORMAT); \
         resource_linked_list_get_handler(resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
       } else { \
         REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
