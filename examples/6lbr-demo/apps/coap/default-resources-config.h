@@ -113,6 +113,21 @@
 
 #endif /* defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS) */
 
+#if CONTIKI_TARGET_ECONOTAG
+/* Disable .well-known/core filtering to save code */
+#define COAP_LINK_FORMAT_FILTERING      0
+
+/* Disable coap push */
+#define COAP_PUSH_CONF_ENABLED 0
+
+/* Disable core interface binding table */
+#define REST_CONF_RES_BINDING_TABLE 0
+
+/* Disable core interface linked batch table */
+#define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
+#endif
+
 #endif /* CUSTOM_COAP_RESOURCES */
 
 #if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
