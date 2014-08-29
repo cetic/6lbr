@@ -49,6 +49,10 @@
 #define WITH_WELL_KNOWN_CORE                 1
 #endif
 
+#ifndef COAP_CORE_OBSERVE
+#define COAP_CORE_OBSERVE                    1
+#endif
+
 /* Listening port for the CoAP REST Engine */
 #ifndef COAP_SERVER_PORT
 #define COAP_SERVER_PORT               COAP_DEFAULT_PORT

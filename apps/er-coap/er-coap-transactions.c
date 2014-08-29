@@ -132,8 +132,9 @@ coap_send_transaction(coap_transaction_t *t)
       void *callback_data = t->callback_data;
 
       /* handle observers */
+#if COAP_CORE_OBSERVE
       coap_remove_observer_by_client(&t->addr, t->port);
-
+#endif
       coap_clear_transaction(t);
 
       if(callback) {

@@ -180,6 +180,7 @@ coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid)
 void
 coap_notify_observers(resource_t *resource)
 {
+#if COAP_CORE_OBSERVE
   /* build notification */
   coap_packet_t notification[1]; /* this way the packet can be treated as pointer as usual */
   coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0);
@@ -227,11 +228,13 @@ coap_notify_observers(resource_t *resource)
       }
     }
   }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 coap_observe_handler(resource_t *resource, void *request, void *response)
 {
+#if COAP_CORE_OBSERVE
   coap_packet_t *const coap_req = (coap_packet_t *)request;
   coap_packet_t *const coap_res = (coap_packet_t *)response;
 
@@ -270,5 +273,6 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
       }
     }
   }
+#endif
 }
 /*---------------------------------------------------------------------------*/

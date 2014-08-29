@@ -236,8 +236,10 @@ coap_receive(context_t * ctx)
         } else if(message->type == COAP_TYPE_RST) {
           PRINTF("Received RST\n");
           /* cancel possible subscriptions */
+#if COAP_CORE_OBSERVE
           coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr,
                                       UIP_UDP_BUF->srcport, message->mid);
+#endif
         }
 
         if((transaction = coap_get_transaction_by_mid(message->mid))) {
