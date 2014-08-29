@@ -2,7 +2,6 @@ PROJECT?=6lbr-demo
 
 # Configuration
 
-RF_CHANNEL?=26
 WITH_RPL?=1
 
 # Applications 
@@ -38,7 +37,9 @@ WITH_UIP6=1
 UIP_CONF_IPV6=1
 CFLAGS += -DUIP_CONF_IPV6=1
 
-CFLAGS +=-DRF_CHANNEL=$(RF_CHANNEL)
+ifneq ($(RF_CHANNEL),)
+CFLAGS +=-DRF_CHANNEL=$(RF_CHANNEL) -DUSER_RF_CHANNEL
+endif
 
 ifneq ($(WITH_RPL),1)
 UIP_CONF_RPL=0

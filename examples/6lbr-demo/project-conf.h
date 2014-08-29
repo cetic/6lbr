@@ -37,6 +37,11 @@
 #ifndef CETIC_6LBR_DEMO_PROJECT_CONF_H
 #define CETIC_6LBR_DEMO_PROJECT_CONF_H
 
+/* Remove rf_channel forced by platform */
+#ifndef USER_RF_CHANNEL
+#undef RF_CHANNEL
+#endif
+
 /* include the project config */
 #ifdef USER_PROJECT_CONF_H
 #include USER_PROJECT_CONF_H
@@ -55,6 +60,8 @@
 #endif
 
 #define CC2538_RF_CONF_CHANNEL RF_CHANNEL
+#undef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
