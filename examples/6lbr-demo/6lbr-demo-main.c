@@ -42,6 +42,10 @@ PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
+#define INIT_USER_MOD(module) \
+  extern void module##_init(); \
+  module##_init();
+
 void
 start_apps(void)
 {
@@ -60,6 +64,10 @@ start_apps(void)
 
 #if WITH_DTLS_ECHO
   process_start(&dtls_echo_server_process, NULL);
+#endif
+
+#ifdef USER_MODULES
+  USER_MODULES;
 #endif
 }
 

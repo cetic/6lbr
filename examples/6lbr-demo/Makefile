@@ -160,6 +160,11 @@ ifeq ($(CETIC_TESTBED),1)
 CFLAGS+=-DCETIC_TESTBED=1
 endif
 
+ifneq ($(USER_MODULES),)
+USER_MODULES_DEFINE=${addprefix INIT_USER_MOD(,${addsuffix );,${strip $(USER_MODULES)}}}
+CFLAGS+=-DUSER_MODULES="$(USER_MODULES_DEFINE)"
+endif
+
 all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
 all_z1: bin_z1/6lbr-demo-coapserver.z1
 all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
