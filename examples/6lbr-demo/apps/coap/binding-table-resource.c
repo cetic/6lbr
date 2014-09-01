@@ -109,6 +109,8 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
     if (*p == ':') {
       //TODO: add custom port support
       break;
+    } else {
+      binding->dest_port = COAP_DEFAULT_PORT;
     }
     if (*p++ != '/') break;
     sep = strchr(p, '>');
