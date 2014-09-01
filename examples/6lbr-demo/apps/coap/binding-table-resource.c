@@ -276,6 +276,10 @@ resource_binding_table_get_handler(void* request, void* response, uint8_t *buffe
   static uint8_t binding_table_buffer[CORE_ITF_MAX_BINDING_SIZE+1];
   static int binding_table_buffer_size = 0;
   unsigned int accept = -1;
+  if (offset == NULL) {
+    PRINTF("Invalid offset\n");
+    return;
+  }
   if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==APPLICATION_LINK_FORMAT))
   {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);

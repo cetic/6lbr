@@ -80,11 +80,6 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   int i;
   int32_t tmp = 0;
   const uint8_t *tmp_payload;
-  if (*offset > *batch_buffer_size) {
-    coap_set_status_code(response, BAD_OPTION_4_02);
-    coap_set_payload(response, "BlockOutOfScope", 15);
-    return;
-  }
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
     REST_FORMAT_BATCH_START(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
@@ -97,6 +92,11 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
       }
     }
     REST_FORMAT_BATCH_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+  }
+  if (*offset > *batch_buffer_size) {
+    coap_set_status_code(response, BAD_OPTION_4_02);
+    coap_set_payload(response, "BlockOutOfScope", 15);
+    return;
   }
   coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
   coap_set_header_content_format(response, REST_TYPE);
@@ -117,6 +117,10 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
   size_t tmplen = 0;
   int i;
 
+  if (offset == NULL) {
+    PRINTF("Invalid offset\n");
+    return;
+  }
   for (i = 0; i < linked_resource_list_size; ++i) {
     if(strpos > 0) {
       ADD_CHAR_IF_POSSIBLE(',');

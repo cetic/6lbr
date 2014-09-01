@@ -149,12 +149,14 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
   PT_BEGIN(&state->pt);
 
   static uint8_t block_error;
+  static int32_t offset;
   state->block_num = 0;
   state->response = NULL;
   state->process = PROCESS_CURRENT();
   state->status = 0;
 
   block_error = 0;
+  offset = 0;
 
   do {
     request->mid = coap_get_mid();
@@ -166,8 +168,11 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
 
       resource_handler(NULL, request,
                        state->transaction->packet + COAP_MAX_HEADER_SIZE,
-                       REST_MAX_CHUNK_SIZE, NULL);
+                       REST_MAX_CHUNK_SIZE, &offset);
 
+      if (offset != -1) {
+        PRINTF("Warning: push block transfer not yet implemented");
+      }
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 
       coap_send_transaction(state->transaction);
