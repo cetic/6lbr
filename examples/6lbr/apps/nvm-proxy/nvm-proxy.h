@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,15 @@
  */
 
 /**
+ * \file
+ *         6LBR NVM configuration proxy
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "ECON"
+#ifndef NVM_PROXY_H
+#define NVM_PROXY_H
 
-#include "contiki.h"
-#include "contiki-lib.h"
-#include "contiki-net.h"
+void nvm_proxy_init(void);
 
-#include "cetic-6lbr.h"
-#include "sicslow-ethernet.h"
-#include "nvm-config.h"
-#include "log-6lbr.h"
-#include "mc1322x.h"
-
-void
-platform_init(void)
-{
-  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
-  eth_mac_addr_ready = 1;
-  LOG6LBR_INFO("Setting channel %d\n", nvm_data.channel);
-  set_channel(nvm_data.channel - 11);
-}
-
-void
-platform_set_wsn_mac(linkaddr_t * mac_addr)
-{
-  linkaddr_set_node_addr(mac_addr);
-}
+#endif /* NVM_PROXY_H */
