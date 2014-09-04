@@ -61,6 +61,10 @@
 
 #include "node-info.h"
 
+#if WITH_NVM_PROXY
+#include "nvm-proxy.h"
+#endif
+
 #if CONTIKI_TARGET_NATIVE
 #include "plugin.h"
 #include "6lbr-watchdog.h"
@@ -368,6 +372,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 #if WITH_COAP
   process_start(&coap_server_process, NULL);
+#endif
+
+#if WITH_NVM_PROXY
+  nvm_proxy_init();
 #endif
 
 #if CONTIKI_TARGET_NATIVE
