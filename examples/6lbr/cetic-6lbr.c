@@ -400,6 +400,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   //We should never end up here...
   exit(1);
 #else
+  LOG6LBR_INFO("Rebooting...\n");
   watchdog_reboot();
 #endif
 
