@@ -291,4 +291,34 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_PACKET(...) LOG6LBR_PRINTF(PACKET, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_DUMP(...) LOG6LBR_PRINTF(DUMP, GLOBAL, __VA_ARGS__)
 
+#ifndef PRIu32
+#define PRId8         "d"
+#define PRIi8         "i"
+#define PRIo8         "o"
+#define PRIu8         "u"
+#define PRIx8         "x"
+#define PRIX8         "X"
+
+#define PRId16        "hd"
+#define PRIi16        "hi"
+#define PRIo16        "ho"
+#define PRIu16        "hu"
+#define PRIx16        "hx"
+#define PRIX16        "hX"
+
+#define PRId32        "ld"
+#define PRIi32        "li"
+#define PRIo32        "lo"
+#define PRIu32        "lu"
+#define PRIx32        "lx"
+#define PRIX32        "lX"
+
+#define PRId64        "lld"
+#define PRIi64        "lli"
+#define PRIo64        "llo"
+#define PRIu64        "llu"
+#define PRIx64        "llx"
+#define PRIX64        "llX"
+#endif
+
 #endif
