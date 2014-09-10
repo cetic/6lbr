@@ -58,6 +58,7 @@ WITH_NVM_PROXY=1
 endif
 ifeq ($(TARGET),red-io)
 PROJECTDIRS += platform/econotag dev/enc28j60
+WITH_NVM_PROXY=1
 endif
 ifeq ($(TARGET),cc2538dk)
 PROJECTDIRS += platform/cc2538dk dev/enc28j60
