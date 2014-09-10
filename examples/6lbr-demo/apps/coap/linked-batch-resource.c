@@ -158,7 +158,7 @@ resource_linked_batch_table_delete_handler(void* request, void* response, uint8_
     linked_batch_table_size = 0;
   }
 #if WITH_NVM
-  resource_binding_clear_nvm_bindings();
+  linked_batch_table_clear_nvm_links();
   store_nvm_config();
 #endif
   erbium_status_code = REST.status.DELETED;
