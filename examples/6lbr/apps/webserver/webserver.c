@@ -762,15 +762,34 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
           add("<br />Preference : %d",
               instance_table[i].dag_table[j].preference);
           add("<br />Mode of Operation : %u", instance_table[i].mop);
-          add("<br />Current DIO Interval [%u-%u] : %u",
-              instance_table[i].dio_intmin,
-              instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
-              instance_table[i].dio_intcurrent);
           add("<br />Objective Function Code Point : %u",
               instance_table[i].of->ocp);
           add("<br />Joined : %s",
               instance_table[i].dag_table[j].joined ? "Yes" : "No");
           add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
+          add("<br />");
+          SEND_STRING(&s->sout, buf);
+          reset_buf();
+          add("<br />Current DIO Interval [%u-%u] : %u",
+              instance_table[i].dio_intmin,
+              instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
+              instance_table[i].dio_intcurrent);
+          if(instance_table[i].dio_send) {
+            add("<br />Next DIO : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND );
+            add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) + instance_table[i].dio_next_delay - clock_time()) / CLOCK_SECOND );
+          } else {
+            add("<br />Next DIO : -");
+            add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND);
+          }
+          if (instance_table[i].dio_redundancy > 0) {
+            add("<br />DIO suppression : %s (%u >= %u)", (instance_table[i].dio_counter >= instance_table[i].dio_redundancy ? "Yes" : "No"), instance_table[i].dio_counter, instance_table[i].dio_redundancy);
+          } else {
+            add("<br />DIO suppression : Disabled");
+          }
+          add("<br />");
+          add("DIO intervals : %d<br />", instance_table[i].dio_totint);
+          add("Sent DIO : %d<br />", instance_table[i].dio_totsend);
+          add("Received DIO : %d<br />", instance_table[i].dio_totrecv);
           add("<br />");
           SEND_STRING(&s->sout, buf);
           reset_buf();
