@@ -445,9 +445,13 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     PRINTF("RPL: Adding default route through ");
     PRINT6ADDR(from);
     PRINTF("\n");
+#if RPL_DEFAULT_ROUTE_INFINITE_LIFETIME
+    instance->def_route = uip_ds6_defrt_add(from, 0);
+#else
     instance->def_route = uip_ds6_defrt_add(from,
         RPL_LIFETIME(instance,
             instance->default_lifetime));
+#endif
     if(instance->def_route == NULL) {
       return 0;
     }
@@ -1362,7 +1366,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
     /* We received a new DIO from our preferred parent.
      * Call uip_ds6_defrt_add to set a fresh value for the lifetime counter */
+#if RPL_DEFAULT_ROUTE_INFINITE_LIFETIME
+    uip_ds6_defrt_add(from, 0);
+#else
     uip_ds6_defrt_add(from, RPL_LIFETIME(instance, instance->default_lifetime));
+#endif
   }
   p->dtsn = dio->dtsn;
 }

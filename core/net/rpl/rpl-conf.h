@@ -115,6 +115,15 @@
 #endif /* RPL_CONF_DAG_LIFETIME */
 
 /*
+ * Default route lifetime
+ */
+#ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#else
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    1
+#endif /* RPL_CONF_DAG_LIFETIME */
+
+/*
  * 
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG
