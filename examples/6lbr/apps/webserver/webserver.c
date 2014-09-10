@@ -787,10 +787,12 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
             add("<br />DIO suppression : Disabled");
           }
           add("<br />");
+#if RPL_CONF_STATS
           add("DIO intervals : %d<br />", instance_table[i].dio_totint);
           add("Sent DIO : %d<br />", instance_table[i].dio_totsend);
           add("Received DIO : %d<br />", instance_table[i].dio_totrecv);
           add("<br />");
+#endif
           SEND_STRING(&s->sout, buf);
           reset_buf();
         }
