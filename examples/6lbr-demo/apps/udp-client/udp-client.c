@@ -140,7 +140,9 @@ timeout_handler(void)
 #else
       defrt = uip_ds6_defrt_choose();
       if ( defrt != NULL ) {
-        uip_ipaddr_copy(&dest_addr, defrt);
+        //uip_ipaddr_copy(&dest_addr, defrt);
+        uip_ipaddr_copy(&dest_addr, globaladdr);
+        memcpy(&dest_addr.u8[8], &defrt->u8[8], sizeof(uip_ipaddr_t) / 2);
         has_dest=1;
       }
 #endif
