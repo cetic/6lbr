@@ -83,6 +83,7 @@ coap_separate_accept(void *request, coap_separate_t *separate_store)
     /* Store remote address. */
     uip_ipaddr_copy(&separate_store->addr, &t->addr);
     separate_store->port = t->port;
+    separate_store->ctx = t->ctx;
 
     /* Store correct response type. */
     separate_store->type = coap_req->type==COAP_TYPE_CON ? COAP_TYPE_CON : COAP_TYPE_NON;

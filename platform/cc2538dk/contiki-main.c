@@ -153,8 +153,9 @@ main(void)
    * slip_input_byte instead
    */
 #if UART_CONF_ENABLE
-  uart_init();
-  uart_set_input(serial_line_input_byte);
+  uart_init(0);
+  uart_init(1);
+  uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
 #endif
 
 #if USB_SERIAL_CONF_ENABLE
@@ -176,6 +177,10 @@ main(void)
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
   PRINTF("%s\n", NETSTACK_RDC.name);
+  PRINTF(" Channel: ");
+  PRINTF("%d\n", CC2538_RF_CHANNEL);
+  PRINTF(" PAN-ID: ");
+  PRINTF("%x\n", IEEE802154_PANID);
 
   /* Initialise the H/W RNG engine. */
   random_init(0);
@@ -202,7 +207,9 @@ main(void)
 
   autostart_start(autostart_processes);
 
+#if WATCHDOG_CONF_ENABLE
   watchdog_start();
+#endif
   fade(LEDS_ORANGE);
 
   while(1) {

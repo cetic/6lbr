@@ -33,10 +33,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static struct uip_udp_conn *server_conn;
-
-static dtls_context_t *dtls_context;
-
 static int
 send_to_peer(struct dtls_context_t *ctx,
              session_t *session, uint8 *data, size_t len);
@@ -99,14 +95,14 @@ coap_init_communication_layer(uint16_t port)
 #endif
   };
 
-  server_conn = udp_new(NULL, 0, NULL);
+  struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
 
   dtls_set_log_level(LOG_DEBUG);
 
-  dtls_context = dtls_new_context(server_conn);
-  if (dtls_context)
-    dtls_set_handler(dtls_context, &cb);
+  coap_default_context = dtls_new_context(server_conn);
+  if (coap_default_context)
+    dtls_set_handler(coap_default_context, &cb);
 
   /* new connection with remote host */
   printf("COAP-DTLS listening on port %u\n", uip_ntohs(server_conn->lport));
@@ -161,6 +157,6 @@ coap_handle_receive()
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
 
-    dtls_handle_message(dtls_context, &session, uip_appdata, uip_datalen());
+    dtls_handle_message(coap_default_context, &session, uip_appdata, uip_datalen());
   }
 }

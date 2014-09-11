@@ -38,6 +38,20 @@
 #define CETIC_6LBR_DEMO_PROJECT_CONF_H
 
 /*---------------------------------------------------------------------------*/
+/* Radio                                                                     */
+/*---------------------------------------------------------------------------*/
+
+#ifndef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xABCD
+#endif
+
+#ifndef RF_CHANNEL
+#define RF_CHANNEL 26
+#endif
+
+#define CC2538_RF_CONF_CHANNEL RF_CHANNEL
+
+/*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
 /*---------------------------------------------------------------------------*/
 
@@ -57,8 +71,8 @@
 #define REST_CONF_RES_LED_R 1
 #define REST_CONF_RES_LED_G 0
 #define REST_CONF_RES_LED_B 0
-#define REST_CONF_RES_LIGHT_SOLAR 1
-#define REST_CONF_RES_LIGHT_SOLAR_PERIODIC 1
+#define REST_CONF_RES_LIGHT_SOLAR 0
+#define REST_CONF_RES_LIGHT_SOLAR_PERIODIC 0
 #define REST_CONF_RES_LIGHT_PHOTO 0
 #define REST_CONF_RES_LIGHT_PHOTO_PERIODIC 0
 #define REST_CONF_RES_TEMP 0
@@ -229,7 +243,17 @@
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
 
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA   1
+
 #endif
+
+/*---------------------------------------------------------------------------*/
+/* Init                                                                      */
+/*---------------------------------------------------------------------------*/
+
+
+#define UIP_DS6_CONF_NO_STATIC_ADDRESS 1
 
 /*---------------------------------------------------------------------------*/
 /* Miscellaneous                                                             */
@@ -240,7 +264,14 @@
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
 
+#undef UART1_CONF_RX_WITH_DMA
+#define UART1_CONF_RX_WITH_DMA 0
+
 #ifdef CETIC_TESTBED
+
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
+
+#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 
 #undef REST_CONF_RES_LED_R
 #define REST_CONF_RES_LED_R 0
@@ -256,6 +287,8 @@
 
 #undef REST_CONF_RES_RADIO_RSSI
 #define REST_CONF_RES_RADIO_RSSI 1
+
+#endif
 
 #endif
 

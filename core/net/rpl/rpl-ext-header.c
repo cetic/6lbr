@@ -73,6 +73,16 @@ rpl_verify_header(int uip_ext_opt_offset)
   uint8_t sender_closer;
   uip_ds6_route_t *route;
 
+  if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+    PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
+    return 1;
+  }
+
+  if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
+    PRINTF("RPL: Non RPL Hop-by-hop option\n");
+    return 1;
+  }
+
   if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
     PRINTF("RPL: Bad header option! (wrong length)\n");
     return 1;
@@ -183,7 +193,17 @@ rpl_update_header_empty(void)
   switch(UIP_IP_BUF->proto) {
   case UIP_PROTO_HBHO:
     if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
-      PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
+      PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
+      uip_ext_len = last_uip_ext_len;
+      return 0;
+    }
+    if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
+      PRINTF("RPL: Non RPL Hop-by-hop option support not implemented\n");
+      uip_ext_len = last_uip_ext_len;
+      return 0;
+    }
+    if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
+      PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
       uip_ext_len = last_uip_ext_len;
       return 0;
     }
@@ -194,6 +214,7 @@ rpl_update_header_empty(void)
     }
     break;
   default:
+#if RPL_INSERT_HBH_OPTION
     PRINTF("RPL: No hop-by-hop option found, creating it\n");
     if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
@@ -202,6 +223,7 @@ rpl_update_header_empty(void)
     }
     set_rpl_opt(uip_ext_opt_offset);
     uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
+#endif
     return 0;
   }
 
@@ -353,9 +375,11 @@ rpl_invert_header(void)
 void
 rpl_insert_header(void)
 {
-  if(default_instance != NULL) {
+#if RPL_INSERT_HBH_OPTION
+  if(default_instance != NULL && !uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     rpl_update_header_empty();
   }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */

@@ -25,7 +25,8 @@
       <identifier>sky1</identifier>
       <description>slip radio</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/slip-radio/slip-radio.c</source>
-      <commands EXPORT="discard">make slip-radio.sky TARGET=sky</commands>
+      <commands EXPORT="discard">make clean TARGET=sky
+make slip-radio.sky TARGET=sky DEFINES=NETSTACK_CONF_RDC=contikimac_driver</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/slip-radio/slip-radio.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
@@ -48,7 +49,8 @@
       <identifier>sky2</identifier>
       <description>wait-dag</description>
       <source EXPORT="discard">[CONTIKI_DIR]/regression-tests/17-slip-radio/code/wait-dag.c</source>
-      <commands EXPORT="discard">make wait-dag.sky TARGET=sky</commands>
+      <commands EXPORT="discard">make clean
+make wait-dag.sky TARGET=sky</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/regression-tests/17-slip-radio/code/wait-dag.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>

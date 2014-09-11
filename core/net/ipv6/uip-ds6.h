@@ -131,7 +131,20 @@
 #define  ADDR_MANUAL 3
 
 /** \brief General DS6 definitions */
-#define UIP_DS6_PERIOD   (CLOCK_SECOND/10)  /** Period for uip-ds6 periodic task*/
+/** Period for uip-ds6 periodic task*/
+#ifndef UIP_DS6_CONF_PERIOD
+#define UIP_DS6_PERIOD   (CLOCK_SECOND/10)
+#else
+#define UIP_DS6_PERIOD UIP_DS6_CONF_PERIOD
+#endif
+
+/** \brief Should we assign a global statically configured address at boot ? */
+#ifndef UIP_DS6_CONF_NO_STATIC_ADDRESS
+#define UIP_DS6_NO_STATIC_ADDRESS 0
+#else
+#define UIP_DS6_NO_STATIC_ADDRESS UIP_DS6_CONF_NO_STATIC_ADDRESS
+#endif
+
 #define FOUND 0
 #define FREESPACE 1
 #define NOSPACE 2

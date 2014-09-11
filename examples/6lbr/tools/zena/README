@@ -1,0 +1,2 @@
+gcc -o zena zena.c -lusb-1.0 -lrt
+wireshark -k -i <( sudo ./zena -c 24 )

@@ -115,6 +115,15 @@
 #endif /* RPL_CONF_DAG_LIFETIME */
 
 /*
+ * Default route lifetime
+ */
+#ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#else
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    1
+#endif /* RPL_CONF_DAG_LIFETIME */
+
+/*
  * 
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG
@@ -195,10 +204,22 @@
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
 
+/*
+ * DAG preference field
+ */
 #ifdef RPL_CONF_PREFERENCE
 #define RPL_PREFERENCE              RPL_CONF_PREFERENCE
 #else
 #define RPL_PREFERENCE              0
+#endif
+
+/*
+ * Hop-by-hop option
+ */
+#ifdef RPL_CONF_INSERT_HBH_OPTION
+#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
+#else
+#define RPL_INSERT_HBH_OPTION       1
 #endif
 
 #endif /* RPL_CONF_H */

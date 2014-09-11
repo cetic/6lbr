@@ -38,6 +38,7 @@
  *         Logic for Directed Acyclic Graphs in RPL.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ * Contributors: George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
  */
 
 
@@ -46,6 +47,7 @@
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/nbr-table.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "sys/ctimer.h"
@@ -443,9 +445,13 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     PRINTF("RPL: Adding default route through ");
     PRINT6ADDR(from);
     PRINTF("\n");
+#if RPL_DEFAULT_ROUTE_INFINITE_LIFETIME
+    instance->def_route = uip_ds6_defrt_add(from, 0);
+#else
     instance->def_route = uip_ds6_defrt_add(from,
         RPL_LIFETIME(instance,
             instance->default_lifetime));
+#endif
     if(instance->def_route == NULL) {
       return 0;
     }
@@ -1023,7 +1029,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
      instance->dio_redundancy != dio->dag_redund ||
      instance->default_lifetime != dio->default_lifetime ||
      instance->lifetime_unit != dio->lifetime_unit) {
-    PRINTF("RPL: DIO for DAG instance %u uncompatible with previos DIO\n",
+    PRINTF("RPL: DIO for DAG instance %u incompatible with previous DIO\n",
 	   dio->instance_id);
     rpl_remove_parent(p);
     dag->used = 0;
@@ -1123,8 +1129,8 @@ rpl_recalculate_ranks(void)
    */
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
-    if(p->dag != NULL && p->dag->instance && p->updated) {
-      p->updated = 0;
+    if(p->dag != NULL && p->dag->instance && (p->flags & RPL_PARENT_FLAG_UPDATED)) {
+      p->flags &= ~RPL_PARENT_FLAG_UPDATED;
       updated = 1;
       PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
@@ -1204,7 +1210,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_dag_t *dag, *previous_dag;
   rpl_parent_t *p;
 
+#if RPL_CONF_MULTICAST
+  /* If the root is advertising MOP 2 but we support MOP 3 we can still join
+   * In that scenario, we suppress DAOs for multicast targets */
+  if(dio->mop < RPL_MOP_STORING_NO_MULTICAST) {
+#else
   if(dio->mop != RPL_MOP_DEFAULT) {
+#endif
     PRINTF("RPL: Ignoring a DIO with an unsupported MOP: %d\n", dio->mop);
     return;
   }
@@ -1224,7 +1236,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     store_nvm_config();
 #endif
       } else {
-        PRINTF("RPL: Global Repair\n");
+        PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
           if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
             PRINTF("RPL : Prefix announced in DIO\n");
@@ -1327,7 +1339,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   //Parent info has been updated, trigger rank recalculation
-  p->updated = 1;
+  p->flags |= RPL_PARENT_FLAG_UPDATED;
 
   PRINTF("RPL: preferred DAG ");
   PRINT6ADDR(&instance->current_dag->dag_id);
@@ -1354,7 +1366,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
     /* We received a new DIO from our preferred parent.
      * Call uip_ds6_defrt_add to set a fresh value for the lifetime counter */
+#if RPL_DEFAULT_ROUTE_INFINITE_LIFETIME
+    uip_ds6_defrt_add(from, 0);
+#else
     uip_ds6_defrt_add(from, RPL_LIFETIME(instance, instance->default_lifetime));
+#endif
   }
   p->dtsn = dio->dtsn;
 }

@@ -603,7 +603,7 @@ mdns_prep_host_announce_packet(void)
 
   uint8_t total_answers = 0;
 
-  struct dns_answer *ans;
+  //struct dns_answer *ans;
 
   /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
    * writing directly to the uint16_t members of this struct is an error. */
@@ -774,7 +774,7 @@ check_entries(void)
 static void
 newdata(void)
 {
-  static uint8_t nquestions, nanswers, nauthrr;
+  static uint8_t nquestions, nanswers;
 
   static int8_t i;
 
@@ -863,6 +863,7 @@ newdata(void)
         }
         return;
       } else {
+        static uint8_t nauthrr;
         PRINTF("resolver: But we are still probing. Waiting...\n");
         /* We are still probing. We need to do the mDNS
          * probe race condition check here and make sure

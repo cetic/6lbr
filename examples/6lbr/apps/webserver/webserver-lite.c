@@ -54,6 +54,10 @@
 #include "mc1322x.h"
 #include "contiki-maca.h"
 #endif
+#if CONTIKI_TARGET_CC2538DK
+#include "reg.h"
+#include "dev/cc2538-rf.h"
+#endif
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
@@ -80,13 +84,28 @@ int count = 0;
 /* The internal webserver can provide additional information if
  * enough program flash is available.
  */
+#ifndef WEBSERVER_CONF_LOADTIME
 #define WEBSERVER_CONF_LOADTIME 0
+#endif
+#ifndef WEBSERVER_CONF_FILESTATS
 #define WEBSERVER_CONF_FILESTATS 0
+#endif
 
+#ifndef WEBSERVER_CONF_INFO
 #define WEBSERVER_CONF_INFO 1
+#endif
+#ifndef WEBSERVER_CONF_SENSORS
+#define WEBSERVER_CONF_SENSORS 0
+#endif
+#ifndef WEBSERVER_CONF_RPL
 #define WEBSERVER_CONF_RPL 0
+#endif
+#ifndef WEBSERVER_CONF_NETWORK
 #define WEBSERVER_CONF_NETWORK 1
+#endif
+#ifndef WEBSERVER_CONF_CONFIG
 #define WEBSERVER_CONF_CONFIG 1
+#endif
 
 #define BUF_USES_STACK 0
 /*---------------------------------------------------------------------------*/
@@ -210,7 +229,7 @@ static
 PT_THREAD(generate_index(struct httpd_state *s))
 {
   static int i;
-  static int j;
+  //static int j;
   static uip_ds6_nbr_t *nbr;
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
@@ -308,6 +327,177 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+#endif
+
+#if WEBSERVER_CONF_SENSORS
+  add("<h1>Sensors</h1>");
+  add
+    ("<table>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Last seen</td></tr></theader>"
+     "<tbody>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(node_info_table[i].isused) {
+      add("<tr><td>");
+#if CETIC_NODE_CONFIG
+      if ( node_config_loaded ) {
+        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add(")</a></td>");
+      } else {
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("</a></td>");
+      }
+#else
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("</a></td>");
+#endif
+
+      if(0) {
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x12
+         && (node_info_table[i].ipaddr.u8[10] == 0x74 ||
+             node_info_table[i].ipaddr.u8[10] == 0x75)) {
+        add("<td>Moteiv Telos</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x1A
+         && node_info_table[i].ipaddr.u8[10] == 0x4C) {
+        add("<td>Crossbow Sky</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0xC3
+         && node_info_table[i].ipaddr.u8[9] == 0x0C
+         && node_info_table[i].ipaddr.u8[10] == 0x00) {
+        add("<td>Zolertia Z1</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x80
+         && node_info_table[i].ipaddr.u8[10] == 0xE1) {
+        add("<td>STMicro</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+         && node_info_table[i].ipaddr.u8[9] == 0x12
+         && node_info_table[i].ipaddr.u8[10] == 0x4B) {
+        add("<td>TI</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+                && node_info_table[i].ipaddr.u8[9] == 0x50
+                && node_info_table[i].ipaddr.u8[10] == 0xC2
+                && node_info_table[i].ipaddr.u8[11] == 0xA8
+                && (node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0) {
+        add("<td>Redwire Econotag I</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+                && node_info_table[i].ipaddr.u8[9] == 0x05
+                && node_info_table[i].ipaddr.u8[10] == 0x0C
+                && node_info_table[i].ipaddr.u8[11] == 0x2A
+                && node_info_table[i].ipaddr.u8[12] == 0x8C) {
+        add("<td>Redwire Econotag I</td>");
+      } else if(node_info_table[i].ipaddr.u8[8] == 0xEE
+                && node_info_table[i].ipaddr.u8[9] == 0x47
+                && node_info_table[i].ipaddr.u8[10] == 0x3C) {
+        if(node_info_table[i].ipaddr.u8[11] == 0x4D
+           && node_info_table[i].ipaddr.u8[12] == 0x12) {
+          add("<td>Redwire M12</td>");
+        } else {
+          add("<td>Redwire Unknown</td>");
+        }
+      } else if((node_info_table[i].ipaddr.u8[8] & 0x02) == 0) {
+        add("<td>User defined</td>");
+      } else {
+        add("<td>Unknown</td>");
+      }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+      add("<td><a href=http://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]/>web</a></td>");
+      add("<td><a href=coap://[");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("]:5683/>coap</a></td>");
+      if(node_info_table[i].messages_count > 0) {
+        add("<td>%d</td><td>", node_info_table[i].sequence);
+#if CETIC_NODE_CONFIG
+        if (node_config_loaded) {
+          add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
+          ipaddr_add(&node_info_table[i].ip_parent);
+          add(")");
+        } else {
+          ipaddr_add(&node_info_table[i].ip_parent);
+        }
+#else
+        ipaddr_add(&node_info_table[i].ip_parent);
+#endif
+        add("</td>");
+      } else {
+        add("<td></td><td></td>");
+      }
+      add("<td>%d</td>",
+          (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
+      add("</tr>");
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+  add("</tbody></table><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  add
+    ("<center>"
+     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
+#if CETIC_NODE_CONFIG
+  node_config_t *  my_config = node_config_find(&uip_lladdr);
+  if (my_config) {
+    add("%s;", node_config_get_name(my_config));
+  } else {
+   add("_%04x;",
+     (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+  }
+#else
+  add("_%04x;",
+    (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+#endif
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(node_info_table[i].isused) {
+      if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
+#if CETIC_NODE_CONFIG
+        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
+        if ( node_config ) {
+          if ( parent_node_config ) {
+            add("%s->%s;",
+                node_config_get_name(node_config),
+                node_config_get_name(parent_node_config));
+          } else {
+            add("%s->_%04hx;",
+                node_config_get_name(node_config),
+                (node_info_table[i].ip_parent.u8[14] << 8) +
+                node_info_table[i].ip_parent.u8[15]);
+          }
+        } else {
+          if (parent_node_config) {
+            add("_%04hx->%s;",
+                (node_info_table[i].ipaddr.u8[14] << 8) +
+                node_info_table[i].ipaddr.u8[15],
+                node_config_get_name(parent_node_config));
+          } else {
+            add("_%04hx->_%04hx;",
+                (node_info_table[i].ipaddr.u8[14] << 8) +
+                node_info_table[i].ipaddr.u8[15],
+                (node_info_table[i].ip_parent.u8[14] << 8) +
+                node_info_table[i].ip_parent.u8[15]);
+          }
+        }
+#else
+        add("_%04hx->_%04hx;",
+            (node_info_table[i].ipaddr.u8[14] << 8) +
+            node_info_table[i].ipaddr.u8[15],
+            (node_info_table[i].ip_parent.u8[14] << 8) +
+            node_info_table[i].ip_parent.u8[15]);
+#endif
+      }
+    }
+  }
+  add("}\"alt=\"\" /></center>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #endif
 
 #if WEBSERVER_CONF_RPL
@@ -486,6 +676,9 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if CONTIKI_TARGET_ECONOTAG
   add("PanID : 0x%x<br>", *MACA_MACPANID);
 #endif
+#if CONTIKI_TARGET_CC2538DK
+  add("PanID : 0x%x<br>", (REG(RFCORE_FFSM_PAN_ID1)<<8) + REG(RFCORE_FFSM_PAN_ID0));
+#endif
   add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -582,8 +775,8 @@ PT_THREAD(generate_index(struct httpd_state *s))
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
-  static uip_ds6_route_t *r;
-  static int i;
+  //static uip_ds6_route_t *r;
+  //static int i;
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;

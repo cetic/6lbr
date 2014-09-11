@@ -20,7 +20,7 @@
 
 #include "spi.h"
 
-#include "enc28j60-spi.h"
+#include "enc28j60-def.h"
 #include "eth-drv.h"
 #include "log-6lbr.h"
 
@@ -29,6 +29,8 @@
 
 static uint8_t Enc28j60Bank;
 static uint16_t NextPacketPtr;
+
+static uint8_t enc28j60getrev(void);
 
 #define csactive() { *SPI_SETUP = (*SPI_SETUP & ~SPI_SS_SETUP_MASK) | ( 2 << SPI_SS_SETUP_OFFSET); }
 #define cspassive() { *SPI_SETUP = (*SPI_SETUP & ~SPI_SS_SETUP_MASK) | ( 3 << SPI_SS_SETUP_OFFSET); }
@@ -256,6 +258,11 @@ enc28j60_init(uint8_t * macaddr)
   gpio_select_function(5, 1);
   gpio_select_function(6, 1);
   gpio_select_function(7, 1);
+
+  /* SS is multiplexed on M12, to enable it on card-edge connector, GPIO_63 must be high */
+  GPIO->FUNC_SEL.GPIO_63 = 3;
+  GPIO->PAD_DIR_SET.GPIO_63 = 1;
+  gpio_set(GPIO_63);
 
   // perform system reset
   clock_delay(50);

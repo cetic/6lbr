@@ -124,9 +124,9 @@ main(int argc, char **argv)
 
   leds_on(LEDS_RED);
 
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart1_init(115200); /* Must come before first printf */
 #if WITH_UIP
-  slip_arch_init(BAUD2UBR(115200));
+  slip_arch_init(115200);
 #endif /* WITH_UIP */
 
   leds_on(LEDS_GREEN);
@@ -254,6 +254,7 @@ main(int argc, char **argv)
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
 
+#if !UIP_DS6_NO_STATIC_ADDRESS
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
@@ -268,6 +269,7 @@ main(int argc, char **argv)
     printf("%02x%02x\n",
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
+#endif /* !UIP_DS6_NO_STATIC_ADDRESS */
 
 #else /* WITH_UIP6 */
 

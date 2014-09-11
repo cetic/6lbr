@@ -430,7 +430,7 @@ separate_finalize_handler()
   if (separate_active)
   {
     coap_transaction_t *transaction = NULL;
-    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
+    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, separate_store->request_metadata.ctx, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
     {
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
@@ -528,7 +528,7 @@ event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   /* A post_handler that handles subscriptions/observing will be called for periodic resources by the framework. */
 }
 
-/* Additionally, a handler function named [resource name]_event_handler must be implemented for each PERIODIC_RESOURCE defined.
+/* Additionally, a handler function named [resource name]_event_handler must be implemented for each EVENT_RESOURCE defined.
  * It will be called by the REST manager process with the defined period. */
 void
 event_event_handler(resource_t *r)

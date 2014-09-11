@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,60 @@
  */
 
 /**
+ * \file
+ *         NVM Interface for the Econotag platform
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef ENC28J60_H_
-#define ENC28J60_H_
+#define LOG6LBR_MODULE "NVM"
 
-#include <inttypes.h>
+#include "contiki.h"
+#include "contiki-lib.h"
 
-extern void enc28j60_init(uint8_t * macaddr);
+#include "cetic-6lbr.h"
+#include "nvm-config.h"
+#include "nvm-itf.h"
+#include "log-6lbr.h"
 
-extern int enc28j60_send(uint8_t *data, uint16_t datalen);
+#include "rom-util.h"
 
-extern int enc28j60_read(uint8_t *buffer, uint16_t bufsize);
+#define CETIC_6LBR_NVM_SIZE 2048
+// We use the penultimate flash page as our nvm
+//TODO/ this must be updated for non 512K CC2538
+#define CETIC_6LBR_NVM_ADDRESS (0x00280000 - (2*CETIC_6LBR_NVM_SIZE))
 
-#endif
+void
+nvm_data_read(void)
+{
+  LOG6LBR_INFO("Reading 6LBR NVM\n");
+  rom_util_memcpy( (void *)&nvm_data,
+   (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
+}
+
+void
+nvm_data_write(void)
+{
+  long err;
+  int retry = 4;
+  while (retry > 0 ) {
+    LOG6LBR_INFO("Flashing 6LBR NVM\n");
+    err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("erase error : %ld\n", err);
+    }
+    rom_util_program_flash( (uint32_t*)&nvm_data,
+     CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("write error : %ld\n", err);
+    }
+    if(rom_util_memcmp( (void *)&nvm_data, (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t)) == 0) {
+      break;
+    }
+    LOG6LBR_ERROR("verify NVM failed, retry\n");
+    retry--;
+  }
+  if(retry == 0) {
+    LOG6LBR_FATAL("Could not program 6LBR NVM !\n");
+  }
+}

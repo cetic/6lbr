@@ -84,6 +84,9 @@ if [ "$WWW_6LBR" = "" ]; then
 	WWW_6LBR=$LIB_6LBR/www
 fi
 
+if [ "$PLUGINS_6LBR" = "" ]; then
+	PLUGINS_6LBR=$LIB_6LBR/plugins
+fi
 if [ "$IFUP" = "" ]; then
 	IFUP=$LIB_6LBR/6lbr-ifup
 fi
@@ -102,6 +105,10 @@ fi
 
 if [ "$LOG_6LBR_ERR" = "" ]; then
 	LOG_6LBR_ERR=$LOG_6LBR/6lbr.err
+fi
+
+if [ "$IP_CONFIG_FILE" = "" ]; then
+	IP_CONFIG_FILE=$LOG_6LBR/6lbr.ip
 fi
 
 # Reliability

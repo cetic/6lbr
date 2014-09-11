@@ -5,6 +5,8 @@ else
 	OPT="-s"
 fi
 
-cp $D/etc/6lbr/6lbr.conf.beaglebone $D/etc/6lbr/6lbr.conf
+if ! test -e $D/etc/6lbr/6lbr.conf; then
+  cp $D/etc/6lbr/6lbr.conf.beaglebone $D/etc/6lbr/6lbr.conf
+fi
 
 update-rc.d $OPT 6lbr defaults

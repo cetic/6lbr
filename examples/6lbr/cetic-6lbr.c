@@ -61,10 +61,17 @@
 
 #include "node-info.h"
 
+#if WITH_NVM_PROXY
+#include "nvm-proxy.h"
+#endif
+
 #if CONTIKI_TARGET_NATIVE
+#include "plugin.h"
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
 #include <arpa/inet.h>
+#else
+#include "watchdog.h"
 #endif
 
 //Initialisation flags
@@ -95,6 +102,11 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
+PROCESS_NAME(udp_client_process);
+PROCESS_NAME(coap_server_process);
+
+process_event_t cetic_6lbr_restart_event;
+
 PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
 AUTOSTART_PROCESSES(&cetic_6lbr_process);
@@ -259,6 +271,11 @@ cetic_6lbr_init(void)
     uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
   }
 #endif
+  if ((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) != 0 ) {
+    LOG6LBR_INFO("RA Daemon enabled\n");
+  } else {
+    LOG6LBR_INFO("RA Daemon disabled\n");
+  }
 #endif
 
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
@@ -307,6 +324,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  cetic_6lbr_restart_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
 #if CONTIKI_TARGET_NATIVE
@@ -349,13 +367,27 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
 #endif
+#if UDPCLIENT
+  process_start(&udp_client_process, NULL);
+#endif
+#if WITH_COAP
+  process_start(&coap_server_process, NULL);
+#endif
+
+#if WITH_NVM_PROXY
+  nvm_proxy_init();
+#endif
+
+#if CONTIKI_TARGET_NATIVE
+  plugins_load();
+#endif
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
-#if CONTIKI_TARGET_NATIVE
-  PROCESS_WAIT_EVENT();
+  PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
   etimer_set(&reboot_timer, CLOCK_SECOND);
-  PROCESS_WAIT_EVENT();
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+#if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {
     case CETIC_6LBR_RESTART:
       LOG6LBR_INFO("Exiting...\n");
@@ -375,6 +407,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   }
   //We should never end up here...
   exit(1);
+#else
+  LOG6LBR_INFO("Rebooting...\n");
+  watchdog_reboot();
 #endif
 
   PROCESS_END();

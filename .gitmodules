@@ -10,3 +10,6 @@
 [submodule "apps/tinydtls"]
 	path = apps/tinydtls
 	url = https://github.com/cetic/tinydtls.git
+[submodule "tools/cc2538-bsl"]
+	path = tools/cc2538-bsl
+	url = https://github.com/JelmerT/cc2538-bsl.git

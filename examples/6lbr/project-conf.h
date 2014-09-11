@@ -77,6 +77,14 @@
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE				1280
 
+// Avoid 6lowpan fragmentation
+#define REST_MAX_CHUNK_SIZE                 64
+
+// Temporary, to avoid duplicate removal of frame header size
+// Contains 802.15.4 max frame size minus FCS size
+// 802.15.4 header and 6LoWPAN header will be subtracted in sicslowpan.c
+#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD     (127 - 2)
+
 #undef UIP_FALLBACK_INTERFACE
 
 #if CETIC_6LBR_SMARTBRIDGE
@@ -233,6 +241,8 @@
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
 
+#define CETIC_CSMA_STATS      1
+
 #define CSMA_CONF_MAX_NEIGHBOR_QUEUES 16
 
 #define CSMA_CONF_MAX_PACKET_PER_NEIGHBOR (QUEUEBUF_CONF_NUM/CSMA_CONF_MAX_NEIGHBOR_QUEUES)
@@ -263,12 +273,18 @@
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
+#define CETIC_NODE_CONFIG           1
+
 #endif
 
 #if CONTIKI_TARGET_ECONOTAG
 /*------------------------------------------------------------------*/
 /* ECONOTAG 6LBR                                                    */
 /*------------------------------------------------------------------*/
+
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
+
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
@@ -280,6 +296,12 @@
 
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   25
+
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE     512
+
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM          8
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
@@ -299,7 +321,9 @@
 #define WEBSERVER_CONF_CFS_CONNS	1
 
 #undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
+
+#define CETIC_CSMA_STATS      0
 
 /* Do not change lines below */
 
@@ -316,7 +340,69 @@
 #define MACA_AUTOACK				0
 #endif
 
+#define CETIC_NODE_CONFIG           0
+
 #endif
+
+#if CONTIKI_TARGET_CC2538DK
+/*------------------------------------------------------------------*/
+/* CC2538DK 6LBR                                                    */
+/*------------------------------------------------------------------*/
+
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
+
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
+
+#if WEBSERVER
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     100
+
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   100
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   100
+
+#else
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     100
+
+//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   100
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   100
+
+#endif
+
+#define WEBSERVER_CONF_CFS_PATHLEN 1000
+
+#define WEBSERVER_CONF_CFS_URLCONV	1
+
+#define WEBSERVER_CONF_CFS_CONNS	1
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID	0xABCD
+
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     csma_driver
+
+#define CETIC_CSMA_STATS      0
+
+/* Do not change lines below */
+
+#define LOG6LBR_TIMESTAMP           0
+#define LOG6LBR_STATIC              1
+
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nullrdc_driver
+
+#define CETIC_NODE_CONFIG           0
+
+#endif
+/*------------------------------------------------------------------*/
 
 /* Do not change lines below */
 #define CETIC_6LBR_VERSION		"1.3.1"

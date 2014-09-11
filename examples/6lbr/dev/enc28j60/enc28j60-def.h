@@ -1,22 +1,36 @@
-/*****************************************************************************
-* vim:sw=8:ts=8:si:et
-*
-* Title        : Microchip ENC28J60 Ethernet Interface Driver
-* Author        : Pascal Stang (c)2005
-* Modified by Guido Socher
-* Copyright: GPL V2
-*
-*This driver provides initialization and transmit/receive
-*functions for the Microchip ENC28J60 10Mb Ethernet Controller and PHY.
-*This chip is novel in that it is a full MAC+PHY interface all in a 28-pin
-*chip, using an SPI interface to the host processor.
-*
-*
-*****************************************************************************/
-//@{
+/*
+ * Copyright (c) 2013, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
-#ifndef ENC28J60_SPI_H
-#define ENC28J60_SPI_H
+#ifndef ENC28J60_DEF_H
+#define ENC28J60_DEF_H
 #include <inttypes.h>
 
 // ENC28J60 Control Registers
@@ -255,19 +269,4 @@
 // max frame length which the conroller will accept:
 #define        MAX_FRAMELEN        1518 // maximum ethernet frame length
 
-
-// functions
-extern uint32_t enc28j60ReadOp(uint8_t op, uint8_t address);
-extern void enc28j60WriteOp(uint8_t op, uint8_t address, uint8_t data);
-extern void enc28j60ReadBuffer(uint16_t len, uint8_t * data);
-extern void enc28j60WriteBuffer(uint16_t len, uint8_t * data);
-extern void enc28j60SetBank(uint8_t address);
-extern uint32_t enc28j60Read(uint8_t address);
-extern void enc28j60Write(uint8_t address, uint8_t data);
-extern void enc28j60PhyWrite(uint8_t address, uint16_t data);
-extern void enc28j60PacketSend(uint16_t len, uint8_t * packet);
-extern uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t * packet);
-extern uint8_t enc28j60getrev(void);
-
 #endif
-//@}

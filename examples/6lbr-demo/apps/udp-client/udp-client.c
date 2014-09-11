@@ -121,25 +121,32 @@ timeout_handler(void)
   uip_ip6addr_t *globaladdr = NULL;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : CETIC_6LBR_NODE_INFO_PORT;
   int has_dest=0;
+  uip_ipaddr_t * defrt;
 
   if ( use_user_dest_addr ) {
     uip_ipaddr_copy(&dest_addr, &user_dest_addr);
     has_dest=1;
-  } else if((globaladdr = &uip_ds6_get_global(-1)->ipaddr) != NULL) {
+  } else {
+    uip_ds6_addr_t * addr_desc = uip_ds6_get_global(ADDR_PREFERRED);
+    if(addr_desc != NULL) {
+      globaladdr = &addr_desc->ipaddr;
 #if UIP_CONF_IPV6_RPL
-    rpl_dag_t *dag = rpl_get_any_dag();
-    if(dag) {
-      uip_ipaddr_copy(&dest_addr, globaladdr);
-      memcpy(&dest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
-      has_dest = 1;
-    }
+      rpl_dag_t *dag = rpl_get_any_dag();
+      if(dag) {
+        uip_ipaddr_copy(&dest_addr, globaladdr);
+        memcpy(&dest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
+        has_dest = 1;
+      }
 #else
-    uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
-    if ( defrt != NULL ) {
-      uip_ipaddr_copy(&dest_addr, defrt);
-      has_dest=1;
-    }
+      defrt = uip_ds6_defrt_choose();
+      if ( defrt != NULL ) {
+        //uip_ipaddr_copy(&dest_addr, defrt);
+        uip_ipaddr_copy(&dest_addr, globaladdr);
+        memcpy(&dest_addr.u8[8], &defrt->u8[8], sizeof(uip_ipaddr_t) / 2);
+        has_dest=1;
+      }
 #endif
+    }
   }
 
   if (has_dest) {
@@ -183,6 +190,12 @@ timeout_handler(void)
         rpl_dag_t *dag = rpl_get_any_dag();
         if(dag && dag->instance->def_route) {
           add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        } else {
+          sprintf(buf + i, "(null)");
+        }
+#else
+        if (defrt != NULL) {
+          add_ipaddr(buf + i, defrt);
         } else {
           sprintf(buf + i, "(null)");
         }
