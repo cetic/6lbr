@@ -84,14 +84,28 @@ int count = 0;
 /* The internal webserver can provide additional information if
  * enough program flash is available.
  */
+#ifndef WEBSERVER_CONF_LOADTIME
 #define WEBSERVER_CONF_LOADTIME 0
+#endif
+#ifndef WEBSERVER_CONF_FILESTATS
 #define WEBSERVER_CONF_FILESTATS 0
+#endif
 
+#ifndef WEBSERVER_CONF_INFO
 #define WEBSERVER_CONF_INFO 1
+#endif
+#ifndef WEBSERVER_CONF_SENSORS
 #define WEBSERVER_CONF_SENSORS 0
+#endif
+#ifndef WEBSERVER_CONF_RPL
 #define WEBSERVER_CONF_RPL 0
+#endif
+#ifndef WEBSERVER_CONF_NETWORK
 #define WEBSERVER_CONF_NETWORK 1
+#endif
+#ifndef WEBSERVER_CONF_CONFIG
 #define WEBSERVER_CONF_CONFIG 1
+#endif
 
 #define BUF_USES_STACK 0
 /*---------------------------------------------------------------------------*/
