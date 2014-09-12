@@ -201,11 +201,7 @@ timeout_handler(void)
         }
 #endif
         PRINTF(" (msg: %s)\n", buf);
-        #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
-        uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
-        #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
         uip_udp_packet_send(client_conn, buf, strlen(buf));
-        #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
       }
     } else {
       PRINTF("No connection created\n");
