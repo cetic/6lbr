@@ -156,10 +156,6 @@ endif
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c 
 
-ifeq ($(CETIC_TESTBED),1)
-CFLAGS+=-DCETIC_TESTBED=1
-endif
-
 ifneq ($(USER_MODULES),)
 USER_MODULES_DEFINE=${addprefix INIT_USER_MOD(,${addsuffix );,${strip $(USER_MODULES)}}}
 CFLAGS+=-DUSER_MODULES="$(USER_MODULES_DEFINE)"
@@ -205,22 +201,6 @@ bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk:
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
 	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538DK_FW)
-
-testbed-firmwares:
-	$(MAKE) TARGET=sky clean
-	$(MAKE) TARGET=sky CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
-	$(MAKE) TARGET=z1 clean
-	$(MAKE) TARGET=z1 MSP430_20BITS=0 CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
-	$(MAKE) TARGET=cc2538dk clean
-	$(MAKE) TARGET=cc2538dk CETIC_TESTBED=1 WITH_COAPSERVER=1 RF_CHANNEL=24
-	cp 6lbr-demo.sky 6lbr-demo-$(shell git describe)-ch24.sky
-	cp 6lbr-demo.z1 6lbr-demo-$(shell git describe)-ch24.z1
-	cp 6lbr-demo.$(CC2538DK_FW) 6lbr-demo-$(shell git describe)-ch24.$(CC2538DK_FW)
-
-testbed-upload:
-	scp 6lbr-demo-$(shell git describe)* root@192.168.99.15:/root/bin
-	ssh root@192.168.99.15 tb_action prog -t z1 -f /root/bin/6lbr-demo-$(shell git describe)-ch24.z1
-	ssh root@192.168.99.15 tb_action prog -t sky -f /root/bin/6lbr-demo-$(shell git describe)-ch24.sky
 
 include $(CONTIKI)/Makefile.include
 

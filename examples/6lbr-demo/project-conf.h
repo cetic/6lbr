@@ -228,33 +228,4 @@
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA 0
 
-/*---------------------------------------------------------------------------*/
-/* CETIC Testbed                                                             */
-/*---------------------------------------------------------------------------*/
-
-#ifdef CETIC_TESTBED
-
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
-
-#if UIP_CONF_IPV6_RPL && (defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS))
-
-#undef REST_CONF_RES_LED_R
-#define REST_CONF_RES_LED_R 0
-
-#undef REST_CONF_RES_BATTERY
-#define REST_CONF_RES_BATTERY 0
-
-#undef REST_CONF_RES_LIGHT_SOLAR
-#define REST_CONF_RES_LIGHT_SOLAR 0
-
-#undef REST_CONF_RES_RADIO_LQI
-#define REST_CONF_RES_RADIO_LQI 0
-
-#undef REST_CONF_RES_RADIO_RSSI
-#define REST_CONF_RES_RADIO_RSSI 1
-
-#endif
-
-#endif
-
 #endif /* CETIC_6LBR_DEMO_PROJECT_CONF_H */
