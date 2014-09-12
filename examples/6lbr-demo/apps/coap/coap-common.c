@@ -82,3 +82,18 @@ coap_add_ipaddr(char * buf, int size, const uip_ipaddr_t *addr)
   return pos;
 }
 /*---------------------------------------------------------------------------*/
+void
+resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  unsigned int accept = -1;
+  if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE))
+  {
+    REST.set_header_content_type(response, REST_TYPE);
+    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+  } else {
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+    const char *msg = REST_TYPE_ERROR;
+    REST.set_response_payload(response, msg, strlen(msg));
+  }
+}
+/*---------------------------------------------------------------------------*/
