@@ -29,7 +29,7 @@
 
 /**
  * \file
- *         6LBR-Demo Project Configuration
+ *         CETIC testbed Project Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
@@ -42,6 +42,8 @@
 #endif
 
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
+
+#define SKY_CONF_SENSORS 0
 
 #define REST_TYPE_APPLICATION_JSON
 
