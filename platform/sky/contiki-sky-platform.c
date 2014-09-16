@@ -34,10 +34,20 @@
 
 #include "dev/button-sensor.h"
 
+#ifdef SKY_CONF_SENSORS
+#define SKY_SENSORS SKY_CONF_SENSORS
+#else
+#define SKY_SENSORS 1
+#endif
+
+#if SKY_SENSORS
 SENSORS(&button_sensor);
+#endif
 
 void
 init_platform(void)
 {
+#if SKY_SENSORS
   process_start(&sensors_process, NULL);
+#endif
 }
