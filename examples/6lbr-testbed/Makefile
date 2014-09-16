@@ -15,7 +15,7 @@ PROJECT_CONF=6lbr-testbed.h
 
 all: $(PROJECT)
 
-testbed-firmwares:
+firmwares:
 	$(MAKE) TARGET=sky clean
 	$(MAKE) TARGET=sky
 	cp 6lbr-testbed.sky 6lbr-testbed-$(shell git describe)-ch24.sky
@@ -26,7 +26,7 @@ testbed-firmwares:
 	$(MAKE) TARGET=cc2538dk
 	cp 6lbr-testbed.$(CC2538DK_FW) 6lbr-testbed-$(shell git describe)-ch24.$(CC2538DK_FW)
 
-testbed-upload:
+upload:
 	scp 6lbr-testbed-$(shell git describe)* root@192.168.99.15:/root/bin
 	ssh root@192.168.99.15 tb_action prog -t z1 -f /root/bin/6lbr-testbed-$(shell git describe)-ch24.z1
 	ssh root@192.168.99.15 tb_action prog -t sky -f /root/bin/6lbr-testbed-$(shell git describe)-ch24.sky
