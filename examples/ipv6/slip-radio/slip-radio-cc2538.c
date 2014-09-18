@@ -45,22 +45,24 @@ cmd_handler_cc2538(const uint8_t *data, int len)
   if(data[0] == '!') {
     if(data[1] == 'C' && len == 3) {
       printf("cc2538_cmd: setting channel: %d\n", data[2]);
-      cc2538_rf_channel_set(data[2]);
+      NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, data[2]);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
         printf("cc2538_cmd: Got MAC\n");
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
         linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
-        cc2538_rf_set_addr(IEEE802154_PANID);
+        NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, data+2, 8);
         return 1;
       }
   } else if(data[0] == '?') {
     if(data[1] == 'C' && len == 2) {
       uint8_t buf[4];
-      printf("cc2538_cmd: getting channel: %d\n", data[2]);
+      radio_value_t rv;
+      printf("cc2538_cmd: getting channel\n");
       buf[0] = '!';
       buf[1] = 'C';
-      buf[2] = cc2538_rf_channel_get();
+      NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &rv);
+      buf[2] = rv;
       cmd_send(buf, 3);
       return 1;
     }
