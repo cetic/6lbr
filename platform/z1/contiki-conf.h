@@ -41,10 +41,22 @@
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
+
+#ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
+#endif /* NETSTACK_CONF_MAC */
+
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     contikimac_driver
+#endif /* NETSTACK_CONF_RDC */
+
+#ifndef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#endif /* NETSTACK_CONF_RADIO */
+
+#ifndef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
+#endif /* NETSTACK_CONF_FRAMER */
 
 /* Specify a minimum packet size for 6lowpan compression to be
    enabled. This is needed for ContikiMAC, which needs packets to be
