@@ -23,6 +23,9 @@ else
 ifeq ($(TARGET),sky)
   PROJECT_SOURCEFILES += slip-radio-cc2420.c slip-radio-sky-sensors.c
 endif
+ifeq ($(TARGET),z1)
+  PROJECT_SOURCEFILES += slip-radio-cc2420.c
+endif
 ifeq ($(TARGET),trxeb)
   PROJECT_SOURCEFILES += slip-radio-cc2420.c
 endif
