@@ -209,7 +209,9 @@ main(void)
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
+#if !SLIP_RADIO
   process_start(&tcpip_process, NULL);
+#endif
 #endif /* UIP_CONF_IPV6 */
 
   process_start(&sensors_process, NULL);
