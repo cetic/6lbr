@@ -68,6 +68,7 @@ char const *slip_config_www_root = "../www";
 char const *slip_config_plugins = NULL;
 char const *ip_config_file_name = NULL;
 char const *  node_config_file_name = NULL;
+int slip_config_dtr_rts_set = 1;
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -83,7 +84,7 @@ slip_config_handle_arguments(int argc, char **argv)
   int baudrate = 115200;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:m:")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:m:yY")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
@@ -188,6 +189,14 @@ slip_config_handle_arguments(int argc, char **argv)
 
     case 'n':
       node_config_file_name = optarg;
+      break;
+
+    case 'y':
+      slip_config_dtr_rts_set = 0;
+      break;
+
+    case 'Y':
+      slip_config_dtr_rts_set = 1;
       break;
 
     case '?':

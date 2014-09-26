@@ -66,6 +66,12 @@
 #SLIP Radio baudrate
 #BAUDRATE=115200
 
+#DTR/RTS signal state at connection. 1 = Set (default value), 0 = Clear
+#DTR_RTS_STATE=1
+
+#CTS/RTS Hardware control
+#CTS_RTS_HW_CONTROL=0
+
 ################################################################################
 #NVM File
 # The NVM file contains the user configuration, like the network prefixes, the

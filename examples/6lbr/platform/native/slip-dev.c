@@ -443,10 +443,18 @@ stty_telos(int fd)
     exit(1);
   }
 
-  i = TIOCM_DTR;
-  if(ioctl(fd, TIOCMBIS, &i) == -1) {
-    LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
-    exit(1);
+  if(slip_config_dtr_rts_set) {
+    i = TIOCM_DTR;
+    if(ioctl(fd, TIOCMBIS, &i) == -1) {
+      LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
+      exit(1);
+    }
+  } else {
+    i = TIOCM_DTR | TIOCM_RTS;
+    if(ioctl(fd, TIOCMBIC, &i) == -1) {
+      LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
+      exit(1);
+    }
   }
 #endif
 
