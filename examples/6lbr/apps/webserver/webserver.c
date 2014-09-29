@@ -525,7 +525,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<div id=\"left_home\">");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Up PRR</td><td>Last seen</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Up PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -623,6 +623,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       }
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
+      add("<td>%s</td>", node_info_table[i].has_route ? "OK" : "NR");
       add("</tr>");
       SEND_STRING(&s->sout, buf);
       reset_buf();
