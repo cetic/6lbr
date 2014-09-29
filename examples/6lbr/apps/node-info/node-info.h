@@ -73,4 +73,7 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info);
 void
 node_info_node_seen(uip_ipaddr_t * ipaddr);
 
+void
+node_info_reset_prr(void);
+
 #endif

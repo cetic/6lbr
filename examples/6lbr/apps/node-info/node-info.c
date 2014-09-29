@@ -153,3 +153,15 @@ node_info_lookup(uip_ipaddr_t * ipaddr)
   }
   return NULL;
 }
+
+void
+node_info_reset_prr(void)
+{
+  int i;
+  for(i = 0; i < UIP_DS6_ROUTE_NB; ++i) {
+    if(node_info_table[i].isused) {
+      node_info_table[i].messages_count = 0;
+      node_info_table[i].up_messages_lost = 0;
+    }
+  }
+}
