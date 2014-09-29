@@ -76,6 +76,7 @@
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "node-info.h"
 #endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #include "rio.h"
@@ -512,6 +513,9 @@ na_input(void)
       if (route != NULL ) {
           printf("Address Advertisement NA for existing route, removing it\n");
           uip_ds6_route_rm(route);
+#if CETIC_NODE_INFO
+          node_info_rm(&route->ipaddr);
+#endif
       }
       goto discard;
     }

@@ -43,6 +43,7 @@ typedef struct node_info {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   clock_time_t last_seen;
+  uint8_t has_route;
 
   //6lbr-demo udp info
   uint32_t messages_count;

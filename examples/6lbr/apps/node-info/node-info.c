@@ -48,12 +48,16 @@ node_info_route_notification_cb(int event,
                                 uip_ipaddr_t * route,
                                 uip_ipaddr_t * nexthop, int num_routes)
 {
+  node_info_t *node = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node_info_t *node = NULL;
     node = node_info_add(route);
+    node->has_route = 1;
     node->last_seen = clock_time();
  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
-    node_info_rm(route);
+   node = node_info_lookup(route);
+   if(node != NULL) {
+     node->has_route = 0;
+   }
   }
 }
 
