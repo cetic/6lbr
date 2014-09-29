@@ -525,7 +525,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<div id=\"left_home\">");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Last seen</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Sequence</td><td>Parent</td><td>Up PRR</td><td>Last seen</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -617,8 +617,9 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
         ipaddr_add(&node_info_table[i].ip_parent);
 #endif
         add("</td>");
+        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_count - node_info_table[i].up_messages_lost)/node_info_table[i].messages_count);
       } else {
-        add("<td></td><td></td>");
+        add("<td></td><td></td><td></td>");
       }
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
