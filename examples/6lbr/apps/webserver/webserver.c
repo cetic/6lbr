@@ -519,6 +519,11 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
+  if(redirect) {
+    //Quick hack to rewrite url after sensors config update
+    SEND_STRING(&s->sout,
+                "<meta http-equiv=\"refresh\" content=\"0; url=/sensors.html\" />");
+  }
   SEND_STRING(&s->sout, BODY);
   reset_buf();
   add_div_home("Sensors");
