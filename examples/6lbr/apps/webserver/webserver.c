@@ -692,6 +692,11 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("}\"alt=\"\" /></center>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+  add("<br /><h3>Actions</h3>");
+  add("<form action=\"reset-prr\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset PRR\"/></form><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 
   add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
@@ -1674,6 +1679,12 @@ httpd_simple_get_script(const char *name)
     uip_create_linklocal_rplnodes_mcast(&addr);
     dis_output(&addr);
     return generate_restart_page;
+#endif
+#if CETIC_NODE_INFO
+  } else if(admin && memcmp(name, "reset-prr", 9) == 0) {
+    redirect = 1;
+    node_info_reset_prr();
+    return generate_sensors;
 #endif
   } else if(admin && memcmp(name, "route_rm", 8) == 0) {
     redirect = 1;
