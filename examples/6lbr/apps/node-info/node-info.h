@@ -47,8 +47,11 @@ typedef struct node_info {
   //6lbr-demo udp info
   uint32_t messages_count;
   clock_time_t last_message;
-  uint16_t  sequence;
+  uint16_t  last_sequence;
   uip_ipaddr_t ip_parent;
+
+  //Stats
+  uint32_t up_messages_lost;
 } node_info_t;
 
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */

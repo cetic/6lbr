@@ -58,7 +58,9 @@ PROCESS(udp_server_process, "UDP server process");
 static void
 tcpip_handler(void)
 {
+#if !CETIC_NODE_INFO
   static int seq_id;
+#endif
   char buf[MAX_PAYLOAD_LEN];
 
   if(uip_newdata()) {
@@ -66,12 +68,16 @@ tcpip_handler(void)
     LOG6LBR_6ADDR(DEBUG, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
 
 #if CETIC_NODE_INFO
-    node_info_update(&UIP_IP_BUF->srcipaddr, (char *)uip_appdata);
+    node_info_t * node = node_info_update(&UIP_IP_BUF->srcipaddr, (char *)uip_appdata);
 #endif
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
+#if CETIC_NODE_INFO
+    sprintf(buf, "%d", node->last_sequence);
+#else
     sprintf(buf, "Hello from the server! (%d)", ++seq_id);
+#endif
     LOG6LBR_DEBUG("Responding with message: %s\n", buf);
 
     uip_udp_packet_send(server_conn, buf, strlen(buf));

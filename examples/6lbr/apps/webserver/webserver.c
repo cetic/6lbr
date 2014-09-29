@@ -604,7 +604,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/>coap</a></td>");
       if(node_info_table[i].messages_count > 0) {
-        add("<td>%d</td><td>", node_info_table[i].sequence);
+        add("<td>%d</td><td>", node_info_table[i].last_sequence);
 #if CETIC_NODE_CONFIG
         if (node_config_loaded) {
           add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));

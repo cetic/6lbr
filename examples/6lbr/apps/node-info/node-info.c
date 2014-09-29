@@ -97,7 +97,11 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     sep = index(info, '|');
     if (sep != NULL && sep - info > 0) {
       *sep = 0;
-      node->sequence = atoi(info);
+      uint16_t sequence = atoi(info);
+      if (node->messages_count > 1) {
+        node->up_messages_lost += sequence - (node->last_sequence + 1);
+      }
+      node->last_sequence = sequence;
       info = sep + 1;
       if (*info == ' ') {
         info++;
@@ -106,7 +110,7 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
         uip_create_unspecified(&node->ip_parent);
       }
     } else {
-      node->sequence = 0;
+      node->last_sequence = 0;
       uip_create_unspecified(&node->ip_parent);
     }
   }
