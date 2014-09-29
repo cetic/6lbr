@@ -512,10 +512,10 @@ na_input(void)
       route = uip_ds6_route_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
       if (route != NULL ) {
           printf("Address Advertisement NA for existing route, removing it\n");
-          uip_ds6_route_rm(route);
 #if CETIC_NODE_INFO
           node_info_rm(&route->ipaddr);
 #endif
+          uip_ds6_route_rm(route);
       }
       goto discard;
     }
