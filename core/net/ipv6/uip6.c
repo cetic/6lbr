@@ -1163,7 +1163,7 @@ uip_process(uint8_t flag)
   }
 
 #if CETIC_NODE_INFO
-  node_info_node_seen(&UIP_IP_BUF->destipaddr);
+  node_info_node_seen(&UIP_IP_BUF->srcipaddr);
 #endif
   /*
    * Process Packets with a routable multicast destination:
