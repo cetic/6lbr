@@ -74,9 +74,11 @@
 #include "net/ipv6/uip-ds6.h"
 #include "lib/random.h"
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
+#define LOG6LBR_MODULE "ND6"
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "node-info.h"
+#include "log-6lbr.h"
 #endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #include "rio.h"
@@ -508,13 +510,12 @@ na_input(void)
   /* Address Advertisement */
   if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
     if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
-      printf("Address Advertisement NA\n");
+      LOG6LBR_6ADDR(INFO, &UIP_ND6_NA_BUF->tgtipaddr, "Received purge NA for ");
+#if CETIC_NODE_INFO
+      node_info_rm(&UIP_ND6_NA_BUF->tgtipaddr);
+#endif
       route = uip_ds6_route_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
       if (route != NULL ) {
-          printf("Address Advertisement NA for existing route, removing it\n");
-#if CETIC_NODE_INFO
-          node_info_rm(&route->ipaddr);
-#endif
           uip_ds6_route_rm(route);
       }
       goto discard;
@@ -622,7 +623,7 @@ send_purge_na(uip_ipaddr_t *prefix)
       if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
     	  return;
       }
-	  printf("Sending purge NA\n");
+          LOG6LBR_6ADDR(INFO, prefix, "Sending purge NA for ");
 	  uip_ext_len = 0;
 	  UIP_IP_BUF->vtc = 0x60;
 	  UIP_IP_BUF->tcflow = 0;
