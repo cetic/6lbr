@@ -97,13 +97,14 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
   if ( node != NULL ) {
     node->last_seen = clock_time();
     node->last_message = clock_time();
-    node->messages_count++;
+    node->messages_received++;
     sep = index(info, '|');
     if (sep != NULL && sep - info > 0) {
       *sep = 0;
       uint16_t sequence = atoi(info);
-      if (node->messages_count > 1) {
-        node->up_messages_lost += sequence - (node->last_sequence + 1);
+      if (node->messages_received > 1) {
+        node->messages_sent += (uint16_t)(sequence - node->last_sequence);
+        node->up_messages_lost += (uint16_t)(sequence - (node->last_sequence + 1));
       }
       node->last_sequence = sequence;
       info = sep + 1;
@@ -160,7 +161,8 @@ node_info_reset_prr(void)
   int i;
   for(i = 0; i < UIP_DS6_ROUTE_NB; ++i) {
     if(node_info_table[i].isused) {
-      node_info_table[i].messages_count = 0;
+      node_info_table[i].messages_received = 0;
+      node_info_table[i].messages_sent = 0;
       node_info_table[i].up_messages_lost = 0;
     }
   }

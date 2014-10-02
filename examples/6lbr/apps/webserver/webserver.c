@@ -608,7 +608,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       add("<td><a href=coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/>coap</a></td>");
-      if(node_info_table[i].messages_count > 0) {
+      if(node_info_table[i].messages_received > 0) {
         add("<td>");
 #if CETIC_NODE_CONFIG
         if (node_config_loaded) {
@@ -622,7 +622,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
         ipaddr_add(&node_info_table[i].ip_parent);
 #endif
         add("</td>");
-        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_count - node_info_table[i].up_messages_lost)/node_info_table[i].messages_count);
+        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
       } else {
         add("<td></td><td></td>");
       }
