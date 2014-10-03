@@ -49,7 +49,7 @@
 #if REST_RES_TEMP_RAW
 #define REST_REST_TEMP_VALUE REST_FORMAT_ONE_INT("temp", sht11_sensor.value(SHT11_SENSOR_TEMP))
 #else
-#define REST_REST_TEMP_VALUE REST_FORMAT_ONE_DECIMAL("temp", sht11_sensor.value(SHT11_SENSOR_TEMP), (value / 10 - 396) / 10, (value / 10 - 396) % 10)
+#define REST_REST_TEMP_VALUE REST_FORMAT_TWO_DECIMAL("temp", sht11_sensor.value(SHT11_SENSOR_TEMP) - 3960)
 #endif
 
 REST_RES_TEMP_RESOURCE(temp,
