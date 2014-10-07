@@ -45,7 +45,7 @@ CFLAGS += -DUIP_CONF_IPV6=1
 
 CONTIKI = ../..
 
-PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client ../6lbr-demo/apps/coap
+PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client ../6lbr-demo/apps/coap ../6lbr-demo/apps/coap/rest-types
 ifndef ($(TARGET))
 PROJECTDIRS += platform/native
 endif
@@ -94,22 +94,22 @@ endif
 
 ifneq ($(WITH_WEBSERVER_LITE),0)
 CFLAGS += -DWEBSERVER=1
-PROJECT_SOURCEFILES += webserver-lite.c httpd-simple.c 
+PROJECT_SOURCEFILES += webserver-lite.c httpd-simple.c
 endif
 
 ifneq ($(WITH_UDPSERVER),0)
 CFLAGS += -DUDPSERVER=1
-PROJECT_SOURCEFILES += udp-server.c 
+PROJECT_SOURCEFILES += udp-server.c
 endif
 
 ifneq ($(WITH_UDPCLIENT),0)
 CFLAGS += -DUDPCLIENT=1 -DUDP_CLIENT_AUTOSTART
-PROJECT_SOURCEFILES += udp-client.c 
+PROJECT_SOURCEFILES += udp-client.c
 endif
 
 ifneq ($(WITH_NODE_INFO),0)
 CFLAGS += -DCETIC_NODE_INFO=1
-PROJECT_SOURCEFILES += node-info.c 
+PROJECT_SOURCEFILES += node-info.c
 endif
 
 ifneq ($(WITH_NVM_PROXY),0)
@@ -158,7 +158,7 @@ CC2538DK_CONF=WITH_WEBSERVER=$(CC2538DK_WEBSERVER) WITH_WEBSERVER_LITE=$(CC2538D
 bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
 
 bin/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(NATIVE_CONF)
@@ -168,17 +168,17 @@ bin/cetic_6lbr_rpl_relay:
 bin/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(NATIVE_CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
 
 bin/cetic_6lbr_router:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_router 
+	mv cetic-6lbr.native bin/cetic_6lbr_router
 
 bin/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(NATIVE_CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router 
+	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
 
 bin/cetic_6lbr_6lr:
 	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(NATIVE_CONF_6LR)
@@ -194,15 +194,15 @@ all_native:
 	rm -rf bin
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_router
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
 	$(MAKE) TARGET=native clean
@@ -211,7 +211,7 @@ all_native:
 bin_econotag/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
 	mkdir -p bin_econotag
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge
 
 bin_econotag/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(ECONOTAG_CONF)
@@ -221,17 +221,17 @@ bin_econotag/cetic_6lbr_rpl_relay:
 bin_econotag/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(ECONOTAG_CONF)
 	mkdir -p bin_econotag
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_full_transparent_bridge 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_full_transparent_bridge
 
 bin_econotag/cetic_6lbr_router:
 	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
 	mkdir -p bin_econotag
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router
 
 bin_econotag/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(ECONOTAG_CONF)
 	mkdir -p bin_econotag
-	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_ndp_router 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_ndp_router
 
 bin_econotag/cetic_6lbr_6lr:
 	$(MAKE) TARGET=econotag CETIC_6LBR_6LR=1 $(ECONOTAG_CONF)
@@ -242,22 +242,22 @@ all_econotag:
 	rm -rf bin_econotag
 	mkdir -p bin_econotag
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_smart_bridge
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_full_transparent_bridge
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_router 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_router
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_ndp_router
 	$(MAKE) TARGET=econotag clean
-	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_6lr 
+	$(MAKE) TARGET=econotag bin_econotag/cetic_6lbr_6lr
 
 bin_red-io/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=red-io CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
 	mkdir -p bin_red-io
-	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_smart_bridge
 
 bin_red-io/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(ECONOTAG_CONF)
@@ -267,17 +267,17 @@ bin_red-io/cetic_6lbr_rpl_relay:
 bin_red-io/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(ECONOTAG_CONF)
 	mkdir -p bin_red-io
-	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_full_transparent_bridge 
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_full_transparent_bridge
 
 bin_red-io/cetic_6lbr_router:
 	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
 	mkdir -p bin_red-io
-	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_router 
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_router
 
 bin_red-io/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(ECONOTAG_CONF)
 	mkdir -p bin_red-io
-	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_ndp_router 
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_ndp_router
 
 bin_red-io/cetic_6lbr_6lr:
 	$(MAKE) TARGET=red-io CETIC_6LBR_6LR=1 $(ECONOTAG_CONF)
@@ -288,17 +288,17 @@ all_red-io:
 	rm -rf bin_red-io
 	mkdir -p bin_red-io
 	$(MAKE) TARGET=red-io clean
-	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_smart_bridge
 	$(MAKE) TARGET=red-io clean
 	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=red-io clean
-	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_full_transparent_bridge
 	$(MAKE) TARGET=red-io clean
-	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_router 
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_router
 	$(MAKE) TARGET=red-io clean
-	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_ndp_router
 	$(MAKE) TARGET=red-io clean
-	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_6lr 
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_6lr
 
 bin_cc2538dk/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_SMARTBRIDGE=1 $(CC2538DK_CONF)
