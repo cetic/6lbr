@@ -274,7 +274,7 @@ public class Cooja extends Observable {
     "MAPFILE_VAR_SIZE_1", "MAPFILE_VAR_SIZE_2",
 
     "PARSE_COMMAND",
-    "COMMAND_VAR_NAME_ADDRESS",
+    "COMMAND_VAR_NAME_ADDRESS_SIZE",
     "COMMAND_DATA_START", "COMMAND_DATA_END",
     "COMMAND_BSS_START", "COMMAND_BSS_END",
     "COMMAND_COMMON_START", "COMMAND_COMMON_END",
@@ -3152,7 +3152,7 @@ public class Cooja extends Observable {
         if (new File(logConfigFile).exists()) {
           DOMConfigurator.configure(logConfigFile);
         } else {
-          System.err.println("Failed to open " + logConfigFile);
+          logger.error("Failed to open " + logConfigFile);
           System.exit(1);
         }
       } else if (new File(LOG_CONFIG_FILE).exists()) {
