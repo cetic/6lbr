@@ -169,7 +169,7 @@ for(var i=0; i<10; i++) {
     var allm = sim.getMotes();
     for(var id in  allm) {
         var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
+        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIP(0).toString();
         if(fakenode.indexOf(moteid) != -1) {
             //Fake mote
             if(!islocalip(ip))

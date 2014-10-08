@@ -146,7 +146,7 @@ for(var i=0; i<30; i++) {
     var allm = sim.getMotes();
     for(var id in  allm) {
         var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
+        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIP(0).toString();
         if(ipcheck[moteid]) {
             //Check local IP
             if(ip.indexOf("fe80:") != 0) {

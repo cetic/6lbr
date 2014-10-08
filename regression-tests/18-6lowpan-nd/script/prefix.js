@@ -193,7 +193,7 @@ while(true) {
     var numOK = 0;
     for(var id in  allm) {
         var moteid = allm[id].getID();
-        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIPString();
+        var ip = sim.getMoteWithID(moteid).getInterfaces().getIPAddress().getIP(0).toString();
         if(ip.indexOf(newprefix+":") != -1 && moteIdMustChange.indexOf(moteid) != -1) {
             numOK++;
         }
