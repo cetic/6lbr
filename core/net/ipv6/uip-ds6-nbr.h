@@ -56,6 +56,10 @@
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
+#if CONF_6LOWPAN_ND
+#include "net/rpl/rpl-private.h"
+#endif /* CONF_6LOWPAN_ND */
+
 /*--------------------------------------------------*/
 /** \brief Possible states for the nbr cache entries */
 #define  NBR_INCOMPLETE 0
@@ -63,6 +67,25 @@
 #define  NBR_STALE 2
 #define  NBR_DELAY 3
 #define  NBR_PROBE 4
+#if CONF_6LOWPAN_ND
+#define  NBR_GARBAGE_COLLECTIBLE 5
+#define  NBR_REGISTERED 6
+#define  NBR_TENTATIVE 7
+#define  NBR_TENTATIVE_DAD 8
+#endif /* CONF_6LOWPAN_ND */
+
+/** \brief Possible states for isrouter flag */
+#if CONF_6LOWPAN_ND
+#define ISROUTER_NO 0
+#define ISROUTER_YES 1
+#if UIP_CONF_6LN
+#define ISROUTER_NODEFINE ISROUTER_YES
+#else /* UIP_CONF_6LN */
+#define ISROUTER_NODEFINE 2
+#endif /* UIP_CONF_6LN */
+#define ISROUTER_RPL 3
+#define ISROUTER_TESTING 4
+#endif /* CONF_6LOWPAN_ND */
 
 NBR_TABLE_DECLARE(ds6_neighbors);
 
@@ -79,6 +102,15 @@ typedef struct uip_ds6_nbr {
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
 #endif                          /*UIP_CONF_QUEUE_PKT */
 } uip_ds6_nbr_t;
+
+/** \brief A Duplication Address Detection list entry */
+#if UIP_CONF_6LR
+typedef struct uip_ds6_dar {
+  uip_ipaddr_t ipaddr;
+  uip_ds6_nbr_t *nbr;
+  uint16_t lifetime;
+} uip_ds6_dar_t;
+#endif /* UIP_CONF_6LR */
 
 void uip_ds6_neighbors_init(void);
 
@@ -106,6 +138,16 @@ int uip_ds6_nbr_num(void);
  *     table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
+
+/** \name Duplication Address Request list basic routines */
+/** @{ */
+#if UIP_CONF_6LR
+uip_ds6_dar_t *uip_ds6_dar_add(uip_ipaddr_t *ipaddr, uip_ds6_nbr_t *nbr, uint16_t lifetime);
+void uip_ds6_dar_rm(uip_ds6_dar_t *dad);
+uip_ds6_dar_t *uip_ds6_dar_lookup(uip_ipaddr_t *ipaddr);
+uip_ds6_dar_t *uip_ds6_dar_lookup_by_nbr(uip_ds6_nbr_t *nbr);
+#endif /* UIP_CONF_6LR */
+/** @} */
 
 #endif /* UIP_DS6_NEIGHBOR_H_ */
 /** @} */

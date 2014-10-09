@@ -118,6 +118,10 @@ void uip_log(char *msg);
   (ptr)[index + 1] = (value) & 0xff;    \
 } while(0)
 
+#if CONF_6LOWPAN_ND
+static uip_ds6_context_pref_t *loccontext;
+#endif /* CONF_6LOWPAN_ND */
+
 /** \name Pointers in the packetbuf buffer
  *  @{
  */
@@ -410,6 +414,28 @@ compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   }
 }
 
+/*--------------------------------------------------------------------*/
+#if CONF_6LOWPAN_ND
+static uint8_t
+compress_addr_context(uint8_t bitpos, uip_ipaddr_t *ipaddr, 
+                      uip_lladdr_t *lladdr, uip_ds6_context_pref_t* cont_pref)
+{
+  if(cont_pref && CONTEXT_PREF_USE_COMPRESS(cont_pref->state)) {
+    if(cont_pref->length == 128) {
+      return 3 << bitpos;
+    } else {
+      return compress_addr_64(bitpos, ipaddr, lladdr);
+    }
+  } else if(uip_is_addr_link_local(ipaddr)) {
+    return compress_addr_64(bitpos, ipaddr, lladdr);
+  } else {
+    memcpy(hc06_ptr, ipaddr, 16);
+    hc06_ptr += 16;
+    return 0;
+  }
+}
+#endif /* CONF_6LOWPAN_ND */
+
 /*-------------------------------------------------------------------- */
 /* Uncompress addresses based on a prefix and a postfix with zeroes in
  * between. If the postfix is zero in length it will use the link address
@@ -520,7 +546,30 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
    *
    */
 
-
+#if CONF_6LOWPAN_ND
+  /* Source addresse */
+  loccontext = uip_ds6_context_pref_lookup(&UIP_IP_BUF->srcipaddr);
+  if(loccontext != NULL && CONTEXT_PREF_USE_COMPRESS(loccontext->state)) {
+    iphc1 |= SICSLOWPAN_IPHC_SAC;
+    PACKETBUF_IPHC_BUF[2] |= loccontext->cid << 4;
+    PRINTF("IPHC: compressing src ipaddr - setting SAC, src_context: %u\n",
+           loccontext->cid);
+  }
+  /* Source addresse */
+  loccontext = uip_ds6_context_pref_lookup(&UIP_IP_BUF->destipaddr);
+  if(loccontext != NULL && CONTEXT_PREF_USE_COMPRESS(loccontext->state)) {
+    iphc1 |= SICSLOWPAN_IPHC_DAC;
+    PACKETBUF_IPHC_BUF[2] |= loccontext->cid;
+    PRINTF("IPHC: compressing dest ipaddr - setting DAC with dest_context: %u\n",
+           loccontext->cid);
+  }
+  /* check if dest or src context exists (for allocating third byte) */
+  if(iphc1 & (SICSLOWPAN_IPHC_SAC | SICSLOWPAN_IPHC_DAC)) {
+    PRINTF("IPHC: compressing dest or/and src ipaddr - setting CID\n");
+    iphc1 |= SICSLOWPAN_IPHC_CID;
+    hc06_ptr++;
+  }
+#else /* CONF_6LOWPAN_ND */
   /* check if dest context exists (for allocating third byte) */
   /* TODO: fix this so that it remembers the looked up values for
      avoiding two lookups - or set the lookup values immediately */
@@ -531,6 +580,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
     iphc1 |= SICSLOWPAN_IPHC_CID;
     hc06_ptr++;
   }
+#endif /* CONF_6LOWPAN_ND */
 
   /*
    * Traffic class, flow label
@@ -621,6 +671,12 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
     PRINTF("IPHC: compressing unspecified - setting SAC\n");
     iphc1 |= SICSLOWPAN_IPHC_SAC;
     iphc1 |= SICSLOWPAN_IPHC_SAM_00;
+#if CONF_6LOWPAN_ND
+  } else {
+    loccontext = uip_ds6_context_pref_lookup(&UIP_IP_BUF->srcipaddr);
+    iphc1 |= compress_addr_context(SICSLOWPAN_IPHC_SAM_BIT, &UIP_IP_BUF->srcipaddr,
+                                   &uip_lladdr, loccontext);
+#else /* CONF_6LOWPAN_ND */
   } else if((context = addr_context_lookup_by_prefix(&UIP_IP_BUF->srcipaddr))
      != NULL) {
     /* elide the prefix - indicate by CID and set context + SAC */
@@ -644,6 +700,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
     iphc1 |= SICSLOWPAN_IPHC_SAM_00; /* 128-bits */
     memcpy(hc06_ptr, &UIP_IP_BUF->srcipaddr.u16[0], 16);
     hc06_ptr += 16;
+#endif /* CONF_6LOWPAN_ND */
   }
 
   /* dest address*/
@@ -673,6 +730,12 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
       memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u8[0], 16);
       hc06_ptr += 16;
     }
+#if CONF_6LOWPAN_ND
+  } else {
+    loccontext = uip_ds6_context_pref_lookup(&UIP_IP_BUF->destipaddr);
+    iphc1 |= compress_addr_context(SICSLOWPAN_IPHC_DAM_BIT, &UIP_IP_BUF->destipaddr,
+                                   (uip_lladdr_t *)link_destaddr, loccontext);
+#else /* CONF_6LOWPAN_ND */
   } else {
     /* Address is unicast, try to compress */
     if((context = addr_context_lookup_by_prefix(&UIP_IP_BUF->destipaddr)) != NULL) {
@@ -696,6 +759,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
       memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u16[0], 16);
       hc06_ptr += 16;
     }
+#endif /* CONF_6LOWPAN_ND */
   }
 
   uncomp_hdr_len = UIP_IPH_LEN;
@@ -852,6 +916,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
     hc06_ptr += 1;
   }
 
+  /* Source address */
   /* put the source address compression mode SAM in the tmp var */
   tmp = ((iphc1 & SICSLOWPAN_IPHC_SAM_11) >> SICSLOWPAN_IPHC_SAM_BIT) & 0x03;
 
@@ -859,9 +924,20 @@ uncompress_hdr_hc06(uint16_t ip_len)
   if(iphc1 & SICSLOWPAN_IPHC_SAC) {
     uint8_t sci = (iphc1 & SICSLOWPAN_IPHC_CID) ?
       PACKETBUF_IPHC_BUF[2] >> 4 : 0;
-
+#if CONF_6LOWPAN_ND
+    if(tmp != 0) {
+      loccontext = uip_ds6_context_pref_lookup_by_cid(sci);
+      if(loccontext == NULL) {
+        PRINTF("sicslowpan uncompress_hdr: error context not found\n");
+        return;
+      }
+    }
+    uncompress_addr(&SICSLOWPAN_IP_BUF->srcipaddr,
+                    tmp != 0 ? loccontext->ipaddr.u8 : NULL, unc_ctxconf[tmp],
+                    (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#else /* CONF_6LOWPAN_ND */
     /* Source address - check context != NULL only if SAM bits are != 0*/
-    if (tmp != 0) {
+    if(tmp != 0) {
       context = addr_context_lookup_by_number(sci);
       if(context == NULL) {
         PRINTF("sicslowpan uncompress_hdr: error context not found\n");
@@ -872,6 +948,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
     uncompress_addr(&SICSLOWPAN_IP_BUF->srcipaddr,
                     tmp != 0 ? context->prefix : NULL, unc_ctxconf[tmp],
                     (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#endif /* CONF_6LOWPAN_ND */
   } else {
     /* no compression and link local */
     uncompress_addr(&SICSLOWPAN_IP_BUF->srcipaddr, llprefix, unc_llconf[tmp],
@@ -908,16 +985,27 @@ uncompress_hdr_hc06(uint16_t ip_len)
     if(iphc1 & SICSLOWPAN_IPHC_DAC) {
       uint8_t dci = (iphc1 & SICSLOWPAN_IPHC_CID) ?
 	PACKETBUF_IPHC_BUF[2] & 0x0f : 0;
+#if CONF_6LOWPAN_ND
+      loccontext = uip_ds6_context_pref_lookup_by_cid(dci);
+      /* all valid cases below need the context! */
+      if(loccontext == NULL) {
+        PRINTF("sicslowpan uncompress_hdr: error context not found\n");
+        return;
+      }
+      uncompress_addr(&SICSLOWPAN_IP_BUF->destipaddr, loccontext->ipaddr.u8,
+                      unc_ctxconf[tmp],
+                      (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+#else /* CONF_6LOWPAN_ND */
       context = addr_context_lookup_by_number(dci);
-
       /* all valid cases below need the context! */
       if(context == NULL) {
-	PRINTF("sicslowpan uncompress_hdr: error context not found\n");
-	return;
+      	PRINTF("sicslowpan uncompress_hdr: error context not found\n");
+      	return;
       }
       uncompress_addr(&SICSLOWPAN_IP_BUF->destipaddr, context->prefix,
                       unc_ctxconf[tmp],
                       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+#endif /* CONF_6LOWPAN_ND */
     } else {
       /* not context based => link local M = 0, DAC = 0 - same as SAC */
       uncompress_addr(&SICSLOWPAN_IP_BUF->destipaddr, llprefix,

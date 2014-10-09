@@ -146,6 +146,7 @@
 #define RPL_ROUTE_FROM_UNICAST_DAO      1
 #define RPL_ROUTE_FROM_MULTICAST_DAO    2
 #define RPL_ROUTE_FROM_DIO              3
+#define RPL_ROUTE_FROM_6LOWPANND        4
 
 /* DAG Mode of Operation */
 #define RPL_MOP_NO_DOWNWARD_ROUTES      0
@@ -228,7 +229,9 @@ struct rpl_dio {
   rpl_rank_t dag_max_rankinc;
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
+#if !CONF_6LOWPAN_ND
   rpl_prefix_t prefix_info;
+#endif /* !CONF_6LOWPAN_ND */
   struct rpl_metric_container mc;
 };
 typedef struct rpl_dio rpl_dio_t;

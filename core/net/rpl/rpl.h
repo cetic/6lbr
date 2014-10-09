@@ -142,7 +142,9 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
+#if !CONF_6LOWPAN_ND
   rpl_prefix_t prefix_info;
+#endif /* !CONF_6LOWPAN_ND */
   uint32_t lifetime;
 };
 typedef struct rpl_dag rpl_dag_t;
@@ -229,6 +231,9 @@ struct rpl_instance {
   struct ctimer dio_timer;
   struct ctimer dao_timer;
   struct ctimer dao_lifetime_timer;
+#if CONF_6LOWPAN_ND
+  struct ctimer host_timer;
+#endif /* CONF_6LOWPAN_ND */
 };
 
 /*---------------------------------------------------------------------------*/

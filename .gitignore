@@ -1,4 +1,5 @@
 *.a
+*.o
 *.bin
 *.map
 *.png

@@ -213,6 +213,15 @@ rpl_update_header_empty(void)
       return 0;
     }
     break;
+#if CONF_6LOWPAN_ND
+  case UIP_PROTO_ICMP6:
+    switch(((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])->type) {
+    case 157:
+    case 158:
+      return 0;
+    }
+    goto nohbh;
+#endif
   default:
 #if RPL_INSERT_HBH_OPTION
     PRINTF("RPL: No hop-by-hop option found, creating it\n");
@@ -273,6 +282,18 @@ rpl_update_header_empty(void)
     uip_ext_len = last_uip_ext_len;
     return 0;
   }
+
+nohbh:
+    PRINTF("RPL: No hop-by-hop option found, creating it\n");
+    if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
+      PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
+      uip_ext_len = last_uip_ext_len;
+      return 0;
+    }
+    set_rpl_opt(uip_ext_opt_offset);
+    uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
+    return 0;
+
 }
 /*---------------------------------------------------------------------------*/
 int

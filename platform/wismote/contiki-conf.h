@@ -6,8 +6,8 @@
 #include "platform-conf.h"
 
 #ifndef NETSTACK_CONF_MAC
-/* #define NETSTACK_CONF_MAC     csma_driver */
-#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
+/* #define NETSTACK_CONF_MAC     nullmac_driver */
 #endif /* NETSTACK_CONF_MAC */
 
 #ifndef NETSTACK_CONF_RDC
@@ -127,7 +127,9 @@
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
+#ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 1
+#endif
 #ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL               1
 #endif /* UIP_CONF_IPV6_RPL */
@@ -140,7 +142,9 @@
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA		0
+#endif /* UIP_CONF_ND6_SEND_RA */
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
@@ -167,7 +171,11 @@
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
+#ifndef CONF_6LOWPAN_ND
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#else /* CONF_6LOWPAN_ND */
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       0
+#endif /* CONF_6LOWPAN_ND */
 #ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
 #endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */

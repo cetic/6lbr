@@ -135,7 +135,11 @@ rpl_purge_routes(void)
   r = uip_ds6_route_head();
 
   while(r != NULL) {
+#if CONF_6LOWPAN_ND
+    if(r->state.lifetime < 1 && r->state.learned_from != RPL_ROUTE_FROM_6LOWPANND) {
+#else /* CONF_6LOWPAN_ND */
     if(r->state.lifetime < 1) {
+#endif /* CONF_6LOWPAN_ND */
       /* Routes with lifetime == 1 have only just been decremented from 2 to 1,
        * thus we want to keep them. Hence < and not <= */
       uip_ipaddr_copy(&prefix, &r->ipaddr);

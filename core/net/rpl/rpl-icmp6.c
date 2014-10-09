@@ -92,6 +92,12 @@ extern rpl_of_t RPL_OF;
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+#define TCPIP_ANNOTATE(m) printf("#%s\n", m);
+#else /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+#define TCPIP_ANNOTATE(m)
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+/*---------------------------------------------------------------------------*/
 /* Initialise RPL ICMPv6 message handlers */
 UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
 UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
@@ -156,6 +162,7 @@ dis_input(void)
   PRINTF("RPL: Received a DIS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDIS");
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
       instance < end; ++instance) {
@@ -237,7 +244,9 @@ dio_input(void)
   PRINTF("RPL: Received a DIO from ");
   PRINT6ADDR(&from);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDIO");
 
+#if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -260,6 +269,7 @@ dio_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
+#endif /* CONF_6LOWPAN_ND */
 
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
 
@@ -390,6 +400,7 @@ dio_input(void)
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
              dio.default_lifetime, dio.lifetime_unit);
       break;
+#if !CONF_6LOWPAN_ND
     case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
         PRINTF("RPL: Invalid DAG prefix info, len != 32\n");
@@ -405,6 +416,7 @@ dio_input(void)
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
       break;
+#endif /* CONF_6LOWPAN_ND */
     default:
       PRINTF("RPL: Unsupported suboption type in DIO: %u\n",
 	(unsigned)subopt_type);
@@ -520,6 +532,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   set16(buffer, pos, instance->lifetime_unit);
   pos += 2;
 
+#if !CONF_6LOWPAN_ND
   /* Check if we have a prefix to send also. */
   if(dag->prefix_info.length > 0) {
     buffer[pos++] = RPL_OPTION_PREFIX_INFO;
@@ -541,6 +554,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     PRINTF("RPL: No prefix to announce (len %d)\n",
            dag->prefix_info.length);
   }
+#endif /* !CONF_6LOWPAN_ND */
 
 #if RPL_LEAF_ONLY
 #if (DEBUG) & DEBUG_PRINT
@@ -560,6 +574,9 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
         (unsigned)instance->current_dag->rank);
     uip_create_linklocal_rplnodes_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
+#if CONF_6LOWPAN_ND
+    rpl_host_determination(instance);
+#endif /* CONF_6LOWPAN_ND */
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
         (unsigned)instance->current_dag->rank);
@@ -606,6 +623,7 @@ dao_input(void)
   PRINTF("RPL: Received a DAO from ");
   PRINT6ADDR(&dao_sender_addr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAO");
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
@@ -722,7 +740,11 @@ dao_input(void)
       PRINT6ADDR(&prefix);
       PRINTF("\n");
       rep->state.nopath_received = 1;
+#if CONF_6LOWPAN_ND
+      uip_ds6_route_rm(rep);
+#else /* CONF_6LOWPAN_ND */
       rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+#endif /* CONF_6LOWPAN_ND */
 
       /* We forward the incoming no-path DAO to our parent, if we have
          one. */
@@ -743,6 +765,7 @@ dao_input(void)
 
   PRINTF("RPL: adding DAO route\n");
 
+#if !CONF_6LOWPAN_ND
   if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
@@ -765,6 +788,7 @@ dao_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
+#endif /* !CONF_6LOWPAN_ND */
 
   rpl_lock_parent(parent);
 
@@ -925,6 +949,7 @@ dao_ack_input(void)
     sequence, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  TCPIP_ANNOTATE("rDAO-ACK");
 #endif /* DEBUG */
   uip_len = 0;
 }
@@ -955,6 +980,7 @@ rpl_icmp6_register_handlers()
   uip_icmp6_register_input_handler(&dio_handler);
   uip_icmp6_register_input_handler(&dao_handler);
   uip_icmp6_register_input_handler(&dao_ack_handler);
+
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */

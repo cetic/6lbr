@@ -334,7 +334,7 @@ main(int argc, char **argv)
   }
 
 #if !UIP_DS6_NO_STATIC_ADDRESS
-  if(!UIP_CONF_IPV6_RPL) {
+  if(!UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);

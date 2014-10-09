@@ -166,7 +166,6 @@
 #define UIP_CONF_MAX_CONNECTIONS 8
 #endif /* UIP_CONF_MAX_CONNECTIONS */
 
-
 /* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
    each maximum-sized TCP segment is split into two, to avoid the
    performance degradation that is caused by delayed ACKs. */
@@ -245,5 +244,83 @@
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 
+/*---------------------------------------------------------------------------*/
+/* 6LoWPAN Neigbor Discovery Protocol configuration.
+ *
+ * By default 6LoWPAN-ND entities is disabled.
+ */
+
+/* CONF_6LOWPAN_ND specifies if 6LoWPAN-ND protocol is disbale or not. */
+#ifndef CONF_6LOWPAN_ND
+#define CONF_6LOWPAN_ND 0
+#endif /* CONF_6LOWPAN_ND */
+
+/* 6LoWPAN-ND Host */
+#ifndef UIP_CONF_6LN
+#define UIP_CONF_6LN 0
+#endif /* UIP_CONF_6LN */
+
+/* 6LoWPAN-ND Router */
+#ifndef UIP_CONF_6LR
+#define UIP_CONF_6LR 0
+#endif /* UIP_CONF_6LR */
+
+/* 6LoWPAN-ND Border Router */
+#ifndef UIP_CONF_6LBR
+#define UIP_CONF_6LBR 0
+#endif /* UIP_CONF_6LBR */
+
+/* 6LoWPAN-ND router entity */
+#ifndef UIP_CONF_6L_ROUTER
+#define UIP_CONF_6L_ROUTER 0
+#endif /* UIP_CONF_6L_ROUTER */
+
+/* Start RPL only when 6LoWPAN-ND has successfully get the global
+   IPv6 address. */
+#ifndef CONF_6LOWPAN_ND_OPTI_START
+#if CONF_6LOWPAN_ND
+#define CONF_6LOWPAN_ND_OPTI_START 1
+#else /* CONF_6LOWPAN_ND */
+#define CONF_6LOWPAN_ND_OPTI_START 0
+#endif /* CONF_6LOWPAN_ND */
+#endif /* CONF_6LOWPAN_ND_OPTI_START */
+
+/* Use a truncated binary exponential backoff to retransmit NS
+   in 6LoWPAN-ND */
+#ifndef CONF_6LOWPAN_ND_OPTI_NS
+#define CONF_6LOWPAN_ND_OPTI_NS 1
+#endif /* CONF_6LOWPAN_ND_OPTI_NS */
+
+/* Check error with compatible macro */
+
+/* All 6LoWPAN-ND entities must be disabled when CONF_6LOWPAN_ND is disabled */
+#if !CONF_6LOWPAN_ND && (UIP_CONF_6LN || UIP_CONF_6LR || UIP_CONF_6LBR || UIP_CONF_6L_ROUTER)
+#error "6LoWPAN-ND is disabled and entities should also be used."
+#endif
+
+/* 6LoWPAN-ND entity should sent RA and NA messages */
+#if CONF_6LOWPAN_ND && !(UIP_CONF_ND6_SEND_RA && UIP_CONF_ND6_SEND_NA)
+#error "6LoWPAN-ND entity must en NA and RA."
+#endif
+
+/* 6LoWPAN-ND Host should used 6LoWPAN-NDP */
+#if UIP_CONF_6LN && !CONF_6LOWPAN_ND
+#error "6LoWPAN-ND Host is not a 6LoWPAN-ND entity."
+#endif
+
+/* 6LoWPAN-ND Router should be 6LoWPAN-ND router entity */
+#if UIP_CONF_6LR && !UIP_CONF_6L_ROUTER
+#error "6LoWPAN-ND Router is not a 6LoWPAN-ND router entity."
+#endif
+
+/* 6LoWPAN-ND Border Router should be 6LoWPAN-ND router entity */
+#if UIP_CONF_6LBR && !UIP_CONF_6L_ROUTER
+#error "6LoWPAN-ND Border Router is not a 6LoWPAN-ND router entity."
+#endif
+
+/* 6LoWPAN-ND router entity sould be a router and used 6LoWPAN-ND */
+#if UIP_CONF_6L_ROUTER && !(UIP_CONF_ROUTER || CONF_6LOWPAN_ND)
+#error "6LoWPAN-ND router entity must be a router and used 6LoWPAN-ND."
+#endif
 
 #endif /* CONTIKI_DEFAULT_CONF_H */
