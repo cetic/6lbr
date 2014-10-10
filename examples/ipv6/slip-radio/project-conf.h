@@ -101,5 +101,8 @@
 
 #define IEEE802154_CONF_PANID            0xABCD
 
+/* A slip radio does not need to go in deep sleep */
+#define LPM_CONF_MAX_PM                  0
+
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* PROJECT_CONF_H_ */
