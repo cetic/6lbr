@@ -51,6 +51,10 @@
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
+#if CONF_6LOWPAN_ND
+#include "net/rpl/rpl-private.h"
+#endif /* CONF_6LOWPAN_ND */
+
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 

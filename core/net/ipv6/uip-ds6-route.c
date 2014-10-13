@@ -35,6 +35,9 @@
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "net/nbr-table.h"
+#if CONF_6LOWPAN_ND
+#include "net/rpl/rpl-private.h"
+#endif /* CONF_6LOWPAN_ND */
 
 #if UIP_CONF_IPV6
 

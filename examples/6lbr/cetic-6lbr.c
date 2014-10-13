@@ -135,7 +135,7 @@ void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
-#if CETIC_6LBR_SMARTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE && !CONF_6LOWPAN_ND
   int new_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
@@ -281,12 +281,14 @@ cetic_6lbr_init(void)
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   //DODAGID = link-local address used !
   cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+#if !CONF_6LOWPAN_ND
 #if CETIC_6LBR_SMARTBRIDGE
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
   }
 #else
   rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
+#endif
 #endif
   LOG6LBR_INFO("Configured as DODAG Root\n");
 #endif

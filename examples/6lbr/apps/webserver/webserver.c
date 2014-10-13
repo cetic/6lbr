@@ -441,7 +441,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
   add("Prefix : ");
   ipaddr_add(&cetic_dag->prefix_info.prefix);
   add("/%d", cetic_dag->prefix_info.length);
