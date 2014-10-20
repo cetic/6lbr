@@ -79,44 +79,6 @@ coap_push_remove_binding(coap_binding_t * binding)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-void
-coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store)
-{
-  memcpy(&store->dest_addr, &binding->dest_addr.u8, 16);
-  store->dest_port = binding->dest_port;
-  strcpy(store->uri, binding->uri);
-  strcpy(store->resource, binding->resource->url);
-  store->flags = binding->flags | COAP_BINDING_FLAGS_NVM_BINDING_VALID;
-  store->pmin = binding->pmin;
-  store->pmax = binding->pmax;
-  store->step = binding->step;
-  store->less_than = binding->less_than;
-  store->greater_than = binding->greater_than;
-}
-/*---------------------------------------------------------------------------*/
-int
-coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding)
-{
-  if ((store->flags & COAP_BINDING_FLAGS_NVM_BINDING_VALID) == 0) {
-    return 0;
-  }
-  memcpy(&binding->dest_addr.u8, &store->dest_addr, 16);
-  binding->dest_port = store->dest_port;
-  strcpy(binding->uri, store->uri);
-  binding->resource = rest_find_resource_by_url(store->resource);
-  if (binding->resource == NULL) {
-    PRINTF("Resource %s not found\n", store->resource);
-    return 0;
-  }
-  binding->flags = store->flags;
-  binding->pmin = store->pmin;
-  binding->pmax = store->pmax;
-  binding->step = store->step;
-  binding->less_than = store->less_than;
-  binding->greater_than = store->greater_than;
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
 static int
 trigger_push(coap_binding_t * binding)
 {

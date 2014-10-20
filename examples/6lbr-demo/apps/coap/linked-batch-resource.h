@@ -58,6 +58,8 @@ linked_batch_table_init(void);
 #if REST_RES_LINKED_BATCH_TABLE
 #define REST_RES_LINKED_BATCH_INIT() \
   linked_batch_table_init();
+//#define CORE_INTERFACE_LINKED_BATCH_NVM \
+//  nvm_linked_batch_data_t linked_batch_data[CORE_ITF_USER_LINKED_BATCH_NB]
 #else
 #define REST_RES_LINKED_BATCH_INIT()
 #endif

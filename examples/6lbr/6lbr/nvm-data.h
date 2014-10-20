@@ -56,6 +56,8 @@ typedef struct {
   //TODO: uint16_t rpl_max_rankinc;
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
+
+  //CORE_INTERFACE_LINKED_BATCH_NVM;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
