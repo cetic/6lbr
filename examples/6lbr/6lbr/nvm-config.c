@@ -59,9 +59,11 @@ static void
 nvm_reset_version_2(nvm_data_t * nvm_data)
 {
   nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
-
+  
+#if CONTIKI_TARGET_NATIVE
   //REST_RES_DEVICE_NVM_INIT(nvm_data);
   CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
+#endif
 }
 
 void
