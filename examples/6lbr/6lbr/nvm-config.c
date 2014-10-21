@@ -65,7 +65,7 @@ nvm_reset_version_2(nvm_data_t * nvm_data)
 }
 
 void
-check_nvm(volatile nvm_data_t * nvm_data, int reset)
+check_nvm(nvm_data_t * nvm_data, int reset)
 {
   uint8_t flash = 0;
   uip_ipaddr_t loc_fipaddr;
