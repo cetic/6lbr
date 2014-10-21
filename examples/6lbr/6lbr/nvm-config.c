@@ -49,7 +49,7 @@
 #include "nvm-itf.h"
 #include "log-6lbr.h"
 
-#include "device-resource.h"
+//#include "device-resource.h"
 
 nvm_data_t nvm_data;
 
@@ -60,7 +60,7 @@ nvm_reset_version_2(nvm_data_t * nvm_data)
 {
   nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
 
-  REST_RES_DEVICE_NVM_INIT(nvm_data);
+  //REST_RES_DEVICE_NVM_INIT(nvm_data);
   CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
 }
 
