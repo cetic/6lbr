@@ -38,13 +38,11 @@
 #define COAP_BINDING_H
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "rest-engine.h"
+#include "coap-binding-nvm.h"
 
-#ifdef COAP_BINDING_CONF_MAX_URI_SIZE
-#define COAP_BINDING_MAX_URI_SIZE COAP_BINDING_CONF_MAX_URI_SIZE
-#else
-#define COAP_BINDING_MAX_URI_SIZE 40
-#endif
+#define COAP_BINDING_FLAGS_NVM_BINDING_VALID 0x8000
 
 struct coap_binding_s {
 	struct coap_binding_s* next;
@@ -63,19 +61,6 @@ struct coap_binding_s {
 };
 
 typedef struct coap_binding_s coap_binding_t;
-
-typedef struct {
-	uint8_t dest_addr[16];
-	uint16_t dest_port;
-	char uri[COAP_BINDING_MAX_URI_SIZE];
-	char resource[COAP_BINDING_MAX_URI_SIZE];
-	int flags;
-	int pmin;
-	int pmax;
-	int step;
-	int less_than;
-	int greater_than;
-} nvm_binding_data_t;
 
 void
 coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store);

@@ -162,19 +162,19 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
     status = *p == '\0' && rel && anchor && method;
   } while (0);
   if (*p != '\0') {
-    coap_error_message = "Invalid message : parsing failed";
+    coap_error_message = "Parsing failed";
     PRINTF("Parsing failed at %ld ('%s')\n", p - buffer, p);
   } else if (!rel) {
-    coap_error_message = "Invalid message : missing relation";
+    coap_error_message = "Missing relation";
     PRINTF("Missing relation\n");
   } else if (!method) {
-    coap_error_message = "Invalid message : wrong or missing binding method";
+    coap_error_message = "Wrong or missing binding method";
     PRINTF("Wrong or missing binding method\n");
   } else if (!anchor) {
-    coap_error_message = "Invalid message : wrong or missing anchor";
+    coap_error_message = "Wrong or missing anchor";
     PRINTF("Wrong or missing anchor\n");
   } else if (!pmin) {
-    coap_error_message = "Invalid message : Pmin is invalid";
+    coap_error_message = "Pmin is invalid";
     PRINTF("Pmin is invalid\n");
   }
   return status;
@@ -247,7 +247,6 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
 #endif
       } else {
         erbium_status_code = REST.status.BAD_REQUEST;
-        //coap_error_message = "Message invalid";
         memb_free(&binding_memb, binding);
       }
     }

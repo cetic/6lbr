@@ -34,46 +34,48 @@
 *         6LBR Team <6lbr@cetic.be>
 */
 
-#include <string.h>
-#include "coap-binding.h"
-#define DEBUG 0
-#include "net/ip/uip-debug.h"
+#ifndef COAP_BINDING_NVM_H
+#define COAP_BINDING_NVM_H
+
+#include "contiki.h"
+
+#ifdef COAP_BINDING_CONF_MAX_URI_SIZE
+#define COAP_BINDING_MAX_URI_SIZE COAP_BINDING_CONF_MAX_URI_SIZE
+#else
+#define COAP_BINDING_MAX_URI_SIZE 40
+#endif
+
+#ifdef CORE_ITF_CONF_USER_BINDING_NB
+#define CORE_ITF_USER_BINDING_NB CORE_ITF_CONF_USER_BINDING_NB
+#else
+#define CORE_ITF_USER_BINDING_NB 2
+#endif
 
 /*---------------------------------------------------------------------------*/
-void
-coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store)
-{
-	memcpy(&store->dest_addr, &binding->dest_addr.u8, 16);
-	store->dest_port = binding->dest_port;
-	strcpy(store->uri, binding->uri);
-	strcpy(store->resource, binding->resource->url);
-	store->flags = binding->flags | COAP_BINDING_FLAGS_NVM_BINDING_VALID;
-	store->pmin = binding->pmin;
-	store->pmax = binding->pmax;
-	store->step = binding->step;
-	store->less_than = binding->less_than;
-	store->greater_than = binding->greater_than;
-}
+
+// MOCHE
+#if 1 //REST_RES_BINDING_TABLE
+#define CORE_INTERFACE_BINDING_TABLE_NVM \
+	nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
+#else
+#define CORE_INTERFACE_BINDING_TABLE_NVM
+#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
+#endif
+
 /*---------------------------------------------------------------------------*/
-int
-coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding)
-{
-	if ((store->flags & COAP_BINDING_FLAGS_NVM_BINDING_VALID) == 0) {
-		return 0;
-	}
-	memcpy(&binding->dest_addr.u8, &store->dest_addr, 16);
-	binding->dest_port = store->dest_port;
-	strcpy(binding->uri, store->uri);
-	binding->resource = rest_find_resource_by_url(store->resource);
-	if (binding->resource == NULL) {
-		PRINTF("Resource %s not found\n", store->resource);
-		return 0;
-	}
-	binding->flags = store->flags;
-	binding->pmin = store->pmin;
-	binding->pmax = store->pmax;
-	binding->step = store->step;
-	binding->less_than = store->less_than;
-	binding->greater_than = store->greater_than;
-	return 1;
-}
+
+typedef struct {
+	uint8_t dest_addr[16];
+	uint16_t dest_port;
+	char uri[COAP_BINDING_MAX_URI_SIZE];
+	char resource[COAP_BINDING_MAX_URI_SIZE];
+	int flags;
+	int pmin;
+	int pmax;
+	int step;
+	int less_than;
+	int greater_than;
+} nvm_binding_data_t;
+
+#endif

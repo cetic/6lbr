@@ -49,7 +49,6 @@
 #define COAP_PUSH_CONF_DEFAULT_PMAX 0
 
 #define COAP_BINDING_FLAGS_PMIN_VALID 0x0001
-#define COAP_BINDING_FLAGS_NVM_BINDING_VALID 0x8000
 
 #define COAP_BINDING(name, resource_name) \
   extern resource_t resource_##resource_name; \

@@ -49,9 +49,20 @@
 #include "nvm-itf.h"
 #include "log-6lbr.h"
 
+#include "device-resource.h"
+
 nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/
+
+static void
+nvm_reset_version_2(nvm_data_t * nvm_data)
+{
+  nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
+
+  REST_RES_DEVICE_NVM_INIT(nvm_data);
+  CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
+}
 
 void
 check_nvm(volatile nvm_data_t * nvm_data, int reset)
@@ -126,6 +137,13 @@ check_nvm(volatile nvm_data_t * nvm_data, int reset)
     nvm_data->rpl_min_hoprankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC;
     nvm_data->rpl_lifetime_unit = CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT;
 
+    flash = 1;
+  }
+  if(nvm_data->version == CETIC_6LBR_NVM_VERSION_1) {
+    if(!reset) {
+      LOG6LBR_WARN("Migrate NVM version 1 towards 2\n");
+    }
+    nvm_reset_version_2(nvm_data);
     flash = 1;
   }
 

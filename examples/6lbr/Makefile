@@ -125,11 +125,12 @@ APPS += er-coap
 APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c block-transfer.c \
 	device-resource.c config-stack-resource.c \
-	coap-common.c core-interface.c binding-table-resource.c linked-batch-resource.c coap-push.c
+	coap-common.c core-interface.c binding-table-resource.c linked-batch-resource.c coap-push.c coap-binding.c
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c
 ifeq ($(TARGET),native)
+CFLAGS+=-DWITH_NVM=1
 APPS += slip-cmd
 PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c plugin.c
 endif

@@ -2,6 +2,7 @@
 #define NVM_DATA_H_
 
 #include <stdint.h>
+#include "coap-binding-nvm.h"
 
 typedef struct {
   //NVM header
@@ -57,6 +58,8 @@ typedef struct {
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
 
+  //REST_RES_DEVICE_NVM;
+  CORE_INTERFACE_BINDING_TABLE_NVM;
   //CORE_INTERFACE_LINKED_BATCH_NVM;
 } nvm_data_t;
 
@@ -67,8 +70,9 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
+#define CETIC_6LBR_NVM_VERSION_2  2
 
-#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_1
+#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
 
 //Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
