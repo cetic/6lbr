@@ -45,7 +45,9 @@ CFLAGS += -DUIP_CONF_IPV6=1
 
 CONTIKI = ../..
 
-PROJECTDIRS += 6lbr apps/webserver apps/udp-server apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client ../6lbr-demo/apps/coap ../6lbr-demo/apps/coap/rest-types
+PROJECTDIRS += 6lbr apps/webserver apps/udp-server \
+	apps/node-info apps/coapserver ../6lbr-demo/apps/udp-client \
+	../6lbr-demo/apps/coap ../6lbr-demo/apps/coap/rest-types
 ifndef ($(TARGET))
 PROJECTDIRS += platform/native
 endif

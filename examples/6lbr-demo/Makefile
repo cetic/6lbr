@@ -4,7 +4,7 @@ PROJECT?=6lbr-demo
 
 WITH_RPL?=1
 
-# Applications 
+# Applications
 
 WITH_SHELL?=0
 WITH_UDPCLIENT?=1
@@ -31,7 +31,9 @@ CONTIKI?=../..
 
 PROJECTDIR?=.
 
-PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client $(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap $(PROJECTDIR)/apps/dtls-echo
+PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
+	$(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap \
+	$(PROJECTDIR)/apps/dtls-echo $(PROJECTDIR)/apps/coap/rest-types
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
@@ -49,7 +51,7 @@ endif
 ifneq ($(WITH_SHELL),0)
 CFLAGS += -DSHELL=1 -DCETIC_6LBR_TRACE_PING=1
 APPS += serial-shell
-PROJECT_SOURCEFILES += shell-6lbr.c 
+PROJECT_SOURCEFILES += shell-6lbr.c
 endif
 
 WITH_DELAY_IP?=0
@@ -80,7 +82,8 @@ APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
 	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
 	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
-	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c
+	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c \
+	coap-binding.c coap-binding-nvm.c coap-linked-batch.c
 endif
 
 ifneq ($(UDP_PERIOD),)
@@ -154,7 +157,7 @@ ifneq  ($(PROJECT_CONF),)
 CFLAGS += -DUSER_PROJECT_CONF_H=\"$(PROJECT_CONF)\"
 endif
 
-PROJECT_SOURCEFILES += 6lbr-demo-main.c 
+PROJECT_SOURCEFILES += 6lbr-demo-main.c
 
 ifneq ($(USER_MODULES),)
 USER_MODULES_DEFINE=${addprefix INIT_USER_MOD(,${addsuffix );,${strip $(USER_MODULES)}}}
