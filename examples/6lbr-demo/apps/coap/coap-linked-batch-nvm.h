@@ -34,53 +34,39 @@
 *         6LBR Team <6lbr@cetic.be>
 */
 
-#ifndef COAP_BINDING_NVM_H
-#define COAP_BINDING_NVM_H
+#ifndef COAP_LINKED_BATCH_NVM_H_
+#define COAP_LINKED_BATCH_NVM_H_
 
 #include "contiki-conf.h"
 
-#ifdef CORE_ITF_CONF_BINDING_TABLE_NVM
-#define CORE_INTERFACE_BINDING_TABLE_NVM CORE_ITF_CONF_BINDING_TABLE_NVM
+#ifdef CORE_ITF_CONF_LINKED_BATCH_NVM
+#define CORE_INTERFACE_LINKED_BATCH_NVM CORE_ITF_CONF_LINKED_BATCH_NVM
 #else
-#define CORE_INTERFACE_BINDING_TABLE_NVM 1
+#define CORE_INTERFACE_LINKED_BATCH_NVM 1
 #endif
 
-#ifdef COAP_BINDING_CONF_MAX_URI_SIZE
-#define COAP_BINDING_MAX_URI_SIZE COAP_BINDING_CONF_MAX_URI_SIZE
+#ifdef CORE_ITF_CONF_USER_LINKED_BATCH_NB
+#define CORE_ITF_USER_LINKED_BATCH_NB CORE_ITF_CONF_USER_LINKED_BATCH_NB
 #else
-#define COAP_BINDING_MAX_URI_SIZE 40
+#define CORE_ITF_USER_LINKED_BATCH_NB 2
 #endif
 
-#ifdef CORE_ITF_CONF_USER_BINDING_NB
-#define CORE_ITF_USER_BINDING_NB CORE_ITF_CONF_USER_BINDING_NB
+#ifdef CORE_ITF_CONF_LINKED_BATCH_MAX_URI_SIZE
+#define CORE_ITF_LINKED_BATCH_MAX_URI_SIZE CORE_ITF_CONF_LINKED_BATCH_MAX_URI_SIZE
 #else
-#define CORE_ITF_USER_BINDING_NB 2
+#define CORE_ITF_LINKED_BATCH_MAX_URI_SIZE 40
 #endif
 
-/*---------------------------------------------------------------------------*/
+void
+linked_batch_table_init(void);
 
-#if CORE_INTERFACE_BINDING_TABLE_NVM
-#define CORE_INTERFACE_BINDING_TABLE_NVM_DATA \
-	nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
+#if CORE_INTERFACE_LINKED_BATCH_NVM
+#define CORE_INTERFACE_LINKED_BATCH_NVM_DATA \
+	char linked_batch_data[CORE_ITF_USER_LINKED_BATCH_NB][CORE_ITF_LINKED_BATCH_MAX_URI_SIZE]
+#define CORE_INTERFACE_LINKED_BATCH_NVM_INIT(nvm_data) linked_batch_table_clear_nvm_links()
 #else
-#define CORE_INTERFACE_BINDING_TABLE_NVM_DATA
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
+#define CORE_INTERFACE_LINKED_BATCH_NVM_DATA
+#define CORE_INTERFACE_LINKED_BATCH_NVM_INIT(nvm_data)
 #endif
 
-/*---------------------------------------------------------------------------*/
-
-typedef struct {
-	uint8_t dest_addr[16];
-	uint16_t dest_port;
-	char uri[COAP_BINDING_MAX_URI_SIZE];
-	char resource[COAP_BINDING_MAX_URI_SIZE];
-	int flags;
-	int pmin;
-	int pmax;
-	int step;
-	int less_than;
-	int greater_than;
-} nvm_binding_data_t;
-
-#endif
+#endif /* COAP_LINKED_BATCH_NVM_H_ */

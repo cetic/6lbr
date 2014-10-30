@@ -61,8 +61,8 @@ PROCESS_THREAD(coap_server_process, ev, data)
   REST_RES_CONFIG_STACK_INIT();
 
   /* Linked batch and binding tables must be initialized after all the resources */
-  REST_RES_LINKED_BATCH_INIT();
   REST_RES_BINDING_TABLE_INIT();
+  REST_RES_LINKED_BATCH_INIT();
 
   PROCESS_END();
 }

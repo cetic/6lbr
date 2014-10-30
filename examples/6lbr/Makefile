@@ -127,7 +127,8 @@ APPS += er-coap
 APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c block-transfer.c \
 	device-resource.c config-stack-resource.c \
-	coap-common.c core-interface.c binding-table-resource.c linked-batch-resource.c coap-push.c coap-binding.c
+	coap-common.c core-interface.c binding-table-resource.c \
+	linked-batch-resource.c coap-push.c coap-binding.c coap-linked-batch.c
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c

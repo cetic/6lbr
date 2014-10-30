@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "coap-binding-nvm.h"
+#include "coap-linked-batch-nvm.h"
 
 typedef struct {
   //NVM header
@@ -59,8 +60,8 @@ typedef struct {
   uint16_t rpl_lifetime_unit;
 
   //REST_RES_DEVICE_NVM;
-  CORE_INTERFACE_BINDING_TABLE_NVM;
-  //CORE_INTERFACE_LINKED_BATCH_NVM;
+  CORE_INTERFACE_BINDING_TABLE_NVM_DATA;
+  CORE_INTERFACE_LINKED_BATCH_NVM_DATA;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/

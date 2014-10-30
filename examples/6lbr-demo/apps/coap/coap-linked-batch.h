@@ -37,6 +37,14 @@
 #ifndef COAP_LINKED_BATCH_H
 #define COAP_LINKED_BATCH_H
 
+#include "contiki.h"
+#include "rest-engine.h"
+#include "coap-linked-batch-nvm.h"
 
+void
+coap_linked_batch_serialize(resource_t const *linked_batch, char *store);
+
+int
+coap_linked_batch_deserialize(char const *store, resource_t **linked_batch);
 
 #endif

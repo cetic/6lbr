@@ -83,7 +83,7 @@ PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c l
 	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
 	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
 	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c \
-	coap-binding.c coap-binding-nvm.c coap-linked-batch.c
+	coap-binding.c coap-linked-batch.c
 endif
 
 ifneq ($(UDP_PERIOD),)
