@@ -1,4 +1,4 @@
-CFLAGS=-I../6lbr -I../platform/native -I../../6lbr-demo/apps/coap/
+CFLAGS=-I../6lbr -I../platform/native -I../../6lbr-demo/apps/coap/ -I.
 
 all: nvm_tool
 

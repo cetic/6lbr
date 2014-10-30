@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, CETIC.
+* Copyright (c) 2013, CETIC.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,33 +29,9 @@
 
 /**
 * \file
-*         Simple CoAP Library
+*         6LBR-Demo Project Configuration
 * \author
 *         6LBR Team <6lbr@cetic.be>
 */
-#define LOG6LBR_MODULE "NVM"
-#include <string.h>
-#include "coap-linked-batch.h"
-#include "coap-common.h"
-#include "net/ip/uip-debug.h"
 
-void
-coap_linked_batch_serialize(const resource_t *linked_batch, char *store) {
-	PRINTF("Serializing %s...\n", linked_batch->url);
-	strcpy(store, linked_batch->url);
-	PRINTF("Serialized %s.\n", store);
-}
-
-int
-coap_linked_batch_deserialize(const char *store, resource_t **linked_batch) {
-	// If there is no uri to deserialize
-	if(*store == '\0') {
-		return -1;
-	}
-	*linked_batch = rest_find_resource_by_url(store);
-	if(*linked_batch == NULL) {
-		PRINTF("Resource %s not found\n", store);
-		return 0;
-	}
-	return 1;
-}
+// Add user configuration for nvm customization

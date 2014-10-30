@@ -36,6 +36,7 @@
 
 #include <string.h>
 #include "coap-binding.h"
+#include "coap-common.h"
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
