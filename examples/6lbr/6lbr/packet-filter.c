@@ -149,16 +149,16 @@ wireless_input(void)
 
   //Packet forwarding
   //-----------------
-#if CETIC_6LBR_TRANSPARENTBRIDGE
   if(forwardFrame) {
+#if CETIC_6LBR_TRANSPARENTBRIDGE
     LOG6LBR_PRINTF(PACKET, PF_IN, "wireless_input: forwarding frame\n");
     if(eth_output((uip_lladdr_t *) packetbuf_addr(PACKETBUF_ADDR_SENDER),
                   (uip_lladdr_t *) packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
       //Restore packet as eth_output might have converted its content
       mac_translateIPLinkLayer(ll_802154_type);
     }
-  }
 #endif
+  }
 
 
   //Handle packet
@@ -289,10 +289,10 @@ eth_input(void)
 #endif
   }
 
-  //Handle packet
-  //-------------
-#if CETIC_6LBR_TRANSPARENTBRIDGE
+  //Packet forwarding
+  //-----------------
   if(forwardFrame) {
+#if CETIC_6LBR_TRANSPARENTBRIDGE
     mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
 #if CETIC_6LBR_LEARN_RPL_MAC
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
@@ -317,8 +317,11 @@ eth_input(void)
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_IN, &destAddr, "eth_input: Forwarding frame to ");
     wireless_output(&srcAddr, &destAddr);
 #endif
-  }
 #endif
+  }
+
+  //Handle packet
+  //-------------
   if(processFrame) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: Processing frame\n");
 #if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
