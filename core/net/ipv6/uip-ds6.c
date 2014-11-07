@@ -47,6 +47,10 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-packetqueue.h"
+#if CETIC_6LBR
+#define LOG6LBR_MODULE "DS6"
+#include "log-6lbr.h"
+#endif
 
 #if CETIC_6LBR
 #include "cetic-6lbr.h"
@@ -816,6 +820,25 @@ uip_ds6_get_global_br(int8_t state, uip_ds6_border_router_t *br)
 #endif /* CONF_6LOWPAN_ND */
 
 /*---------------------------------------------------------------------------*/
+/*
+ * get the number of configured address -
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+int
+uip_ds6_get_addr_number(int8_t state)
+{
+  int count = 0;
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if(locaddr->isused && (state == -1 || locaddr->state == state)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
 uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
 {
@@ -1007,6 +1030,9 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
 int
 uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 {
+#if CETIC_6LBR
+  LOG6LBR_6ADDR(ERROR, &addr->ipaddr, "Address is already used : ");
+#endif
   if(uip_is_addr_link_local(&addr->ipaddr)) {
     PRINTF("Contiki shutdown, DAD for link local address failed\n");
     return 0;

@@ -465,6 +465,7 @@ uip_ds6_addr_t *uip_ds6_get_global(int8_t state);
 #if CONF_6LOWPAN_ND
 uip_ds6_addr_t *uip_ds6_get_global_br(int8_t state, uip_ds6_border_router_t *br);
 #endif /* CONF_6LOWPAN_ND */
+int uip_ds6_get_addr_number(int8_t state);
 
 /** @} */
 

@@ -329,10 +329,10 @@ cetic_6lbr_init_finalize(void)
 
 /*---------------------------------------------------------------------------*/
 
-static struct etimer reboot_timer;
-
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
+  static struct etimer timer;
+  static int addr_number;
   PROCESS_BEGIN();
 
   cetic_6lbr_restart_event = process_alloc_event();
@@ -372,6 +372,20 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   packet_filter_init();
   cetic_6lbr_init();
 
+  //Wait result of DAD on 6LBR addresses
+  LOG6LBR_INFO("Checking addresses duplication\n");
+  addr_number = uip_ds6_get_addr_number(-1);
+  etimer_set(&timer, CLOCK_SECOND);
+  while(uip_ds6_get_addr_number(ADDR_TENTATIVE) > 0) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+    etimer_set(&timer, CLOCK_SECOND);
+  }
+  if(uip_ds6_get_addr_number(-1) != addr_number) {
+    LOG6LBR_FATAL("Addresses duplication failed");
+    watchdog_reboot();
+  }
+  cetic_6lbr_init_finalize();
+
 #if WEBSERVER
   process_start(&webserver_nogui_process, NULL);
 #endif
@@ -396,7 +410,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
-  etimer_set(&reboot_timer, CLOCK_SECOND);
+  etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 #if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {
