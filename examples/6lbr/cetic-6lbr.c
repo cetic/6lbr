@@ -131,27 +131,28 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
 #if CETIC_6LBR_SMARTBRIDGE
-  int new_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
+  int new_prefix = !uip_ipaddr_prefixcmp(&wsn_net_prefix, prefix, len);
+  int new_dag_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
-  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
 
-  uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
-
-  if(cetic_dag != NULL) {
-    rpl_set_prefix(cetic_dag, prefix, len);
+  if(new_prefix) {
+    LOG6LBR_6ADDR(INFO, prefix, "Setting prefix : ");
+    uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
     wsn_net_prefix_len = len;
-    if(new_prefix) {
-      LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
-    }
-  }
+    LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address : ");
 #if CONTIKI_TARGET_NATIVE
   cetic_6lbr_save_ip();
 #endif
+  }
+  if(new_dag_prefix) {
+    rpl_set_prefix(cetic_dag, prefix, len);
+    LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
+    rpl_repair_root(RPL_DEFAULT_INSTANCE);
+  }
 #endif
 }
 
@@ -187,7 +188,11 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-  }                             //End manual configuration
+  } else {                            //End manual configuration
+    uip_create_unspecified(&wsn_net_prefix);
+    wsn_net_prefix_len = 0;
+    uip_create_unspecified(&wsn_ip_addr);
+  }
 #endif
 
 #if CETIC_6LBR_ROUTER
