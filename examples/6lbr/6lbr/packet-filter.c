@@ -449,27 +449,26 @@ bridge_output(const uip_lladdr_t * dest)
     LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
   }
   //Filter WSN vs Ethernet segment traffic
-  if(IS_EUI48_ADDR(dest) || isBroadcast) {
+  if(IS_EUI48_ADDR(dest)) {
     eth_output(NULL, dest);
-  }
-  if( ! IS_EUI48_ADDR(dest) || isBroadcast) {
-	if (isBroadcast
-	    && UIP_IP_BUF->proto == UIP_PROTO_ICMP6
-	    && UIP_ICMP_BUF->type == ICMP6_NA) {
-		return 0;
-	}
+  } else if(IS_EUI64_ADDR(dest)) {
     wireless_output(NULL, dest);
+  } else {
+    if (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 || UIP_ICMP_BUF->type != ICMP6_NA) {
+      wireless_output(NULL, dest);
+    }
+    eth_output(NULL, dest);
   }
   return 0;
 }
 #endif
 
 #if CETIC_6LBR_ROUTER
-#if UIP_CONF_IPV6_RPL
 static uint8_t
 bridge_output(const uip_lladdr_t * dest)
 {
   int ethernetDest = 0;
+  int wsnDest = 0;
   if(uip_len == 0) {
     LOG6LBR_ERROR("Trying to send empty packet\n");
     return 0;
@@ -479,69 +478,58 @@ bridge_output(const uip_lladdr_t * dest)
   } else {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
   }
-  if(IS_BROADCAST_ADDR(dest)) {
+  if(IS_EUI64_ADDR(dest)) {
+    wsnDest = 1;
+  } else if (IS_EUI48_ADDR(dest)) {
+    ethernetDest = 1;
+  } else {
     //Obviously we can not guess the target segment for a multicast packet
     //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
     //or, in case of link-local packet, check packet type and/or packet data
-    if((UIP_IP_BUF->proto == UIP_PROTO_ICMP6
-        && UIP_ICMP_BUF->type == ICMP6_RA)
-       || (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
-           && UIP_ICMP_BUF->type == ICMP6_NS
-           && uip_ipaddr_prefixcmp(&eth_net_prefix,
-                                   &UIP_ND6_NS_BUF->tgtipaddr, 64))
-       || uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+#if UIP_CONF_IPV6_RPL
+    if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
+        (UIP_ICMP_BUF->type == ICMP6_RA || UIP_ICMP_BUF->type == ICMP6_RS)) {
       ethernetDest = 1;
-    }
-  }
-  if(ethernetDest || IS_EUI48_ADDR(dest)) {
-    eth_output(NULL, dest);
-  } else {
-#if CETIC_6LBR_ONE_ITF
-	eth_output(&wsn_mac_addr, dest);
+    } else if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+        && UIP_ICMP_BUF->type == ICMP6_NS
+        && uip_ipaddr_prefixcmp(&eth_net_prefix,
+                                &UIP_ND6_NS_BUF->tgtipaddr, 64)) {
+      ethernetDest = 1;
 #else
-	wireless_output(NULL, dest);
+    if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
+        (UIP_ICMP_BUF->type == ICMP6_RA || UIP_ICMP_BUF->type == ICMP6_RS)) {
+      wsnDest = 1;
+    } else if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
+        && UIP_ICMP_BUF->type == ICMP6_NS
+        && uip_ipaddr_prefixcmp(&wsn_net_prefix,
+                                &UIP_ND6_NS_BUF->tgtipaddr, 64)) {
+      wsnDest = 1;
 #endif
-  }
-  return 0;
-}
-#else
-static uint8_t
-bridge_output(const uip_lladdr_t * dest)
-{
-  int isBroadcast = IS_BROADCAST_ADDR(dest);
-  if(!isBroadcast) {
-    LOG6LBR_LLADDR_PRINTF(PACKET, PF_OUT, dest, "bridge_output: Sending packet to ");
-  } else {
-    LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
-  }
-  if(IS_EUI48_ADDR(dest)) {
-    eth_output(NULL, dest);
-  } else if(IS_EUI64_ADDR(dest)) {
-    wireless_output(NULL, dest);
-  } else if (isBroadcast) {
-    //Obviously we can not guess the target segment for a multicast packet
-    //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
-    //or, in case of link-local packet, check packet type and/or packet data
-    if(uip_ipaddr_cmp(&wsn_ip_local_addr, &UIP_IP_BUF->srcipaddr)
-       || (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
-        && UIP_ICMP_BUF->type == ICMP6_RA)
-       || (UIP_IP_BUF->proto == UIP_PROTO_ICMP6
-           && UIP_ICMP_BUF->type == ICMP6_NS
-           && uip_ipaddr_prefixcmp(&wsn_net_prefix,
-                                   &UIP_ND6_NS_BUF->tgtipaddr, 64))
-       || uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
-      wireless_output(NULL, dest);
-    } else if(uip_ipaddr_cmp(&eth_ip_local_addr, &UIP_IP_BUF->srcipaddr)
-        || uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
-      eth_output(NULL, dest);
+    } else if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
+        UIP_ICMP_BUF->type == ICMP6_RPL) {
+      wsnDest = 1;
+    } else if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+      ethernetDest = 1;
+    } else if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+      ethernetDest = 1;
     } else {
-      wireless_output(NULL, dest);
-      eth_output(NULL, dest);
+      // We could not guess the destination, forward to both
+      ethernetDest = 1;
+      wsnDest = 1;
     }
+  }
+  if(wsnDest) {
+#if CETIC_6LBR_ONE_ITF
+    eth_output(&wsn_mac_addr, dest);
+#else
+    wireless_output(NULL, dest);
+#endif
+  }
+  if(ethernetDest) {
+    eth_output(NULL, dest);
   }
   return 0;
 }
-#endif
 #endif
 
 /*---------------------------------------------------------------------------*/
