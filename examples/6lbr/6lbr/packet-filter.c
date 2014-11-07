@@ -58,6 +58,9 @@ extern const linkaddr_t linkaddr_null;
 
 static int eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest);
 
+int packet_filter_eth_packet;
+int packet_filter_wsn_packet;
+
 /*---------------------------------------------------------------------------*/
 
 
@@ -101,6 +104,9 @@ wireless_input(void)
   int forwardFrame = 0;
 
   LOG6LBR_PRINTF(PACKET, PF_IN, "wireless_input\n");
+
+  packet_filter_eth_packet = 0;
+  packet_filter_wsn_packet = 1;
 
   //Source filtering
   //----------------
@@ -221,6 +227,10 @@ eth_input(void)
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
   uip_lladdr_t srcAddr;
 #endif
+
+  packet_filter_eth_packet = 1;
+  packet_filter_wsn_packet = 0;
+
   uip_lladdr_t destAddr;
   int processFrame = 0;
   int forwardFrame = 0;
