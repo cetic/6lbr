@@ -137,11 +137,11 @@ uint32_t csma_dropped;
 /*---------------------------------------------------------------------------*/
 int csma_allocated_packets(void)
 {
-  return MAX_QUEUED_PACKETS - memb_count(&packet_memb);
+  return MAX_QUEUED_PACKETS - memb_numfree(&packet_memb);
 }
 int csma_allocated_neighbors(void)
 {
-  return CSMA_MAX_NEIGHBOR_QUEUES - memb_count(&neighbor_memb);
+  return CSMA_MAX_NEIGHBOR_QUEUES - memb_numfree(&neighbor_memb);
 }
 /*---------------------------------------------------------------------------*/
 static struct neighbor_queue *
@@ -200,7 +200,7 @@ free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
     memb_free(&metadata_memb, p->ptr);
     memb_free(&packet_memb, p);
     PRINTF("csma: free_queued_packet, queue length %d, free packets %d\n",
-        list_length(n->queued_packet_list), memb_count(&packet_memb));
+           list_length(n->queued_packet_list), memb_numfree(&packet_memb));
     if(list_head(n->queued_packet_list) != NULL) {
       /* There is a next packet. We reset current tx information */
       n->transmissions = 0;
@@ -383,7 +383,7 @@ send_packet(mac_callback_t sent, void *ptr)
 
   if(n != NULL) {
     /* Add packet to the neighbor's queue */
-    if (list_length(n->queued_packet_list) < CSMA_MAX_PACKET_PER_NEIGHBOR ) {
+    if(list_length(n->queued_packet_list) < CSMA_MAX_PACKET_PER_NEIGHBOR) {
       q = memb_alloc(&packet_memb);
       if(q != NULL) {
         q->ptr = memb_alloc(&metadata_memb);
@@ -397,7 +397,7 @@ send_packet(mac_callback_t sent, void *ptr)
               metadata->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
             } else {
               metadata->max_transmissions =
-                    packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
+                packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
             }
             metadata->sent = sent;
             metadata->cptr = ptr;
@@ -410,7 +410,7 @@ send_packet(mac_callback_t sent, void *ptr)
             }
 
             PRINTF("csma: send_packet, queue length %d, free packets %d\n",
-                list_length(n->queued_packet_list), memb_count(&packet_memb));
+                   list_length(n->queued_packet_list), memb_numfree(&packet_memb));
             /* If q is the first packet in the neighbor's queue, send asap */
             if(list_head(n->queued_packet_list) == q) {
               ctimer_set(&n->transmit_timer, 0, transmit_packet_list, n);
@@ -444,7 +444,7 @@ static void
 input_packet(void)
 {
   csma_received_packets++;
-  NETSTACK_NETWORK.input();
+  NETSTACK_LLSEC.input();
 }
 /*---------------------------------------------------------------------------*/
 static int

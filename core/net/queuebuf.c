@@ -308,12 +308,12 @@ queuebuf_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-queuebuf_freeslots(void)
+queuebuf_numfree(void)
 {
   if(packetbuf_is_reference()) {
-      return memb_count(&refbufmem);
+    return memb_numfree(&refbufmem);
   } else {
-    return memb_count(&bufmem);
+    return memb_numfree(&bufmem);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -407,6 +407,19 @@ queuebuf_update_attr_from_packetbuf(struct queuebuf *buf)
 {
   struct queuebuf_data *buframptr = queuebuf_load_to_ram(buf);
   packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+#if WITH_SWAP
+  if(buf->location == IN_CFS) {
+    queuebuf_flush_tmpdata();
+  }
+#endif
+}
+/*---------------------------------------------------------------------------*/
+void
+queuebuf_update_from_packetbuf(struct queuebuf *buf)
+{
+  struct queuebuf_data *buframptr = queuebuf_load_to_ram(buf);
+  packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+  buframptr->len = packetbuf_copyto(buframptr->data);
 #if WITH_SWAP
   if(buf->location == IN_CFS) {
     queuebuf_flush_tmpdata();

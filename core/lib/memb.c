@@ -108,18 +108,17 @@ memb_inmemb(struct memb *m, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 int
-memb_count(struct memb *m)
+memb_numfree(struct memb *m)
 {
   int i;
-  int slot_free = 0;
+  int num_free = 0;
 
   for(i = 0; i < m->num; ++i) {
     if(m->count[i] == 0) {
-      ++slot_free;
+      ++num_free;
     }
   }
 
-  return slot_free;
+  return num_free;
 }
-
 /** @} */
