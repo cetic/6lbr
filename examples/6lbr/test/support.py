@@ -453,6 +453,9 @@ class CoojaWsn(Wsn):
                         print >> sys.stderr, "Adding mobility, point %f,%f to node %s" % (float(xy[0]), float(xy[1]), nodeid)
         except IOError:
             pass #TODO
+        if self.get_test_mote() == None:
+            print >> sys.stderr, "Can not find test mote"
+            raise
 
     def tearDown(self):
         if self.cooja:
