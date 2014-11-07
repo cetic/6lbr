@@ -187,26 +187,7 @@ send_packet(mac_callback_t sent, void *ptr)
       sid = setup_callback(sent, ptr);
       if (sid != -1) {
         LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d, cb: %d)\n", packetbuf_datalen(), sid, callback_count);
-        if (LOG6LBR_COND(DUMP, RADIO_OUT)) {
-          uint8_t *data = packetbuf_dataptr();
-          int len = packetbuf_datalen();
-          int i;
-      #if WIRESHARK_IMPORT_FORMAT
-          printf("0000");
-          for(i = 0; i < len; i++)
-            printf(" %02x", data[i]);
-      #else
-          printf("         ");
-          for(i = 0; i < len; i++) {
-            printf("%02x", data[i]);
-            if((i & 3) == 3)
-              printf(" ");
-            if((i & 15) == 15)
-              printf("\n         ");
-          }
-      #endif
-          printf("\n");
-        }
+        LOG6LBR_DUMP_PACKET(RADIO_OUT, packetbuf_dataptr(), packetbuf_datalen());
 
         buf[0] = '!';
         buf[1] = 'S';
@@ -236,26 +217,8 @@ static void
 packet_input(void)
 {
   LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
-  if (LOG6LBR_COND(DUMP, RADIO_IN)) {
-    uint8_t *data = packetbuf_dataptr();
-    int len = packetbuf_datalen();
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < len; i++)
-      printf(" %02x", data[i]);
-#else
-    printf("         ");
-    for(i = 0; i < len; i++) {
-      printf("%02x", data[i]);
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
+  LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
+
   if(NETSTACK_FRAMER.parse() < 0) {
     LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
   } else {

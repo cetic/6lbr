@@ -92,7 +92,7 @@ send_to_uip(void)
   if(tcpip_inputfunc != NULL) {
     tcpip_inputfunc();
   } else {
-    LOG6LBR_WARN("No input function set\n");
+    LOG6LBR_DEBUG("No input function set\n");
   }
 }
 /*---------------------------------------------------------------------------*/

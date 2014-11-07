@@ -52,6 +52,8 @@
 extern void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
 extern void uip_debug_lladdr_print(const uip_lladdr_t *addr);
 extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
+extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
+extern void log6lbr_dump_packet_with_header(uint8_t const *header, uint32_t header_len, uint8_t const *data, uint32_t data_len);
 
 #define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }
 #define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
@@ -281,6 +283,8 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_6ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_6ADDR, addr, __VA_ARGS__)
 #define LOG6LBR_LLADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_LLADDR, addr, __VA_ARGS__)
 #define LOG6LBR_ETHADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_ETHADDR, addr, __VA_ARGS__)
+#define LOG6LBR_DUMP_PACKET(service, data, len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet, data, len)
+#define LOG6LBR_DUMP_PACKET_WITH_HEADER(service, header, header_len, data, data_len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet_with_header, header, header_len, data, data_len)
 
 #define LOG6LBR_FATAL(...) LOG6LBR_PRINTF(FATAL, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_ERROR(...) LOG6LBR_PRINTF(ERROR, GLOBAL, __VA_ARGS__)

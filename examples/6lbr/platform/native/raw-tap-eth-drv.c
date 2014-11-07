@@ -71,24 +71,7 @@ eth_drv_send(void)
   memcpy(tmp_tap_buf + ETHERNET_LLH_LEN, uip_buf, uip_len);
 
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_OUT)) {
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++)
-      printf(" %02x", tmp_tap_buf[i]);
-#else
-    printf("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      printf("%02x", tmp_tap_buf[i]);
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
+  LOG6LBR_DUMP_PACKET(ETH_OUT, tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
 
   tun_output(tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
 }
@@ -97,30 +80,8 @@ void
 eth_drv_input(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_IN)) {
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
-#else
-    printf("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
-      } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
+  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_IN, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
+
   eth_input();
 }
 

@@ -70,30 +70,7 @@ void
 eth_drv_send(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_COND_FUNC(DUMP, ETH_OUT,
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    PRINTF("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      PRINTF(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      PRINTF(" %02x", uip_buf[i]);
-#else
-    PRINTF("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        PRINTF("%02x", ll_header[i]);
-      } else {
-        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        PRINTF(" ");
-      if((i & 15) == 15)
-        PRINTF("\n         ");
-    }
-#endif
-    PRINTF("\n");
-  )
+  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_OUT, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
 
   enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
 }
@@ -102,30 +79,7 @@ void
 eth_drv_input(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_COND_FUNC(DUMP, ETH_IN,
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    PRINTF("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      PRINTF(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      PRINTF(" %02x", uip_buf[i]);
-#else
-    PRINTF("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        PRINTF("%02x", ll_header[i]);
-      } else {
-        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        PRINTF(" ");
-      if((i & 15) == 15)
-        PRINTF("\n         ");
-    }
-#endif
-    PRINTF("\n");
-  )
+  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_IN, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
 
   eth_input();
 }
