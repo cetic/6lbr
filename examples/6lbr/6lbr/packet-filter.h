@@ -40,4 +40,7 @@
 void packet_filter_init(void);
 void eth_input(void);
 
+extern int packet_filter_eth_packet;
+extern int packet_filter_wsn_packet;
+
 #endif
