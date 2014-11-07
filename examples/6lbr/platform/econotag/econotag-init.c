@@ -47,10 +47,11 @@
 void
 platform_init(void)
 {
-  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
-  eth_mac_addr_ready = 1;
+}
+
+void
+platform_radio_init(void)
+{
   LOG6LBR_INFO("Setting channel %d\n", nvm_data.channel);
   set_channel(nvm_data.channel - 11);
 }

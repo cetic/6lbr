@@ -48,7 +48,6 @@
 #include "slip-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
-//Temporary, should be removed
 #include "native-rdc.h"
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
@@ -56,6 +55,10 @@ PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 #if UIP_CONF_LLH_LEN == 0
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
+
+//Initialisation flags
+int ethernet_ready = 0;
+int eth_mac_addr_ready = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -129,10 +132,13 @@ eth_drv_exit(void)
 void
 eth_drv_init()
 {
-  LOG6LBR_INFO("RAW/TAP init\n");
-
-  /* tun init is also responsible for setting up the SLIP connection */
+  if(use_raw_ethernet) {
+    LOG6LBR_INFO("RAW Ethernet interface init\n");
+  } else {
+    LOG6LBR_INFO("TAP Ethernet interface init\n");
+  }
   tun_init();
+  process_start(&eth_drv_process, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -141,23 +147,14 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  eth_drv_init();
 #if !CETIC_6LBR_ONE_ITF
-  static struct etimer et;
-  slip_reboot();
-  while(!mac_set) {
-    etimer_set(&et, CLOCK_SECOND);
-    slip_request_mac();
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-  }
-  //Set radio channel
-  slip_set_rf_channel(nvm_data.channel);
-
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address
+    while(!native_rdc_mac_ready) {
+      PROCESS_PAUSE();
+    }
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
     eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
-    LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
   }
 #else
@@ -166,8 +163,8 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
   linkaddr_set_node_addr((linkaddr_t *) &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
 #endif
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   ethernet_ready = 1;
 
   PROCESS_END();

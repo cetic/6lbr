@@ -47,15 +47,18 @@
 #include "packetutils.h"
 #include "sys/ctimer.h"
 #include "native-slip.h"
+#include "slip-cmds.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #include <string.h>
 
+PROCESS(native_rdc_process, "Native RDC process");
+
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 0
 
-uint8_t mac_set;
+uint8_t native_rdc_mac_ready;
 
 #define MAX_CALLBACKS 16
 static int callback_pos;
@@ -296,7 +299,7 @@ void
 slip_request_mac(void)
 {
   LOG6LBR_INFO("Fetching MAC address\n");
-  mac_set = 0;
+  native_rdc_mac_ready = 0;
   write_to_slip((uint8_t *) "?M", 2);
 }
 
@@ -307,7 +310,7 @@ slip_got_mac(const uint8_t * data)
   linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
   linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
-  mac_set = 1;
+  native_rdc_mac_ready = 1;
 }
 
 void
@@ -334,6 +337,31 @@ slip_set_rf_channel(uint8_t channel)
   msg[1] = 'C';
   msg[2] = channel;
   write_to_slip(msg, 3);
+}
+/*---------------------------------------------------------------------------*/
+void
+native_rdc_init(void)
+{
+  slip_init();
+  process_start(&border_router_cmd_process, NULL);
+  process_start(&native_rdc_process, NULL);
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(native_rdc_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  static struct etimer et;
+  slip_reboot();
+  while(!native_rdc_mac_ready) {
+    etimer_set(&et, CLOCK_SECOND);
+    slip_request_mac();
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+  }
+  //Set radio channel
+  slip_set_rf_channel(nvm_data.channel);
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver border_router_rdc_driver = {

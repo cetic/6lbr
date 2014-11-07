@@ -60,7 +60,9 @@ PROCESS(eth_drv_process, "ENC28J60 driver");
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
 
-extern void eth_input(void);
+//Initialisation flags
+int ethernet_ready = 0;
+int eth_mac_addr_ready = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -137,7 +139,15 @@ void
 eth_drv_init()
 {
   LOG6LBR_INFO("ENC28J60 init\n");
+
+  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
+  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
+  eth_mac_addr_ready = 1;
+
   enc28j60_init(eth_mac_addr);
+  process_start(&eth_drv_process, NULL);
+  ethernet_ready = 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -155,16 +165,11 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   PROCESS_BEGIN();
 
   LOG6LBR_INFO("ENC-28J60 Process started\n");
-  eth_drv_init();
-
-  ethernet_ready = 1;
 
   while(1) {
     enc28j60_pollhandler();
     PROCESS_PAUSE();
   }
-
-  eth_drv_exit();
 
   PROCESS_END();
 }

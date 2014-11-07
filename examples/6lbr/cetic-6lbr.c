@@ -70,13 +70,8 @@
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
 #include <arpa/inet.h>
-#else
-#include "watchdog.h"
 #endif
-
-//Initialisation flags
-int ethernet_ready = 0;
-int eth_mac_addr_ready = 0;
+#include "watchdog.h"
 
 //WSN
 uip_lladdr_t wsn_mac_addr;
@@ -342,7 +337,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   platform_init();
 
-  process_start(&eth_drv_process, NULL);
+#if !CETIC_6LBR_ONE_ITF
+  platform_radio_init();
+#endif
+
+  eth_drv_init();
 
   while(!ethernet_ready) {
     PROCESS_PAUSE();

@@ -45,7 +45,9 @@
 extern uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
 
-PROCESS_NAME(eth_drv_process);
+//Initialisation flags
+extern int ethernet_ready;
+extern int eth_mac_addr_ready;
 
 void eth_drv_send(void);
 void eth_drv_input(void);
