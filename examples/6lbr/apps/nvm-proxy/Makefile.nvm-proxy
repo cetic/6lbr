@@ -1,0 +1,2 @@
+CFLAGS += -DWITH_NVM_PROXY=1
+nvm-proxy_src = nvm-proxy.c

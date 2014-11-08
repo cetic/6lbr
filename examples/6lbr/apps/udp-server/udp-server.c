@@ -37,7 +37,9 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
 #include "log-6lbr.h"
 
 #include <string.h>

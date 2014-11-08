@@ -48,7 +48,9 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "rio.h"
+#if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
 
 #if CONTIKI_TARGET_ECONOTAG
 #include "mc1322x.h"

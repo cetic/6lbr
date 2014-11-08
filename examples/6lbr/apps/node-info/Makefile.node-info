@@ -1,0 +1,2 @@
+CFLAGS += -DCETIC_NODE_INFO=1
+node-info_src = node-info.c 
