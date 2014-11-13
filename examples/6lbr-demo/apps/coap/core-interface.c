@@ -88,7 +88,8 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
 
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
-    REST_FORMAT_BATCH_START(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+    if(batch_resource_list_size > 0)
+      REST_FORMAT_BATCH_START(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
     for (i = 0; i < batch_resource_list_size; ++i) {
       tmp = 0;
       batch_resource_list[i]->get_handler(request, response, batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
@@ -97,7 +98,8 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
         REST_FORMAT_SEPARATOR(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
       }
     }
-    REST_FORMAT_BATCH_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+    if(batch_resource_list_size > 0)
+      REST_FORMAT_BATCH_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
   }
   if (*offset > *batch_buffer_size) {
     coap_set_status_code(response, BAD_OPTION_4_02);

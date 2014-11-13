@@ -55,7 +55,7 @@
 
 #if REST_RES_LINKED_BATCH_TABLE
 
-resource_t *linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB] = {0,0};
+resource_t *linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB];
 int linked_batch_table_size = 0;
 
 static void
