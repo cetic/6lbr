@@ -54,7 +54,7 @@ char const *nvm_file = NULL;
 void
 nvm_data_read(void)
 {
-  LOG6LBR_INFO("Opening nvm file '%s'\n", nvm_file);
+  LOG6LBR_DEBUG("Opening nvm file '%s'\n", nvm_file);
   int s = open(nvm_file, O_RDONLY);
 
   if(s > 0) {
@@ -71,7 +71,7 @@ void
 nvm_data_write(void)
 {
   memcpy(nvm_mem, (uint8_t *) & nvm_data, sizeof(nvm_data));
-  LOG6LBR_INFO("Opening nvm file '%s'\n", nvm_file);
+  LOG6LBR_DEBUG("Opening nvm file '%s'\n", nvm_file);
   int s = open(nvm_file, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
   if(s > 0) {

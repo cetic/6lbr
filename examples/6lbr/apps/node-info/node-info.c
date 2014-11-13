@@ -105,6 +105,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (node->messages_received > 1) {
         node->messages_sent += (uint16_t)(sequence - node->last_sequence);
         node->up_messages_lost += (uint16_t)(sequence - (node->last_sequence + 1));
+      } else {
+        node->messages_sent = 1;
+        node->up_messages_lost = 0;
       }
       node->last_sequence = sequence;
       info = sep + 1;

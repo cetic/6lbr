@@ -39,6 +39,8 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
+extern void native_rdc_init(void);
+
 extern void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx);
 extern void slip_print_stat();
 extern void slip_reboot(void);
@@ -47,7 +49,7 @@ extern void slip_got_mac(const uint8_t * data);
 extern void slip_set_mac(linkaddr_t const * mac_addr);
 extern void slip_set_rf_channel(uint8_t channel);
 
-extern uint8_t mac_set;
+extern uint8_t native_rdc_mac_ready;
 extern int callback_count;
 
 #endif

@@ -60,7 +60,9 @@ PROCESS(eth_drv_process, "ENC28J60 driver");
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
 
-extern void eth_input(void);
+//Initialisation flags
+int ethernet_ready = 0;
+int eth_mac_addr_ready = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -68,30 +70,7 @@ void
 eth_drv_send(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_COND_FUNC(DUMP, ETH_OUT,
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    PRINTF("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      PRINTF(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      PRINTF(" %02x", uip_buf[i]);
-#else
-    PRINTF("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        PRINTF("%02x", ll_header[i]);
-      } else {
-        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        PRINTF(" ");
-      if((i & 15) == 15)
-        PRINTF("\n         ");
-    }
-#endif
-    PRINTF("\n");
-  )
+  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_OUT, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
 
   enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
 }
@@ -100,30 +79,7 @@ void
 eth_drv_input(void)
 {
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_COND_FUNC(DUMP, ETH_IN,
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    PRINTF("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      PRINTF(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      PRINTF(" %02x", uip_buf[i]);
-#else
-    PRINTF("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        PRINTF("%02x", ll_header[i]);
-      } else {
-        PRINTF("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        PRINTF(" ");
-      if((i & 15) == 15)
-        PRINTF("\n         ");
-    }
-#endif
-    PRINTF("\n");
-  )
+  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_IN, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
 
   eth_input();
 }
@@ -137,7 +93,15 @@ void
 eth_drv_init()
 {
   LOG6LBR_INFO("ENC28J60 init\n");
+
+  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
+  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
+  eth_mac_addr_ready = 1;
+
   enc28j60_init(eth_mac_addr);
+  process_start(&eth_drv_process, NULL);
+  ethernet_ready = 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -155,16 +119,11 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   PROCESS_BEGIN();
 
   LOG6LBR_INFO("ENC-28J60 Process started\n");
-  eth_drv_init();
-
-  ethernet_ready = 1;
 
   while(1) {
     enc28j60_pollhandler();
     PROCESS_PAUSE();
   }
-
-  eth_drv_exit();
 
   PROCESS_END();
 }

@@ -130,7 +130,7 @@ char  memb_free(struct memb *m, void *ptr);
 
 int memb_inmemb(struct memb *m, void *ptr);
 
-int  memb_count(struct memb *m);
+int  memb_numfree(struct memb *m);
 
 /** @} */
 /** @} */

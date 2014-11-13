@@ -70,13 +70,8 @@
 #include "6lbr-watchdog.h"
 #include "slip-config.h"
 #include <arpa/inet.h>
-#else
-#include "watchdog.h"
 #endif
-
-//Initialisation flags
-int ethernet_ready = 0;
-int eth_mac_addr_ready = 0;
+#include "watchdog.h"
 
 //WSN
 uip_lladdr_t wsn_mac_addr;
@@ -136,27 +131,28 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
 #if CETIC_6LBR_SMARTBRIDGE
-  int new_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
+  int new_prefix = !uip_ipaddr_prefixcmp(&wsn_net_prefix, prefix, len);
+  int new_dag_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
-  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
 
-  uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
-
-  if(cetic_dag != NULL) {
-    rpl_set_prefix(cetic_dag, prefix, len);
+  if(new_prefix) {
+    LOG6LBR_6ADDR(INFO, prefix, "Setting prefix : ");
+    uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
     wsn_net_prefix_len = len;
-    if(new_prefix) {
-      LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
-      rpl_repair_root(RPL_DEFAULT_INSTANCE);
-    }
-  }
+    LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address : ");
 #if CONTIKI_TARGET_NATIVE
   cetic_6lbr_save_ip();
 #endif
+  }
+  if(new_dag_prefix) {
+    rpl_set_prefix(cetic_dag, prefix, len);
+    LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
+    rpl_repair_root(RPL_DEFAULT_INSTANCE);
+  }
 #endif
 }
 
@@ -192,7 +188,11 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-  }                             //End manual configuration
+  } else {                            //End manual configuration
+    uip_create_unspecified(&wsn_net_prefix);
+    wsn_net_prefix_len = 0;
+    uip_create_unspecified(&wsn_ip_addr);
+  }
 #endif
 
 #if CETIC_6LBR_ROUTER
@@ -277,7 +277,11 @@ cetic_6lbr_init(void)
     LOG6LBR_INFO("RA Daemon disabled\n");
   }
 #endif
+}
 
+void
+cetic_6lbr_init_finalize(void)
+{
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   //DODAGID = link-local address used !
   cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
@@ -318,10 +322,10 @@ cetic_6lbr_init(void)
 
 /*---------------------------------------------------------------------------*/
 
-static struct etimer reboot_timer;
-
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
+  static struct etimer timer;
+  static int addr_number;
   PROCESS_BEGIN();
 
   cetic_6lbr_restart_event = process_alloc_event();
@@ -342,7 +346,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   platform_init();
 
-  process_start(&eth_drv_process, NULL);
+#if !CETIC_6LBR_ONE_ITF
+  platform_radio_init();
+#endif
+
+  eth_drv_init();
 
   while(!ethernet_ready) {
     PROCESS_PAUSE();
@@ -360,6 +368,20 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   packet_filter_init();
   cetic_6lbr_init();
+
+  //Wait result of DAD on 6LBR addresses
+  LOG6LBR_INFO("Checking addresses duplication\n");
+  addr_number = uip_ds6_get_addr_number(-1);
+  etimer_set(&timer, CLOCK_SECOND);
+  while(uip_ds6_get_addr_number(ADDR_TENTATIVE) > 0) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+    etimer_set(&timer, CLOCK_SECOND);
+  }
+  if(uip_ds6_get_addr_number(-1) != addr_number) {
+    LOG6LBR_FATAL("Addresses duplication failed");
+    watchdog_reboot();
+  }
+  cetic_6lbr_init_finalize();
 
 #if WEBSERVER
   process_start(&webserver_nogui_process, NULL);
@@ -385,7 +407,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
-  etimer_set(&reboot_timer, CLOCK_SECOND);
+  etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 #if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {

@@ -52,7 +52,7 @@ COOJA_BASE	= simEnvChange.c cooja_mt.c cooja_mtarch.c rtimer-arch.c slip.c watch
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
 		    clock.c log.c cfs-cooja.c cooja-radio.c \
-			eeprom.c
+			eeprom.c slip-arch.c
 
 COOJA_CORE = random.c sensors.c leds.c symbols.c
 
@@ -90,4 +90,5 @@ ifeq ($(UIP_CONF_IPV6),1)
 endif # UIP_CONF_IPV6
 
 MODULES += core/net core/net/ip core/net/ipv4 \
-           core/net/ipv6 core/net/mac core/net/rime core/net/rpl
+           core/net/ipv6 core/net/mac core/net/rime core/net/rpl \
+           core/net/llsec

@@ -1057,11 +1057,6 @@ ra_input(void)
               addr->isinfinite = 1;
             }
           } else {
-#if CETIC_6LBR
-        	printf("Tentative global IPv6 address ");
-			uip_debug_ipaddr_print(&ipaddr);
-			printf("\n");
-#endif
             if(uip_ntohl(nd6_opt_prefix_info->validlt) ==
                UIP_ND6_INFINITE_LIFETIME) {
               uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);

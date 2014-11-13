@@ -204,7 +204,7 @@ resource_binding_load_nvm_bindings(void)
   int success = 0;
   int nvm_binding;
   for (nvm_binding = 0; nvm_binding < CORE_ITF_USER_BINDING_NB; ++nvm_binding) {
-    if(memb_count(&binding_memb) > 0 ) {
+    if(memb_numfree(&binding_memb) > 0 ) {
       coap_binding_t * binding = memb_alloc(&binding_memb);
       success = coap_binding_deserialize(&nvm_data.binding_data[nvm_binding], binding);
       if (success) {
@@ -234,7 +234,7 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
   int success = 0;
   static uint8_t data_store[CORE_ITF_MAX_BINDING_SIZE+1];
   static size_t data_size = 0;
-  if(memb_count(&binding_memb) > 0 ) {
+  if(memb_numfree(&binding_memb) > 0 ) {
     if(coap_block1_handler(request, response, data_store, &data_size, sizeof(data_store)) == 0) {
       data_store[data_size] = '\0';
       coap_binding_t * binding = memb_alloc(&binding_memb);

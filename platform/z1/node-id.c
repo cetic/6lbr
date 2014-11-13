@@ -42,7 +42,6 @@
 #include "dev/xmem.h"
 #include <string.h>
 
-
 unsigned short node_id = 0;
 unsigned char node_mac[8];
 
@@ -65,7 +64,7 @@ void
 node_id_burn(unsigned short id)
 {
   unsigned char buf[12];
-  memset(buf,0,sizeof(buf));
+  memset(buf, 0, sizeof(buf));
   buf[0] = 0xad;
   buf[1] = 0xde;
   buf[2] = id >> 8;

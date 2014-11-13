@@ -175,7 +175,7 @@ serial_input(FILE * inslip)
 {
   static unsigned char inbuf[2048];
   static int inbufptr = 0;
-  int ret, i;
+  int ret;
   unsigned char c;
 
 #ifdef linux
@@ -210,17 +210,7 @@ after_fread:
     if(inbufptr > 0) {
       slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
-      if (LOG6LBR_COND(DUMP, SLIP_IN)) {
-        printf("         ");
-        for(i = 0; i < inbufptr; i++) {
-          printf("%02x", inbuf[i]);
-          if((i & 3) == 3)
-            printf(" ");
-          if((i & 15) == 15)
-            printf("\n         ");
-        }
-        printf("\n");
-      }
+      LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
         cmd_input(inbuf, inbufptr);
@@ -349,18 +339,7 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
   slip_message_sent++;
 
   LOG6LBR_PRINTF(PACKET, SLIP_OUT, "write: %d\n", len);
-
-  if (LOG6LBR_COND(DUMP, SLIP_OUT)) {
-    printf("         ");
-    for(i = 0; i < len; i++) {
-      printf("%02x", p[i]);
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-    printf("\n");
-  }
+  LOG6LBR_DUMP_PACKET(SLIP_OUT, inbuf, len);
 
   /* It would be ``nice'' to send a SLIP_END here but it's not
    * really necessary.

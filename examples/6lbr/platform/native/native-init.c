@@ -38,15 +38,19 @@
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
-#include "slip-cmds.h"
 #include "native-rdc.h"
 #include "node-config.h"
 
 void
 platform_init(void)
 {
-  process_start(&border_router_cmd_process, NULL);
   node_config_init();
+}
+
+void
+platform_radio_init(void)
+{
+  native_rdc_init();
 }
 
 void

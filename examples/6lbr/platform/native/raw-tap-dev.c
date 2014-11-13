@@ -311,10 +311,6 @@ tun_init()
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
-#if !CETIC_6LBR_ONE_ITF
-  slip_init();
-#endif
-
   if(use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
   } else {
@@ -337,8 +333,8 @@ tun_init()
 #if !CETIC_6LBR_ONE_ITF
   if(use_raw_ethernet) {
 #endif
-	fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
-	LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
+    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+    LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
 #if !CETIC_6LBR_ONE_ITF
   }
