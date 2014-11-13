@@ -38,8 +38,8 @@
 #include "er-coap-engine.h"
 #include "er-coap-block1.h"
 
-#include "coap-common.h"
 #include "core-interface.h"
+#include "coap-common.h"
 #include "coap-push.h"
 
 #if WITH_NVM
@@ -50,6 +50,8 @@
 
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
+
+int CORE_ITF_LINKED_BATCH_RESOURCE = 0;
 
 /*---------------------------------------------------------------------------*/
 #define ADD_CHAR_IF_POSSIBLE(char) \
@@ -80,7 +82,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   int i;
   int32_t tmp = 0;
   const uint8_t *tmp_payload;
-  
+
   // Global variable to know if linked batch resource is used
   CORE_ITF_LINKED_BATCH_RESOURCE = 1;
 
