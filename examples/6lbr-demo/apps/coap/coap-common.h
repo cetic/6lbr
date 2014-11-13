@@ -57,7 +57,8 @@
 #error "Only one type of REST TYPE can be enabled"
 #endif
 
-#if ( !defined REST_TYPE_TEXT_PLAIN && !defined REST_TYPE_APPLICATION_XML && !defined REST_TYPE_APPLICATION_JSON)
+#if ( !defined REST_TYPE_TEXT_PLAIN && !defined REST_TYPE_APPLICATION_XML && \
+    !defined REST_TYPE_APPLICATION_JSON && !defined REST_TYPE_APPLICATION_SENML_PLUS_JSON)
 #define REST_TYPE_TEXT_PLAIN
 #endif
 
@@ -73,6 +74,7 @@
 #include "rest-type-text.h"
 #include "rest-type-xml.h"
 #include "rest-type-json.h"
+#include "rest-type-senml.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -103,6 +105,19 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
+#ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
+#define REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  void \
+  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t *tmp_payload; \
+    uint8_t pos = 0; \
+    if(!CORE_ITF_LINKED_BATCH_RESOURCE) { REST_FORMAT_SENML_START(buffer, pos) } \
+    format; \
+    if(!CORE_ITF_LINKED_BATCH_RESOURCE) { REST_FORMAT_SENML_END(buffer, pos) } \
+    resource_get_handler(request, response, buffer, preferred_size, offset); \
+  }
+#else
 #define REST_RESOURCE_GET_HANDLER(resource_name, format) \
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
@@ -110,6 +125,7 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     format; \
     resource_get_handler(request, response, buffer, preferred_size, offset); \
   }
+#endif
 
 #define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
   void \

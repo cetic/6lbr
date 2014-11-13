@@ -39,6 +39,10 @@
 #include "coap-common.h"
 #include "coap-push.h"
 
+// Global variable for CoRE linked batch
+int CORE_ITF_LINKED_BATCH_RESOURCE;
+// -------------------------------------
+
 #ifdef CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
 #define CORE_ITF_MAX_BATCH_BUFFER_SIZE CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
 #else

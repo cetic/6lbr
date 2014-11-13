@@ -75,7 +75,7 @@
 		pos += snprintf((char *)buffer + pos, size - pos, "</batch>"); \
 		if (pos > size) pos = size; \
 	}
-#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos)
+#define REST_FORMAT_SEPARATOR(buffer, size, pos)
 
 #define REST_TYPE_ERROR "Supporting content-type: application/xml"
 

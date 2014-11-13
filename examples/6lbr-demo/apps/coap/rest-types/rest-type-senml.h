@@ -34,37 +34,55 @@
 *         6LBR Team <6lbr@cetic.be>
 */
 
-#ifndef REST_TYPE_JSON_H
-#define REST_TYPE_JSON_H
+#ifndef REST_TYPE_SENML_H
+#define REST_TYPE_SENML_H
 
-#ifdef REST_TYPE_APPLICATION_JSON
+#ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
 
-#define REST_TYPE 50 //REST.type.APPLICATION_JSON
+// To modify : actually JSON number
+#define REST_TYPE 50 //REST.type.APPLICATION_SENML_PLUS_JSON
+
+// Resource syntax : {"n":"resource_name", "v":resource_value}
+
+
+#define REST_FORMAT_SENML_START(buffer, pos) \
+	if (pos < REST_MAX_CHUNK_SIZE) { \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"e\":["); \
+		if (pos > REST_MAX_CHUNK_SIZE) pos = REST_MAX_CHUNK_SIZE; \
+	}
+
+#define REST_FORMAT_SENML_END(buffer, pos) \
+	if (pos < REST_MAX_CHUNK_SIZE) { \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "]}"); \
+		if (pos > REST_MAX_CHUNK_SIZE) pos = REST_MAX_CHUNK_SIZE; \
+	}
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d}", (resource_value))
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d}", (resource_value))
 
 #define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%u}", (resource_value))
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%u}", (resource_value))
 
 #define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%ld}", (resource_value))
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%ld}", (resource_value))
 
 #define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%lu}", (resource_value))
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%lu}", (resource_value))
 
 #define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value, sensor_int, sensor_float) \
 { \
 		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d.%u}", (sensor_int), (sensor_float)); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%u}", (sensor_int), (sensor_float)); \
 }
 
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\": \"%s\"}", (sensor_value))
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"sv\":\"%s\"}", (sensor_value))
 
+/* To modify : actually JSON
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""#resource_name"\":{\""sensor_a_name"\":%d,\""sensor_b_name"\":%d}}", (sensor_a), (sensor_b))
-
+*/
+// OK
 #define REST_FORMAT_BATCH_START(buffer, size, pos) \
 	if (pos < size) { \
 		pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
@@ -78,8 +96,7 @@
 
 #define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
 
-#define REST_TYPE_ERROR "Supporting content-type: application/json"
+#define REST_TYPE_ERROR "Supporting content-type: application/senml+json"
 
 #endif
-
-#endif
+#endif /* REST_TYPE_SENML_H */

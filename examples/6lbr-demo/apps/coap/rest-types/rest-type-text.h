@@ -69,7 +69,7 @@
 
 #define REST_FORMAT_BATCH_START(buffer, size, pos)
 #define REST_FORMAT_BATCH_END(buffer, size, pos)
-#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
 
 #endif
 
