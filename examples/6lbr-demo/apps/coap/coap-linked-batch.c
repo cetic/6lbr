@@ -41,9 +41,7 @@
 
 void
 coap_linked_batch_serialize(const resource_t *linked_batch, char *store) {
-	PRINTF("Serializing %s...\n", linked_batch->url);
 	strcpy(store, linked_batch->url);
-	PRINTF("Serialized %s.\n", store);
 }
 
 int

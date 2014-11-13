@@ -107,10 +107,8 @@ linked_batch_table_store_nvm_links(void) {
   int i;
   for(i = 0; i < CORE_ITF_USER_LINKED_BATCH_NB
             && linked_batch_table[i] != NULL; i++) {
-    PRINTF("Serializing...%p %s\n", linked_batch_table[i], linked_batch_table[i]->url);
     coap_linked_batch_serialize(linked_batch_table[i],
                                   &nvm_data.linked_batch_data[i]);
-    PRINTF("In nvm_data : %s\n", nvm_data.linked_batch_data[i]);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -123,8 +121,6 @@ linked_batch_table_load_nvm_links(void) {
                                               &linked_batch);
     if(result == 1) {
       linked_batch_table[linked_batch_table_size] = linked_batch;
-      PRINTF("%d Loaded %s\n", linked_batch_table_size,
-              linked_batch_table[linked_batch_table_size]->url);
       linked_batch_table_size++;
     }
     else if(result == -1) {
@@ -157,12 +153,10 @@ resource_linked_batch_table_post_handler(void* request, void* response, uint8_t 
     resource_t *tmp_linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB];
     int tmp_size = 0;
     success = resource_linked_batch_parse((char*)data_store, tmp_linked_batch_table, &tmp_size);
-    PRINTF("Size : %d\n", tmp_size);
     if (success) {
       if ( linked_batch_table_size + tmp_size <= CORE_ITF_USER_LINKED_BATCH_NB) {
         int i;
         for (i = 0; i < tmp_size; ++i) {
-          PRINTF("POST\n");
           linked_batch_table[linked_batch_table_size] = tmp_linked_batch_table[i];
           linked_batch_table_size++;
         }
