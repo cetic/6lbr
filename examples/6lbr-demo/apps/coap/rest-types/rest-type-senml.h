@@ -39,22 +39,25 @@
 
 #ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
 
+#ifdef REST_TYPE_SENML_CONF_TIMESTAMP
+#define REST_TYPE_SENML_TIMESTAMP REST_TYPE_SENML_CONF_TIMESTAMP
+#else
+#define REST_TYPE_SENML_TIMESTAMP 1
+#endif
+
 // To modify : actually JSON number
 #define REST_TYPE 50 //REST.type.APPLICATION_SENML_PLUS_JSON
 
-// Resource syntax : {"n":"resource_name", "v":resource_value}
-
-
-#define REST_FORMAT_SENML_START(buffer, pos) \
-	if (pos < REST_MAX_CHUNK_SIZE) { \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"e\":["); \
-		if (pos > REST_MAX_CHUNK_SIZE) pos = REST_MAX_CHUNK_SIZE; \
+#define REST_FORMAT_SENML_START(buffer, size, pos) \
+	if (pos < size) { \
+		pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
+		if (pos > size) pos = size; \
 	}
 
-#define REST_FORMAT_SENML_END(buffer, pos) \
-	if (pos < REST_MAX_CHUNK_SIZE) { \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "]}"); \
-		if (pos > REST_MAX_CHUNK_SIZE) pos = REST_MAX_CHUNK_SIZE; \
+#define REST_FORMAT_SENML_END(buffer, size, pos) \
+	if (pos < size) { \
+		pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
+		if (pos > size) pos = size; \
 	}
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
@@ -82,17 +85,10 @@
 #define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""#resource_name"\":{\""sensor_a_name"\":%d,\""sensor_b_name"\":%d}}", (sensor_a), (sensor_b))
 */
-// OK
-#define REST_FORMAT_BATCH_START(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
-		if (pos > size) pos = size; \
-	}
-#define REST_FORMAT_BATCH_END(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
-		if (pos > size) pos = size; \
-	}
+
+#define REST_FORMAT_BATCH_START(buffer, size, pos) REST_FORMAT_SENML_START(buffer, size, pos)
+
+#define REST_FORMAT_BATCH_END(buffer, size, pos) REST_FORMAT_SENML_END(buffer, size, pos)
 
 #define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
 
