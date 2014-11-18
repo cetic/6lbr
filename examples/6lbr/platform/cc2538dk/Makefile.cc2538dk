@@ -19,32 +19,32 @@ PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c 
 CONF=WITH_UDPCLIENT=0
 CONF_6LR=WITH_UDPSERVER=0
 
-bin_cc2538dk/cetic_6lbr_smart_bridge:
+bin_cc2538dk/cetic_6lbr_smart_bridge.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_smart_bridge.$(CC2538DK_FW)
 
-bin_cc2538dk/cetic_6lbr_rpl_relay:
+bin_cc2538dk/cetic_6lbr_rpl_relay.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_rpl_relay.$(CC2538DK_FW)
 
-bin_cc2538dk/cetic_6lbr_full_transparent_bridge:
+bin_cc2538dk/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW)
 
-bin_cc2538dk/cetic_6lbr_router:
+bin_cc2538dk/cetic_6lbr_router.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 $(CONF)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_router.$(CC2538DK_FW)
 
-bin_cc2538dk/cetic_6lbr_ndp_router:
+bin_cc2538dk/cetic_6lbr_ndp_router.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_ndp_router.$(CC2538DK_FW)
 
-bin_cc2538dk/cetic_6lbr_6lr:
+bin_cc2538dk/cetic_6lbr_6lr.$(CC2538DK_FW):
 	$(MAKE) TARGET=cc2538dk CETIC_6LBR_6LR=1 $(CONF_6LR)
 	mkdir -p bin_cc2538dk
 	mv cetic-6lbr.$(CC2538DK_FW) bin_cc2538dk/cetic_6lbr_6lr.$(CC2538DK_FW)
