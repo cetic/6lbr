@@ -91,10 +91,12 @@ webserver_init(void)
     httpd_cgi_command_add(&webserver_config_reset_cmd);
     httpd_cgi_add(&webserver_admin);
     httpd_cgi_command_add(&webserver_admin_restart_cmd);
+#if CONTIKI_TARGET_NATIVE
     httpd_cgi_command_add(&webserver_admin_reboot_cmd);
     httpd_cgi_command_add(&webserver_admin_halt_cmd);
     httpd_cgi_add(&webserver_log_send_log);
     httpd_cgi_add(&webserver_log_send_err);
     httpd_cgi_command_add(&webserver_log_clear_log_cmd);
+#endif
   }
 }

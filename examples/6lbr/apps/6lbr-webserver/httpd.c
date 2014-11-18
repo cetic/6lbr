@@ -51,6 +51,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 
+#if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
 
 #include <stdio.h>              /* For printf() */
@@ -60,7 +61,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#endif
 
 #ifndef WEBSERVER_CONF_CFS_CONNS
 #define CONNS UIP_CONNS
@@ -89,7 +90,9 @@ MEMB(conns, struct httpd_state, CONNS);
 #define ISO_question 0x3f
 
 /* These threads must be implemented by the webserver */
+#if CONTIKI_TARGET_NATIVE
 extern PT_THREAD(send_file(struct httpd_state *s));
+#endif
 extern PT_THREAD(generate_top(struct httpd_state *s));
 extern PT_THREAD(generate_bottom(struct httpd_state *s));
 extern PT_THREAD(generate_404(struct httpd_state *s));
@@ -104,6 +107,7 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
   SEND_STRING(&s->sout, http_content_type_html);
   PSOCK_END(&s->sout);
 }
+#if CONTIKI_TARGET_NATIVE
 static
 int httpd_is_file(char const *filename) {
   char filepath[HTTPD_PATHLEN];
@@ -111,6 +115,7 @@ int httpd_is_file(char const *filename) {
   strcat(filepath, filename);
   return access(filepath, R_OK) == 0;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 const char http_header_200[] =
   "HTTP/1.0 200 OK\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
@@ -138,9 +143,11 @@ PT_THREAD(handle_output(struct httpd_state *s))
     if((s->script->flags & HTTPD_CUSTOM_BOTTOM) == 0) {
       PT_WAIT_THREAD(&s->outputpt, generate_bottom(s));
     }
+#if CONTIKI_TARGET_NATIVE
   } else if (httpd_is_file(s->filename)){
     PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_200));
     PT_WAIT_THREAD(&s->outputpt, send_file(s));
+#endif
   } else {
     LOG6LBR_6ADDR(WARN, &uip_conn->ripaddr, "File '%s' not found, from ", s->filename);
     PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_404));

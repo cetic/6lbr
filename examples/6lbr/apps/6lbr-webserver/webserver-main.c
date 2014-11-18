@@ -140,7 +140,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("<br />");
 #endif
   add("HW address : ");
-  ethaddr_add(&eth_mac_addr);
+  ethaddr_add((const ethaddr_t*)&eth_mac_addr);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

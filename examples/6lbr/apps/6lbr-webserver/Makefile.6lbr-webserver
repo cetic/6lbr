@@ -1,7 +1,11 @@
 CFLAGS += -DWEBSERVER=1
 6lbr-webserver_src = httpd.c httpd-cgi.c httpd-urlconv.c webserver.c webserver-utils.c \
     webserver-main.c webserver-network.c webserver-rpl.c \
-    webserver-config.c webserver-statistics.c webserver-admin.c webserver-log.c  webserver-file.c
+    webserver-config.c webserver-statistics.c webserver-admin.c
+
+ifeq ($(TARGET),native)
+6lbr-webserver_src += webserver-log.c  webserver-file.c
+endif
 
 ifneq ($(WITH_NODE_INFO),0)
 6lbr-webserver_src += webserver-sensors.c
