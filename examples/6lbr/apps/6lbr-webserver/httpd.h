@@ -37,10 +37,11 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __HTTPD_SIMPLE_H__
-#define __HTTPD_SIMPLE_H__
+#ifndef __HTTPD_H__
+#define __HTTPD_H__
 
 #include "contiki-net.h"
+struct httpd_cgi_call;
 
 /* The current internal border router webserver ignores the requested file name */
 /* and needs no per-connection output buffer, so save some RAM */
@@ -51,13 +52,13 @@
 #endif /* WEBSERVER_CONF_CFS_CONNS */
 
 struct httpd_state;
-typedef char (*httpd_simple_script_t) (struct httpd_state * s);
 
 struct httpd_state {
   struct timer timer;
   struct psock sin, sout;
   struct pt outputpt;
   char inputbuf[HTTPD_PATHLEN + 24];
+  char *query;
 #if CONTIKI_TARGET_NATIVE
   char outputbuf[UIP_TCP_MSS];
   int fd;
@@ -65,15 +66,12 @@ struct httpd_state {
   int to_send;
 #endif
   char filename[HTTPD_PATHLEN];
-  httpd_simple_script_t script;
+  struct httpd_cgi_call *script;
   char state;
 };
 
 void httpd_init(void);
-void httpd_appcall(void *state);
-
-httpd_simple_script_t httpd_simple_get_script(const char *name);
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 
-#endif /* __HTTPD_SIMPLE_H__ */
+#endif /* __HTTPD_H__ */
