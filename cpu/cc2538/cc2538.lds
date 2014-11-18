@@ -76,6 +76,7 @@ SECTIONS
         _text = .;
         KEEP(*(.vectors))
         *(.text*)
+        _rodata = .;
         *(.rodata*)
         _etext = .;
     } > FLASH= 0
