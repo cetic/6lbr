@@ -111,8 +111,8 @@ int count = 0;
 
 #define BUF_USES_STACK 0
 /*---------------------------------------------------------------------------*/
-PROCESS(webserver_nogui_process, "Web server");
-PROCESS_THREAD(webserver_nogui_process, ev, data)
+PROCESS(httpd_process, "Web server");
+PROCESS_THREAD(httpd_process, ev, data)
 {
   PROCESS_BEGIN();
 
@@ -124,6 +124,12 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
   }
 
   PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+webserver_init(void)
+{
+  process_start(&httpd_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
 #define BUF_SIZE 256

@@ -59,6 +59,10 @@
 #include "nvm-config.h"
 #include "rio.h"
 
+#if WEBSERVER
+#include "webserver.h"
+#endif
+
 #if CETIC_NODE_INFO
 #include "node-info.h"
 #endif
@@ -97,7 +101,6 @@ unsigned long cetic_6lbr_startup;
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
 PROCESS_NAME(coap_server_process);
@@ -386,7 +389,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_init_finalize();
 
 #if WEBSERVER
-  process_start(&webserver_nogui_process, NULL);
+  webserver_init();
 #endif
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
