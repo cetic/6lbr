@@ -77,7 +77,9 @@
 #define LOG6LBR_MODULE "ND6"
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
 #include "log-6lbr.h"
 #endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR

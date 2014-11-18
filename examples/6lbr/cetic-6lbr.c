@@ -59,7 +59,9 @@
 #include "nvm-config.h"
 #include "rio.h"
 
+#if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
 
 #if WITH_NVM_PROXY
 #include "nvm-proxy.h"

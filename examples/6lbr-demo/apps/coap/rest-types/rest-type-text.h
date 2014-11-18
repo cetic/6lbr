@@ -55,10 +55,16 @@
 #define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (resource_value))
 
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value, sensor_int, sensor_float) \
+#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
 { \
 		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (sensor_int), (sensor_float)); \
+		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (int)(value / 10), (int)(value % 10)); \
+}
+
+#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
+{ \
+	int value = (resource_value); \
+	snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%02u", (int)(value / 100), (int)(value % 100)); \
 }
 
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \

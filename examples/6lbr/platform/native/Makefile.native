@@ -1,0 +1,145 @@
+
+#Default configuration for native
+
+WITH_UDPSERVER?=1
+WITH_UDPCLIENT?=1
+WITH_NODE_INFO?=1
+WITH_WEBSERVER?=1
+WITH_WEBSERVER_LITE?=0
+WITH_COAPSERVER?=1
+WITH_NVM_PROXY?=0
+
+PLUGINS=${shell cd plugins  && find * -type d -prune}
+PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
+PLUGINS_FILES=${patsubst plugins/%, obj_$(TARGET)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
+
+PROJECTDIRS += platform/native
+
+PROJECTDIRS += $(PLUGINS_DIRS)
+
+APPS += slip-cmd
+
+PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c plugin.c
+
+CONF=WITH_UDPCLIENT=0
+CONF_6LR=WITH_UDPSERVER=0
+
+bin/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+
+bin/cetic_6lbr_rpl_relay:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
+
+bin/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge 
+
+bin/cetic_6lbr_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_router 
+
+bin/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router 
+
+bin/cetic_6lbr_6lr:
+	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(CONF_6LR)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_6lr
+
+bin/cetic_6lbr_rpl_root:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_ONE_ITF=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
+
+all:
+	rm -rf bin
+	mkdir -p bin
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
+
+PKG_VERSION=0
+VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
+
+DEB=6lbr-$(VERSION)-$(PKG_VERSION)-deb
+IPK=6lbr-$(VERSION)-$(PKG_VERSION)-ipk
+
+install:
+	install -d /etc/6lbr
+	cp -r package/etc/6lbr /etc
+	install -d /etc/init.d
+	install package/etc/init.d/* /etc/init.d
+	install -d /usr/bin
+	install package/usr/bin/* /usr/bin
+	install -d /usr/lib/6lbr
+	cp -r package/usr/lib/6lbr /usr/lib
+	install -d /usr/lib/6lbr/bin
+	install bin/* /usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	install $(PLUGINS_FILES) /usr/lib/6lbr/plugins
+endif
+	install tools/nvm_tool /usr/lib/6lbr/bin
+	update-rc.d 6lbr defaults
+
+rpi_deb:
+	rm -rf $(DEB)
+	cp -R package $(DEB)
+	cp -R control-deb $(DEB)/DEBIAN
+	mkdir -p $(DEB)/usr/lib/6lbr/bin
+	cp bin/* $(DEB)/usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	cp $(PLUGINS_FILES) $(DEB)/usr/lib/6lbr/plugins
+endif
+	cp tools/nvm_tool $(DEB)/usr/lib/6lbr/bin
+	dpkg --build $(DEB) .
+
+ipk:
+	rm -rf $(IPK)
+	rm -f $(IPK).ipk
+	cp -R package $(IPK)
+	mkdir -p $(IPK)/usr/lib/6lbr/bin
+	cp bin/* $(IPK)/usr/lib/6lbr/bin
+ifneq ($(PLUGINS_FILES),)
+	cp $(PLUGINS_FILES) $(IPK)/usr/lib/6lbr/plugins
+endif
+	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
+	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
+	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
+	echo 2.0 > $(IPK)/debian-binary
+	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)-$(PKG_VERSION)_armv7a.ipk debian-binary data.tar.gz control.tar.gz
+
+plugins: $(PLUGINS_FILES)
+
+ifeq ($(HOST_OS),Darwin)
+PLUGIN_LDFLAGS=-dynamiclib -Wl,-undefined,dynamic_lookup
+else
+PLUGIN_LDFLAGS=-shared
+CFLAGS+=-fPIC
+TARGET_LIBFILES+=-ldl
+endif
+
+obj_$(TARGET)/%.so: obj_$(TARGET)/%.o
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
+
+CLEAN += obj_$(TARGET)/*.so
+
+.PHONY: bin/* plugins deb ipk
