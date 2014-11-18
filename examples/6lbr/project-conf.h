@@ -85,7 +85,9 @@
 #define UIP_CONF_BUFFER_SIZE				1280
 
 // Avoid 6lowpan fragmentation
-#define REST_MAX_CHUNK_SIZE                 64
+#define REST_MAX_CHUNK_SIZE                 128
+
+#define REST_TYPE_SENML_CONF_TIMESTAMP 1
 
 // Temporary, to avoid duplicate removal of frame header size
 // Contains 802.15.4 max frame size minus FCS size

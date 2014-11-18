@@ -38,6 +38,8 @@
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
+unsigned int REST_TYPE_SENML_BASETIME = 0;
+
 /*---------------------------------------------------------------------------*/
 resource_t*
 rest_find_resource_by_url(const char *url)

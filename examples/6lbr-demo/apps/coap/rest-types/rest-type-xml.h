@@ -62,7 +62,7 @@
 #define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
 { \
 		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%u\" />", (int)(value / 100), (int)(value % 100)); \
+		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%02u\" />", (int)(value / 100), (int)(value % 100)); \
 }
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%s\" />", (sensor_value))

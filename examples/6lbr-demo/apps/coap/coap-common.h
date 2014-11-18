@@ -44,6 +44,10 @@
 
 #include "er-coap.h"
 
+// Global variable for SenML basetime factorization
+extern unsigned int REST_TYPE_SENML_BASETIME;
+// -------------------------------------
+
 #ifdef REST_CONF_DEFAULT_PERIOD
 #define REST_DEFAULT_PERIOD REST_CONF_DEFAULT_PERIOD
 #else
