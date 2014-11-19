@@ -47,7 +47,6 @@
 #endif
 
 #include <string.h>
-#include <time.h>
 
 #define DEBUG 0
 #include "net/ip/uip-debug.h"

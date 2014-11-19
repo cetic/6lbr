@@ -76,7 +76,7 @@ if (pos < size) { \
 
 #define REST_FORMAT_TIMESTAMP \
 	if(REST_TYPE_SENML_TIMESTAMP) { \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", (unsigned)time(NULL) - coap_batch_basetime); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", (unsigned)clock_seconds() - coap_batch_basetime); \
 	} \
 	pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "}")
 
