@@ -41,6 +41,8 @@
 
 #define REST_TYPE 50 //REST.type.APPLICATION_JSON
 
+#define REST_FORMAT_BASETIME(buffer, size, pos)
+
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d}", (resource_value))
 
@@ -76,13 +78,14 @@
 		pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
 		if (pos > size) pos = size; \
 	}
+
+#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+
 #define REST_FORMAT_BATCH_END(buffer, size, pos) \
 	if (pos < size) { \
 		pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
 		if (pos > size) pos = size; \
 	}
-
-#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
 
 #define REST_TYPE_ERROR "Supporting content-type: application/json"
 

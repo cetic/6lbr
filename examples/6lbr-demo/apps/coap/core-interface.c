@@ -52,7 +52,7 @@
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
-int CORE_ITF_LINKED_BATCH_RESOURCE = 0;
+int core_itf_linked_batch_resource = 0;
 
 /*---------------------------------------------------------------------------*/
 #define ADD_CHAR_IF_POSSIBLE(char) \
@@ -85,9 +85,9 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   const uint8_t *tmp_payload;
 
   // Global variable to know if linked batch resource is used
-  CORE_ITF_LINKED_BATCH_RESOURCE = 1;
+  core_itf_linked_batch_resource = 1;
   if(batch_resource_list_size > 1)
-     REST_TYPE_SENML_BASETIME = (unsigned)time(NULL);
+     coap_batch_basetime = (unsigned)time(NULL);
 
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
@@ -102,11 +102,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
       }
     }
     if(batch_resource_list_size > 0)
-      REST_FORMAT_SENML_SQ_BRACKET_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
-    if(REST_TYPE_SENML_BASETIME)
-      REST_FORMAT_SENML_BASETIME(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
-    if(batch_resource_list_size > 0)
-      REST_FORMAT_SENML_CUR_BRACKET_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+      REST_FORMAT_BATCH_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
   }
   if (*offset > *batch_buffer_size) {
     coap_set_status_code(response, BAD_OPTION_4_02);
@@ -120,8 +116,8 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   } else {
     *offset += preferred_size;
   }
-  REST_TYPE_SENML_BASETIME = 0;
-  CORE_ITF_LINKED_BATCH_RESOURCE = 0;
+  coap_batch_basetime = 0;
+  core_itf_linked_batch_resource = 0;
 }
 /*---------------------------------------------------------------------------*/
 void

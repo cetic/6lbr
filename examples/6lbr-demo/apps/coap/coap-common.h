@@ -45,7 +45,7 @@
 #include "er-coap.h"
 
 // Global variable for SenML basetime factorization
-extern unsigned int REST_TYPE_SENML_BASETIME;
+extern unsigned int coap_batch_basetime;
 // -------------------------------------
 
 #ifdef REST_CONF_DEFAULT_PERIOD
@@ -116,9 +116,9 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   { \
     const uint8_t *tmp_payload; \
     uint8_t pos = 0; \
-    if(!CORE_ITF_LINKED_BATCH_RESOURCE) { REST_FORMAT_SENML_START(buffer, preferred_size, pos) } \
+    if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_START(buffer, preferred_size, pos) } \
     format; \
-    if(!CORE_ITF_LINKED_BATCH_RESOURCE) { REST_FORMAT_SENML_END(buffer, preferred_size, pos) } \
+    if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_END(buffer, preferred_size, pos) } \
     resource_get_handler(request, response, buffer, preferred_size, offset); \
   }
 #else

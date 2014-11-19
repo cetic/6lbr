@@ -43,6 +43,8 @@
 
 #define REST_TYPE_ERROR "Supporting content-type: text/plain"
 
+#define REST_FORMAT_BASETIME(buffer, size, pos)
+
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (resource_value))
 
@@ -74,8 +76,10 @@
 		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u", (sensor_a), (sensor_b))
 
 #define REST_FORMAT_BATCH_START(buffer, size, pos)
-#define REST_FORMAT_BATCH_END(buffer, size, pos)
+
 #define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+
+#define REST_FORMAT_BATCH_END(buffer, size, pos)
 
 #endif
 

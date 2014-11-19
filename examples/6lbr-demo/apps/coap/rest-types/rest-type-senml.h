@@ -68,21 +68,15 @@
 		if (pos > size) pos = size; \
 	}
 
-#define REST_FORMAT_SENML_END(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
-		if (pos > size) pos = size; \
-	}
-
-#define REST_FORMAT_SENML_BASETIME(buffer, size, pos) \
+#define REST_FORMAT_BASETIME(buffer, size, pos) \
 if (pos < size) { \
-	pos += snprintf((char *)buffer + pos, size - pos, ",\"bt\":%u", REST_TYPE_SENML_BASETIME); \
+	pos += snprintf((char *)buffer + pos, size - pos, ",\"bt\":%u", coap_batch_basetime); \
 	if (pos > size) pos = size; \
 }
 
 #define REST_FORMAT_TIMESTAMP \
 	if(REST_TYPE_SENML_TIMESTAMP) { \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", (unsigned)time(NULL) - REST_TYPE_SENML_BASETIME); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", (unsigned)time(NULL) - coap_batch_basetime); \
 	} \
 	pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "}")
 
@@ -123,9 +117,15 @@ if (pos < size) { \
 
 #define REST_FORMAT_BATCH_START(buffer, size, pos) REST_FORMAT_SENML_START(buffer, size, pos)
 
+#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+
 #define REST_FORMAT_BATCH_END(buffer, size, pos) REST_FORMAT_SENML_END(buffer, size, pos)
 
-#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
+#define REST_FORMAT_SENML_END(buffer, size, pos) \
+	REST_FORMAT_SENML_SQ_BRACKET_END(buffer, size, pos) \
+	if(coap_batch_basetime) \
+		REST_FORMAT_BASETIME(buffer, size, pos) \
+	REST_FORMAT_SENML_CUR_BRACKET_END(buffer, size, pos)
 
 #define REST_TYPE_ERROR "Supporting content-type: application/senml+json"
 

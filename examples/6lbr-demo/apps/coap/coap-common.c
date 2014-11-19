@@ -38,7 +38,7 @@
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
-unsigned int REST_TYPE_SENML_BASETIME = 0;
+unsigned int coap_batch_basetime = 0;
 
 /*---------------------------------------------------------------------------*/
 resource_t*
