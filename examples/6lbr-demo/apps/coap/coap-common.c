@@ -38,7 +38,7 @@
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
-unsigned int coap_batch_basetime = 0;
+unsigned long coap_batch_basetime = 0;
 
 /*---------------------------------------------------------------------------*/
 resource_t*

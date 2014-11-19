@@ -45,7 +45,7 @@
 #include "er-coap.h"
 
 // Global variable for SenML basetime factorization
-extern unsigned int coap_batch_basetime;
+extern unsigned long coap_batch_basetime;
 // -------------------------------------
 
 #ifdef REST_CONF_DEFAULT_PERIOD

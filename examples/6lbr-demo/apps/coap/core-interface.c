@@ -47,7 +47,6 @@
 #endif
 
 #include <string.h>
-#include <time.h>
 
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
@@ -87,7 +86,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   // Global variable to know if linked batch resource is used
   core_itf_linked_batch_resource = 1;
   if(batch_resource_list_size > 1)
-     coap_batch_basetime = (unsigned)time(NULL);
+     coap_batch_basetime = clock_seconds();
 
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;

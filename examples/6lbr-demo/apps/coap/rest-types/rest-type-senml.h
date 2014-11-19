@@ -37,8 +37,6 @@
 #ifndef REST_TYPE_SENML_H
 #define REST_TYPE_SENML_H
 
-#include <time.h>
-
 #ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
 
 #ifdef REST_TYPE_SENML_CONF_TIMESTAMP
@@ -76,7 +74,7 @@ if (pos < size) { \
 
 #define REST_FORMAT_TIMESTAMP \
 	if(REST_TYPE_SENML_TIMESTAMP) { \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", (unsigned)time(NULL) - coap_batch_basetime); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, ",\"t\":%u", clock_seconds() - coap_batch_basetime); \
 	} \
 	pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "}")
 
