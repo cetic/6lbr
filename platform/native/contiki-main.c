@@ -211,7 +211,7 @@ main(int argc, char **argv)
   set_rime_addr();
 
   netstack_init();
-  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+  printf("MAC %s RDC %s SEC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_LLSEC.name, NETSTACK_NETWORK.name);
 
 #if ! CETIC_6LBR
 #if NETSTACK_CONF_WITH_IPV6
