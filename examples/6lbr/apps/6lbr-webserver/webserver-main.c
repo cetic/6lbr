@@ -122,11 +122,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("<br /><h2>WSN</h2>");
 #if !CETIC_6LBR_ONE_ITF
-  add("MAC: %s<br />RDC: %s (%d Hz)<br />",
+  add("MAC: %s<br />RDC: %s (%d Hz)<br />Security: %s<br />",
       NETSTACK_MAC.name,
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
-       0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
+       0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval(),
+      NETSTACK_LLSEC.name);
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br />");
