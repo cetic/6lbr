@@ -102,6 +102,10 @@ enum write_ram_order {
 #define LEDS_OFF(x)
 #endif
 
+#if CC2420_SNIFFER
+extern uint8_t sniffer_crc_ok;
+#endif
+
 /* Conversion map between PA_LEVEL and output power in dBm
    (from table 9 in CC2420 specification).
 */
@@ -909,9 +913,22 @@ cc2420_read(void *buf, unsigned short bufsize)
       packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
   
       RIMESTATS_ADD(llrx);
+#if CC2420_SNIFFER
+    sniffer_crc_ok = 1;
+#endif /* CC2420_SNIFFER */
     } else {
       RIMESTATS_ADD(badcrc);
+#if CC2420_SNIFFER
+    /* if in sniffer mode we do not reset the len var and we still store the
+     * rssi and correlation value */
+    sniffer_crc_ok = 0;
+    cc2420_last_rssi = footer[0];
+    cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+#else /* !CC2420_SNIFFER */
       len = FOOTER_LEN;
+#endif /* CC2420_SNIFFER */
     }
   
     if(CC2420_FIFOP_IS_1) {
