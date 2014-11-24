@@ -22,8 +22,12 @@ ARCH=msp430.c leds.c watchdog.c \
 
 CFLAGS+=-DRADIO_DEVICE_$(RADIO_DEVICE)=1 -DRADIO_DEVICE=$(RADIO_DEVICE)
 
-ifeq ($(RADIO_DEVICE),cc2420)
-ARCH+=cc2420-arch.c
+ifneq ($(RADIO_DEVICE),)
+ARCH+=$(RADIO_DEVICE)-arch.c
+endif
+
+ifneq ($(RADIO_PROFILE),)
+CFLAGS+=-DRADIO_PROFILE_H=\"$(RADIO_DEVICE)-config-$(RADIO_PROFILE).h\"
 endif
 
 ifeq ($(WITH_SLIP),1)
