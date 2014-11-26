@@ -76,9 +76,22 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
     pos += snprintf(buffer + pos, size - pos, ":%d", binding->dest_port);
   }
   pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"%s\";bind=\"push\"", binding->uri, binding->resource->url);
-  if (binding->pmin > 0) {
+  PRINTF("flags : %#x\n", binding->flags);
+  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) == COAP_BINDING_FLAGS_PMIN_VALID)
     pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->pmin);
-  }
+
+  if((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) == COAP_BINDING_FLAGS_PMAX_VALID)
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", binding->pmax);
+
+  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) == COAP_BINDING_FLAGS_ST_VALID)
+    pos += snprintf(buffer + pos, size - pos, ";st=\"%d\"", binding->step);
+
+  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) == COAP_BINDING_FLAGS_LT_VALID)
+    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", binding->less_than);
+
+  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) == COAP_BINDING_FLAGS_GT_VALID)
+    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", binding->greater_than);
+
   return pos;
 }
 /*---------------------------------------------------------------------------*/
@@ -162,7 +175,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
         method = 1;
       } else if (strcmp(p, "pmin") == 0) {
         flag_status = fill_flags(&data, &flag_value);
-        if (*data == '\0' && flag_status != 0) {
+        if (*data == '\0' && flag_status != 0 && flag_value > 0) {
           binding->pmin = flag_value;
           binding->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
           PRINTF("Pmin set to %d\n", flag_value);
@@ -171,7 +184,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
         }
       } else if (strcmp(p, "pmax") == 0) {
         flag_status = fill_flags(&data, &flag_value);
-        if (*data == '\0' && flag_status != 0) {
+        if (*data == '\0' && flag_status != 0 && flag_value > 0) {
           binding->pmax = flag_value;
           binding->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
           PRINTF("Pmax set to %d\n", flag_value);
@@ -180,7 +193,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
         }
       } else if (strcmp(p, "st") == 0) {
         flag_status = fill_flags(&data, &flag_value);
-        if (*data == '\0' && flag_status != 0) {
+        if (*data == '\0' && flag_status != 0  && flag_value > 0) {
           binding->step = flag_value;
           binding->flags |= COAP_BINDING_FLAGS_ST_VALID;
           PRINTF("Change Step set to %d\n", flag_value);
@@ -210,7 +223,8 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
       }
       p = sep;
     }
-    status = *p == '\0' && rel && anchor && method;
+    status = *p == '\0' && rel && anchor && method &&
+                      pmin && pmax && st && lt && gt;
   } while (0);
   if (*p != '\0') {
     coap_error_message = "Parsing failed";
