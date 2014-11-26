@@ -49,8 +49,6 @@
 #include "nvm-itf.h"
 #include "log-6lbr.h"
 
-//#include "device-resource.h"
-
 nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/

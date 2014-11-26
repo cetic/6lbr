@@ -44,6 +44,12 @@
 
 #define COAP_BINDING_FLAGS_NVM_BINDING_VALID 0x8000
 
+#define COAP_BINDING_FLAGS_PMIN_VALID 0x0001
+#define COAP_BINDING_FLAGS_PMAX_VALID 0x0002
+#define COAP_BINDING_FLAGS_ST_VALID 0x0004
+#define COAP_BINDING_FLAGS_LT_VALID 0x0008
+#define COAP_BINDING_FLAGS_GT_VALID 0x0010
+
 struct coap_binding_s {
 	struct coap_binding_s* next;
 	resource_t * resource;

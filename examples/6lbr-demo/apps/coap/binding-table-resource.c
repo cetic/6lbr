@@ -49,7 +49,7 @@
 
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #include "net/ip/uip-debug.h"
 
 #if REST_RES_BINDING_TABLE
@@ -83,6 +83,22 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
 }
 /*---------------------------------------------------------------------------*/
 static int
+fill_flags(char **data, int *flag_value) {
+  *flag_value = 0;
+  while (**data) {
+    if(**data >= '0' && **data <= '9') {
+      *flag_value = (*flag_value * 10) + (**data - '0');
+    } else if (**data == '\0') {
+      break;
+    } else {
+      return 0;
+    }
+    (*data)++;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static int
 resource_binding_parse(char *buffer, coap_binding_t *binding)
 {
   int status = 0;
@@ -92,7 +108,13 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
   int rel = 0;
   int anchor = 0;
   int method = 0;
+  int flag_status = 0;
+  int flag_value;
   int pmin = 1;
+  int pmax = 1;
+  int st = 1;
+  int lt = 1;
+  int gt = 1;
 
   memset((void*)binding, 0, sizeof(coap_binding_t));
   do {
@@ -139,20 +161,49 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else if (strcmp(p, "pmin") == 0) {
-        int int_value = 0;
-        while (*data) {
-          if(*data >= '0' && *data <= '9') {
-            int_value = (int_value * 10) + (*data - '0');
-          } else {
-            break;
-          }
-          data++;
-        }
-        if (*data == '\0' && int_value > 0) {
-          binding->pmin = int_value;
+        flag_status = fill_flags(&data, &flag_value);
+        if (*data == '\0' && flag_status != 0) {
+          binding->pmin = flag_value;
           binding->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
+          PRINTF("Pmin set to %d\n", flag_value);
         } else {
           pmin = 0;
+        }
+      } else if (strcmp(p, "pmax") == 0) {
+        flag_status = fill_flags(&data, &flag_value);
+        if (*data == '\0' && flag_status != 0) {
+          binding->pmax = flag_value;
+          binding->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
+          PRINTF("Pmax set to %d\n", flag_value);
+        } else {
+          pmax = 0;
+        }
+      } else if (strcmp(p, "st") == 0) {
+        flag_status = fill_flags(&data, &flag_value);
+        if (*data == '\0' && flag_status != 0) {
+          binding->step = flag_value;
+          binding->flags |= COAP_BINDING_FLAGS_ST_VALID;
+          PRINTF("Change Step set to %d\n", flag_value);
+        } else {
+          st = 0;
+        }
+      } else if (strcmp(p, "lt") == 0) {
+        flag_status = fill_flags(&data, &flag_value);
+        if (*data == '\0' && flag_status != 0) {
+          binding->less_than = flag_value;
+          binding->flags |= COAP_BINDING_FLAGS_LT_VALID;
+          PRINTF("Less Than set to %d\n", flag_value);
+        } else {
+          lt = 0;
+        }
+      } else if (strcmp(p, "gt") == 0) {
+        flag_status = fill_flags(&data, &flag_value);
+        if (*data == '\0' && flag_status != 0) {
+          binding->greater_than = flag_value;
+          binding->flags |= COAP_BINDING_FLAGS_GT_VALID;
+          PRINTF("Greater Than set to %d\n", flag_value);
+        } else {
+          gt = 0;
         }
       } else {
         break;
@@ -176,6 +227,18 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
   } else if (!pmin) {
     coap_error_message = "Pmin is invalid";
     PRINTF("Pmin is invalid\n");
+  } else if (!pmax) {
+    coap_error_message = "Pmax is invalid";
+    PRINTF("Pmax is invalid\n");
+  } else if (!st) {
+    coap_error_message = "Change Step is invalid";
+    PRINTF("Change Step is invalid\n");
+  } else if (!lt) {
+    coap_error_message = "Less Than is invalid";
+    PRINTF("Less Than is invalid\n");
+  } else if (!gt) {
+    coap_error_message = "Greater Than is invalid";
+    PRINTF("Greater Than is invalid\n");
   }
   return status;
 }
@@ -238,8 +301,10 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
     if(coap_block1_handler(request, response, data_store, &data_size, sizeof(data_store)) == 0) {
       data_store[data_size] = '\0';
       coap_binding_t * binding = memb_alloc(&binding_memb);
+      PRINTF("Resource : %s\n", (char*)data_store);
       success = resource_binding_parse((char*)data_store, binding);
       if (success) {
+        PRINTF("Binding added\n");
         coap_push_add_binding(binding);
 #if WITH_NVM
         resource_binding_store_nvm_bindings();

@@ -48,8 +48,6 @@
 #define COAP_PUSH_CONF_DEFAULT_PMIN 10
 #define COAP_PUSH_CONF_DEFAULT_PMAX 0
 
-#define COAP_BINDING_FLAGS_PMIN_VALID 0x0001
-
 #define COAP_BINDING(name, resource_name) \
   extern resource_t resource_##resource_name; \
   coap_binding_t binding_##name = { NULL, &resource_##resource_name, {}, COAP_DEFAULT_PORT, {}, 0, COAP_PUSH_CONF_DEFAULT_PMIN, COAP_PUSH_CONF_DEFAULT_PMAX };
