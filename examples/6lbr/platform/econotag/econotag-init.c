@@ -54,6 +54,8 @@ platform_radio_init(void)
 {
   LOG6LBR_INFO("Setting channel %d\n", nvm_data.channel);
   set_channel(nvm_data.channel - 11);
+  radio_ready = 1;
+  radio_mac_addr_ready = 1;
 }
 
 void

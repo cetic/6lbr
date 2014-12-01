@@ -52,6 +52,8 @@ void
 platform_radio_init(void)
 {
   NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
+  radio_ready = 1;
+  radio_mac_addr_ready = 1;
 }
 
 void

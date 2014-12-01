@@ -49,7 +49,6 @@ extern void slip_got_mac(const uint8_t * data);
 extern void slip_set_mac(linkaddr_t const * mac_addr);
 extern void slip_set_rf_channel(uint8_t channel);
 
-extern uint8_t native_rdc_mac_ready;
 extern int callback_count;
 
 #endif

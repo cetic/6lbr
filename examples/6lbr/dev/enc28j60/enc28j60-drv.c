@@ -60,10 +60,6 @@ PROCESS(eth_drv_process, "ENC28J60 driver");
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
 
-//Initialisation flags
-int ethernet_ready = 0;
-int eth_mac_addr_ready = 0;
-
 /*---------------------------------------------------------------------------*/
 
 void

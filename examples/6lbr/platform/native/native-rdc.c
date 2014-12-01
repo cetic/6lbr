@@ -58,8 +58,6 @@ PROCESS(native_rdc_process, "Native RDC process");
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 0
 
-uint8_t native_rdc_mac_ready;
-
 #define MAX_CALLBACKS 16
 static int callback_pos;
 int callback_count;
@@ -262,7 +260,7 @@ void
 slip_request_mac(void)
 {
   LOG6LBR_INFO("Fetching MAC address\n");
-  native_rdc_mac_ready = 0;
+  radio_mac_addr_ready = 0;
   write_to_slip((uint8_t *) "?M", 2);
 }
 
@@ -273,7 +271,7 @@ slip_got_mac(const uint8_t * data)
   linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
   linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
-  native_rdc_mac_ready = 1;
+  radio_mac_addr_ready = 1;
 }
 
 void
@@ -316,14 +314,14 @@ PROCESS_THREAD(native_rdc_process, ev, data)
 
   static struct etimer et;
   slip_reboot();
-  while(!native_rdc_mac_ready) {
+  while(!radio_mac_addr_ready) {
     etimer_set(&et, CLOCK_SECOND);
     slip_request_mac();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
   //Set radio channel
   slip_set_rf_channel(nvm_data.channel);
-
+  radio_ready = 1;
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

@@ -48,17 +48,12 @@
 #include "slip-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
-#include "native-rdc.h"
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
 #if UIP_CONF_LLH_LEN == 0
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
-
-//Initialisation flags
-int ethernet_ready = 0;
-int eth_mac_addr_ready = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -111,7 +106,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 #if !CETIC_6LBR_ONE_ITF
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address
-    while(!native_rdc_mac_ready) {
+    while(!radio_mac_addr_ready) {
       PROCESS_PAUSE();
     }
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);

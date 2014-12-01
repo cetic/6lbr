@@ -79,6 +79,12 @@
 #endif
 #include "watchdog.h"
 
+//Initialisation flags
+int ethernet_ready = 0;
+int eth_mac_addr_ready = 0;
+int radio_ready = 0;
+int radio_mac_addr_ready = 0;
+
 //WSN
 uip_lladdr_t wsn_mac_addr;
 uip_ip6addr_t wsn_net_prefix;
@@ -353,6 +359,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
 #if !CETIC_6LBR_ONE_ITF
   platform_radio_init();
+  while(!radio_ready) {
+    PROCESS_PAUSE();
+  }
 #endif
 
   eth_drv_init();

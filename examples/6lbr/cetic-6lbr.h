@@ -51,6 +51,8 @@ typedef uint8_t ethaddr_t[6];
 //Initialisation flags
 extern int ethernet_ready;
 extern int eth_mac_addr_ready;
+extern int radio_ready;
+extern int radio_mac_addr_ready;
 
 // WSN Side
 extern uip_lladdr_t wsn_mac_addr;
