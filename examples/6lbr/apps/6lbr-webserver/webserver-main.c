@@ -41,12 +41,18 @@
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 
+#include "platform/native/dev/button-sensor.h"
+#define DEBUG 1
+#include "net/ip/uip-debug.h"
+
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #if CONTIKI_TARGET_NATIVE
 #include <unistd.h>
 #endif
+
+HTTPD_CGI_CALL_NAME(webserver_main)
 
 #if CONTIKI_TARGET_ECONOTAG
 extern void _start;
@@ -180,8 +186,24 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+#if CONTIKI_TARGET_NATIVE
+  //Button resource for 6lbr_router
+  add("<form action=\"sixlbr-button\" method=\"get\">");
+  add("<br/><input type=\"submit\" value=\"Push button\"/></form><br />");
+#endif
 
   PSOCK_END(&s->sout);
 }
 
+static httpd_cgi_call_t *
+webserver_6lbr_button(struct httpd_state *s)
+{
+  PRINTF("Button about to be pressed\n");
+  button_press();
+  PRINTF("Button pressed\n");
+  webserver_result_title = "Trigger 6LBR button";
+  return &webserver_main;
+}
+
 HTTPD_CGI_CALL(webserver_main, "index.html", "Info", generate_index, 0);
+HTTPD_CGI_CMD(webserver_6lbr_button_cmd, "sixlbr-button", webserver_6lbr_button, 0);

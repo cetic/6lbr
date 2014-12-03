@@ -65,6 +65,7 @@ HTTPD_CGI_CMD_NAME(webserver_admin_halt_cmd)
 HTTPD_CGI_CALL_NAME(webserver_log_send_log)
 HTTPD_CGI_CALL_NAME(webserver_log_send_err)
 HTTPD_CGI_CMD_NAME(webserver_log_clear_log_cmd)
+HTTPD_CGI_CMD_NAME(webserver_6lbr_button_cmd)
 
 void
 webserver_init(void)
@@ -97,6 +98,7 @@ webserver_init(void)
     httpd_cgi_add(&webserver_log_send_log);
     httpd_cgi_add(&webserver_log_send_err);
     httpd_cgi_command_add(&webserver_log_clear_log_cmd);
+    httpd_cgi_command_add(&webserver_6lbr_button_cmd);
 #endif
   }
 }

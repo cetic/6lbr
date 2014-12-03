@@ -55,6 +55,8 @@
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
+#include "sensors.h"
+
 #if WITH_UIP6
 #include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
@@ -233,6 +235,7 @@ main(int argc, char **argv)
 
   serial_line_init();
 
+  process_start(&sensors_process, NULL);
   autostart_start(autostart_processes);
 
   /* Make standard output unbuffered. */

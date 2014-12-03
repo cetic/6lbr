@@ -40,11 +40,14 @@
 #include "er-coap.h"
 #include "coap-push.h"
 #include "core-interface.h"
+#include "button-resource.h"
 #include "device-resource.h"
 #include "config-stack-resource.h"
 #include "linked-batch-resource.h"
 #include "binding-table-resource.h"
 
+REST_RES_BUTTON_DEFINE();
+REST_RES_DEVICE_DEFINE();
 COAP_BINDING(device_model_sw, device_model_sw);
 
 PROCESS(coap_server_process, "Coap Server");
@@ -57,12 +60,18 @@ PROCESS_THREAD(coap_server_process, ev, data)
 #if COAP_PUSH_ENABLED
   coap_push_init();
 #endif
+  REST_RES_BUTTON_INIT();
   REST_RES_DEVICE_INIT();
   REST_RES_CONFIG_STACK_INIT();
 
   /* Linked batch and binding tables must be initialized after all the resources */
   REST_RES_BINDING_TABLE_INIT();
   REST_RES_LINKED_BATCH_INIT();
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+    REST_RES_BUTTON_EVENT_HANDLER(ev, data);
+  }
 
   PROCESS_END();
 }

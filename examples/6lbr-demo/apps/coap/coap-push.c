@@ -39,7 +39,7 @@
 #include "coap-common.h"
 #include "coap-push.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #include "net/ip/uip-debug.h"
 
 extern void coap_blocking_request_callback(void *callback_data, void *response);
@@ -82,10 +82,10 @@ coap_push_remove_binding(coap_binding_t * binding)
 static int
 trigger_push(coap_binding_t * binding)
 {
-  if (binding->last_push + binding->pmin <= clock_seconds()) {
-    //if (binding->pmax != 0 && binding->last_push + binding->pmax >= clock_seconds()) {
-    //  return 1;
-    //}
+  if (binding->pmin && binding->last_push + binding->pmin <= clock_seconds()) {
+    if (binding->pmax != 0 && binding->last_push + binding->pmax >= clock_seconds()) {
+     return 1;
+    }
     return 1;
   }
   return 0;
@@ -133,7 +133,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
                        REST_MAX_CHUNK_SIZE, &offset);
 
       if (offset != -1) {
-        PRINTF("Warning: push block transfer not yet implemented");
+        PRINTF("Warning: push block transfer not yet implemented, offset : %d\n", offset);
       }
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 
@@ -150,7 +150,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
     }
     else
     {
-      PRINTF("Could not allocate transaction buffer");
+      PRINTF("Could not allocate transaction buffer\n");
       state->status = 1;
       PT_EXIT(&state->pt);
     }

@@ -91,7 +91,14 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE))
   {
     REST.set_header_content_type(response, REST_TYPE);
-    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+    int buffer_size = strlen((char *)buffer);
+    REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+    if(*offset + preferred_size >= buffer_size) {
+      *offset = -1;
+    } else {
+      *offset += preferred_size;
+    }
+    PRINTF("Offset : %d\n", *offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
     const char *msg = REST_TYPE_ERROR;
