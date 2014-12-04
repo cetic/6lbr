@@ -44,6 +44,7 @@
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
+#include "llsec-wrapper.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -336,6 +337,7 @@ cetic_6lbr_init_finalize(void)
 static void llsec_bootstrap_cb(void)
 {
   security_ready = 1;
+  LOG6LBR_INFO("Security layer initialized\n");
 }
 /*---------------------------------------------------------------------------*/
 
@@ -375,7 +377,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   while(!ethernet_ready) {
     PROCESS_PAUSE();
   }
-
+  llsec_wrapper_init();
   NETSTACK_LLSEC.bootstrap(llsec_bootstrap_cb);
   while(!security_ready) {
     PROCESS_PAUSE();
