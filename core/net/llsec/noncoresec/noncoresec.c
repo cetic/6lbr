@@ -76,7 +76,12 @@
 #endif /* DEBUG */
 
 /* network-wide CCM* key */
+#ifdef NONCORESEC_CONF_KEY_REF
+#define NONCORESEC_KEY_REF NONCORESEC_CONF_KEY_REF
+#else
 static uint8_t key[16] = NONCORESEC_KEY;
+#define NONCORESEC_KEY_REF key
+#endif
 NBR_TABLE(struct anti_replay_info, anti_replay_table);
 
 /*---------------------------------------------------------------------------*/
@@ -117,9 +122,9 @@ on_frame_created(void)
   data_len = packetbuf_datalen();
   
   CCM_STAR.mic(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
-#if WITH_ENCRYPTION
-  CCM_STAR.ctr(get_extended_address(&linkaddr_node_addr));
-#endif /* WITH_ENCRYPTION */
+  if(LLSEC802154_SECURITY_LEVEL & (1 << 2)) {
+    CCM_STAR.ctr(get_extended_address(&linkaddr_node_addr));
+  }
   packetbuf_set_datalen(data_len + LLSEC802154_MIC_LENGTH);
   
   return 1;
@@ -145,9 +150,9 @@ input(void)
   
   packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
   
-#if WITH_ENCRYPTION
-  CCM_STAR.ctr(get_extended_address(sender));
-#endif /* WITH_ENCRYPTION */
+  if(LLSEC802154_SECURITY_LEVEL & (1 << 2)) {
+    CCM_STAR.ctr(get_extended_address(sender));
+  }
   CCM_STAR.mic(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
   
   received_mic = ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen();
@@ -203,7 +208,7 @@ get_overhead(void)
 static void
 bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
 {
-  AES_128.set_key(key);
+  AES_128.set_key(NONCORESEC_KEY_REF);
   nbr_table_register(anti_replay_table, NULL);
   on_bootstrapped();
 }
