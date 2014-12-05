@@ -237,9 +237,9 @@
 #if CETIC_6LBR_LLSEC_WRAPPER
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC llsec_wrapper_driver
+#endif
 
 #define LLSEC802154_CONF_SECURITY 1
 #define LLSEC802154_CONF_USES_ENCRYPTION 1
-#endif
 
 #endif /* __PROJECT_6LBR_CONF_H__ */
