@@ -44,7 +44,6 @@
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
-#include "llsec-wrapper.h"
 
 #include <stdio.h>
 #include <string.h>

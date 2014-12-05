@@ -84,6 +84,8 @@
 
 #define CETIC_CSMA_STATS      0
 
+#define CETIC_6LBR_LLSEC_WRAPPER        0
+
 /* Do not change lines below */
 
 #define LOG6LBR_TIMESTAMP           0
