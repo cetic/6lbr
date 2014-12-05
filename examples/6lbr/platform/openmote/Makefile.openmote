@@ -1,0 +1,3 @@
+CC2538_ENC28J60_ARCH=gpio
+
+include platform/cc2538dk/Makefile.cc2538dk

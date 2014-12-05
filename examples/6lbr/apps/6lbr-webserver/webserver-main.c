@@ -64,7 +64,7 @@ extern void _bss_end__;
 extern void _end;
 #endif
 
-#if CONTIKI_TARGET_CC2538DK
+#if CONTIKI_TARGET_CC2538DK || CONTIKI_TARGET_OPENMOTE
 extern void _text;
 //Code
 extern void _rodata;
@@ -164,23 +164,24 @@ PT_THREAD(generate_index(struct httpd_state *s))
       (100 * (&_end - &_start)) / (96 * 1024));
 
   add("Code : %d<br />", &_etext - &_start);
-  add("Initialised data : %d<br /><br />", &_edata - &_etext);
+  add("Initialized data : %d<br /><br />", &_edata - &_etext);
   add("Data : %d<br />", &_bss_end__ - &__bss_start);
   add("Stack : %d<br />", &__bss_start - &_edata);
   add("Heap : %d<br />", &_end - &_bss_end__);
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CONTIKI_TARGET_CC2538DK
+#if CONTIKI_TARGET_CC2538DK || CONTIKI_TARGET_OPENMOTE
   add("<br /><h2>Memory</h2>");
 
-  int total = (&_etext - &_text) + (&_edata - &_data) + (&_ebss - &_bss);
-  add("Global : %d (%d %%)<br /><br />", total,
+  int total = (&_etext - &_text) + (&_edata - &_data);
+  add("Flash : %d (%d %%)<br />", total,
       (100 * total) / (512 * 1024));
 
-  add("Code : %d<br />", &_etext - &_text);
-  add("Initialised data : %d<br /><br />", &_edata - &_data);
-  add("Data : %d<br />", &_ebss - &_bss);
+  add("&nbsp;&nbsp;Code : %d<br />", &_etext - &_text);
+  add("&nbsp;&nbsp;Initialized data : %d<br /><br />", &_edata - &_data);
+  total = (&_ebss - &_bss) + (&_edata - &_data);
+  add("RAM : %d (%d %%)<br />", total, (100 * total) / (32 * 1024));
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
