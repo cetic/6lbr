@@ -25,6 +25,9 @@ case $OS in
 			echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
 			brctl addbr $DEV_BRIDGE
 			brctl setfd $DEV_BRIDGE 0
+			if [[ "$BRIDGE_DISABLE_SNOOPING" = "1" ]]; then
+				echo 0 > /sys/devices/virtual/net/$DEV_BRIDGE/bridge/multicast_snooping
+			fi
 			if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
 				echo "6lbr-ifup: attach device $DEV_ETH"
 				brctl addif $DEV_BRIDGE $DEV_ETH
