@@ -61,6 +61,10 @@ if [ "$ETH_JOIN_BRIDGE" = "" ]; then
 	ETH_JOIN_BRIDGE="1"
 fi
 
+if [ "$BRIDGE_DISABLE_SNOOPING" = "" ]; then
+	BRIDGE_DISABLE_SNOOPING="1"
+fi
+
 # Radio configuration
 
 # No default values as platform are too different

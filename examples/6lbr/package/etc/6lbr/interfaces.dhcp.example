@@ -10,6 +10,7 @@ iface br0 inet dhcp
     pre-up brctl addbr br0
     pre-up brctl addif br0 eth0
     pre-up ip addr flush dev eth0
+    up echo 0 > /sys/devices/virtual/net/br0/bridge/multicast_snooping
     post-down ip link set eth0 down
     post-down ip link set br0 down
     post-down brctl delif br0 eth0
