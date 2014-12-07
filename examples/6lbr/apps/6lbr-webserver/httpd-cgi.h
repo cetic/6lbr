@@ -45,6 +45,7 @@ struct httpd_cgi_call {
   const char *title;
   uint32_t flags;
   httpd_cgifunction function;
+  struct httpd_cgi_call **group;
 
   uint32_t numtimes;
   clock_time_t numticks;
@@ -77,7 +78,10 @@ httpd_cgi_command_t* httpd_cgi_command_head(void);
 extern struct httpd_cgi_call name;
 
 #define HTTPD_CGI_CALL(name, str, title, function, flags) \
-struct httpd_cgi_call name = {NULL, str, title, flags, function, 0, 0}
+struct httpd_cgi_call name = {NULL, str, title, flags, function, NULL, 0, 0}
+
+#define HTTPD_CGI_CALL_GROUP(name, str, title, function, flags, group) \
+struct httpd_cgi_call name = {NULL, str, title, flags, function, group, 0, 0}
 
 #define HTTPD_CGI_CMD_NAME(name) \
 extern struct httpd_cgi_command name;

@@ -58,15 +58,15 @@ static const char *TOP =
 const char *TOP =
   "<html><head><style type=\"text/css\">"
   "body{font-family:Verdana;color:#333333;padding:20px;}"
-  "#banner{background-color: #779945;color: #ffffff;}"
-  "#barre_nav{background-color: #669934; color: #fff;}"
-  ".menu-general a{padding: 3px 10px 4px;}"
+  "#banner{background-color:#779945;color:#ffffff;}"
+  "#barre_nav{background-color:#669934; color:#fff;clear:left;}"
+  ".menu-general a{padding:3px 10px 4px;}"
   "h1,h2{margin:40px 0 0;padding:0;font-weight:bold;}"
   "h1{font-size:16px;line-height:18px;}"
   "h2{font-size:14px;color:#669934;line-height:16px;}"
   "h3{font-size:12px;font-weight:bold;line-height:14px;}"
   "#h{margin:0;}"
-  "#footer{border-top:1px solid black;margin-top: 1em;font-size: 9px;}"
+  "#footer{border-top:1px solid black;margin-top: 1em;font-size:9px;}"
   "</style>";
 #endif
 static const char *BODY =
@@ -74,11 +74,9 @@ static const char *BODY =
   "<div id=\"banner\">"
   "<h1>6LBR</h1>"
   "<h2>6Lowpan Border Router</h2>"
-  "<div id=\"barre_nav\">"
-  "<div class=\"menu-general\">";
+  "<div class=\"barre_nav\">";
 static const char*BODY_AFTER_MENU =
-  "</div>"
-  "</div></div>\n";
+  "</div></div>";
 static const char *BOTTOM = "</div></body></html>";
 /*---------------------------------------------------------------------------*/
 
@@ -167,14 +165,35 @@ add_menu(struct httpd_state *s)
   httpd_cgi_call_t *f;
   for(f = httpd_cgi_head(); f != NULL; f = f->next) {
     if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
-      if(f == s->script) {
+      add("<div class=\"menu-general\">");
+      if(f == s->script || (f->group != NULL && f->group == s->script->group)) {
         add("<span>%s</span>", f->title);
       } else {
         add("<a href=\"%s\">%s</a>", f->name, f->title);
       }
+      add("</div>");
     }
   }
-  add(BODY_AFTER_MENU);
+}
+
+static void
+add_submenu(struct httpd_state *s)
+{
+  httpd_cgi_call_t **f;
+  if(s->script->group) {
+    add("</div><div class=\"barre_nav\">");
+    for(f = s->script->group; *f != NULL; ++f) {
+      if((*f)->title != NULL && ((*f)->flags & WEBSERVER_NOSUBMENU) == 0) {
+        add("<div class=\"menu-general\">");
+        if(*f == s->script) {
+          add("<span>%s</span>", (*f)->title);
+        } else {
+          add("<a href=\"%s\">%s</a>", (*f)->name, (*f)->title);
+        }
+        add("</div>");
+      }
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 PT_THREAD(generate_top(struct httpd_state *s))
@@ -190,8 +209,14 @@ PT_THREAD(generate_top(struct httpd_state *s))
   } else {
     add("<title>6LBR</title>");
   }
-  SEND_STRING(&s->sout, BODY);
+  add(BODY);
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   add_menu(s);
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add_submenu(s);
+  add(BODY_AFTER_MENU);
   if(s->script->title) {
     add_div_home(s->script->title);
     add("<div id=\"left_home\">");
