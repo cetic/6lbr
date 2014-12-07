@@ -52,7 +52,7 @@ llsec_wrapper_init(void)
     LOG6LBR_INFO("Using 'nullsec' llsec driver\n");
     current_llsec_driver = &nullsec_driver;
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
-    LOG6LBR_INFO("Using 'nullsec' llsec driver\n");
+    LOG6LBR_INFO("Using 'noncoresec' llsec driver\n");
     current_llsec_driver = &noncoresec_driver;
   } else {
     LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
