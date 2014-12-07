@@ -8,5 +8,5 @@ ifeq ($(TARGET),native)
 endif
 
 ifneq ($(WITH_NODE_INFO),0)
-6lbr-webserver_src += webserver-sensors.c
+6lbr-webserver_src += webserver-sensors.c webserver-sensor.c
 endif

@@ -49,12 +49,27 @@
 #include "node-config.h"
 #endif
 
+static const char * graph_top =
+    "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>"
+    "<script type=\"text/javascript\">"
+    "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});"
+    "google.setOnLoadCallback(drawChart);"
+    "function drawChart(){var data=google.visualization.arrayToDataTable([";
+
+static const char * graph_bottom =
+    "var chart=new google.visualization.ColumnChart(document.getElementById('chart_div'));"
+    "chart.draw(data, options);"
+   "}"
+   "</script>"
+   "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
+
 static
 PT_THREAD(generate_sensors(struct httpd_state *s))
 {
   static int i;
 
   PSOCK_BEGIN(&s->sout);
+  add("<br /><h2>Sensors list</h2>");
   add
     ("<table>"
      "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Parent</td><td>Up PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
@@ -162,9 +177,21 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
     }
   }
   add("</tbody></table><br />");
+
+  add("<br /><h2>Actions</h2>");
+  add("<form action=\"reset-prr\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset PRR\"/></form><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(generate_sensors_tree(struct httpd_state *s))
+{
+  static int i;
+  PSOCK_BEGIN(&s->sout);
   add
     ("<center>"
      "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
@@ -224,12 +251,74 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("}\"alt=\"\" /></center>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add("<br /><h3>Actions</h3>");
-  add("<form action=\"reset-prr\" method=\"get\">");
-  add("<input type=\"submit\" value=\"Reset PRR\"/></form><br />");
+
+  PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(generate_sensors_prr(struct httpd_state *s))
+{
+  static int i;
+
+  PSOCK_BEGIN(&s->sout);
+  SEND_STRING(&s->sout, graph_top);
+  add("['Sensor', 'PRR'],");
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(node_info_table[i].isused) {
+      float prr = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
+#if CETIC_NODE_CONFIG
+      if (node_config_loaded) {
+        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        add("[\"%s\", %.1f],", node_config_get_name(node_config), prr);
+      } else
+#endif
+      {
+        add("[\"");
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("\", %.1f],", prr);
+      }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+  add("]);var options={vAxis:{minValue: 0,maxValue: 100},legend:{position: \"none\"}};");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  SEND_STRING(&s->sout,graph_bottom);
+  PSOCK_END(&s->sout);
+}
+
+static
+PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
+{
+  static int i;
+
+  PSOCK_BEGIN(&s->sout);
+  SEND_STRING(&s->sout, graph_top);
+  add("['Sensor', 'Parent switch'],");
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(node_info_table[i].isused) {
+#if CETIC_NODE_CONFIG
+      if (node_config_loaded) {
+        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        add("[\"%s\", %d],", node_config_get_name(node_config), node_info_table[i].parent_switch);
+      } else
+#endif
+      {
+        add("[\"");
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("\", %d],", node_info_table[i].parent_switch);
+      }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+  add("]);var options={vAxis:{minValue: 0},legend:{position: \"none\"}};");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  SEND_STRING(&s->sout,graph_bottom);
   PSOCK_END(&s->sout);
 }
 
@@ -240,5 +329,10 @@ webserver_sensors_reset_prr(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-HTTPD_CGI_CALL(webserver_sensors, "sensors.html", "Sensors", generate_sensors, 0);
+static httpd_cgi_call_t * sensors_group[];
+HTTPD_CGI_CALL_GROUP(webserver_sensors, "sensors.html", "Sensors", generate_sensors, 0, sensors_group);
+HTTPD_CGI_CALL_GROUP(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, WEBSERVER_NOMENU, sensors_group);
+HTTPD_CGI_CALL_GROUP(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, WEBSERVER_NOMENU, sensors_group);
+HTTPD_CGI_CALL_GROUP(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CMD(webserver_sensors_reset_prr_cmd, "reset-prr", webserver_sensors_reset_prr, 0);
+static httpd_cgi_call_t * sensors_group[] = {&webserver_sensors, &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, NULL};
