@@ -53,10 +53,10 @@
 /*---------------------------------------------------------------------------*/
 #if CONTIKI_TARGET_NATIVE
 static const char *TOP =
-  "<html><head><title>6LBR</title><link rel=\"stylesheet\" type=\"text/css\" href=\"6lbr_layout.css\" />";
+  "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"6lbr_layout.css\" />";
 #else
 const char *TOP =
-  "<html><head><title>6LBR</title><style type=\"text/css\">"
+  "<html><head><style type=\"text/css\">"
   "body{font-family:Verdana;color:#333333;padding:20px;}"
   "#banner{background-color: #779945;color: #ffffff;}"
   "#barre_nav{background-color: #669934; color: #fff;}"
@@ -67,7 +67,7 @@ const char *TOP =
   "h3{font-size:12px;font-weight:bold;line-height:14px;}"
   "#h{margin:0;}"
   "#footer{border-top:1px solid black;margin-top: 1em;font-size: 9px;}"
-  "</style></head>";
+  "</style>";
 #endif
 static const char *BODY =
   "</head><body class=\"page_rubrique\"><div id=\"container\">"
@@ -166,7 +166,7 @@ add_menu(struct httpd_state *s)
 {
   httpd_cgi_call_t *f;
   for(f = httpd_cgi_head(); f != NULL; f = f->next) {
-    if(f->title != NULL) {
+    if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
       if(f == s->script) {
         add("<span>%s</span>", f->title);
       } else {
@@ -183,12 +183,19 @@ PT_THREAD(generate_top(struct httpd_state *s))
 #if WEBSERVER_CONF_LOADTIME
   s->script->numticks = clock_time();
 #endif
-  SEND_STRING(&s->sout, TOP);
-  SEND_STRING(&s->sout, BODY);
   reset_buf();
+  SEND_STRING(&s->sout, TOP);
+  if(s->script->title) {
+    add("<title>%s - 6LBR</title>", s->script->title);
+  } else {
+    add("<title>6LBR</title>");
+  }
+  SEND_STRING(&s->sout, BODY);
   add_menu(s);
-  add_div_home(s->script->title);
-  add("<div id=\"left_home\">");
+  if(s->script->title) {
+    add_div_home(s->script->title);
+    add("<div id=\"left_home\">");
+  }
   SEND_STRING(&s->sout, buf);
   reset_buf();
   PSOCK_END(&s->sout);
@@ -219,11 +226,12 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
   reset_buf();
   SEND_STRING(&s->sout, TOP);
+  add("<title>6LBR</title>");
   if(webserver_result_refresh) {
     add("<meta http-equiv=\"refresh\" content=\"%d; url=/\" />", webserver_result_refresh);
-    SEND_STRING(&s->sout, buf);
-    reset_buf();
   }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   SEND_STRING(&s->sout, BODY);
   add_menu(s);
   add_div_home(webserver_result_title);
@@ -247,6 +255,7 @@ PT_THREAD(generate_404(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
+  add("<title>Not found</title>");
   SEND_STRING(&s->sout, BODY);
   reset_buf();
   add_menu(s);

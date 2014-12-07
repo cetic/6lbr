@@ -15,6 +15,8 @@ extern const char * webserver_result_title;
 extern const char * webserver_result_text;
 extern int webserver_result_refresh;
 
+#define WEBSERVER_NOMENU    0x00010000
+
 extern PT_THREAD(generate_404(struct httpd_state *s));
 HTTPD_CGI_CALL_NAME(webserver_result_page);
 
