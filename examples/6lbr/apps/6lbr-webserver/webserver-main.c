@@ -121,24 +121,31 @@ PT_THREAD(generate_index(struct httpd_state *s))
   reset_buf();
 
   add("<br /><h2>WSN</h2>");
+#if !CETIC_6LBR_ONE_ITF
   add("MAC: %s<br />RDC: %s (%d Hz)<br />",
       NETSTACK_MAC.name,
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
-#if UIP_CONF_IPV6_RPL
-  add("Prefix : ");
-  ipaddr_add(&cetic_dag->prefix_info.prefix);
-  add("/%d", cetic_dag->prefix_info.length);
-  add("<br />");
-#endif
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br />");
+#endif
+  add("Address : ");
+  ipaddr_add(&wsn_ip_addr);
+  add("<br />");
+#if !CETIC_6LBR_ONE_ITF
+  add("Local address : ");
+  ipaddr_add(&wsn_ip_local_addr);
+  add("<br />");
+#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   add("<br /><h2>Ethernet</h2>");
+  add("HW address : ");
+  ethaddr_add((const ethaddr_t*)&eth_mac_addr);
+  add("<br />");
 #if CETIC_6LBR_ROUTER
   add("Address : ");
   ipaddr_add(&eth_ip_addr);
@@ -147,9 +154,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
   ipaddr_add(&eth_ip_local_addr);
   add("<br />");
 #endif
-  add("HW address : ");
-  ethaddr_add((const ethaddr_t*)&eth_mac_addr);
-  add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 

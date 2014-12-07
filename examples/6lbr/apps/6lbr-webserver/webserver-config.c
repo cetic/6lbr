@@ -98,10 +98,12 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   add("<form action=\"config\" method=\"get\">");
   add("<h2>WSN Network</h2>");
+#if !CETIC_6LBR_ONE_ITF
   add("<h3>WSN configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 
   add("<h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
