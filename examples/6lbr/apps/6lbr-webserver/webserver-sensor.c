@@ -53,7 +53,7 @@ static
 PT_THREAD(generate_sensor(struct httpd_state *s))
 {
   static uip_ipaddr_t ipaddr;
-  node_info_t * node_info;
+  node_info_t * node_info = NULL;
 
   PSOCK_BEGIN(&s->sout);
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
@@ -79,7 +79,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
         ipaddr_add(&node_info->ip_parent);
       }
 #else
-      ipaddr_add(&node_info_table[i].ip_parent);
+      ipaddr_add(&node_info->ip_parent);
 #endif
       add("<br />");
       add("Downward route: %s<br />", node_info->has_route ? "Yes" : "No");
