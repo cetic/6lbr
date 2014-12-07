@@ -91,12 +91,24 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add(text " : %d<br />", nvm_data.nvm_name); \
   }
 
+#define INPUT_KEY(name, nvm_name, size, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" size=\"%d\" value=\"", size*2); \
+      add_key(nvm_data.nvm_name, size); \
+    add("\" /><br />"); \
+  } else { \
+    add(text " : ****<br />"); \
+  }
+
+#define SELECT_OPTION(nvm_name, value, name) add("<option value=\"%d\" %s>%s</option>", value, nvm_data.nvm_name == value ? "selected" : "", name)
+
 static
 PT_THREAD(generate_config(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
 
   add("<form action=\"config\" method=\"get\">");
+#if !CETIC_6LBR_ONE_ITF
   add("<h2>WSN Network</h2>");
 #if !CETIC_6LBR_ONE_ITF
   add("<h3>WSN configuration</h3>");
@@ -105,7 +117,31 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
-  add("<h3>IP configuration</h3>");
+  add("<br /><h3>Security</h3>");
+  add("Link-layer security : <select name=\"llsec\">");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONE, "None");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Pre-shared Key");
+  add("</select><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("Link-layer security level : <select name=\"llsec_level\">");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_NO_SECURITY, "No Security");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_32, "AES-CBC-MAC-32");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_64, "AES-CBC-MAC-64");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_128, "AES-CBC-MAC-128");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CTR, "AES-CTR");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CCM_32 , "AES-CCM-32");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CCM_64 , "AES-CCM-64");
+  SELECT_OPTION(security_level, CETIC_6LBR_SECURITY_LEVEL_AES_CCM_128, "AES-CCM-128");
+  add("</select><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+
+  add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_SMARTBRIDGE
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
@@ -235,6 +271,19 @@ else if(strcmp(param, name) == 0) { \
     } \
   }
 
+#define UPDATE_KEY(name, nvm_name, size, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    uint8_t tmp_key[size]; \
+    if(key_conv(value, tmp_key, size)) { \
+      memcpy(&nvm_data.nvm_name, tmp_key, \
+             sizeof(nvm_data.nvm_name)); \
+      *reboot_needed |= (reboot); \
+    } else { \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
+      do_update = 0; \
+    } \
+  }
+
 static int
 update_config(const char *name, uint8_t *reboot_needed)
 {
@@ -269,6 +318,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
+    UPDATE_INT("llsec", security_layer, 1)
+    UPDATE_INT("llsec_level", security_level, 1)
+    UPDATE_KEY("psk", noncoresec_key, 16, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)

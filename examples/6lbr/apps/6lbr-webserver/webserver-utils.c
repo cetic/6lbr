@@ -167,6 +167,52 @@ ethaddr_add(const ethaddr_t * addr)
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+add_key(const uint8_t * key, int size)
+{
+  int i;
+  for(i = 0; i < size; i++) {
+    add("%02X", key[i]);
+  }
+}
+/*---------------------------------------------------------------------------*/
+int
+key_conv(const char *str, uint8_t * key, int size)
+{
+  uint16_t value;
+  int tmp, nibble;
+  unsigned int len;
+  char c = 0;
+  value = 0;
+  nibble = 0;
+
+  for(len = 0; len < size; str++) {
+    c = *str;
+    if(c >= '0' && c <= '9') {
+      tmp = c - '0';
+    } else if(c >= 'a' && c <= 'f') {
+      tmp = c - 'a' + 10;
+    } else if(c >= 'A' && c <= 'F') {
+      tmp = c - 'A' + 10;
+    } else {
+      return 0;
+    }
+    value = (value << 4) + (tmp & 0xf);
+    if(nibble == 1) {
+      key[len] = value;
+      len++;
+      value = 0;
+      nibble = 0;
+    } else {
+      nibble = 1;
+    }
+  }
+  if(len < size) {
+    return 0;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 static void
 add_menu(struct httpd_state *s)
 {

@@ -38,4 +38,10 @@ lladdr_add(const uip_lladdr_t * addr);
 void
 ethaddr_add(ethaddr_t const* addr);
 
+void
+add_key(const uint8_t * key, int size);
+
+int
+key_conv(const char *str, uint8_t * key, int size);
+
 #endif
