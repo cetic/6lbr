@@ -54,6 +54,7 @@ typedef struct node_info {
 
   //Stats
   uint32_t up_messages_lost;
+  uint16_t parent_switch;
 } node_info_t;
 
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */

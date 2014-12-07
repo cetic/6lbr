@@ -90,6 +90,8 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
 {
   node_info_t *node = NULL;
   char *  sep;
+  uip_ipaddr_t ip_parent;
+
   node = node_info_lookup(ipaddr);
   if (node == NULL) {
     node = node_info_add(ipaddr);
@@ -114,8 +116,12 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (*info == ' ') {
         info++;
       }
-      if (uiplib_ipaddrconv(info, &node->ip_parent) == 0) {
-        uip_create_unspecified(&node->ip_parent);
+      if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
+        uip_create_unspecified(&ip_parent);
+      }
+      if(!uip_ipaddr_cmp(&node->ip_parent, &ip_parent)) {
+        uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
+        node->parent_switch++;
       }
     } else {
       node->last_sequence = 0;
@@ -167,6 +173,7 @@ node_info_reset_prr(void)
       node_info_table[i].messages_received = 0;
       node_info_table[i].messages_sent = 0;
       node_info_table[i].up_messages_lost = 0;
+      node_info_table[i].parent_switch = 0;
     }
   }
 }
