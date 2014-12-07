@@ -67,7 +67,7 @@ httpd_cgi(char *name)
 
   /* Find the matching name in the table, return the function. */
   for(f = calls; f != NULL; f = f->next) {
-    if(strncmp(f->name, name, strlen(f->name)) == 0) {
+    if(strcmp(f->name, name) == 0) {
       return f;
     }
   }
@@ -101,7 +101,7 @@ httpd_cgi_command(char *name)
 
   /* Find the matching name in the table, return the function. */
   for(f = commands; f != NULL; f = f->next) {
-    if(strncmp(f->name, name, strlen(f->name)) == 0) {
+    if(strcmp(f->name, name) == 0) {
       return f;
     }
   }
