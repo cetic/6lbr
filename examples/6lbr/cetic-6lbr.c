@@ -59,6 +59,10 @@
 #include "nvm-config.h"
 #include "rio.h"
 
+#if CETIC_6LBR_LLSEC_WRAPPER
+#include "llsec-wrapper.h"
+#endif
+
 #if WEBSERVER
 #include "webserver.h"
 #endif
@@ -376,7 +380,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   while(!ethernet_ready) {
     PROCESS_PAUSE();
   }
+#if CETIC_6LBR_LLSEC_WRAPPER
   llsec_wrapper_init();
+#endif
   NETSTACK_LLSEC.bootstrap(llsec_bootstrap_cb);
   while(!security_ready) {
     PROCESS_PAUSE();
