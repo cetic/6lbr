@@ -64,4 +64,7 @@ coap_push_add_binding(coap_binding_t * binding);
 int
 coap_push_remove_binding(coap_binding_t * binding);
 
+void
+coap_push_update_binding(resource_t *event_resource, int value);
+
 #endif /* COAP_PUSH_H_ */

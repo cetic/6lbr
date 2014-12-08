@@ -79,16 +79,54 @@ coap_push_remove_binding(coap_binding_t * binding)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+void
+coap_push_update_binding(resource_t *event_resource, int value) {
+  static coap_binding_t * binding = NULL;
+  for(binding = (coap_binding_t *)list_head(coap_push_binding);
+    binding; binding = binding->next) {
+    if(binding->resource == event_resource) {
+      binding->last_value = value;
+      process_poll(&coap_push_process);
+      break;
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
 static int
 trigger_push(coap_binding_t * binding)
 {
-  if (binding->pmin && binding->last_push + binding->pmin <= clock_seconds()) {
-    if (binding->pmax != 0 && binding->last_push + binding->pmax >= clock_seconds()) {
-     return 1;
-    }
+  int cl = clock_seconds();
+  PRINTF("Trigger : last + pmax = %d, clock = %d, delta = %d\n", binding->last_push + binding->pmax, cl, binding->last_push + binding->pmax - cl);
+  if ((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0 &&
+    binding->last_push + binding->pmax <= clock_seconds()) {
+    binding->last_sent_value = binding->last_value;
+    PRINTF("Push triggered, pmax reached");
     return 1;
   }
-  return 0;
+  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0 &&
+      binding->last_push + binding->pmin > clock_seconds()) {
+    PRINTF("Push not triggered, pmin unreached\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) != 0 &&
+      (binding->last_sent_value + binding->step > binding->last_value &&
+      binding->last_sent_value - binding->step < binding->last_value)) {
+    PRINTF("Push not triggered, step unreached\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) != 0 &&
+      binding->last_value >= binding->less_than) {
+    PRINTF("Push not triggered, value not less than threshold\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) != 0 &&
+      binding->last_value <= binding->greater_than) {
+    PRINTF("Push not triggered, value not greater than threshold\n");
+    return 0;
+  }
+  PRINTF("Push triggered, value : %d\n", binding->last_value);
+  binding->last_sent_value = binding->last_value;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #define COAP_BLOCKING_PUSH_STATE(request_state, ctx, server_addr, server_port, request, resource_handler) \
@@ -171,7 +209,7 @@ PROCESS_THREAD(coap_push_process, ev, data)
   etimer_set(&et, COAP_PUSH_INTERVAL * CLOCK_SECOND);
   while(1) {
     PROCESS_YIELD();
-    if(etimer_expired(&et)) {
+    if(etimer_expired(&et) || ev == PROCESS_EVENT_POLL) {
       static coap_binding_t * binding = NULL;
       for(binding = (coap_binding_t *)list_head(coap_push_binding);
           binding; binding = binding->next) {

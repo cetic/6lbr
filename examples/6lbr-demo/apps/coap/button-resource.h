@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "coap-common.h"
 #include "ipso-profile.h"
+#include "coap-push.h"
 
 #if PLATFORM_HAS_BUTTON
 #include "dev/button-sensor.h"
@@ -73,6 +74,7 @@
 #define REST_RES_BUTTON_EVENT_HANDLER(ev, data) \
     if (ev == sensors_event && data == &button_sensor) { \
       resource_button.trigger(); \
+      coap_push_update_binding(&resource_button, button_sensor.value(1)); \
     }
 
 #else

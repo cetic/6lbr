@@ -2,18 +2,23 @@
 #include "dev/button-sensor.h"
 
 const struct sensors_sensor button_sensor;
-
+static int button_value = 0;
 /*---------------------------------------------------------------------------*/
 void
 button_press(void)
 {
+  button_value++;
   sensors_changed(&button_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  return 0;
+  if(!type)
+    return 0;
+  else if(type == 1) {
+    return button_value;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int

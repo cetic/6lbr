@@ -62,7 +62,8 @@ struct coap_binding_s {
 	int step;
 	int less_than;
 	int greater_than;
-
+	int last_value;
+	int last_sent_value;
 	unsigned long last_push;
 };
 
