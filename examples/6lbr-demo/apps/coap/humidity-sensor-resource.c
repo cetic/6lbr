@@ -46,10 +46,18 @@
 #define REST_RES_HUMIDITY_RESOURCE(...)
 #endif
 
+#if PLATFORM_HAS_SHT11
 #if REST_RES_HUMIDITY_RAW
 #define REST_REST_HUMIDITY_VALUE REST_FORMAT_ONE_INT("humidity", sht11_sensor.value(SHT11_SENSOR_HUMIDITY))
 #else
 #define REST_REST_HUMIDITY_VALUE REST_FORMAT_TWO_DECIMAL("humidity", ((uint32_t)sht11_sensor.value(SHT11_SENSOR_HUMIDITY) * 367 - 20468) / 100)
+#endif
+#else
+#if REST_RES_HUMIDITY_RAW
+#define REST_REST_HUMIDITY_VALUE REST_FORMAT_ONE_INT("humidity", sht21_read_humidity())
+#else
+#define REST_REST_HUMIDITY_VALUE REST_FORMAT_TWO_DECIMAL("humidity", (((uint32_t)sht21_read_humidity())*12500/65536)-600)
+#endif
 #endif
 
 REST_RES_HUMIDITY_RESOURCE(humidity,

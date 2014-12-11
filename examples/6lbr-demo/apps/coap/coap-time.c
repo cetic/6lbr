@@ -33,71 +33,29 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#ifndef HUMIDITY_SENSOR_RESOURCE_H
-#define HUMIDITY_SENSOR_RESOURCE_H
 
-#include "contiki.h"
-#include "coap-common.h"
-#include "ipso-profile.h"
+#include "coap-time.h"
 
-#if PLATFORM_HAS_SHT11
-#include "sht11-sensor.h"
-#endif
+static uint32_t  startup_time;
+static int32_t time_offset;
 
-#if PLATFORM_HAS_SHT21
-#include "sht21.h"
-#endif
+void
+coap_time_init(void) {
+  startup_time = clock_seconds();
+  time_offset = 0;
+}
 
-#if PLATFORM_HAS_SHT11 || PLATFORM_HAS_SHT21
-#ifdef REST_CONF_RES_HUMIDITY
-#define REST_RES_HUMIDITY REST_CONF_RES_HUMIDITY
-#else
-#define REST_RES_HUMIDITY 1
-#endif
-#else
-#define REST_RES_HUMIDITY 0
-#endif
+uint32_t
+coap_time_get_uptime(void) {
+  return clock_seconds() - startup_time;
+}
 
-#ifdef REST_CONF_RES_HUMIDITY_PERIODIC
-#define REST_RES_HUMIDITY_PERIODIC REST_CONF_RES_HUMIDITY_PERIODIC
-#else
-#define REST_RES_HUMIDITY_PERIODIC 0
-#endif
+uint32_t
+coap_time_get_time(void) {
+  return clock_seconds() + time_offset;
+}
 
-#ifdef REST_CONF_RES_HUMIDITY_PERIOD
-#define REST_RES_HUMIDITY_PERIOD REST_CONF_RES_HUMIDITY_PERIOD
-#else
-#define REST_RES_HUMIDITY_PERIOD REST_DEFAULT_PERIOD
-#endif
-
-#ifdef REST_RES_HUMIDITY_RAW
-#define REST_RES_HUMIDITY_RAW REST_CONF_RES_HUMIDITY_RAW
-#else
-#define REST_RES_HUMIDITY_RAW 0
-#endif
-
-#if REST_RES_HUMIDITY
-
-#define REST_RES_HUMIDITY_DEFINE() \
-  extern resource_t resource_humidity;
-
-#if PLATFORM_HAS_SHT11
-#define REST_RES_HUMIDITY_INIT() \
-  SENSORS_ACTIVATE(sht11_sensor); \
-  rest_activate_resource(&resource_humidity, HUMIDITY_SENSOR_RES);
-#else
-#define REST_RES_HUMIDITY_INIT() \
-  rest_activate_resource(&resource_humidity, HUMIDITY_SENSOR_RES);
-#endif
-
-#define REST_RES_HUMIDITY_REF &resource_humidity,
-
-#else
-
-#define REST_RES_HUMIDITY_DEFINE()
-#define REST_RES_HUMIDITY_INIT()
-#define REST_RES_HUMIDITY_REF
-
-#endif
-
-#endif /* HUMIDITY_SENSOR_RESOURCE_H */
+void
+coap_time_set_time(uint32_t time) {
+  time_offset = time - clock_seconds();
+}
