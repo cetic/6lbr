@@ -41,7 +41,16 @@
 #define RF_CHANNEL 24
 #endif
 
+#if CONTIKI_TARGET_CC2538DK
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
+
+#define I2C_SDA_PORT    GPIO_C_NUM
+#define I2C_SDA_PIN             3
+#define I2C_SCL_PORT    GPIO_C_NUM
+#define I2C_SCL_PIN             1
+#define PLATFORM_HAS_SHT21 1
+#define ENABLE_I2C 1
+#endif
 
 #define SKY_CONF_SENSORS 0
 
