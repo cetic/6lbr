@@ -69,21 +69,18 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       ipaddr_add(&ipaddr);
       add("<br />");
       add("Model: -<br />");
-      add("Parent: <a href=\"sensor?");
-      ipaddr_add(&node_info->ip_parent);
+      add("Parent: ");
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
-        add("\">%s (", node_config_get_name(node_config_find_from_ip(&node_info->ip_parent)));
+        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info->ip_parent)));
         ipaddr_add(&node_info->ip_parent);
         add(")</a>");
       } else
 #endif
       {
-        add("\">");
         ipaddr_add(&node_info->ip_parent);
         add("</a>");
       }
-      ipaddr_add(&node_info->ip_parent);
       add("<br />");
       add("Downward route: %s<br />", node_info->has_route ? "Yes" : "No");
       SEND_STRING(&s->sout, buf);
