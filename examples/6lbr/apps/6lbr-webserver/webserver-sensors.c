@@ -80,19 +80,20 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
+      add("<a href=\"sensor?");
+      ipaddr_add(&node_info_table[i].ipaddr);
 #if CETIC_NODE_CONFIG
       if ( node_config_loaded ) {
-        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
+        add("\">%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
         add(")</a></td>");
-      } else {
+      } else
+#endif
+      {
+        add("\">");
         ipaddr_add(&node_info_table[i].ipaddr);
         add("</a></td>");
       }
-#else
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("</a></td>");
-#endif
 
       if(0) {
       } else if(node_info_table[i].ipaddr.u8[8] == 0x02

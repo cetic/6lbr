@@ -69,27 +69,34 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       ipaddr_add(&ipaddr);
       add("<br />");
       add("Model: -<br />");
-      add("Parent: ");
+      add("Parent: <a href=\"sensor?");
+      ipaddr_add(&node_info->ip_parent);
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
-        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info->ip_parent)));
+        add("\">%s (", node_config_get_name(node_config_find_from_ip(&node_info->ip_parent)));
         ipaddr_add(&node_info->ip_parent);
-        add(")");
-      } else {
-        ipaddr_add(&node_info->ip_parent);
-      }
-#else
-      ipaddr_add(&node_info->ip_parent);
+        add(")</a>");
+      } else
 #endif
+      {
+        add("\">");
+        ipaddr_add(&node_info->ip_parent);
+        add("</a>");
+      }
+      ipaddr_add(&node_info->ip_parent);
       add("<br />");
       add("Downward route: %s<br />", node_info->has_route ? "Yes" : "No");
       SEND_STRING(&s->sout, buf);
       reset_buf();
 
-      add("<h2>Statistics</h2>");
+      add("<br /><h2>Statistics</h2>");
       add("Messages sent: %d<br />", node_info->messages_sent);
       add("Messages lost: %d<br />", node_info->up_messages_lost);
-      add("Upstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
+      if(node_info->messages_sent > 0) {
+        add("Upstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
+      } else {
+        add("Upstream PRR: n/a<br />");
+      }
       add("Parent switch: %d<br />", node_info->parent_switch);
       add("Last seen : %d<br />",
         (clock_time() - node_info->last_seen) / CLOCK_SECOND);
