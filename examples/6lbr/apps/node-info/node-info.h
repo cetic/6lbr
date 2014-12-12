@@ -43,6 +43,7 @@ typedef struct node_info {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   clock_time_t last_seen;
+  int hop_count;
   uint8_t has_route;
 
   //6lbr-demo udp info
@@ -73,7 +74,7 @@ node_info_t *
 node_info_update(uip_ipaddr_t * ipaddr, char * info);
 
 void
-node_info_node_seen(uip_ipaddr_t * ipaddr);
+node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count);
 
 void
 node_info_reset_prr(void);

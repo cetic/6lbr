@@ -132,12 +132,15 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
 }
 
 void
-node_info_node_seen(uip_ipaddr_t * ipaddr)
+node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
 {
   node_info_t *node = NULL;
   node = node_info_lookup(ipaddr);
   if ( node != NULL ) {
     node->last_seen = clock_time();
+    if(hop_count != -1) {
+      node->hop_count = hop_count;
+    }
   }
 }
 
