@@ -53,7 +53,7 @@ static
 PT_THREAD(generate_sensor(struct httpd_state *s))
 {
   static uip_ipaddr_t ipaddr;
-  node_info_t * node_info = NULL;
+  static node_info_t * node_info = NULL;
 
   PSOCK_BEGIN(&s->sout);
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
