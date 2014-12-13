@@ -87,6 +87,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       reset_buf();
 
       add("<br /><h2>Statistics</h2>");
+      add("Hop count: %d<br />", node_info->hop_count);
       add("Last sequence number: %d<br />", node_info->last_sequence);
       add("Messages sent: %d<br />", node_info->messages_sent);
       add("Messages lost: %d<br />", node_info->up_messages_lost);

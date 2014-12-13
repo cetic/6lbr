@@ -323,6 +323,39 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 
+static
+PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
+{
+  static int i;
+
+  PSOCK_BEGIN(&s->sout);
+  SEND_STRING(&s->sout, graph_top);
+  add("['Sensor', 'Hop count'],");
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(node_info_table[i].isused) {
+#if CETIC_NODE_CONFIG
+      if (node_config_loaded) {
+        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        add("[\"%s\", %d],", node_config_get_name(node_config), node_info_table[i].hop_count);
+      } else
+#endif
+      {
+        add("[\"");
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("\", %d],", node_info_table[i].parent_switch);
+      }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+  add("]);var options={vAxis:{minValue: 0},legend:{position: \"none\"}};");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  SEND_STRING(&s->sout,graph_bottom);
+  PSOCK_END(&s->sout);
+}
+
 static httpd_cgi_call_t *
 webserver_sensors_reset_stats_all(struct httpd_state *s)
 {
@@ -335,5 +368,6 @@ HTTPD_CGI_CALL_GROUP(webserver_sensors, "sensors.html", "Sensors", generate_sens
 HTTPD_CGI_CALL_GROUP(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, WEBSERVER_NOMENU, sensors_group);
+HTTPD_CGI_CALL_GROUP(webserver_sensors_hc, "sensors_hc.html", "Hop count", generate_sensors_hop_count, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CMD(webserver_sensors_reset_stats_all_cmd, "reset-stats-all", webserver_sensors_reset_stats_all, 0);
-static httpd_cgi_call_t * sensors_group[] = {&webserver_sensors, &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, NULL};
+static httpd_cgi_call_t * sensors_group[] = {&webserver_sensors, &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, &webserver_sensors_hc, NULL};

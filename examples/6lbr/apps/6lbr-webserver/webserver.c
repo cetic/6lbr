@@ -59,6 +59,7 @@ HTTPD_CGI_CALL_NAME(webserver_sensor)
 HTTPD_CGI_CALL_NAME(webserver_sensors_tree)
 HTTPD_CGI_CALL_NAME(webserver_sensors_prr)
 HTTPD_CGI_CALL_NAME(webserver_sensors_ps)
+HTTPD_CGI_CALL_NAME(webserver_sensors_hc)
 HTTPD_CGI_CMD_NAME(webserver_sensors_reset_stats_all_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensors_reset_stats_cmd)
 #endif
@@ -88,6 +89,7 @@ webserver_init(void)
   httpd_cgi_add(&webserver_sensors_tree);
   httpd_cgi_add(&webserver_sensors_prr);
   httpd_cgi_add(&webserver_sensors_ps);
+  httpd_cgi_add(&webserver_sensors_hc);
   httpd_cgi_command_add(&webserver_sensors_reset_stats_all_cmd);
   httpd_cgi_command_add(&webserver_sensors_reset_stats_cmd);
 #endif
