@@ -26,7 +26,10 @@ ifeq ($(TARGET),)
 TARGET=native
 endif
 
-include platform/$(TARGET)/Makefile.$(TARGET)
+-include platform/$(TARGET)/Makefile.$(TARGET)
+ifneq ("$(wildcard platform/$(TARGET)/6lbr-conf-$(TARGET).h)","")
+CFLAGS+=-DCETIC_6LBR_PLATFORM_CONF=\"6lbr-conf-$(TARGET).h\"
+endif
 
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE)
 CFLAGS +=-DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE)
