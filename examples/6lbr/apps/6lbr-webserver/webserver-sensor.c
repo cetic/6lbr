@@ -98,6 +98,13 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("Parent switch: %d<br />", node_info->parent_switch);
       add("Last seen : %d<br />",
         (clock_time() - node_info->last_seen) / CLOCK_SECOND);
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+      add("<br /><h2>Actions</h2>");
+      add("<form action=\"reset-stats?");
+      ipaddr_add(&node_info->ipaddr);
+      add("\" method=\"get\">");
+      add("<input type=\"submit\" value=\"Reset statistics\"/></form><br />");
     } else {
       add("Sensor address unknown");
     }
@@ -109,4 +116,23 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
   PSOCK_END(&s->sout);
 }
 
+static httpd_cgi_call_t *
+webserver_sensors_reset_stats(struct httpd_state *s)
+{
+  static uip_ipaddr_t ipaddr;
+  static node_info_t * node_info = NULL;
+  if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
+    node_info = node_info_lookup(&ipaddr);
+    if(node_info) {
+      node_info_reset_statistics(node_info);
+    } else {
+      add("Sensor address unknown");
+    }
+  } else {
+    add("Sensor address missing");
+  }
+  return &webserver_result_page;
+}
+
 HTTPD_CGI_CALL(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU);
+HTTPD_CGI_CMD(webserver_sensors_reset_stats_cmd, "reset-stats", webserver_sensors_reset_stats, 0);

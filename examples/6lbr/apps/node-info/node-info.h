@@ -77,6 +77,9 @@ void
 node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count);
 
 void
-node_info_reset_prr(void);
+node_info_reset_statistics(node_info_t * node_info);
+
+void
+node_info_reset_statistics_all(void);
 
 #endif

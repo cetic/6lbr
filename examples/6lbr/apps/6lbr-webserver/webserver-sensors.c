@@ -180,8 +180,8 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("</tbody></table><br />");
 
   add("<br /><h2>Actions</h2>");
-  add("<form action=\"reset-prr\" method=\"get\">");
-  add("<input type=\"submit\" value=\"Reset PRR\"/></form><br />");
+  add("<form action=\"reset-stats-all\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset all statistics\"/></form><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -324,9 +324,9 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
 }
 
 static httpd_cgi_call_t *
-webserver_sensors_reset_prr(struct httpd_state *s)
+webserver_sensors_reset_stats_all(struct httpd_state *s)
 {
-  node_info_reset_prr();
+  node_info_reset_statistics_all();
   return &webserver_result_page;
 }
 
@@ -335,5 +335,5 @@ HTTPD_CGI_CALL_GROUP(webserver_sensors, "sensors.html", "Sensors", generate_sens
 HTTPD_CGI_CALL_GROUP(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, WEBSERVER_NOMENU, sensors_group);
-HTTPD_CGI_CMD(webserver_sensors_reset_prr_cmd, "reset-prr", webserver_sensors_reset_prr, 0);
+HTTPD_CGI_CMD(webserver_sensors_reset_stats_all_cmd, "reset-stats-all", webserver_sensors_reset_stats_all, 0);
 static httpd_cgi_call_t * sensors_group[] = {&webserver_sensors, &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, NULL};
