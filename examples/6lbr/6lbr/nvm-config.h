@@ -45,6 +45,6 @@ void load_nvm_config(void);
 void store_nvm_config(void);
 
 void
-check_nvm(volatile nvm_data_t * nvm_data, int reset);
+check_nvm(nvm_data_t * nvm_data, int reset);
 
 #endif
