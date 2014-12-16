@@ -104,9 +104,15 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     if (sep != NULL && sep - info > 0) {
       *sep = 0;
       uint16_t sequence = atoi(info);
-      if (node->messages_received > 1 && (uint16_t)(sequence - node->last_sequence) < 100) {
-        node->messages_sent += (uint16_t)(sequence - node->last_sequence);
-        node->up_messages_lost += (uint16_t)(sequence - (node->last_sequence + 1));
+      if (node->messages_received > 1) {
+        uint16_t delta = sequence - node->last_sequence;
+        if (delta < 100) {
+          node->messages_sent += delta;
+          node->up_messages_lost += delta - 1;
+        } else {
+          node->messages_sent = 1;
+          node->up_messages_lost = 0;
+        }
       } else {
         node->messages_sent = 1;
         node->up_messages_lost = 0;
