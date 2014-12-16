@@ -135,5 +135,6 @@ webserver_sensors_reset_stats(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-HTTPD_CGI_CALL(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU);
+extern httpd_cgi_call_t * sensors_group[];
+HTTPD_CGI_CALL_GROUP(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU | WEBSERVER_NOSUBMENU, sensors_group);
 HTTPD_CGI_CMD(webserver_sensors_reset_stats_cmd, "reset-stats", webserver_sensors_reset_stats, 0);
