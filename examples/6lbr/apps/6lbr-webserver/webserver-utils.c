@@ -267,6 +267,8 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
   reset_buf();
   SEND_STRING(&s->sout, BODY);
   add_menu(s);
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   add_div_home(webserver_result_title);
   add("<div id=\"left_home\">");
   add("%s<br />", webserver_result_text);

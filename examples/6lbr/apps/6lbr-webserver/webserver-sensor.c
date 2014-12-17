@@ -127,6 +127,7 @@ webserver_sensors_reset_stats(struct httpd_state *s)
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       node_info_reset_statistics(node_info);
+      webserver_result_text = "Reset";
     } else {
       webserver_result_text = "Sensor address unknown";
     }
