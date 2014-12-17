@@ -122,15 +122,16 @@ webserver_sensors_reset_stats(struct httpd_state *s)
 {
   static uip_ipaddr_t ipaddr;
   static node_info_t * node_info = NULL;
+  webserver_result_title = "Reset statistics";
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       node_info_reset_statistics(node_info);
     } else {
-      add("Sensor address unknown");
+      webserver_result_text = "Sensor address unknown";
     }
   } else {
-    add("Sensor address missing");
+    webserver_result_text = "Sensor address missing";
   }
   return &webserver_result_page;
 }
