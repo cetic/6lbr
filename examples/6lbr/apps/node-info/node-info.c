@@ -127,7 +127,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       }
       if(!uip_ipaddr_cmp(&node->ip_parent, &ip_parent)) {
         uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
-        node->parent_switch++;
+        if (node->messages_received > 1) {
+          node->parent_switch++;
+        }
       }
     } else {
       node->last_sequence = 0;
