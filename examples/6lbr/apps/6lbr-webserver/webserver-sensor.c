@@ -107,6 +107,11 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       ipaddr_add(&node_info->ipaddr);
       add("\"/>");
       add("<input type=\"submit\" value=\"Reset statistics\"/></form><br />");
+      add("<form action=\"rm-node\" method=\"get\">");
+      add("<input type=\"hidden\" name=\"ip\" value=\"");
+      ipaddr_add(&node_info->ipaddr);
+      add("\"/>");
+      add("<input type=\"submit\" value=\"Delete node\"/></form><br />");
     } else {
       add("Sensor address unknown");
     }
@@ -119,7 +124,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
 }
 
 static httpd_cgi_call_t *
-webserver_sensors_reset_stats(struct httpd_state *s)
+webserver_sensor_reset_stats(struct httpd_state *s)
 {
   static uip_ipaddr_t ipaddr;
   static node_info_t * node_info = NULL;
@@ -138,6 +143,27 @@ webserver_sensors_reset_stats(struct httpd_state *s)
   return &webserver_result_page;
 }
 
+static httpd_cgi_call_t *
+webserver_sensor_delete_node(struct httpd_state *s)
+{
+  static uip_ipaddr_t ipaddr;
+  static node_info_t * node_info = NULL;
+  webserver_result_title = "Delete node";
+  if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
+    node_info = node_info_lookup(&ipaddr);
+    if(node_info) {
+      node_info_reset_statistics(node_info);
+      webserver_result_text = "Deleted";
+    } else {
+      webserver_result_text = "Sensor address unknown";
+    }
+  } else {
+    webserver_result_text = "Sensor address missing";
+  }
+  return &webserver_result_page;
+}
+
 extern httpd_cgi_call_t * sensors_group[];
 HTTPD_CGI_CALL_GROUP(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU | WEBSERVER_NOSUBMENU, sensors_group);
-HTTPD_CGI_CMD(webserver_sensors_reset_stats_cmd, "reset-stats", webserver_sensors_reset_stats, 0);
+HTTPD_CGI_CMD(webserver_sensor_reset_stats_cmd, "reset-stats", webserver_sensor_reset_stats, 0);
+HTTPD_CGI_CMD(webserver_sensor_delete_node_cmd, "rm-node", webserver_sensor_delete_node, 0);
