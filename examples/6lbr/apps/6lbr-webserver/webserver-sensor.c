@@ -102,9 +102,10 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       SEND_STRING(&s->sout, buf);
       reset_buf();
       add("<br /><h2>Actions</h2>");
-      add("<form action=\"reset-stats?");
+      add("<form action=\"reset-stats\" method=\"get\">");
+      add("<input type=\"hidden\" name=\"ip\" value=\"");
       ipaddr_add(&node_info->ipaddr);
-      add("\" method=\"get\">");
+      add("\"/>");
       add("<input type=\"submit\" value=\"Reset statistics\"/></form><br />");
     } else {
       add("Sensor address unknown");
@@ -123,7 +124,7 @@ webserver_sensors_reset_stats(struct httpd_state *s)
   static uip_ipaddr_t ipaddr;
   static node_info_t * node_info = NULL;
   webserver_result_title = "Reset statistics";
-  if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
+  if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       node_info_reset_statistics(node_info);
