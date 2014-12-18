@@ -63,7 +63,7 @@ static const char * graph_bottom =
     "chart.draw(view, options);"
     "var selectHandler = function(e) {"
     "window.location = 'sensor?ip=' + data.getValue(chart.getSelection()[0]['row'], 1 );"
-    "}"
+    "};"
     "google.visualization.events.addListener(chart, 'select', selectHandler);"
     "}"
     "</script>"
