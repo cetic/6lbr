@@ -86,7 +86,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
-      add("<a href=\"sensor?");
+      add("<a href=\"sensor?ip=");
       ipaddr_add(&node_info_table[i].ipaddr);
 #if CETIC_NODE_CONFIG
       if ( node_config_loaded ) {

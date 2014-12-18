@@ -56,7 +56,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
   static node_info_t * node_info = NULL;
 
   PSOCK_BEGIN(&s->sout);
-  if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
+  if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       add("<h2>Info</h2>");
