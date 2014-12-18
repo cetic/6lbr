@@ -276,14 +276,17 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\", %.1f],", node_config_get_name(node_config), prr);
+        add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif
       {
         add("[\"");
         ipaddr_add(&node_info_table[i].ipaddr);
-        add("\", %.1f],", prr);
+        add("\",");
       }
+      add("\"");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("\",%.1f],", prr);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
@@ -309,14 +312,17 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\", %d],", node_config_get_name(node_config), node_info_table[i].parent_switch);
+        add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif
       {
         add("[\"");
         ipaddr_add(&node_info_table[i].ipaddr);
-        add("\", %d],", node_info_table[i].parent_switch);
+        add("\",");
       }
+      add("\"");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("\",%d],", node_info_table[i].parent_switch);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
@@ -342,14 +348,17 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\", %d],", node_config_get_name(node_config), node_info_table[i].hop_count);
+        add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif
       {
         add("[\"");
         ipaddr_add(&node_info_table[i].ipaddr);
-        add("\", %d],", node_info_table[i].parent_switch);
+        add("\",");
       }
+      add("\"");
+      ipaddr_add(&node_info_table[i].ipaddr);
+      add("\",%d],", node_info_table[i].hop_count);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
