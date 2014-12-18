@@ -269,7 +269,7 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
 
   PSOCK_BEGIN(&s->sout);
   SEND_STRING(&s->sout, graph_top);
-  add("['Sensor', 'PRR'],");
+  add("['Sensor', 'IP', 'PRR'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       float prr = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
@@ -306,7 +306,7 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
 
   PSOCK_BEGIN(&s->sout);
   SEND_STRING(&s->sout, graph_top);
-  add("['Sensor', 'Parent switch'],");
+  add("['Sensor', 'IP', 'Parent switch'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
 #if CETIC_NODE_CONFIG
@@ -342,7 +342,7 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
 
   PSOCK_BEGIN(&s->sout);
   SEND_STRING(&s->sout, graph_top);
-  add("['Sensor', 'Hop count'],");
+  add("['Sensor', 'IP', 'Hop count'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
 #if CETIC_NODE_CONFIG
