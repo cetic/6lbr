@@ -57,11 +57,17 @@ static const char * graph_top =
     "function drawChart(){var data=google.visualization.arrayToDataTable([";
 
 static const char * graph_bottom =
+    "var view = new google.visualization.DataView(data);"
+    "view.setColumns([0, 2]);"
     "var chart=new google.visualization.ColumnChart(document.getElementById('chart_div'));"
-    "chart.draw(data, options);"
-   "}"
-   "</script>"
-   "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
+    "chart.draw(view, options);"
+    "var selectHandler = function(e) {"
+    "window.location = 'sensor?ip=' + data.getValue(chart.getSelection()[0]['row'], 1 );"
+    "}"
+    "google.visualization.events.addListener(chart, 'select', selectHandler);"
+    "}"
+    "</script>"
+    "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
 
 static
 PT_THREAD(generate_sensors(struct httpd_state *s))
