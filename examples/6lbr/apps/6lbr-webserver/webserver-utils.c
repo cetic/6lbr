@@ -240,7 +240,7 @@ PT_THREAD(generate_bottom(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
   add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
-  add("<br><i>This page sent %u times</i>", ++s->script->numtimes);
+  add("<br /><i>This page sent %u times</i>", ++s->script->numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
