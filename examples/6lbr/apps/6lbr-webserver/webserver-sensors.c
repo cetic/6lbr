@@ -151,12 +151,12 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       }
       SEND_STRING(&s->sout, buf);
       reset_buf();
-      add("<td><a href=http://[");
+      add("<td><a href=\"http://[");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("]/>web</a></td>");
-      add("<td><a href=coap://[");
+      add("\"]/>web</a></td>");
+      add("<td><a href=\"coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("]:5683/>coap</a></td>");
+      add("]:5683/\">coap</a></td>");
       if(node_info_table[i].messages_received > 0) {
         add("<td>");
 #if CETIC_NODE_CONFIG
