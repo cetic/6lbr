@@ -153,7 +153,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       reset_buf();
       add("<td><a href=\"http://[");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("\"]/>web</a></td>");
+      add("]/\">web</a></td>");
       add("<td><a href=\"coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
       add("]:5683/\">coap</a></td>");
