@@ -174,7 +174,8 @@ add_menu(struct httpd_state *s)
   for(f = httpd_cgi_head(); f != NULL; f = f->next) {
     if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
       add("<div class=\"menu-general\">");
-      if(f == s->script || (f->group != NULL && f->group == s->script->group)) {
+      if(f == s->script ||
+         (f->group != NULL && s->script != NULL && f->group == s->script->group)) {
         add("<span>%s</span>", f->title);
       } else {
         add("<a href=\"%s\">%s</a>", f->name, f->title);
@@ -188,7 +189,7 @@ static void
 add_submenu(struct httpd_state *s)
 {
   httpd_cgi_call_t **f;
-  if(s->script->group) {
+  if(s->script != NULL && s->script->group != NULL) {
     add("</div><div class=\"barre_nav\">");
     for(f = s->script->group; *f != NULL; ++f) {
       if((*f)->title != NULL && ((*f)->flags & WEBSERVER_NOSUBMENU) == 0) {
