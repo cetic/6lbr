@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
- */
-
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
  * All rights reserved.
@@ -68,6 +56,18 @@
  *
  */
 
+/**
+ * \file
+ *         Neighbor discovery (RFC 4861)
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
 #include <string.h>
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
@@ -86,7 +86,6 @@
 #include "rio.h"
 #endif
 
-#if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
@@ -1179,4 +1178,3 @@ uip_nd6_init()
 }
 /*---------------------------------------------------------------------------*/
  /** @} */
-#endif /* UIP_CONF_IPV6 */

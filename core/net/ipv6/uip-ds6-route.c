@@ -36,8 +36,6 @@
 #include "lib/memb.h"
 #include "net/nbr-table.h"
 
-#if UIP_CONF_IPV6
-
 #include <string.h>
 
 /* The nbr_routes holds a neighbor table to be able to maintain
@@ -216,6 +214,10 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
        uip_ipaddr_prefixcmp(addr, &r->ipaddr, r->length)) {
       longestmatch = r->length;
       found_route = r;
+      /* check if total match - e.g. all 128 bits do match */
+      if(longestmatch == 128) {
+	break;
+      }
     }
   }
 
@@ -229,13 +231,14 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
     PRINTF("uip-ds6-route: No route found\n");
   }
 
-  if(found_route != NULL) {
-    /* If we found a route, we put it at the end of the routeslist
+  if(found_route != NULL && found_route != list_head(routelist)) {
+    /* If we found a route, we put it at the start of the routeslist
        list. The list is ordered by how recently we looked them up:
-       the least recently used route will be at the start of the
-       list. */
+       the least recently used route will be at the end of the
+       list - for fast lookups (assuming multiple packets to the same node). */
+
     list_remove(routelist, found_route);
-    list_add(routelist, found_route);
+    list_push(routelist, found_route);
   }
 
   return found_route;
@@ -282,7 +285,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
          least recently used route is the first route on the list. */
       uip_ds6_route_t *oldest;
 
-      oldest = uip_ds6_route_head();
+      oldest = list_tail(routelist); /* uip_ds6_route_head(); */
       PRINTF("uip_ds6_route_add: dropping route to ");
       PRINT6ADDR(&oldest->ipaddr);
       PRINTF("\n");
@@ -328,7 +331,9 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
       return NULL;
     }
 
-    list_add(routelist, r);
+    /* add new routes first - assuming that there is a reason to add this
+       and that there is a packet coming soon. */
+    list_push(routelist, r);
 
     nbrr = memb_alloc(&neighborroutememb);
     if(nbrr == NULL) {
@@ -386,7 +391,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
     PRINT6ADDR(&route->ipaddr);
     PRINTF("\n");
 
-    /* Remove the neighbor from the route list */
+    /* Remove the route from the route list */
     list_remove(routelist, route);
 
     /* Find the corresponding neighbor_route and remove it. */
@@ -630,5 +635,3 @@ uip_ds6_defrt_periodic(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-
-#endif /* UIP_CONF_IPV6 */

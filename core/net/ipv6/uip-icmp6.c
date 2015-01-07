@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         ICMPv6 echo request and error messages (RFC 4443)
- * \author Julien Abeille <jabeille@cisco.com> 
- * \author Mathilde Durvy <mdurvy@cisco.com>
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -42,6 +30,18 @@
  *
  */
 
+/**
+ * \file
+ *         ICMPv6 echo request and error messages (RFC 4443)
+ * \author Julien Abeille <jabeille@cisco.com> 
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
 #include <string.h>
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-icmp6.h"
@@ -67,8 +67,6 @@
 #if UIP_CONF_IPV6_RPL
 #include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
-
-#if UIP_CONF_IPV6
 
 /** \brief temporary IP address */
 static uip_ipaddr_t tmp_ipaddr;
@@ -426,4 +424,3 @@ uip_icmp6_init()
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

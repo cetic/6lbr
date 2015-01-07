@@ -1,7 +1,3 @@
-/**
- * \addtogroup packetqueue
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -41,8 +37,13 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup packetqueue
+ * @{
+ */
+
 #include "sys/ctimer.h"
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 
 /*---------------------------------------------------------------------------*/
 void

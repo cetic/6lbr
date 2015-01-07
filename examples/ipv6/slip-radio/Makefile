@@ -8,8 +8,6 @@ endif
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-UIP_CONF_RPL=0
 DEFINES=NETSTACK_CONF_RDC=nullrdc_driver
 
 #linker optimizations
@@ -42,4 +40,8 @@ ifeq ($(TARGET),econotag)
   PROJECT_SOURCEFILES += slip-radio-mc1322x.c
 endif
 endif
+
+CONTIKI_WITH_RPL = 0
+CONTIKI_WITH_IPV6 = 1
+
 include $(CONTIKI)/Makefile.include

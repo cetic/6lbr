@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,6 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         Management of extension headers for ContikiRPL.
@@ -40,6 +37,11 @@
  *         Joakim Eriksson <joakime@sics.se>,
  *         Niclas Finne <nfi@sics.se>,
  *         Nicolas Tsiftes <nvt@sics.se>.
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/uip.h"
@@ -63,7 +65,6 @@
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
@@ -240,11 +241,11 @@ rpl_update_header_empty(void)
       if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
         UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
         PRINTF("RPL forwarding error\n");
-        /* We should send back the packet to the originating parent */
-        /* But it is not feasible yet, so we send a no-path dao instead */
+        /* We should send back the packet to the originating parent,
+           but it is not feasible yet, so we send a No-Path DAO instead */
         PRINTF("RPL generate No-Path DAO\n");
         parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-        if (parent != NULL) {
+        if(parent != NULL) {
           dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
         }
         /* Drop packet */
@@ -382,6 +383,5 @@ rpl_insert_header(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 
 /** @}*/
