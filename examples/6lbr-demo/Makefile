@@ -133,7 +133,8 @@ endif
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk
+PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk $(PROJECTDIR)/dev/sht21
+PROJECT_SOURCEFILES += sht21.c
 WITH_NVM?=1
 ifeq ($(WITH_NVM),1)
 PROJECT_SOURCEFILES += cc2538dk-nvm.c

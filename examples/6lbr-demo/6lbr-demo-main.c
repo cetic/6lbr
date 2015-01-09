@@ -16,6 +16,10 @@
 #include "maca.h"
 #endif
 
+#ifdef CONTIKI_TARGET_CC2538DK
+#include "i2c.h"
+#endif
+
 #if WITH_TINYDTLS
 #include "dtls.h"
 #endif
@@ -83,7 +87,13 @@ PROCESS_THREAD(demo_6lbr_process, ev, data)
   set_channel(RF_CHANNEL - 11);
 #endif
 
-#if WITH_TINYDTLS
+#ifdef CONTIKI_TARGET_CC2538DK
+#if ENABLE_I2C
+  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_FAST_BUS_SPEED);
+#endif
+#endif
+
+  #if WITH_TINYDTLS
   dtls_init();
 #endif
 

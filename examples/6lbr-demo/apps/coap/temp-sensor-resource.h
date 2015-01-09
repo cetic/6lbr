@@ -44,7 +44,11 @@
 #include "sht11-sensor.h"
 #endif
 
-#if PLATFORM_HAS_SHT11
+#if PLATFORM_HAS_SHT21
+#include "sht21.h"
+#endif
+
+#if PLATFORM_HAS_SHT11 || PLATFORM_HAS_SHT21
 #ifdef REST_CONF_RES_TEMP
 #define REST_RES_TEMP REST_CONF_RES_TEMP
 #else
@@ -77,9 +81,14 @@
 #define REST_RES_TEMP_DEFINE() \
   extern resource_t resource_temp;
 
+#if PLATFORM_HAS_SHT11
 #define REST_RES_TEMP_INIT() \
   SENSORS_ACTIVATE(sht11_sensor); \
   rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
+#else
+#define REST_RES_TEMP_INIT() \
+  rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
+#endif
 
 #define REST_RES_TEMP_REF &resource_temp,
 

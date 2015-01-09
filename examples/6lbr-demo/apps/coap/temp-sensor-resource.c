@@ -46,10 +46,18 @@
 #define REST_RES_TEMP_RESOURCE(...)
 #endif
 
+#if PLATFORM_HAS_SHT11
 #if REST_RES_TEMP_RAW
 #define REST_REST_TEMP_VALUE REST_FORMAT_ONE_INT("temp", sht11_sensor.value(SHT11_SENSOR_TEMP))
 #else
 #define REST_REST_TEMP_VALUE REST_FORMAT_TWO_DECIMAL("temp", sht11_sensor.value(SHT11_SENSOR_TEMP) - 3960)
+#endif
+#else
+#if REST_RES_TEMP_RAW
+#define REST_REST_TEMP_VALUE REST_FORMAT_ONE_INT("temp", sht21_read_temp())
+#else
+#define REST_REST_TEMP_VALUE REST_FORMAT_TWO_DECIMAL("temp", ((uint32_t)sht21_read_temp()) * 17572 / 65536 - 4685)
+#endif
 #endif
 
 REST_RES_TEMP_RESOURCE(temp,
