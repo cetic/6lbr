@@ -31,13 +31,31 @@
 #define PROJECT_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          4
+#define QUEUEBUF_CONF_NUM          16
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    140
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
+
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     0
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   0
+
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 0
+
+#undef UIP_CONF_DS6_DEFRT_NBU
+#define UIP_CONF_DS6_DEFRT_NBU  0
+
+#undef UIP_CONF_DS6_PREFIX_NBU
+#define UIP_CONF_DS6_PREFIX_NBU 0
+
+#undef UIP_CONF_DS6_ADDR_NBU
+#define UIP_CONF_DS6_ADDR_NBU   0
 
 #define CMD_CONF_OUTPUT slip_radio_cmd_output
 
