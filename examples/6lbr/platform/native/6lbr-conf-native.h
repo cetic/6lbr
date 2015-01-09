@@ -76,6 +76,8 @@
 #undef RPL_CONF_STATS
 #define RPL_CONF_STATS              1
 
+#define CETIC_6LBR_LLSEC_WRAPPER        1
+
 /* Do not change lines below */
 #define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
 

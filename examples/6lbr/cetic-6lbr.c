@@ -59,6 +59,10 @@
 #include "nvm-config.h"
 #include "rio.h"
 
+#if CETIC_6LBR_LLSEC_WRAPPER
+#include "llsec-wrapper.h"
+#endif
+
 #if WEBSERVER
 #include "webserver.h"
 #endif
@@ -103,6 +107,7 @@ uip_ipaddr_t eth_dft_router;
 
 //Misc
 unsigned long cetic_6lbr_startup;
+static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
@@ -332,6 +337,12 @@ cetic_6lbr_init_finalize(void)
 }
 
 /*---------------------------------------------------------------------------*/
+static void llsec_bootstrap_cb(void)
+{
+  security_ready = 1;
+  LOG6LBR_INFO("Security layer initialized\n");
+}
+/*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
@@ -367,6 +378,13 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   eth_drv_init();
 
   while(!ethernet_ready) {
+    PROCESS_PAUSE();
+  }
+#if CETIC_6LBR_LLSEC_WRAPPER
+  llsec_wrapper_init();
+#endif
+  NETSTACK_LLSEC.bootstrap(llsec_bootstrap_cb);
+  while(!security_ready) {
     PROCESS_PAUSE();
   }
 

@@ -128,6 +128,17 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
+  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_1)
+  {
+    if (!reset) {
+      LOG6LBR_WARN("Migrate NVM version 1 towards 2\n");
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
+
+    nvm_data->security_layer = CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER;
+    nvm_data->security_level = CETIC_6LBR_NVM_DEFAULT_SECURITY_LEVEL;
+    flash = 1;
+  }
 
   if(flash) {
     nvm_data_write();

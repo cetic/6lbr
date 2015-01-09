@@ -82,7 +82,8 @@ PROJECT_SOURCEFILES += coap-server.c block-transfer.c \
 	coap-common.c core-interface.c binding-table-resource.c linked-batch-resource.c coap-push.c
 endif
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c
+MODULES += core/net/llsec/noncoresec
 
 tools:
 	cd tools && $(MAKE)

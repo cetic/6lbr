@@ -56,6 +56,12 @@ typedef struct {
   //TODO: uint16_t rpl_max_rankinc;
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
+
+  uint8_t security_layer;
+  uint8_t security_level;
+
+  uint8_t noncoresec_key[16];
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -65,8 +71,9 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
+#define CETIC_6LBR_NVM_VERSION_2        2
 
-#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_1
+#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
 
 //Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
@@ -86,6 +93,20 @@ typedef struct {
 
 //RA RIO mode flags
 #define CETIC_6LBR_MODE_SEND_RIO		0x0100
+
+//Security
+#define CETIC_6LBR_SECURITY_LAYER_NONE  0
+#define CETIC_6LBR_SECURITY_LAYER_NONCORESEC  1
+
+#define CETIC_6LBR_SECURITY_LEVEL_NO_SECURITY           0
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_32        1
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_64        2
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_128       3
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CTR               4
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_32            5
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_64            6
+#define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_128           7
+
 
 /*---------------------------------------------------------------------------*/
 
@@ -132,6 +153,10 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC		256
 #define CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT		0x0100
 #define CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE           0
+
+//Security
+#define CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER CETIC_6LBR_SECURITY_LAYER_NONE
+#define CETIC_6LBR_NVM_DEFAULT_SECURITY_LEVEL 6
 
 /*---------------------------------------------------------------------------*/
 
