@@ -33,6 +33,8 @@
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          16
 
+#define SLIP_CONF_BUF_NB        16
+
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    140
 
@@ -108,9 +110,10 @@
 #define UART1_CONF_RX_WITH_DMA           1
 
 #undef UART1_CONF_TX_WITH_INTERRUPT
-#define UART1_CONF_TX_WITH_INTERRUPT     1
+#define UART1_CONF_TX_WITH_INTERRUPT     0
 
-#define UART1_CONF_TXBUFSIZE             512
+// TX can not be bigger than 128 bytes ! (ringbuf limitation)
+#define UART1_CONF_TXBUFSIZE             128
 
 #define UART1_CONF_RXBUFSIZE             512
 
