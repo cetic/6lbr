@@ -99,9 +99,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
   if ( node != NULL ) {
     node->last_seen = clock_time();
     node->last_message = clock_time();
-    node->messages_received++;
     sep = index(info, '|');
     if (sep != NULL && sep - info > 0) {
+      node->messages_received++;
       *sep = 0;
       uint16_t sequence = atoi(info);
       if (node->messages_received > 1) {
@@ -110,6 +110,7 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
           node->messages_sent += delta;
           node->up_messages_lost += delta - 1;
         } else {
+          //Reset statistics
           node->messages_sent = 1;
           node->up_messages_lost = 0;
         }
