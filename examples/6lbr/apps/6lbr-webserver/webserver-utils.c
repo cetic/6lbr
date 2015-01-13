@@ -316,9 +316,17 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
   add_menu(s);
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add_div_home(webserver_result_title);
+  if(webserver_result_title) {
+    add_div_home(webserver_result_title);
+  } else {
+    add_div_home("Unknown action");
+  }
   add("<div id=\"left_home\">");
-  add("%s<br />", webserver_result_text);
+  if(webserver_result_text) {
+    add("%s<br />", webserver_result_text);
+  } else {
+    add("Action done<br />");
+  }
   if(webserver_result_refresh) {
     add
       ("<a href=\"/\">Click here if the page is not refreshing</a><br /><br />");

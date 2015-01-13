@@ -138,6 +138,7 @@ webserver_rpl_gr(struct httpd_state *s)
 {
   rpl_repair_root(RPL_DEFAULT_INSTANCE);
   webserver_result_title = "RPL global repair";
+  webserver_result_text = "Global repair triggered";
   return &webserver_result_page;
 }
 
@@ -147,6 +148,7 @@ webserver_rpl_reset(struct httpd_state *s)
 {
   rpl_reset_dio_timer(rpl_get_instance(RPL_DEFAULT_INSTANCE));
   webserver_result_title = "RPL DIO timer reset";
+  webserver_result_text = "Timer reset";
   return &webserver_result_page;
 }
 
@@ -157,6 +159,7 @@ webserver_rpl_child(struct httpd_state *s)
   uip_create_linklocal_rplnodes_mcast(&addr);
   dis_output(&addr);
   webserver_result_title = "Trigger child DIO";
+  webserver_result_text = "Multicast DIS sent";
   return &webserver_result_page;
 }
 

@@ -375,6 +375,8 @@ static httpd_cgi_call_t *
 webserver_sensors_reset_stats_all(struct httpd_state *s)
 {
   node_info_reset_statistics_all();
+  webserver_result_title = "Reset all statistics";
+  webserver_result_text = "Statistics reset";
   return &webserver_result_page;
 }
 
