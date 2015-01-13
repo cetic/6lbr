@@ -43,7 +43,7 @@
 
 #include "log-6lbr.h"
 
-static const struct llsec_driver *current_llsec_driver = NULL;
+static const struct llsec_driver *current_llsec_driver = &nullsec_driver;
 
 void
 llsec_wrapper_init(void)
