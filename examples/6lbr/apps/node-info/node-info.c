@@ -154,7 +154,15 @@ node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
 }
 
 void
-node_info_rm(uip_ipaddr_t * ipaddr)
+node_info_rm(node_info_t *node_info)
+{
+  if(node_info != NULL) {
+    node_info->isused = 0;
+  }
+}
+
+void
+node_info_rm_by_addr(uip_ipaddr_t * ipaddr)
 {
   node_info_t *node_info = node_info_lookup(ipaddr);
 

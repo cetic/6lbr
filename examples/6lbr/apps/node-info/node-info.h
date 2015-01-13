@@ -66,7 +66,10 @@ void
 node_info_t *node_info_add(uip_ipaddr_t * ipaddr);
 
 void
-  node_info_rm(uip_ipaddr_t * ipaddr);
+node_info_rm(node_info_t *node_info);
+
+void
+node_info_rm_by_addr(uip_ipaddr_t * ipaddr);
 
 node_info_t *node_info_lookup(uip_ipaddr_t * ipaddr);
 

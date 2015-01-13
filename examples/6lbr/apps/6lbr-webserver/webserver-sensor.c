@@ -152,7 +152,7 @@ webserver_sensor_delete_node(struct httpd_state *s)
   if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
-      node_info_reset_statistics(node_info);
+      node_info_rm(node_info);
       webserver_result_text = "Deleted";
     } else {
       webserver_result_text = "Sensor address unknown";
