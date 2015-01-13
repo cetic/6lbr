@@ -78,8 +78,9 @@
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
 
+#define SLIP_DEV_CONF_SEND_DELAY 0
+
 /* Do not change lines below */
-#define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
 
 #define SERIALIZE_ATTRIBUTES 1
 
