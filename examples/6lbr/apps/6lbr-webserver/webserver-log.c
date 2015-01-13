@@ -137,4 +137,4 @@ clear_log(struct httpd_state *s)
 }
 HTTPD_CGI_CALL(webserver_log_send_log, "log", NULL, send_log, HTTPD_CUSTOM_TOP | HTTPD_CUSTOM_BOTTOM);
 HTTPD_CGI_CALL(webserver_log_send_err, "err", NULL, send_err, HTTPD_CUSTOM_TOP | HTTPD_CUSTOM_BOTTOM);
-HTTPD_CGI_CMD(webserver_log_clear_log_cmd, "nbr-rm", clear_log, 0);
+HTTPD_CGI_CMD(webserver_log_clear_log_cmd, "clear-log", clear_log, 0);
