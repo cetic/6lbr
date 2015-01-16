@@ -61,6 +61,8 @@ PROCESS(native_rdc_process, "Native RDC process");
 #define MAX_CALLBACKS 16
 static int callback_pos;
 int callback_count;
+int native_rdc_ack_timeout;
+int native_rdc_parse_error;
 
 #ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
 #define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
@@ -113,6 +115,7 @@ packet_timeout(void *ptr)
   if (callback->isused) {
     callback_count--;
     callback->isused = 0;
+    native_rdc_ack_timeout++;
     LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
     packetbuf_clear();
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
@@ -219,6 +222,7 @@ packet_input(void)
 
   if(NETSTACK_FRAMER.parse() < 0) {
     LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
+    native_rdc_parse_error++;
   } else {
     NETSTACK_MAC.input();
   }

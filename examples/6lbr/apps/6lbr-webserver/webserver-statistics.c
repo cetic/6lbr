@@ -170,6 +170,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Neighbor overflow : %d<br />", neighbor_overflow);
 #if CONTIKI_TARGET_NATIVE
   add("Callback count : %d<br />", callback_count);
+  add("Ack timeout : %d<br />", native_rdc_ack_timeout);
 #endif
   add("<br />");
   SEND_STRING(&s->sout, buf);
@@ -191,6 +192,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Messages received : %d<br />", slip_message_received);
   add("Bytes sent : %d<br />", slip_sent);
   add("Bytes received : %d<br />", slip_received);
+  add("Parse error : %d<br />", native_rdc_parse_error);
   add("<br />");
 #endif
   SEND_STRING(&s->sout, buf);

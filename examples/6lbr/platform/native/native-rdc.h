@@ -50,5 +50,7 @@ extern void slip_set_mac(linkaddr_t const * mac_addr);
 extern void slip_set_rf_channel(uint8_t channel);
 
 extern int callback_count;
+extern int native_rdc_ack_timeout;
+extern int native_rdc_parse_error;
 
 #endif
