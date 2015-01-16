@@ -1673,7 +1673,7 @@ input(void)
    * We discard the previous packet, and start reassembling the new packet.
    * This lessens the negative impacts of too high SICSLOWPAN_REASS_MAXAGE.
    */
-#define PRIORITIZE_NEW_PACKETS 1
+#define PRIORITIZE_NEW_PACKETS 0
 #if PRIORITIZE_NEW_PACKETS
 
   if(!is_fragment) {
