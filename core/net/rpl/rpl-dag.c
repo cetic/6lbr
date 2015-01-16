@@ -273,8 +273,8 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
           version = dag->version;
           RPL_LOLLIPOP_INCREMENT(version);
 #if CETIC_6LBR
-    nvm_data.rpl_version_id = version;
-    store_nvm_config();
+          nvm_data.rpl_version_id = version;
+          store_nvm_config();
 #endif
         }
         if(dag == dag->instance->current_dag) {
