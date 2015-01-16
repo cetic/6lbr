@@ -271,7 +271,7 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
   SEND_STRING(&s->sout, graph_top);
   add("['Sensor', 'IP', 'PRR'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused) {
+    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
       float prr = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
