@@ -32,7 +32,7 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "ECON"
+#define LOG6LBR_MODULE "CC2538"
 
 #include "contiki.h"
 #include "contiki-lib.h"
