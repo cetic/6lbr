@@ -32,12 +32,16 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "NODE"
+
 #include "contiki.h"
 #include "node-info.h"
 #include "uip-ds6.h"
 #include "uip-ds6-route.h"
 #include "string.h"
 #include "stdlib.h"
+
+#include "log-6lbr.h"
 
 node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
@@ -81,6 +85,9 @@ node_info_add(uip_ipaddr_t * ipaddr)
     memset(node, 0, sizeof(node_info_t));
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
+    LOG6LBR_6ADDR(DEBUG, ipaddr, "New node created ");
+  } else {
+    LOG6LBR_6ADDR(ERROR, ipaddr, "Not enough memory to create node ");
   }
   return node;
 }
@@ -158,6 +165,7 @@ node_info_rm(node_info_t *node_info)
 {
   if(node_info != NULL) {
     node_info->isused = 0;
+    LOG6LBR_6ADDR(DEBUG, &node_info->ipaddr, "Removing node ");
   }
 }
 
