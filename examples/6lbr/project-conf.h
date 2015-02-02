@@ -85,6 +85,9 @@
 // 802.15.4 header and 6LoWPAN header will be subtracted in sicslowpan.c
 #define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD     (127 - 2)
 
+// RPL DODAG is by default grounded
+#define RPL_CONF_GROUNDED 1
+
 #undef UIP_FALLBACK_INTERFACE
 
 #if CETIC_6LBR_SMARTBRIDGE
