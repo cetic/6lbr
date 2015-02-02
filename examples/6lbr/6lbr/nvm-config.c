@@ -137,6 +137,14 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->security_layer = CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER;
     nvm_data->security_level = CETIC_6LBR_NVM_DEFAULT_SECURITY_LEVEL;
+
+    nvm_data->pan_id = CETIC_6LBR_NVM_DEFAULT_PANID;
+
+    nvm_data->rpl_config = CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG;
+    nvm_data->rpl_max_rankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MAX_RANK_INC;
+    CETIC_6LBR_NVM_DEFAULT_RPL_DODAG_ID(&loc_fipaddr);
+    memcpy(&nvm_data->dodag_id, &loc_fipaddr.u8, 16);
+
     flash = 1;
   }
 

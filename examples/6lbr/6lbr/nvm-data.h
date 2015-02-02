@@ -53,14 +53,21 @@ typedef struct {
   uint8_t rpl_dio_intmin;
   uint8_t rpl_dio_redundancy;
   uint8_t rpl_default_lifetime;
-  //TODO: uint16_t rpl_max_rankinc;
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
 
+  //Security
   uint8_t security_layer;
   uint8_t security_level;
 
   uint8_t noncoresec_key[16];
+
+  //Misssing RPL and WSN
+  uint16_t pan_id;
+
+  uint16_t rpl_config;
+  uint16_t rpl_max_rankinc;
+  uint8_t dodag_id[16];
 
 } nvm_data_t;
 
@@ -107,6 +114,10 @@ typedef struct {
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_64            6
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_128           7
 
+//RPL Configuration
+
+#define CETIC_6LBR_MODE_MANUAL_DODAG                0x0001
+#define CETIC_6LBR_MODE_GLOBAL_DODAG                0x0002
 
 /*---------------------------------------------------------------------------*/
 
@@ -120,9 +131,11 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_ETH_IP_ADDR(a)		uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_create_unspecified(a)
 #define CETIC_6LBR_NVM_DEFAULT_CHANNEL				26
+#define CETIC_6LBR_NVM_DEFAULT_PANID                            0xABCD
 
 //Version 1 configuration data
 #define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			0
+
 //WSN Configuration
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN	64
 
@@ -144,15 +157,17 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_RA_RIO_LIFETIME		(3 * CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL)
 
 //RPL Configuration
+#define CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG                       0
 #define CETIC_6LBR_NVM_DEFAULT_RPL_INSTANCE_ID			0x1e
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DIO_INT_DOUBLING		8
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DIO_MIN_INT			12
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DIO_REDUNDANCY		10
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DEFAULT_LIFETIME		0x1E
-//#define CETIC_6LBR_NVM_DEFAULT_RPL_MAX_HOP_RANK_INC
 #define CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC		256
+#define CETIC_6LBR_NVM_DEFAULT_RPL_MAX_RANK_INC                 (7*256)
 #define CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT		0x0100
-#define CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE           0
+#define CETIC_6LBR_NVM_DEFAULT_RPL_PREFERENCE                   0
+#define CETIC_6LBR_NVM_DEFAULT_RPL_DODAG_ID(a)                  uip_create_unspecified(a)
 
 //Security
 #define CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER CETIC_6LBR_SECURITY_LAYER_NONE

@@ -91,6 +91,13 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add(text " : %d<br />", nvm_data.nvm_name); \
   }
 
+#define INPUT_HEX(name, nvm_name, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
+  } else { \
+    add(text " : %x<br />", nvm_data.nvm_name); \
+  }
+
 #define INPUT_KEY(name, nvm_name, size, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
     add(text " : <input type=\"text\" name=\""name"\" size=\"%d\" value=\"", size*2); \
@@ -108,16 +115,15 @@ PT_THREAD(generate_config(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   add("<form action=\"config\" method=\"get\">");
-#if !CETIC_6LBR_ONE_ITF
   add("<h2>WSN Network</h2>");
 #if !CETIC_6LBR_ONE_ITF
-  add("<h3>WSN configuration</h3>");
+  add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
+  INPUT_HEX("panid", channel, "PAN ID");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#endif
 
-  add("<br /><h3>Security</h3>");
+  add("<br /><h3>802.15.4 Security</h3>");
   add("Link-layer security : <select name=\"llsec\">");
   SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONE, "None");
   SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Pre-shared Key");
@@ -213,6 +219,11 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if UIP_CONF_IPV6_RPL && (CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE)
   add("<br /><h2>RPL Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
+  INPUT_FLAG_CB( "dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, "Manual DODAG ID");
+  INPUT_IPADDR("dodag_id", dodag_id, "DODAG ID");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_FLAG_CB( "dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, "Global DODAG ID");
   INPUT_INT( "rpl_preference", rpl_preference, "Preference");
   INPUT_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, "DIO interval doubling");
   INPUT_INT( "rpl_dio_intmin", rpl_dio_intmin, "DIO min interval");
@@ -220,6 +231,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
   INPUT_INT( "rpl_dio_redundancy", rpl_dio_redundancy, "DIO redundancy");
   INPUT_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, "Min rank increment");
+  INPUT_INT( "rpl_max_rankinc", rpl_max_rankinc, "Max rank increase");
   INPUT_INT( "rpl_default_lifetime", rpl_default_lifetime, "Route lifetime");
   INPUT_INT( "rpl_lifetime_unit", rpl_lifetime_unit, "Route lifetime unit");
   SEND_STRING(&s->sout, buf);
@@ -256,6 +268,12 @@ else if(strcmp(param, name) == 0) { \
 #define UPDATE_INT(name, nvm_name, reboot) \
   else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name = atoi(value); \
+    *reboot_needed |= (reboot); \
+  }
+
+#define UPDATE_HEX(name, nvm_name, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    nvm_data.nvm_name = strtol(value, NULL, 16); \
     *reboot_needed |= (reboot); \
   }
 
@@ -318,6 +336,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
+    UPDATE_HEX("panid", pan_id, 1)
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)
@@ -348,12 +367,16 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "ra_rio_lifetime", ra_rio_lifetime, 1)
 
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
+    UPDATE_FLAG("dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, 1)
+    UPDATE_FLAG("dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, 1)
+    UPDATE_IPADDR("dodag_id", dodag_id, 1)
     UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
     UPDATE_INT( "rpl_dio_intmin", rpl_dio_intmin, 1)
     UPDATE_INT( "rpl_dio_redundancy", rpl_dio_redundancy, 1)
     UPDATE_INT( "rpl_default_lifetime", rpl_default_lifetime, 1)
     UPDATE_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, 1)
+    UPDATE_INT( "rpl_max_rankinc", rpl_max_rankinc, 1)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     else {

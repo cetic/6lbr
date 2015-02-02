@@ -299,8 +299,19 @@ void
 cetic_6lbr_init_finalize(void)
 {
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-  //DODAGID = link-local address used !
-  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+  if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
+    //Manual DODAG ID
+    cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.dodag_id);
+  } else {
+    //Automatic DODAG ID
+    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+      //DODAGID = global address used !
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
+    } else {
+      //DODAGID = link-local address used !
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+    }
+  }
 #if CETIC_6LBR_SMARTBRIDGE
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
@@ -308,7 +319,7 @@ cetic_6lbr_init_finalize(void)
 #else
   rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
 #endif
-  LOG6LBR_INFO("Configured as DODAG Root\n");
+  LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
