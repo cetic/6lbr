@@ -122,8 +122,11 @@ cleanup(void)
   if(slip_config_ifdown_script != NULL) {
     if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", slip_config_ifdown_script);
-      ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
+      int status = ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+      if(status != 0) {
+        LOG6LBR_ERROR("6lbr-ifdown script returned an error\n");
+      }
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
               strerror(errno));
@@ -152,8 +155,12 @@ ifconf(const char *tundev)
   if(slip_config_ifup_script != NULL) {
     if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", slip_config_ifup_script);
-      ssystem("%s %s %s 2>&1", slip_config_ifup_script,
+      int status = ssystem("%s %s %s 2>&1", slip_config_ifup_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+      if(status != 0) {
+        LOG6LBR_FATAL("6lbr-ifup script returned an error, aborting...\n");
+        exit(1);
+      }
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
               strerror(errno));
