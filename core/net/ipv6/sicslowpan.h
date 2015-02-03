@@ -225,6 +225,11 @@ struct sicslowpan_addr_context {
   uint8_t prefix[8];
 };
 
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
+extern struct sicslowpan_addr_context
+addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
+#endif
+
 /**
  * \name Address compressibility test functions
  * @{
