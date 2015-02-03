@@ -61,6 +61,10 @@
 
 #include "net/ip/uip-debug.h"
 
+#if CETIC_6LBR
+#include "6lbr-hooks.h"
+#endif
+
 /*---------------------------------------------------------------------------*/
 #define RPL_DIO_GROUNDED                 0x80
 #define RPL_DIO_MOP_SHIFT                3
@@ -766,6 +770,12 @@ dao_input(void)
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
+
+#if CETIC_6LBR
+  if(!cetic_6lbr_allowed_node_hook(dag, &prefix, prefixlen)) {
+    return;
+  }
+#endif
 
   rpl_lock_parent(parent);
 

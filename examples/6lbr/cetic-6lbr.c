@@ -58,6 +58,7 @@
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"
+#include "6lbr-hooks.h"
 
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
@@ -110,6 +111,9 @@ unsigned long cetic_6lbr_startup;
 static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
+
+//Hooks
+cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_server_process);
@@ -170,6 +174,11 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
     rpl_repair_root(RPL_DEFAULT_INSTANCE);
   }
 #endif
+}
+
+int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
+{
+  return 1;
 }
 
 void
