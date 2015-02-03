@@ -37,6 +37,7 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
+#include "sicslowpan.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-ds6-nbr.h"
@@ -214,6 +215,21 @@ PT_THREAD(generate_network(struct httpd_state *s))
       add("/%u (%x) %us\n", uip_ds6_route_info_list[i].length,
           uip_ds6_route_info_list[i].flags,
           uip_ds6_route_info_list[i].lifetime);
+    }
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
+  add("<pre><h2>6LoWPAN Prefix contexts</h2><pre>");
+  for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
+    if(addr_contexts[i].used == 1) {
+      add("%d : %02x%02x:%02x%02x:%02x%02x:%02x%02x\n", addr_contexts[i].number,
+          addr_contexts[i].prefix[1], addr_contexts[i].prefix[0],
+          addr_contexts[i].prefix[3], addr_contexts[i].prefix[2],
+          addr_contexts[i].prefix[5], addr_contexts[i].prefix[4],
+          addr_contexts[i].prefix[7], addr_contexts[i].prefix[6]);
     }
   }
   add("</pre><br />");
