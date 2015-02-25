@@ -40,6 +40,7 @@
 #include "contiki-net.h"
 
 extern void native_rdc_init(void);
+extern void native_rdc_reset_slip(void);
 
 extern void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx);
 extern void slip_print_stat();

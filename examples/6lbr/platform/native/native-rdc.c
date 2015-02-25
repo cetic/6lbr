@@ -312,20 +312,30 @@ native_rdc_init(void)
   process_start(&native_rdc_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
+void
+native_rdc_reset_slip(void)
+{
+  process_poll(&native_rdc_process);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(native_rdc_process, ev, data)
 {
   PROCESS_BEGIN();
 
   static struct etimer et;
-  slip_reboot();
-  while(!radio_mac_addr_ready) {
-    etimer_set(&et, CLOCK_SECOND);
-    slip_request_mac();
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-  }
-  //Set radio channel
-  slip_set_rf_channel(nvm_data.channel);
-  radio_ready = 1;
+  do
+  {
+    slip_reboot();
+    while(!radio_mac_addr_ready) {
+      etimer_set(&et, CLOCK_SECOND);
+      slip_request_mac();
+      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    }
+    //Set radio channel
+    slip_set_rf_channel(nvm_data.channel);
+    radio_ready = 1;
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+  } while(1);
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
