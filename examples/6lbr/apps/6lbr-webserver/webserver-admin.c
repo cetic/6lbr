@@ -41,6 +41,10 @@
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 
+#if CONTIKI_TARGET_NATIVE
+#include "native-rdc.h"
+#endif
+
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
@@ -62,6 +66,10 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   reset_buf();
 #endif
   add("<h3>Restart</h3>");
+#if CONTIKI_TARGET_NATIVE
+  add("<form action=\"reset-sr\" method=\"get\">");
+  add("<input type=\"submit\" value=\"Reset slip-radio\"/></form><br />");
+#endif
   add("<form action=\"restart\" method=\"get\">");
   add("<input type=\"submit\" value=\"Restart 6LBR\"/></form><br />");
 #if CONTIKI_TARGET_NATIVE
@@ -82,6 +90,7 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   reset_buf();
   PSOCK_END(&s->sout);
 }
+
 static httpd_cgi_call_t *
 webserver_admin_restart(struct httpd_state *s)
 {
@@ -92,6 +101,17 @@ webserver_admin_restart(struct httpd_state *s)
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
   return &webserver_result_page;
 }
+#if CONTIKI_TARGET_NATIVE
+#if !CETIC_6LBR_ONE_ITF
+static httpd_cgi_call_t *
+webserver_admin_reset_slip_radio(struct httpd_state *s)
+{
+  webserver_result_title = "Reset Slip-Radio";
+  webserver_result_text = "Restarting Slip-Radio...";
+  native_rdc_reset_slip();
+  return &webserver_result_page;
+}
+#endif
 
 static httpd_cgi_call_t *
 webserver_admin_reboot(struct httpd_state *s)
@@ -114,8 +134,14 @@ webserver_admin_halt(struct httpd_state *s)
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
   return &webserver_result_page;
 }
+#endif
 
 HTTPD_CGI_CALL(webserver_admin, "admin.html", "Administration", generate_admin, 0);
 HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);
+#if CONTIKI_TARGET_NATIVE
+#if !CETIC_6LBR_ONE_ITF
+HTTPD_CGI_CMD(webserver_admin_reset_slip_radio_cmd, "reset-sr", webserver_admin_reset_slip_radio, 0);
+#endif
 HTTPD_CGI_CMD(webserver_admin_reboot_cmd, "reboot", webserver_admin_reboot, 0);
 HTTPD_CGI_CMD(webserver_admin_halt_cmd, "halt", webserver_admin_halt, 0);
+#endif

@@ -71,6 +71,9 @@ HTTPD_CGI_CALL_NAME(webserver_statistics)
 HTTPD_CGI_CALL_NAME(webserver_admin)
 HTTPD_CGI_CMD_NAME(webserver_admin_restart_cmd)
 #if CONTIKI_TARGET_NATIVE
+#if !CETIC_6LBR_ONE_ITF
+HTTPD_CGI_CMD_NAME(webserver_admin_reset_slip_radio_cmd);
+#endif
 HTTPD_CGI_CMD_NAME(webserver_admin_reboot_cmd)
 HTTPD_CGI_CMD_NAME(webserver_admin_halt_cmd)
 HTTPD_CGI_CALL_NAME(webserver_log_send_log)
@@ -114,6 +117,9 @@ webserver_init(void)
     httpd_cgi_add(&webserver_admin);
     httpd_cgi_command_add(&webserver_admin_restart_cmd);
 #if CONTIKI_TARGET_NATIVE
+#if !CETIC_6LBR_ONE_ITF
+    httpd_cgi_command_add(&webserver_admin_reset_slip_radio_cmd);
+#endif
     httpd_cgi_command_add(&webserver_admin_reboot_cmd);
     httpd_cgi_command_add(&webserver_admin_halt_cmd);
     httpd_cgi_add(&webserver_log_send_log);
