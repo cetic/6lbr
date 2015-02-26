@@ -253,6 +253,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   rpl_dag_t *dag;
   rpl_instance_t *instance;
   uint8_t version;
+  int i;
 
 #if CETIC_6LBR
   version = nvm_data.rpl_version_id;
@@ -263,19 +264,28 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 #else
   version = RPL_LOLLIPOP_INIT;
 #endif
-  dag = get_dag(instance_id, dag_id);
-  if(dag != NULL) {
-    version = dag->version;
-    RPL_LOLLIPOP_INCREMENT(version);
+  instance = rpl_get_instance(instance_id);
+  if(instance != NULL) {
+    for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; ++i) {
+      dag = &instance->dag_table[i];
+      if(dag->used) {
+        if(uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
+          version = dag->version;
+          RPL_LOLLIPOP_INCREMENT(version);
 #if CETIC_6LBR
-    nvm_data.rpl_version_id = version;
-    store_nvm_config();
+          nvm_data.rpl_version_id = version;
+          store_nvm_config();
 #endif
-    PRINTF("RPL: Dropping a joined DAG when setting this node as root");
-    if(dag == dag->instance->current_dag) {
-      dag->instance->current_dag = NULL;
+        }
+        if(dag == dag->instance->current_dag) {
+          PRINTF("RPL: Dropping a joined DAG when setting this node as root");
+          dag->instance->current_dag = NULL;
+        } else {
+          PRINTF("RPL: Dropping a DAG when setting this node as root");
+        }
+        rpl_free_dag(dag);
+      }
     }
-    rpl_free_dag(dag);
   }
 
   dag = rpl_alloc_dag(instance_id, dag_id);
@@ -512,7 +522,6 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
   }
 
   RPL_STAT(rpl_stats.mem_overflows++);
-  rpl_free_instance(instance);
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
@@ -1070,6 +1079,14 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   remove_parents(dag, 0);
   dag->version = dio->version;
+
+  /* copy parts of the configuration so that it propagates in the network */
+  dag->instance->dio_intdoubl = dio->dag_intdoubl;
+  dag->instance->dio_intmin = dio->dag_intmin;
+  dag->instance->dio_redundancy = dio->dag_redund;
+  dag->instance->default_lifetime = dio->default_lifetime;
+  dag->instance->lifetime_unit = dio->lifetime_unit;
+
   dag->instance->of->reset(dag);
   dag->min_rank = INFINITE_RANK;
   RPL_LOLLIPOP_INCREMENT(dag->instance->dtsn_out);

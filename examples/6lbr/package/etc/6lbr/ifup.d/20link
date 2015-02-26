@@ -22,6 +22,8 @@ case $OS in
 		if [ $DEV_TAP_MAC != "-" ]; then
 			ip link set $DEV down
 			ip link set $DEV address $DEV_TAP_MAC up
+		else
+			ip link set $DEV up	
 		fi
 		;;
 
