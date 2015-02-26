@@ -142,8 +142,10 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       }
       return 1;
     } else if(data[1] == 'R' && len == 2) {
+#if !CONTIKI_TARGET_CC2538DK
       PRINTF("Rebooting\n");
       watchdog_reboot();
+#endif
       return 1;
     }
   } else if(uip_buf[0] == '?') {

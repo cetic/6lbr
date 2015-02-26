@@ -48,10 +48,12 @@ cmd_handler_cc2538(const uint8_t *data, int len)
       NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, data[2]);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
-        printf("cc2538_cmd: Got MAC\n");
+        printf("cc2538_cmd: Set MAC disabled\n");
+        /*
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
         linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
         NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, data+2, 8);
+        */
         return 1;
       }
   } else if(data[0] == '?') {
