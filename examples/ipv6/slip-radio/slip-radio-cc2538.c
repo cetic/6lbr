@@ -48,10 +48,12 @@ cmd_handler_cc2538(const uint8_t *data, int len)
       cc2538_rf_channel_set(data[2]);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
-        printf("cc2538_cmd: Got MAC\n");
+        printf("cc2538_cmd: Set MAC disabled\n");
+        /*
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
         linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
         cc2538_rf_set_addr(IEEE802154_PANID);
+        */
         return 1;
       }
   } else if(data[0] == '?') {
