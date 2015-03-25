@@ -54,9 +54,14 @@ node_info_route_notification_cb(int event,
 {
   node_info_t *node = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node = node_info_add(route);
-    node->has_route = 1;
-    node->last_seen = clock_time();
+    node = node_info_lookup(route);
+    if(node == NULL) {
+      node = node_info_add(route);
+    }
+    if(node != NULL) {
+      node->has_route = 1;
+      node->last_seen = clock_time();
+    }
  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
    node = node_info_lookup(route);
    if(node != NULL) {
