@@ -366,19 +366,6 @@ ifneq ($(PLUGINS_FILES),)
 	install $(PLUGINS_FILES) /usr/lib/6lbr/plugins
 endif
 	install tools/nvm_tool /usr/lib/6lbr/bin
-	update-rc.d 6lbr defaults
-
-rpi_deb:
-	rm -rf $(DEB)
-	cp -R package $(DEB)
-	cp -R control-deb $(DEB)/DEBIAN
-	mkdir -p $(DEB)/usr/lib/6lbr/bin
-	cp bin/* $(DEB)/usr/lib/6lbr/bin
-ifneq ($(PLUGINS_FILES),)
-	cp $(PLUGINS_FILES) $(DEB)/usr/lib/6lbr/plugins
-endif
-	cp tools/nvm_tool $(DEB)/usr/lib/6lbr/bin
-	dpkg --build $(DEB) .
 
 ipk:
 	rm -rf $(IPK)
@@ -391,7 +378,7 @@ ifneq ($(PLUGINS_FILES),)
 endif
 	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
-	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
+	cd angstrom && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
 	echo 2.0 > $(IPK)/debian-binary
 	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)-$(PKG_VERSION)_armv7a.ipk debian-binary data.tar.gz control.tar.gz
 

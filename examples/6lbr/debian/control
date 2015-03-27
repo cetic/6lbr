@@ -1,0 +1,13 @@
+Source: cetic-6lbr
+Section: network
+Priority: extra
+Maintainer: 6LBR Team <6lbr@cetic.be>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Homepage: https://github.com/cetic/6lbr
+
+Package: cetic-6lbr
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: CETIC 6LoWPAN Border Router
+ CETIC 6LBR is an enhanced version of Contiki's 6LoWPAN Border Router solution. rIit provides network configuration and monitoring and support out of the box redundant and distributed operating modes.
