@@ -1,8 +1,0 @@
-Package: cetic-6lbr
-Version: 1.3.2
-Architecture: armhf
-Maintainer: CETIC <6lbr@cetic.be>
-Section: network
-Priority: optional
-Installed-Size: 350000
-Description: CETIC 6LoWPAN Border Router
