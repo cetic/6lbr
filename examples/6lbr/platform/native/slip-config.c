@@ -69,6 +69,45 @@ char const *slip_config_plugins = NULL;
 char const *ip_config_file_name = NULL;
 char const *  node_config_file_name = NULL;
 
+#if __APPLE__
+#ifndef B460800
+#define B460800 460800
+#endif
+#ifndef B500000
+#define B500000 500000
+#endif
+#ifndef B576000
+#define B576000 576000
+#endif
+#ifndef B921600
+#define B921600 921600
+#endif
+#ifndef B1000000
+#define B1000000 1000000
+#endif
+#ifndef B1152000
+#define B1152000 1152000
+#endif
+#ifndef B1500000
+#define B1500000 1500000
+#endif
+#ifndef B2000000
+#define B2000000 2000000
+#endif
+#ifndef B2500000
+#define B2500000 2500000
+#endif
+#ifndef B3000000
+#define B3000000 3000000
+#endif
+#ifndef B3500000
+#define B3500000 3500000
+#endif
+#ifndef B4000000
+#define B4000000 4000000
+#endif
+#endif
+
 #ifndef BAUDRATE
 #define BAUDRATE B115200
 #endif
@@ -196,13 +235,8 @@ slip_config_handle_arguments(int argc, char **argv)
       fprintf(stderr, "usage:  %s [options] ipaddress\n", prog);
       fprintf(stderr, "example: %s -L -v2 -s ttyUSB1\n", prog);
       fprintf(stderr, "Options are:\n");
-#ifdef linux
       fprintf(stderr,
-              " -B baudrate    9600,19200,38400,57600,115200,921600 (default 115200)\n");
-#else
-      fprintf(stderr,
-              " -B baudrate    9600,19200,38400,57600,115200 (default 115200)\n");
-#endif
+              " -B baudrate    Slip-radio baudrate (default 115200)\n");
       fprintf(stderr,
               " -H             Hardware CTS/RTS flow control (default disabled)\n");
       fprintf(stderr,
@@ -242,26 +276,96 @@ slip_config_handle_arguments(int argc, char **argv)
   switch (baudrate) {
   case -2:
     break;                      /* Use default. */
-  case 9600:
-    slip_config_b_rate = B9600;
-    break;
-  case 19200:
-    slip_config_b_rate = B19200;
-    break;
-  case 38400:
-    slip_config_b_rate = B38400;
-    break;
-  case 57600:
-    slip_config_b_rate = B57600;
-    break;
-  case 115200:
-    slip_config_b_rate = B115200;
-    break;
-#ifdef linux
-  case 921600:
-    slip_config_b_rate = B921600;
-    break;
-#endif
+  #ifdef B50
+      case 50: slip_config_b_rate = B50; break;
+  #endif
+  #ifdef B75
+      case 75: slip_config_b_rate = B75; break;
+  #endif
+  #ifdef B110
+      case 110: slip_config_b_rate = B110; break;
+  #endif
+  #ifdef B134
+      case 134: slip_config_b_rate = B134; break;
+  #endif
+  #ifdef B150
+      case 150: slip_config_b_rate = B150; break;
+  #endif
+  #ifdef B200
+      case 200: slip_config_b_rate = B200; break;
+  #endif
+  #ifdef B300
+      case 300: slip_config_b_rate = B300; break;
+  #endif
+  #ifdef B600
+      case 600: slip_config_b_rate = B600; break;
+  #endif
+  #ifdef B1200
+      case 1200: slip_config_b_rate = B1200; break;
+  #endif
+  #ifdef B1800
+      case 1800: slip_config_b_rate = B1800; break;
+  #endif
+  #ifdef B2400
+      case 2400: slip_config_b_rate = B2400; break;
+  #endif
+  #ifdef B4800
+      case 4800: slip_config_b_rate = B4800; break;
+  #endif
+  #ifdef B9600
+      case 9600: slip_config_b_rate = B9600; break;
+  #endif
+  #ifdef B19200
+      case 19200: slip_config_b_rate = B19200; break;
+  #endif
+  #ifdef B38400
+      case 38400: slip_config_b_rate = B38400; break;
+  #endif
+  #ifdef B57600
+      case 57600: slip_config_b_rate = B57600; break;
+  #endif
+  #ifdef B115200
+      case 115200: slip_config_b_rate = B115200; break;
+  #endif
+  #ifdef B230400
+      case 230400: slip_config_b_rate = B230400; break;
+  #endif
+  #ifdef B460800
+      case 460800: slip_config_b_rate = B460800; break;
+  #endif
+  #ifdef B500000
+      case 500000: slip_config_b_rate = B500000; break;
+  #endif
+  #ifdef B576000
+      case 576000: slip_config_b_rate = B576000; break;
+  #endif
+  #ifdef B921600
+      case 921600: slip_config_b_rate = B921600; break;
+  #endif
+  #ifdef B1000000
+      case 1000000: slip_config_b_rate = B1000000; break;
+  #endif
+  #ifdef B1152000
+      case 1152000: slip_config_b_rate = B1152000; break;
+  #endif
+  #ifdef B1500000
+      case 1500000: slip_config_b_rate = B1500000; break;
+  #endif
+  #ifdef B2000000
+      case 2000000: slip_config_b_rate = B2000000; break;
+  #endif
+  #ifdef B2500000
+      case 2500000: slip_config_b_rate = B2500000; break;
+  #endif
+  #ifdef B3000000
+      case 3000000: slip_config_b_rate = B3000000; break;
+  #endif
+  #ifdef B3500000
+      case 3500000: slip_config_b_rate = B3500000; break;
+  #endif
+  #ifdef B4000000
+      case 4000000: slip_config_b_rate = B4000000; break;
+  #endif
   default:
     err(1, "unknown baudrate %d", baudrate);
     break;
