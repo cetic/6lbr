@@ -649,8 +649,10 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 			  return;
 		  }
 		  
-		  socketToMoteLabel.setText(inBytes + " bytes");
-		  moteToSocketLabel.setText(outBytes + " bytes");
+		    if (Cooja.isVisualized()) {
+		        socketToMoteLabel.setText(inBytes + " bytes");
+		        moteToSocketLabel.setText(outBytes + " bytes");
+		    }
 	  }
   });
 }
