@@ -50,7 +50,7 @@ PROJECT_SOURCEFILES += shell-6lbr.c
 endif
 
 WITH_DELAY_IP?=0
-ifneq ($(WITH_DELAY_IP), 0)
+ifneq ($(WITH_DELAY_IP),0)
 CFLAGS += -DSLIP_RADIO=1 -DWITH_DELAY_IP=1
 endif
 
