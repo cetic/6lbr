@@ -249,7 +249,11 @@ static void
 start_network_layer()
 {
 #if NETSTACK_CONF_WITH_IPV6
+#if SLIP_RADIO
+  NETSTACK_NETWORK.init();
+#else
   start_uip6();
+#endif /* SLIP_RADIO */
 #endif /* NETSTACK_CONF_WITH_IPV6 */
   start_autostart_processes();
   /* To support link layer security in combination with NETSTACK_CONF_WITH_IPV4 and
@@ -363,7 +367,6 @@ main(int argc, char **argv)
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
-  NETSTACK_NETWORK.init();
 
   printf("%s %s, channel check rate %lu Hz, radio channel %u, CCA threshold %i\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
