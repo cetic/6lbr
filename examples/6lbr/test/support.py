@@ -420,7 +420,7 @@ class CoojaWsn(Wsn):
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE, stderr=self.err)
         line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start
+        while 'Opened pcap file' not in line: # Wait for simulation to start
             if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote(self)
@@ -455,7 +455,7 @@ class CoojaWsn(Wsn):
             pass #TODO
         if self.get_test_mote() == None:
             print >> sys.stderr, "Can not find test mote"
-            raise
+            raise Exception()
 
     def tearDown(self):
         if self.cooja:

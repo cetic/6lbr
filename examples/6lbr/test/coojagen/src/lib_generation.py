@@ -49,6 +49,7 @@ class SimMoteType:
 		return text
 
 class SimMote:
+	socket_base_port = 60000
 	def __init__(self, mote_type, nodeid):
 		self.mote_type = mote_type
 		self.nodeid = nodeid
@@ -99,14 +100,18 @@ class SimMote:
   </plugin>\r\n"""
 		elif self.mote_type.serial == 'socket':
 			text = """  <plugin>
-    SerialSocketServer
+    org.contikios.cooja.serialsocket.SerialSocketServer
     <mote_arg>MOTEARG</mote_arg>
     <width>459</width>
     <z>4</z>
     <height>119</height>
     <location_x>5</location_x>
     <location_y>525</location_y>
-  </plugin>\r\n"""
+    <plugin_config>
+	  <port>%d</port>
+	  <bound>true</bound>
+	</plugin_config>
+  </plugin>\r\n""" % (self.socket_base_port + self.nodeid)
 		else:
 			return ''
 
