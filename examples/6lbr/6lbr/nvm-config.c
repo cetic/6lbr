@@ -58,6 +58,7 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 {
   uint8_t flash = 0;
   uip_ipaddr_t loc_fipaddr;
+  uip_ip4addr_t loc_fip4addr;
 
   if(reset || nvm_data->magic != CETIC_6LBR_NVM_MAGIC
      || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
@@ -144,6 +145,13 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     nvm_data->rpl_max_rankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MAX_RANK_INC;
     CETIC_6LBR_NVM_DEFAULT_RPL_DODAG_ID(&loc_fipaddr);
     memcpy(&nvm_data->dodag_id, &loc_fipaddr.u8, 16);
+    nvm_data->eth_ip64_flags = CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS;
+    CETIC_6LBR_NVM_DEFAULT_IP64_ADDRESS(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_addr, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+    CETIC_6LBR_NVM_DEFAULT_IP64_NETMASK(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_netmask, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+    CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
 
     flash = 1;
   }

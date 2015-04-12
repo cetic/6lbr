@@ -41,6 +41,10 @@
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#endif
+
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
@@ -154,6 +158,17 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("Local address : ");
   ipaddr_add(&eth_ip_local_addr);
   add("<br />");
+#if CETIC_6LBR_IP64
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+    add("IP64 Address : ");
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
+      ip4addr_add(ip64_get_hostaddr());
+      add("<br />");
+    } else {
+      add("Waiting configuration<br />");
+    }
+  }
+#endif
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
