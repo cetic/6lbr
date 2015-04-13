@@ -135,6 +135,9 @@ void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
+	PRINTF("uip_ds6_nbr_rm ");
+	PRINT6ADDR(&nbr->ipaddr);
+	PRINTF("\n");
 #if CONF_6LOWPAN_ND
     if(nbr->state != NBR_GARBAGE_COLLECTIBLE) {
       nbr_table_unlock(ds6_neighbors, nbr);
