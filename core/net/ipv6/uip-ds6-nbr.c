@@ -141,8 +141,10 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     }
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
     uip_ds6_route_t *r = uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr);
-    r->state.lifetime = 0;
-    r->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
+    if(r != NULL) {
+      r->state.lifetime = 0;
+      r->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
+    }
 #else /* UIP_DS6_ROUTE_STATE_TYPE */
     uip_ds6_route_rm(uip_ds6_route_lookup_by_nexthop(&nbr->ipaddr));
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
