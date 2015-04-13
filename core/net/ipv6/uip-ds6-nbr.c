@@ -113,7 +113,11 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");
-    PRINTLLADDR(lladdr);
+    if(lladdr != NULL) {
+      PRINTLLADDR(lladdr);
+    } else {
+      PRINTF("(null)");
+    }
     PRINTF(" state %u\n", state);
     NEIGHBOR_STATE_CHANGED(nbr);
     return nbr;
