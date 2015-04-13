@@ -48,6 +48,10 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-packetqueue.h"
 
+#if CETIC_6LBR
+#include "cetic-6lbr.h"
+#endif
+
 #if UIP_CONF_IPV6
 
 #define DEBUG DEBUG_NONE
@@ -476,7 +480,11 @@ uint8_t
 uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 {
 #if CONF_6LOWPAN_ND
+#if CETIC_6LBR
+  return uip_is_addr_link_local(ipaddr) || uip_ipaddr_prefixcmp(&eth_net_prefix, ipaddr, nvm_data.eth_net_prefix_len);
+#else
   return uip_is_addr_link_local(ipaddr);
+#endif
 #else /* CONF_6LOWPAN_ND */
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {

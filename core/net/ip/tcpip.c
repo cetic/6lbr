@@ -716,7 +716,7 @@ tcpip_ipv6_output(void)
 #else /* UIP_CONF_6LN */
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
-#if CONF_6LOWPAN_ND
+#if CONF_6LOWPAN_ND && (!CETIC_6LBR || CETIC_6LBR_6LR)
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, ISROUTER_YES, NBR_TENTATIVE)) == NULL) {
 #else /* CONF_6LOWPAN_ND */
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {

@@ -452,7 +452,7 @@ bridge_output(const uip_lladdr_t * dest)
 #endif
 
 #if CETIC_6LBR_ROUTER
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
 static uint8_t
 bridge_output(const uip_lladdr_t * dest)
 {

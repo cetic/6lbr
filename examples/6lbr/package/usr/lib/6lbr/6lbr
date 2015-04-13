@@ -177,6 +177,8 @@ elif [ "$MODE" = '6LR' ]; then
 	BIN=$BIN_6LBR/cetic_6lbr_6lr
 elif [ "$MODE" = 'RPL-ROOT' ]; then
 	BIN=$BIN_6LBR/cetic_6lbr_rpl_root
+elif [ "$MODE" = '6LOWPAN-RPL-ROUTER' ]; then
+	BIN=$BIN_6LBR/cetic_6lbr_6lowpan_nd_rpl_router
 else
 	echo "Mode '$MODE' unknown, starting as router"
 	BIN=$BIN_6LBR/cetic_6lbr_router

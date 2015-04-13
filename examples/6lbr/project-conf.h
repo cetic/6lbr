@@ -171,7 +171,7 @@
 #endif
 
 #if UIP_CONF_IPV6_RPL
-#define CETIC_6LBR_WSN_FILTER_RA	1
+#define CETIC_6LBR_WSN_FILTER_RA	0 //TODO: 6LoWPAN-ND
 #else
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif

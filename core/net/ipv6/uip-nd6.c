@@ -83,6 +83,9 @@
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #include "rio.h"
 #endif
+#if CETIC_6LBR
+#include "packet-filter.h"
+#endif
 
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
@@ -299,6 +302,7 @@ ns_input(void)
 
 #if UIP_CONF_6L_ROUTER
   if(non_router()) {
+    printf("Not yet router\n");
     goto discard;
   }
   nd6_opt_aro = NULL;
@@ -336,9 +340,17 @@ ns_input(void)
 #if UIP_CONF_6L_ROUTER
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
       if(nbr == NULL) {
+#if CETIC_6LBR
+        if(packet_filter_eth_packet) {
+        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                        0, NBR_STALE);
+        } else
+#endif
         nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
         if(nbr == NULL) {
-          goto  discard;
+          printf("neighbor not found 1\n");
+        	goto  discard;
         }
 #if UIP_CONF_6LR
         nbr->state = NBR_TENTATIVE_DAD;
@@ -414,6 +426,7 @@ ns_input(void)
       uip_nd6_na_output(UIP_ND6_NA_FLAG_OVERRIDE, UIP_ND6_ARO_STATUS_SUCCESS);
       tcpip_ipv6_output();
       uip_ds6_nbr_rm(nbr);
+      printf("ARO lifetime == 0\n");
       goto discard;
     }
 #endif /* UIP_CONF_6L_ROUTER */
@@ -451,6 +464,7 @@ ns_input(void)
         stimer_set(&nbr->reachable, UIP_ND6_MAX_RTR_SOLICITATIONS);
         uip_ds6_dar_add(&UIP_IP_BUF->srcipaddr, nbr, uip_ntohs(nd6_opt_aro->lifetime));
       }
+      printf("DAD -1 \n");
       goto discard;
     }
 #endif /* UIP_CONF_6LR */
@@ -502,11 +516,13 @@ ns_input(void)
       } else {
         /** \todo if I sent a NS before him, I win */
         uip_ds6_dad_failed(addr);
+        printf("DAD failed - 2\n");
         goto discard;
       }
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
+    	printf("DAD - 3\n");
       goto discard;
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
@@ -543,7 +559,8 @@ ns_input(void)
 #endif /* UIP_CONF_IPV6_CHECKS */
     }
   } else {
-    goto discard;
+    printf("Discard\n");
+	  goto discard;
   }
 
 create_na:
@@ -1152,6 +1169,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 #else /* UIP_CONF_6L_ROUTER */
     if((prefix->isused) && (prefix->advertise)) {
 #endif /* UIP_CONF_6L_ROUTER */
+      printf("Add prefix\n");
       UIP_ND6_OPT_PREFIX_BUF->type = UIP_ND6_OPT_PREFIX_INFO;
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
@@ -1162,6 +1180,8 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
       nd6_opt_offset += UIP_ND6_OPT_PREFIX_INFO_LEN;
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
+    } else {
+      printf("skipping prefix: %d %d\n", prefix->isused, prefix->advertise);
     }
   }
 

@@ -39,7 +39,7 @@
 
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #include "net/ip/uip-debug.h"
 
 #ifndef CETIC_6LBR_UDP_PERIOD
@@ -130,12 +130,20 @@ timeout_handler(void)
     uip_ds6_addr_t * addr_desc = uip_ds6_get_global(ADDR_PREFERRED);
     if(addr_desc != NULL) {
       globaladdr = &addr_desc->ipaddr;
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
       rpl_dag_t *dag = rpl_get_any_dag();
       if(dag) {
         uip_ipaddr_copy(&dest_addr, globaladdr);
         memcpy(&dest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
         has_dest = 1;
+      }
+#elif CONF_6LOWPAN_ND
+      uip_ds6_border_router_t *br = uip_ds6_br_lookup(NULL);
+      if(br != NULL) {
+        uip_ipaddr_copy(&dest_addr, &br->ipaddr);
+        has_dest=1;
+      } else {
+        printf("No br found\n");
       }
 #else
       defrt = uip_ds6_defrt_choose();

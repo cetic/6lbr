@@ -321,6 +321,8 @@ uip_ds6_neighbor_periodic(void)
       }
       break;
 #endif /* UIP_CONF_6LR */
+#endif
+#if CONF_6LOWPAN_ND && !CETIC_6LBR
 #else /* CONF_6LOWPAN_ND */
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {

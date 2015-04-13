@@ -253,7 +253,7 @@ cetic_6lbr_init(void)
   uip_ds6_addr_add(&wsn_ip_local_addr, 0, ADDR_AUTOCONF);
 
   //Prefix and RA configuration
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
   uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
   uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, publish,
                      nvm_data.ra_prefix_flags,
@@ -261,12 +261,13 @@ cetic_6lbr_init(void)
 #else
   uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, 0, 0, 0, 0);
   uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
+  LOG6LBR_INFO("publish: %d\n", publish);
   uip_ds6_prefix_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, publish,
 		             nvm_data.ra_prefix_flags,
 		             nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
   if ((nvm_data.ra_rio_flags & CETIC_6LBR_MODE_SEND_RIO) != 0 ) {
     uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
   }
@@ -276,6 +277,14 @@ cetic_6lbr_init(void)
   } else {
     LOG6LBR_INFO("RA Daemon disabled\n");
   }
+#endif
+}
+
+void
+cetic_6lbr_init_finalize(void)
+{
+#if UIP_CONF_6LBR
+  uip_ds6_br_config();
 #endif
 
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
