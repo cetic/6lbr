@@ -379,6 +379,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   while(uip_ds6_get_addr_number(ADDR_TENTATIVE) > 0) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
     etimer_set(&timer, CLOCK_SECOND);
+    printf("Tentative: %d, total: %d\n", uip_ds6_get_addr_number(ADDR_TENTATIVE), addr_number);
   }
   if(uip_ds6_get_addr_number(-1) != addr_number) {
     LOG6LBR_FATAL("Addresses duplication failed");
