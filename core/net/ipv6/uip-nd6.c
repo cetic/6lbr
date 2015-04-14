@@ -338,15 +338,31 @@ ns_input(void)
       } else {
 #endif /*UIP_CONF_IPV6_CHECKS */
 #if UIP_CONF_6L_ROUTER
+#if CETIC_6LBR
+      if(packet_filter_eth_packet) {
+        nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+        if(nbr == NULL) {
+          uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+                          (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                          0, NBR_STALE);
+        } else {
+          uip_lladdr_t *lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
+          if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                    lladdr, UIP_LLADDR_LEN) != 0) {
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                   UIP_LLADDR_LEN);
+            nbr->state = NBR_STALE;
+          } else {
+            if(nbr->state == NBR_INCOMPLETE) {
+              nbr->state = NBR_STALE;
+            }
+          }
+        }
+        break;
+      }
+#endif
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
       if(nbr == NULL) {
-#if CETIC_6LBR
-        if(packet_filter_eth_packet) {
-        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-                        0, NBR_STALE);
-        } else
-#endif
         nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET]);
         if(nbr == NULL) {
           printf("neighbor not found 1\n");
