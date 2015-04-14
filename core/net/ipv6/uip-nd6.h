@@ -121,19 +121,24 @@
 #define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
 #define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
 #ifndef UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       10  /*seconds*/
+#else
 #define UIP_ND6_MIN_DELAY_BETWEEN_RAS       3   /*seconds*/
+#endif
 #else
 #define UIP_ND6_MIN_DELAY_BETWEEN_RAS       UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
 #endif
-//#define UIP_ND6_MAX_RA_DELAY_TIME           0.5 /*seconds*/
+#if CONF_6LOWPAN_ND
+#define UIP_ND6_MAX_RA_DELAY_TIME_MS        2000 /*milli seconds*/
+#else
 #define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
+#endif
 /** @} */
 
 /** \name RFC 6775 Router constant */
 #if UIP_CONF_6L_ROUTER
 #define UIP_ND6_MAX_RTR_ADVERTISEMENTS      3
-#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       10 /*seconds*/
-#define UIP_ND6_MAX_RA_DELAY_TIME_MS        2000 /*milli seconds*/
 #define UIP_ND6_MAX_RA_DELAY_TIME           2  /*seconds*/
 #define UIP_ND6_TENTATIVE_NCE_LIFETIME      20 /*seconds*/
 #define UIP_ND6_MULTIHOP_HOPLIMIT           64
