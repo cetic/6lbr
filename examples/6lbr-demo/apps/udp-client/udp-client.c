@@ -194,10 +194,17 @@ timeout_handler(void)
         PRINTF("Client sending to: ");
         PRINT6ADDR(&client_conn->ripaddr);
         i = sprintf(buf, "%d | ", ++seq_id);
-#if UIP_CONF_IPV6_RPL
+#if UIP_CONF_IPV6_RPL && !CONF_6LOWPAN_ND
         rpl_dag_t *dag = rpl_get_any_dag();
         if(dag && dag->instance->def_route) {
           add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+        } else {
+          sprintf(buf + i, "(null)");
+        }
+#elif CONF_6LOWPAN_ND
+        uip_ds6_border_router_t *br = uip_ds6_br_lookup(NULL);
+        if(br != NULL) {
+          add_ipaddr(buf + i, &br->ipaddr);
         } else {
           sprintf(buf + i, "(null)");
         }
