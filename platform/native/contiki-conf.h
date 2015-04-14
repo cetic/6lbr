@@ -138,7 +138,9 @@ typedef unsigned int uip_stats_t;
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA		0
+#endif
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
