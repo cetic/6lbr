@@ -962,6 +962,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
     reset_buf();
   }
 
+#if CONF_6LOWPAN_ND
   add("</pre><h2>DAD table</h2><pre>");
   for(i = 0; i < UIP_DS6_DUPADDR_NB; i++) {
     if(uip_ds6_dup_addr_list[i].isused) {
@@ -973,6 +974,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       reset_buf();
     }
   }
+#endif
 
   add("</pre><h2>Routes</h2><pre>");
   SEND_STRING(&s->sout, buf);
