@@ -1185,7 +1185,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 #else /* UIP_CONF_6L_ROUTER */
     if((prefix->isused) && (prefix->advertise)) {
 #endif /* UIP_CONF_6L_ROUTER */
-      printf("Add prefix\n");
       UIP_ND6_OPT_PREFIX_BUF->type = UIP_ND6_OPT_PREFIX_INFO;
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
@@ -1196,8 +1195,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
       nd6_opt_offset += UIP_ND6_OPT_PREFIX_INFO_LEN;
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
-    } else {
-      printf("skipping prefix: %d %d\n", prefix->isused, prefix->advertise);
     }
   }
 
