@@ -724,9 +724,15 @@ uip_ds6_br_periodic(void)
       locbr++) {
     if(locbr->state == BR_ST_USED && stimer_expired(&locbr->timeout)) {
       /* remove all thing associate to border router */
+      PRINTF("Removing BR ");
+      PRINT6ADDR(&locbr->ipaddr);
+      PRINTF("\n");
       uip_ds6_br_rm(locbr);
     } else if(stimer_expired(&locbr->rs_timer) &&
               (locbr->state == BR_ST_MUST_SEND_RS || locbr->state == BR_ST_SENDING_RS)) {
+      PRINTF("RS needed to BR ");
+      PRINT6ADDR(&locbr->ipaddr);
+      PRINTF("\n");
       /* Send RS if needed well before all timer expired */
       uip_ds6_defrt_t *d;
       d = list_head(defaultrouterlist);
@@ -739,9 +745,15 @@ uip_ds6_br_periodic(void)
           }
           if(d->state == DEFRT_ST_SENDING_RS) {
             if(locbr->rscount > UIP_ND6_MAX_RTR_SOLICITATIONS) {
+              PRINTF("Too many RS to ");
+              PRINT6ADDR(&locbr->ipaddr);
+              PRINTF("\n");
               uip_ds6_defrt_rm(d);
             } else {
               /* Must send unicast RS */
+              PRINTF("Scheduling RS to ");
+              PRINT6ADDR(&d->ipaddr);
+              PRINTF("\n");
               uip_nd6_rs_unicast_output(&d->ipaddr);
               allnotdone = 1;
             }
