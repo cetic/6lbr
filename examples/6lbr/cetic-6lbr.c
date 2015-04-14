@@ -196,22 +196,6 @@ cetic_6lbr_init(void)
 #endif
 
 #if CETIC_6LBR_ROUTER
-  //WSN network configuration
-  memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
-         sizeof(nvm_data.wsn_net_prefix));
-  wsn_net_prefix_len = nvm_data.wsn_net_prefix_len;
-  if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)    //Address auto configuration
-  {
-    uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
-    uip_ds6_set_addr_iid(&wsn_ip_addr, &uip_lladdr);
-    uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_AUTOCONF);
-  } else {
-    memcpy(wsn_ip_addr.u8, &nvm_data.wsn_ip_addr,
-           sizeof(nvm_data.wsn_ip_addr));
-    uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
-  }
-  LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address (WSN) ");
-
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
          sizeof(nvm_data.eth_net_prefix));
@@ -241,6 +225,22 @@ cetic_6lbr_init(void)
     uip_ds6_addr_add(&eth_ip_addr, 0, ADDR_MANUAL);
   }
   LOG6LBR_6ADDR(INFO, &eth_ip_addr, "Tentative global IPv6 address (ETH) ");
+
+  //WSN network configuration
+  memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
+         sizeof(nvm_data.wsn_net_prefix));
+  wsn_net_prefix_len = nvm_data.wsn_net_prefix_len;
+  if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)    //Address auto configuration
+  {
+    uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
+    uip_ds6_set_addr_iid(&wsn_ip_addr, &uip_lladdr);
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_AUTOCONF);
+  } else {
+    memcpy(wsn_ip_addr.u8, &nvm_data.wsn_ip_addr,
+           sizeof(nvm_data.wsn_ip_addr));
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
+  }
+  LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address (WSN) ");
 
   //Ugly hack : in order to set WSN local address as the default address
   //We must add it afterwards as uip_ds6_addr_add allocates addr from the end of the list
