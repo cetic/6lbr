@@ -956,9 +956,22 @@ PT_THREAD(generate_network(struct httpd_state *s))
     lladdr_add(uip_ds6_nbr_get_ll(nbr));
     add(" ");
     add_network_cases(nbr->state);
+    add(" r: %us, ns: %us", stimer_remaining(&nbr->reachable), stimer_remaining(&nbr->sendns));
     add("\n");
     SEND_STRING(&s->sout, buf);
     reset_buf();
+  }
+
+  add("</pre><h2>DAD table</h2><pre>");
+  for(i = 0; i < UIP_DS6_DUPADDR_NB; i++) {
+    if(uip_ds6_dup_addr_list[i].isused) {
+      ipaddr_add(&uip_ds6_dup_addr_list[i].ipaddr);
+      add(" ");
+      lladdr_add(&uip_ds6_dup_addr_list[i].eui64);
+      add(" %us\n", stimer_remaining(&uip_ds6_dup_addr_list[i].lifetime));
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
   }
 
   add("</pre><h2>Routes</h2><pre>");
@@ -1779,6 +1792,23 @@ add_network_cases(const uint8_t state)
     break;
   case NBR_PROBE:
     add("NBR_PROBE");
+    break;
+#if CONF_6LOWPAN_ND
+  case NBR_GARBAGE_COLLECTIBLE:
+    add("NBR_GARBAGE_COLLECTIBLE");
+    break;
+  case NBR_REGISTERED:
+    add("NBR_REGISTERED");
+    break;
+  case NBR_TENTATIVE:
+    add("NBR_TENTATIVE");
+    break;
+  case NBR_TENTATIVE_DAD:
+    add("NBR_TENTATIVE_DAD");
+    break;
+#endif /* CONF_6LOWPAN_ND */
+  default:
+    add("UNKOWN");
     break;
   }
 }
