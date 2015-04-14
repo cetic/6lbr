@@ -166,13 +166,19 @@ uip_ds6_init(void)
 #endif /* UIP_ND6_SEND_RA */
 #if UIP_CONF_6LR
   etimer_set(&uip_ds6_timer_rs,
-             random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
+             random_rand() % (UIP_ND6_RTR_SOLICITATION_INTERVAL *
                               CLOCK_SECOND));
 #endif /* UIP_CONF_6LR */
 #else /* UIP_CONF_ROUTER */
+#if CONF_6LOWPAN_ND
+  etimer_set(&uip_ds6_timer_rs,
+             random_rand() % (UIP_ND6_RTR_SOLICITATION_INTERVAL *
+                              CLOCK_SECOND));
+#else
   etimer_set(&uip_ds6_timer_rs,
              random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
                               CLOCK_SECOND));
+#endif /* CONF_6LOWPAN_ND */
 #endif /* UIP_CONF_ROUTER */
   etimer_set(&uip_ds6_timer_periodic, UIP_DS6_PERIOD);
 #if CONF_6LOWPAN_ND_OPTI_START && UIP_CONF_6L_ROUTER
