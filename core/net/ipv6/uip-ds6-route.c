@@ -677,6 +677,7 @@ uip_ds6_br_add(uint32_t version, uint16_t lifetime, uip_ipaddr_t *ipaddr)
 #endif /* UIP_CONF_6L_ROUTER */
 #if !UIP_CONF_6LBR
       stimer_set(&(locbr->timeout), (lifetime == 0 ? 10000 : lifetime) * 60);
+      stimer_set(&locbr->rs_timer, 0);
 #endif /* !UIP_CONF_6LBR */
       uip_ipaddr_copy(&locbr->ipaddr, ipaddr);
       return locbr;
