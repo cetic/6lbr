@@ -487,7 +487,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
-  add("<br><i>This page sent %u times</i>", ++numtimes);
+  add("<br /><i>This page sent %u times</i>", ++numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
@@ -537,14 +537,14 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       if ( node_config_loaded ) {
         add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
-        add(")</a></td>");
+        add(")</td>");
       } else {
         ipaddr_add(&node_info_table[i].ipaddr);
-        add("</a></td>");
+        add("</td>");
       }
 #else
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("</a></td>");
+      add("</td>");
 #endif
 
       if(0) {
@@ -597,12 +597,12 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       }
       SEND_STRING(&s->sout, buf);
       reset_buf();
-      add("<td><a href=http://[");
+      add("<td><a href=\"http://[");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("]/>web</a></td>");
-      add("<td><a href=coap://[");
+      add("]\">web</a></td>");
+      add("<td><a href=\"coap://[");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("]:5683/>coap</a></td>");
+      add("]:5683\">coap</a></td>");
       if(node_info_table[i].messages_count > 0) {
         add("<td>%d</td><td>", node_info_table[i].sequence);
 #if CETIC_NODE_CONFIG
@@ -633,7 +633,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 
   add
     ("<center>"
-     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
+     "<img src=\"http://chart.googleapis.com/chart?cht=gv&amp;chls=1&amp;chl=digraph{");
 #if CETIC_NODE_CONFIG
   node_config_t *  my_config = node_config_find(&uip_lladdr);
   if (my_config) {
@@ -687,7 +687,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
       }
     }
   }
-  add("}\"alt=\"\" /></center>");
+  add("}\" alt=\"\" /></center>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -695,7 +695,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
-  add("<br><i>This page sent %u times</i>", ++numtimes);
+  add("<br /><i>This page sent %u times</i>", ++numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
@@ -820,7 +820,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
-  add("<br><i>This page sent %u times</i>", ++numtimes);
+  add("<br /><i>This page sent %u times</i>", ++numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
@@ -1030,7 +1030,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
-  add("<br><i>This page sent %u times</i>", ++numtimes);
+  add("<br /><i>This page sent %u times</i>", ++numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
@@ -1210,7 +1210,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
-  add("<br><i>This page sent %u times</i>", ++numtimes);
+  add("<br /><i>This page sent %u times</i>", ++numtimes);
 #endif
 
 #if WEBSERVER_CONF_LOADTIME
