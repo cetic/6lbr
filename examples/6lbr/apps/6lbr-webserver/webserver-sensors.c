@@ -78,7 +78,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<br /><h2>Sensors list</h2>");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Parent</td><td>Up PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Parent</td><td>Up PRR</td><td>Down PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -172,6 +172,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 #endif
         add("</td>");
         add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
+        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
       } else {
         add("<td></td><td></td>");
       }

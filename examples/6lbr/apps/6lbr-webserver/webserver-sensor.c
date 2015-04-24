@@ -90,11 +90,17 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("Hop count: %d<br />", node_info->hop_count);
       add("Last sequence number: %d<br />", node_info->last_sequence);
       add("Messages sent: %d<br />", node_info->messages_sent);
-      add("Messages lost: %d<br />", node_info->up_messages_lost);
+      add("Messages lost (Up): %d<br />", node_info->up_messages_lost);
+      add("Messages lost (Down): %d<br />", node_info->down_messages_lost);
       if(node_info->messages_sent > 0) {
         add("Upstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
       } else {
         add("Upstream PRR: n/a<br />");
+      }
+      if(node_info->messages_sent > 0) {
+        add("Downstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->down_messages_lost)/node_info->messages_sent);
+      } else {
+        add("Downstream PRR: n/a<br />");
       }
       add("Parent switch: %d<br />", node_info->parent_switch);
       add("Last seen : %d<br />",
