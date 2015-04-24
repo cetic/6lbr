@@ -203,6 +203,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
   INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
   INPUT_IP4ADDR("ip64_addr", eth_ip64_addr, "Address");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
   INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
   SEND_STRING(&s->sout, buf);
