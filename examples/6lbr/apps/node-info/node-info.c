@@ -137,6 +137,10 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (*info == ' ') {
         info++;
       }
+      sep = index(info, '|');
+      if (sep != NULL) {
+        *sep = 0;
+      }
       if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
         uip_create_unspecified(&ip_parent);
       }
@@ -146,13 +150,8 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
           node->parent_switch++;
         }
       }
-      sep = index(info, '|');
-      if (sep != NULL && sep - info > 0) {
-        *sep = 0;
+      if (sep != NULL) {
         info = sep + 1;
-        if (*info == ' ') {
-          info++;
-        }
         uint16_t sequence = atoi(info);
         if (node->messages_received > 1) {
           uint16_t delta = sequence - node->last_sequence;

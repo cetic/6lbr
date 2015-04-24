@@ -204,7 +204,7 @@ timeout_handler(void)
           p = p + sprintf(p, "(null)");
         }
 #endif
-        p = p + sprintf(p, " | %d", server_seq_id);
+        p = p + sprintf(p, "|%d", server_seq_id);
         PRINTF(" (msg: %s)\n", buf);
         uip_udp_packet_send(client_conn, buf, strlen(buf));
       }
