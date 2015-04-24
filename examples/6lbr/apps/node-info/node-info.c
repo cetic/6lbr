@@ -140,7 +140,6 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
         info = sep + 1;
         down_sequence = atoi(info);
       }
-      printf("up: %d, last: %d, down: %d, last: %d\n", up_sequence, node->last_up_sequence, down_sequence, node->last_down_sequence);
       if (node->messages_received > 1) {
         uint16_t up_delta = up_sequence - node->last_up_sequence;
         if (up_delta < 100) {
