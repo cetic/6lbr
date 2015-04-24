@@ -182,8 +182,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-#if CETIC_6LBR_ROUTER
   add("<br /><h2>Eth Network</h2>");
+#if CETIC_6LBR_ROUTER
   add("<h3>IP configuration</h3>");
   INPUT_IPADDR("eth_pre", eth_net_prefix, "Prefix");
   INPUT_INT("eth_pre_len", eth_net_prefix_len, "Prefix length");
@@ -197,6 +197,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("eth_dft", eth_dft_router, "Peer router");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 #if CETIC_6LBR_IP64
   add("<br /><h3>IP64</h3>");
   INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
@@ -207,6 +208,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+#if CETIC_6LBR_ROUTER
   add("<br /><h2>RA Daemon</h2>");
   INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
