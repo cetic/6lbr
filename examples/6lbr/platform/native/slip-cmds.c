@@ -66,7 +66,7 @@ border_router_cmd_handler(const uint8_t * data, int len)
   if(data[0] == '!') {
     LOG6LBR_TRACE("Got configuration message of type %c\n", data[1]);
     if(0) {
-    } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
+    } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO && len == 10) {
       LOG6LBR_DEBUG("Setting MAC address\n");
       slip_got_mac(&data[2]);
       return 1;
