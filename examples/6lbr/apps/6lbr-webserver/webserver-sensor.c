@@ -88,8 +88,10 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
 
       add("<br /><h2>Statistics</h2>");
       add("Hop count: %d<br />", node_info->hop_count);
-      add("Last sequence number: %d<br />", node_info->last_sequence);
-      add("Messages sent: %d<br />", node_info->messages_sent);
+      add("Last sequence number (Up): %d<br />", node_info->last_up_sequence);
+      add("Last sequence number (Down): %d<br />", node_info->last_down_sequence);
+      add("Messages sent (Up): %d<br />", node_info->messages_sent);
+      add("Messages sent (down): %d<br />", node_info->messages_sent);
       add("Messages lost (Up): %d<br />", node_info->up_messages_lost);
       add("Messages lost (Down): %d<br />", node_info->down_messages_lost);
       if(node_info->messages_sent > 0) {
@@ -97,8 +99,8 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       } else {
         add("Upstream PRR: n/a<br />");
       }
-      if(node_info->messages_sent > 0) {
-        add("Downstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->down_messages_lost)/node_info->messages_sent);
+      if(node_info->replies_sent > 0) {
+        add("Downstream PRR: %.1f%%<br />", 100.0 * (node_info->replies_sent - node_info->down_messages_lost)/node_info->replies_sent);
       } else {
         add("Downstream PRR: n/a<br />");
       }

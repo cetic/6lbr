@@ -276,9 +276,9 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
   SEND_STRING(&s->sout, graph_top);
   add("['Sensor', 'IP', 'PRR Up', 'PRR Down'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
+    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0 && node_info_table[i].replies_sent > 0) {
       float prr_up = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
-      float prr_down = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent;
+      float prr_down = 100.0 * (node_info_table[i].replies_sent - node_info_table[i].down_messages_lost)/node_info_table[i].replies_sent;
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
