@@ -38,6 +38,7 @@
 #endif
 
 #include <string.h>
+#include <stdlib.h>
 
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
@@ -67,6 +68,9 @@ int udp_client_lqi = 0;
 int udp_client_rssi = 0;
 #endif
 
+static int seq_id;
+static int server_seq_id;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
 /*---------------------------------------------------------------------------*/
@@ -79,6 +83,7 @@ tcpip_handler(void)
     str = uip_appdata;
     str[uip_datalen()] = '\0';
     printf("Response from the server: '%s'\n", str);
+    server_seq_id = atoi(str);
 #if PLATFORM_HAS_RADIO && UDP_CLIENT_STORE_RADIO_INFO
     udp_client_lqi = radio_sensor.value(RADIO_SENSOR_LAST_PACKET);
     udp_client_rssi = radio_sensor.value(RADIO_SENSOR_LAST_VALUE);
@@ -115,13 +120,11 @@ add_ipaddr(char * buf, const uip_ipaddr_t *addr)
 static void
 timeout_handler(void)
 {
-  static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
-  int i;
+  char *p;
   uip_ip6addr_t *globaladdr = NULL;
   uint16_t dest_port = use_user_dest_addr ? user_dest_port : CETIC_6LBR_NODE_INFO_PORT;
   int has_dest=0;
-  uip_ipaddr_t * defrt;
 
   if ( use_user_dest_addr ) {
     uip_ipaddr_copy(&dest_addr, &user_dest_addr);
@@ -138,7 +141,7 @@ timeout_handler(void)
         has_dest = 1;
       }
 #else
-      defrt = uip_ds6_defrt_choose();
+      uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
       if ( defrt != NULL ) {
         //uip_ipaddr_copy(&dest_addr, defrt);
         uip_ipaddr_copy(&dest_addr, globaladdr);
@@ -185,21 +188,23 @@ timeout_handler(void)
       if ( udp_client_run ) {
         PRINTF("Client sending to: ");
         PRINT6ADDR(&client_conn->ripaddr);
-        i = sprintf(buf, "%d | ", ++seq_id);
+        p = buf;
+        p = p + sprintf(p, "%d | ", ++seq_id);
 #if UIP_CONF_IPV6_RPL
         rpl_dag_t *dag = rpl_get_any_dag();
         if(dag && dag->instance->def_route) {
-          add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+          p = add_ipaddr(p, &dag->instance->def_route->ipaddr);
         } else {
-          sprintf(buf + i, "(null)");
+          p = p + sprintf(p, "(null)");
         }
 #else
         if (defrt != NULL) {
-          add_ipaddr(buf + i, defrt);
+          p = add_ipaddr(p, defrt);
         } else {
-          sprintf(buf + i, "(null)");
+          p = p + sprintf(p, "(null)");
         }
 #endif
+        p = p + sprintf(p, " | %d", server_seq_id);
         PRINTF(" (msg: %s)\n", buf);
         uip_udp_packet_send(client_conn, buf, strlen(buf));
       }
