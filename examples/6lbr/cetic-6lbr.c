@@ -344,7 +344,7 @@ cetic_6lbr_init_finalize(void)
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
-    memcpy(ip64_eth_addr.addr, eth_mac_addr, sizeof(eth_mac_addr));
+    ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
     ip64_init();
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0) {
       memcpy(&eth_ip64_addr, nvm_data.eth_ip64_addr, sizeof(nvm_data.eth_ip64_addr));
