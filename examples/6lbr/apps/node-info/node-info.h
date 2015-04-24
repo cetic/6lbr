@@ -55,6 +55,7 @@ typedef struct node_info {
 
   //Stats
   uint32_t up_messages_lost;
+  uint32_t down_messages_lost;
   uint16_t parent_switch;
 } node_info_t;
 

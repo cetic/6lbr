@@ -125,10 +125,12 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
           //Reset statistics
           node->messages_sent = 1;
           node->up_messages_lost = 0;
+          node->down_messages_lost = 0;
         }
       } else {
         node->messages_sent = 1;
         node->up_messages_lost = 0;
+        node->down_messages_lost = 0;
       }
       node->last_sequence = sequence;
       info = sep + 1;
@@ -142,6 +144,21 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
         uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
         if (node->messages_received > 1) {
           node->parent_switch++;
+        }
+      }
+      sep = index(info, '|');
+      if (sep != NULL && sep - info > 0) {
+        *sep = 0;
+        info = sep + 1;
+        if (*info == ' ') {
+          info++;
+        }
+        uint16_t sequence = atoi(info);
+        if (node->messages_received > 1) {
+          uint16_t delta = sequence - node->last_sequence;
+          if (delta < 100) {
+            node->down_messages_lost += delta - 1;
+          }
         }
       }
     } else {
@@ -203,6 +220,7 @@ node_info_reset_statistics(node_info_t * node_info)
   node_info->messages_received = 0;
   node_info->messages_sent = 0;
   node_info->up_messages_lost = 0;
+  node_info->down_messages_lost = 0;
   node_info->parent_switch = 0;
 }
 
