@@ -158,6 +158,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("Local address : ");
   ipaddr_add(&eth_ip_local_addr);
   add("<br />");
+#endif
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("IP64 Address : ");
@@ -168,7 +169,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
       add("Waiting configuration<br />");
     }
   }
-#endif
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
