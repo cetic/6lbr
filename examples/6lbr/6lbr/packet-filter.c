@@ -51,6 +51,9 @@
 #include "nvm-config.h"
 #include "platform-init.h"
 #include "log-6lbr.h"
+#if CONTIKI_TARGET_NATIVE
+#include "slip-config.h"
+#endif
 
 #include "eth-drv.h"
 
@@ -247,6 +250,20 @@ eth_input(void)
   //Keep only IPv6 traffic
   if(BUF->type != UIP_HTONS(UIP_ETHTYPE_IPV6)) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: Dropping packet type=0x%04x\n", uip_ntohs(BUF->type));
+    uip_len = 0;
+    return;
+  }
+  if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40 < uip_len) {
+#if CONTIKI_TARGET_NATIVE
+    if(ethernet_has_fcs) {
+      uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40;
+    } else
+#endif
+    {
+      LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: packet size different than reported in IPv6 header, %d vs %d\n", uip_len, (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40);
+    }
+  } else if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40 > uip_len) {
+    LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: packet shorter than reported in IPv6 header, %d vs %d\n", uip_len, (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40);
     uip_len = 0;
     return;
   }
