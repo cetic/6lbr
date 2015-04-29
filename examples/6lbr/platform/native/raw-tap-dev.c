@@ -407,12 +407,7 @@ handle_fd(fd_set * rset, fd_set * wset)
 
     if(FD_ISSET(tunfd, rset)) {
       size = tun_input(tmp_tap_buf, sizeof(tmp_tap_buf));
-      if(ethernet_has_fcs) {
-        //Remove extra data from packet capture
-        uip_len = size - ETHERNET_LLH_LEN - 4;
-      } else {
-        uip_len = size - ETHERNET_LLH_LEN;
-      }
+      uip_len = size - ETHERNET_LLH_LEN;
       memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
       memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
       eth_drv_input();
