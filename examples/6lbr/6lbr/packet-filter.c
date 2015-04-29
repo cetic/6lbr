@@ -103,6 +103,13 @@ wireless_input(void)
   int processFrame = 0;
   int forwardFrame = 0;
 
+#if CETIC_6LBR_IP64
+  if(uip_is_addr_ip64(&UIP_IP_BUF->srcipaddr)) {
+    send_to_uip();
+    return;
+  }
+#endif
+
   LOG6LBR_PRINTF(PACKET, PF_IN, "wireless_input\n");
 
   packet_filter_eth_packet = 0;
