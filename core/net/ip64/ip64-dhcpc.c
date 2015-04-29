@@ -46,6 +46,7 @@
 #define STATE_CONFIG_RECEIVED 3
 
 static struct ip64_dhcpc_state s;
+struct ip64_dhcpc_state *ip64_dhcp_state = &s;
 
 struct dhcp_msg {
   uint8_t op, htype, hlen, hops;

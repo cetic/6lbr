@@ -49,12 +49,15 @@ typedef struct node_info {
   //6lbr-demo udp info
   uint32_t messages_received;
   uint32_t messages_sent;
+  uint32_t replies_sent;
   clock_time_t last_message;
-  uint16_t  last_sequence;
+  uint16_t  last_up_sequence;
+  uint16_t  last_down_sequence;
   uip_ipaddr_t ip_parent;
 
   //Stats
   uint32_t up_messages_lost;
+  uint32_t down_messages_lost;
   uint16_t parent_switch;
 } node_info_t;
 

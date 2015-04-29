@@ -88,17 +88,27 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
 
       add("<br /><h2>Statistics</h2>");
       add("Hop count: %d<br />", node_info->hop_count);
-      add("Last sequence number: %d<br />", node_info->last_sequence);
-      add("Messages sent: %d<br />", node_info->messages_sent);
-      add("Messages lost: %d<br />", node_info->up_messages_lost);
-      if(node_info->messages_sent > 0) {
-        add("Upstream PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
-      } else {
-        add("Upstream PRR: n/a<br />");
-      }
       add("Parent switch: %d<br />", node_info->parent_switch);
       add("Last seen : %d<br />",
         (clock_time() - node_info->last_seen) / CLOCK_SECOND);
+      add("<br /><h3>Upstream</h3>");
+      add("Last sequence number: %d<br />", node_info->last_up_sequence);
+      add("Messages sent: %d<br />", node_info->messages_sent);
+      add("Messages lost: %d<br />", node_info->up_messages_lost);
+      if(node_info->messages_sent > 0) {
+        add("PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
+      } else {
+        add("PRR: n/a<br />");
+      }
+      add("<br /><h3>Downstream</h3>");
+      add("Last sequence number: %d<br />", node_info->last_down_sequence);
+      add("Messages sent: %d<br />", node_info->replies_sent);
+      add("Messages lost: %d<br />", node_info->down_messages_lost);
+      if(node_info->replies_sent > 0) {
+        add("PRR: %.1f%%<br />", 100.0 * (node_info->replies_sent - node_info->down_messages_lost)/node_info->replies_sent);
+      } else {
+        add("PRR: n/a<br />");
+      }
       SEND_STRING(&s->sout, buf);
       reset_buf();
       add("<br /><h2>Actions</h2>");

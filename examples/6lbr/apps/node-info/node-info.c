@@ -111,29 +111,21 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
   if ( node != NULL ) {
     node->last_seen = clock_time();
     node->last_message = clock_time();
+    uint16_t up_sequence = 0;
+    uint16_t down_sequence = 0;
+
     sep = index(info, '|');
-    if (sep != NULL && sep - info > 0) {
+    if (sep != NULL) {
       node->messages_received++;
+      up_sequence = atoi(info);
       *sep = 0;
-      uint16_t sequence = atoi(info);
-      if (node->messages_received > 1) {
-        uint16_t delta = sequence - node->last_sequence;
-        if (delta < 100) {
-          node->messages_sent += delta;
-          node->up_messages_lost += delta - 1;
-        } else {
-          //Reset statistics
-          node->messages_sent = 1;
-          node->up_messages_lost = 0;
-        }
-      } else {
-        node->messages_sent = 1;
-        node->up_messages_lost = 0;
-      }
-      node->last_sequence = sequence;
       info = sep + 1;
       if (*info == ' ') {
         info++;
+      }
+      sep = index(info, '|');
+      if (sep != NULL) {
+        *sep = 0;
       }
       if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
         uip_create_unspecified(&ip_parent);
@@ -144,8 +136,36 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
           node->parent_switch++;
         }
       }
+      if (sep != NULL) {
+        info = sep + 1;
+        down_sequence = atoi(info);
+      }
+      if (node->messages_received > 1) {
+        uint16_t up_delta = up_sequence - node->last_up_sequence;
+        if (up_delta < 100) {
+          node->messages_sent += up_delta;
+          node->up_messages_lost += up_delta - 1;
+          if(down_sequence != node->last_down_sequence + 1) {
+            node->down_messages_lost += 1;
+          }
+        } else {
+          //Reset statistics
+          node->messages_sent = 1;
+          node->replies_sent = 0;
+          node->up_messages_lost = 0;
+          node->down_messages_lost = 0;
+        }
+      } else {
+        node->messages_sent = 1;
+        node->replies_sent = 0;
+        node->up_messages_lost = 0;
+        node->down_messages_lost = 0;
+      }
+      node->last_up_sequence = up_sequence;
+      node->last_down_sequence = down_sequence;
     } else {
-      node->last_sequence = 0;
+      node->last_up_sequence = 0;
+      node->last_down_sequence = 0;
       uip_create_unspecified(&node->ip_parent);
     }
   }
@@ -202,7 +222,9 @@ node_info_reset_statistics(node_info_t * node_info)
 {
   node_info->messages_received = 0;
   node_info->messages_sent = 0;
+  node_info->replies_sent = 0;
   node_info->up_messages_lost = 0;
+  node_info->down_messages_lost = 0;
   node_info->parent_switch = 0;
 }
 

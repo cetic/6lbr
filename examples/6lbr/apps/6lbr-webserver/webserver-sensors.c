@@ -56,9 +56,13 @@ static const char * graph_top =
     "google.setOnLoadCallback(drawChart);"
     "function drawChart(){var data=google.visualization.arrayToDataTable([";
 
-static const char * graph_bottom =
+static const char * graph_1_column =
     "var view = new google.visualization.DataView(data);"
-    "view.setColumns([0, 2]);"
+    "view.setColumns([0, 2]);";
+static const char * graph_2_column =
+    "var view = new google.visualization.DataView(data);"
+    "view.setColumns([0, 2, 3]);";
+static const char * graph_bottom =
     "var chart=new google.visualization.ColumnChart(document.getElementById('chart_div'));"
     "chart.draw(view, options);"
     "var selectHandler = function(e) {"
@@ -78,7 +82,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add("<br /><h2>Sensors list</h2>");
   add
     ("<table>"
-     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Parent</td><td>Up PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Web</td><td>Coap</td><td>Parent</td><td>Up PRR</td><td>Down PRR</td><td>Last seen</td><td>Status</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -172,8 +176,9 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 #endif
         add("</td>");
         add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
+        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
       } else {
-        add("<td></td><td></td>");
+        add("<td></td><td></td><td></td>");
       }
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
@@ -269,10 +274,11 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
 
   PSOCK_BEGIN(&s->sout);
   SEND_STRING(&s->sout, graph_top);
-  add("['Sensor', 'IP', 'PRR'],");
+  add("['Sensor', 'IP', 'PRR Up', 'PRR Down'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
-      float prr = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
+    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0 && node_info_table[i].replies_sent > 0) {
+      float prr_up = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
+      float prr_down = 100.0 * (node_info_table[i].replies_sent - node_info_table[i].down_messages_lost)/node_info_table[i].replies_sent;
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
@@ -286,7 +292,7 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
       }
       add("\"");
       ipaddr_add(&node_info_table[i].ipaddr);
-      add("\",%.1f],", prr);
+      add("\",%.1f,%.1f],", prr_up, prr_down);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
@@ -295,6 +301,7 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  SEND_STRING(&s->sout,graph_2_column);
   SEND_STRING(&s->sout,graph_bottom);
   PSOCK_END(&s->sout);
 }
@@ -308,7 +315,7 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
   SEND_STRING(&s->sout, graph_top);
   add("['Sensor', 'IP', 'Parent switch'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused) {
+    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
@@ -331,6 +338,7 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  SEND_STRING(&s->sout,graph_1_column);
   SEND_STRING(&s->sout,graph_bottom);
   PSOCK_END(&s->sout);
 }
@@ -344,7 +352,7 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
   SEND_STRING(&s->sout, graph_top);
   add("['Sensor', 'IP', 'Hop count'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused) {
+    if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
 #if CETIC_NODE_CONFIG
       if (node_config_loaded) {
         node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
@@ -367,6 +375,7 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  SEND_STRING(&s->sout,graph_1_column);
   SEND_STRING(&s->sout,graph_bottom);
   PSOCK_END(&s->sout);
 }
