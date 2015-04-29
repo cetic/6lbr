@@ -60,6 +60,12 @@
 #include "rio.h"
 #include "6lbr-hooks.h"
 
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#include "ip64-ipv4-dhcp.h"
+#include "ip64-eth.h"
+#endif
+
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #endif
@@ -105,6 +111,9 @@ uip_ipaddr_t eth_ip_addr;
 uip_ipaddr_t eth_net_prefix;
 uip_ipaddr_t eth_ip_local_addr;
 uip_ipaddr_t eth_dft_router;
+uip_ip4addr_t eth_ip64_addr;
+uip_ip4addr_t eth_ip64_netmask;
+uip_ip4addr_t eth_ip64_gateway;
 
 //Misc
 unsigned long cetic_6lbr_startup;
@@ -242,6 +251,7 @@ cetic_6lbr_init(void)
          sizeof(nvm_data.eth_net_prefix));
   memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
          sizeof(nvm_data.eth_dft_router));
+
   if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
     uip_ds6_defrt_add(&eth_dft_router, 0);
   }
@@ -329,6 +339,23 @@ cetic_6lbr_init_finalize(void)
   rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
 #endif
   LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+#endif
+
+#if CETIC_6LBR_IP64
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+    LOG6LBR_INFO("Starting IP64\n");
+    ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
+    ip64_init();
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0) {
+      memcpy(&eth_ip64_addr, nvm_data.eth_ip64_addr, sizeof(nvm_data.eth_ip64_addr));
+      memcpy(&eth_ip64_netmask, nvm_data.eth_ip64_netmask, sizeof(nvm_data.eth_ip64_netmask));
+      memcpy(&eth_ip64_gateway, nvm_data.eth_ip64_gateway, sizeof(nvm_data.eth_ip64_gateway));
+      ip64_set_ipv4_address(&eth_ip64_addr, &eth_ip64_netmask);
+      ip64_set_draddr(&eth_ip64_gateway);
+    } else {
+      ip64_ipv4_dhcp_init();
+    }
+  }
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
@@ -419,6 +446,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   packet_filter_init();
+
   cetic_6lbr_init();
 
   //Wait result of DAD on 6LBR addresses

@@ -69,6 +69,11 @@ typedef struct {
   uint16_t rpl_max_rankinc;
   uint8_t dodag_id[16];
 
+  //IP64
+  uint8_t eth_ip64_flags;
+  uint8_t eth_ip64_addr[4];
+  uint8_t eth_ip64_netmask[4];
+  uint8_t eth_ip64_gateway[4];
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -92,6 +97,7 @@ typedef struct {
 
 //Global Mode flags
 #define CETIC_GLOBAL_DISABLE_CONFIG     0x0001
+#define CETIC_GLOBAL_IP64               0x0002
 
 //RA Mode flags
 
@@ -100,6 +106,9 @@ typedef struct {
 
 //RA RIO mode flags
 #define CETIC_6LBR_MODE_SEND_RIO		0x0100
+
+//IP64 Flags
+#define CETIC_6LBR_IP64_DHCP                    0x01
 
 //Security
 #define CETIC_6LBR_SECURITY_LAYER_NONE  0
@@ -132,6 +141,12 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_create_unspecified(a)
 #define CETIC_6LBR_NVM_DEFAULT_CHANNEL				26
 #define CETIC_6LBR_NVM_DEFAULT_PANID                            0xABCD
+
+//IP64 Configuration
+#define CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS               0
+#define CETIC_6LBR_NVM_DEFAULT_IP64_ADDRESS(a)          uip_ipaddr(a, 172, 16, 0, 2)
+#define CETIC_6LBR_NVM_DEFAULT_IP64_NETMASK(a)          uip_ipaddr(a, 255, 255, 255, 0)
+#define CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(a)          uip_ipaddr(a, 172, 16, 0, 1)
 
 //Version 1 configuration data
 #define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			0

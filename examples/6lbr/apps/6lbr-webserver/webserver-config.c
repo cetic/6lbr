@@ -84,6 +84,17 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add("<br />"); \
   }
 
+#define INPUT_IP4ADDR(name, nvm_name, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" value=\""); \
+      ip4addr_add_u8(nvm_data.nvm_name); \
+    add("\" /><br />"); \
+  } else { \
+    add(text " : "); \
+    ip4addr_add_u8(nvm_data.nvm_name); \
+    add("<br />"); \
+  }
+
 #define INPUT_INT(name, nvm_name, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
     add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
@@ -171,8 +182,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-#if CETIC_6LBR_ROUTER
   add("<br /><h2>Eth Network</h2>");
+#if CETIC_6LBR_ROUTER
   add("<h3>IP configuration</h3>");
   INPUT_IPADDR("eth_pre", eth_net_prefix, "Prefix");
   INPUT_INT("eth_pre_len", eth_net_prefix_len, "Prefix length");
@@ -186,6 +197,20 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("eth_dft", eth_dft_router, "Peer router");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
+#if CETIC_6LBR_IP64
+  add("<br /><h3>IP64</h3>");
+  INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
+  INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
+  INPUT_IP4ADDR("ip64_addr", eth_ip64_addr, "Address");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
+  INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+#if CETIC_6LBR_ROUTER
   add("<br /><h2>RA Daemon</h2>");
   INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
@@ -261,7 +286,7 @@ else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name |= (flag); \
     *reboot_needed |= (reboot); \
   } else { \
-        LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
+        LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
     do_update = 0; \
   } \
 }
@@ -284,7 +309,19 @@ else if(strcmp(param, name) == 0) { \
              sizeof(nvm_data.nvm_name)); \
       *reboot_needed |= (reboot); \
     } else { \
-      LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
+      do_update = 0; \
+    } \
+  }
+
+#define UPDATE_IP4ADDR(name, nvm_name, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    if(uiplib_ip4addrconv(value, &loc_fip4addr)) { \
+      memcpy(&nvm_data.nvm_name, &loc_fip4addr.u8, \
+             sizeof(nvm_data.nvm_name)); \
+      *reboot_needed |= (reboot); \
+    } else { \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
       do_update = 0; \
     } \
   }
@@ -297,7 +334,7 @@ else if(strcmp(param, name) == 0) { \
              sizeof(nvm_data.nvm_name)); \
       *reboot_needed |= (reboot); \
     } else { \
-      LOG6LBR_WARN("Invalid value for %s : '%s'\n", name, param); \
+      LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
       do_update = 0; \
     } \
   }
@@ -309,6 +346,7 @@ update_config(const char *name, uint8_t *reboot_needed)
   char *next;
   uint8_t do_update = 1;
   uip_ipaddr_t loc_fipaddr;
+  uip_ip4addr_t loc_fip4addr;
 
   *reboot_needed = 0;
 
@@ -351,6 +389,13 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
     UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
+#if CETIC_6LBR_IP64
+    UPDATE_FLAG("ip64", global_flags, CETIC_GLOBAL_IP64, 1)
+    UPDATE_FLAG("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, 1)
+    UPDATE_IP4ADDR("ip64_addr", eth_ip64_addr, 1)
+    UPDATE_IP4ADDR("ip64_netmask", eth_ip64_netmask, 1)
+    UPDATE_IP4ADDR("ip64_gateway", eth_ip64_gateway, 1)
+#endif
 
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)

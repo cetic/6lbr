@@ -73,6 +73,10 @@ struct ifreq if_idx;
 #include <ifaddrs.h>
 #endif
 
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#endif
+
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "eth-drv.h"
@@ -412,13 +416,21 @@ handle_fd(fd_set * rset, fd_set * wset)
       size = tun_input(tmp_tap_buf, sizeof(tmp_tap_buf));
       if(ethernet_has_fcs) {
         //Remove extra data from packet capture
-        uip_len = size - ETHERNET_LLH_LEN - 4;
-      } else {
-        uip_len = size - ETHERNET_LLH_LEN;
+        size = size - 4;
       }
-      memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
-      memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
-      eth_drv_input();
+#if CETIC_6LBR_IP64
+      if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
+          (((struct uip_eth_hdr *)tmp_tap_buf)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
+        IP64_INPUT(tmp_tap_buf, size);
+      } else {
+#endif
+        uip_len = size - ETHERNET_LLH_LEN;
+        memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
+        memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
+        eth_drv_input();
+#if CETIC_6LBR_IP64
+      }
+#endif
 
       if(slip_config_basedelay) {
         struct timeval tv;

@@ -57,7 +57,7 @@
 #define UIP_CONF_MAX_ROUTES   25
 
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE     512
+#define UIP_CONF_BUFFER_SIZE     550
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          8
@@ -85,6 +85,9 @@
 #define CETIC_CSMA_STATS      0
 
 #define CETIC_6LBR_LLSEC_WRAPPER        0
+
+#undef CETIC_6LBR_IP64
+#define CETIC_6LBR_IP64      0
 
 /* Do not change lines below */
 

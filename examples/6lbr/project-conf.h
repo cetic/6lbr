@@ -88,8 +88,6 @@
 // RPL DODAG is by default grounded
 #define RPL_CONF_GROUNDED 1
 
-#undef UIP_FALLBACK_INTERFACE
-
 #if CETIC_6LBR_SMARTBRIDGE
 /*------------------------------------------------------------------*/
 /* SMART BRIDGE MODE                                                */
@@ -110,6 +108,8 @@
 #define CETIC_6LBR_ETH_FILTER_RPL	1
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
+
+#define CETIC_6LBR_IP64      1
 
 /*------------------------------------------------------------------*/
 #endif
@@ -140,6 +140,8 @@
 #else
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
+
+#define CETIC_6LBR_IP64      0
 
 /*------------------------------------------------------------------*/
 #endif
@@ -179,6 +181,8 @@
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
+#define CETIC_6LBR_IP64      1
+
 /*------------------------------------------------------------------*/
 #endif
 
@@ -208,6 +212,8 @@
 #define CETIC_6LBR_ETH_FILTER_RPL	0
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
+
+#define CETIC_6LBR_IP64      0
 
 #endif
 

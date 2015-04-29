@@ -97,25 +97,9 @@ int webserver_result_refresh;
 
 /*---------------------------------------------------------------------------*/
 void
-ipaddr_add(const uip_ipaddr_t * addr)
+ip4addr_add_u8(const uint8_t * u8)
 {
-  uint16_t a;
-  int i, f;
-
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0)
-        add("::");
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        add(":");
-      }
-      add("%x", a);
-    }
-  }
+  add("%d.%d.%d.%d", u8[0], u8[1], u8[2], u8[3]);
 }
 /*---------------------------------------------------------------------------*/
 void

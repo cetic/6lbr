@@ -51,6 +51,10 @@
 #if CETIC_6LBR
 #include "cetic-6lbr.h"
 #endif
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#endif
+
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -630,6 +634,18 @@ tcpip_ipv6_output(void)
           uip_len = 0;
           return;
         } else
+#endif
+#if CETIC_6LBR_IP64
+        if(uip_is_addr_ip64(&UIP_IP_BUF->destipaddr)) {
+#if UIP_CONF_IPV6_RPL
+          rpl_remove_header();
+#endif
+          IP64_CONF_UIP_FALLBACK_INTERFACE.output();
+          uip_len = 0;
+          uip_ext_len = 0;
+          return;
+        }
+        else
 #endif
         {
           PRINTF("tcpip_ipv6_output: no route found, using default route\n");

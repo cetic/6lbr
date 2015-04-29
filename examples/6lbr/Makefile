@@ -38,6 +38,7 @@ CFLAGS +=-DCETIC_6LBR_ONE_ITF=$(CETIC_6LBR_ONE_ITF)
 CFLAGS +=-DCETIC_6LBR_LEARN_RPL_MAC=$(CETIC_6LBR_LEARN_RPL_MAC)
 
 CONTIKI_WITH_RPL ?= 1
+WITH_IP64?=1
 
 ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
 CONTIKI_WITH_RPL = 0
@@ -84,6 +85,9 @@ endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c
 MODULES += core/net/llsec/noncoresec
+ifeq ($(WITH_IP64),1)
+MODULES += core/net/ip64 core/net/ip64-addr
+endif
 
 tools:
 	cd tools && $(MAKE)

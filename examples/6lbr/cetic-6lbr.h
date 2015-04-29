@@ -75,6 +75,10 @@ extern uip_ipaddr_t eth_net_prefix;
 
 extern uip_ipaddr_t eth_dft_router;
 
+extern uip_ip4addr_t eth_ip64_addr;
+extern uip_ip4addr_t eth_ip64_netmask;
+extern uip_ip4addr_t eth_ip64_gateway;
+
 // Misc
 extern unsigned long cetic_6lbr_startup;
 
