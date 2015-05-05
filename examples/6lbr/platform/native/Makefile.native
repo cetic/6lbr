@@ -81,23 +81,23 @@ PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
 IPK=6lbr-$(VERSION)-$(PKG_VERSION)-ipk
+DESTDIR=
 
 install:
-	install -d /etc/6lbr
-	cp -r package/etc/6lbr /etc
-	install -d /etc/init.d
-	install package/etc/init.d/* /etc/init.d
-	install -d /usr/bin
-	install package/usr/bin/* /usr/bin
-	install -d /usr/lib/6lbr
-	cp -r package/usr/lib/6lbr /usr/lib
-	install -d /usr/lib/6lbr/bin
-	install bin/* /usr/lib/6lbr/bin
+	install -d $(DESTDIR)/etc/6lbr
+	cp -r package/etc/6lbr $(DESTDIR)/etc
+	install -d $(DESTDIR)/etc/init.d
+	install package/etc/init.d/* $(DESTDIR)/etc/init.d
+	install -d $(DESTDIR)/usr/bin
+	install package/usr/bin/* $(DESTDIR)/usr/bin
+	install -d $(DESTDIR)/usr/lib/6lbr
+	cp -r package/usr/lib/6lbr $(DESTDIR)/usr/lib
+	install -d $(DESTDIR)/usr/lib/6lbr/bin
+	install bin/* $(DESTDIR)/usr/lib/6lbr/bin
 ifneq ($(PLUGINS_FILES),)
-	install $(PLUGINS_FILES) /usr/lib/6lbr/plugins
+	install $(PLUGINS_FILES) $(DESTDIR)/usr/lib/6lbr/plugins
 endif
-	install tools/nvm_tool /usr/lib/6lbr/bin
-	update-rc.d 6lbr defaults
+	install tools/nvm_tool $(DESTDIR)/usr/lib/6lbr/bin
 
 ipk:
 	rm -rf $(IPK)
