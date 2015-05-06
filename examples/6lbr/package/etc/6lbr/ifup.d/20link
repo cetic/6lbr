@@ -32,9 +32,11 @@ case $OS in
 			ifconfig $DEV link $DEV_TAP_MAC
 		fi
 		
-		#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
-		ip6 -d $DEV
-		ip6 -u $DEV
+		if [ -x /usr/sbin/ip6 ]; then
+			#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
+			ip6 -d $DEV
+			ip6 -u $DEV
+		fi
 		
 		ifconfig $DEV inet6 up
 		;;
