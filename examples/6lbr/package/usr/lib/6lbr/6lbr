@@ -176,9 +176,11 @@ fi
 
 while ((1)); do
 	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" ]; then
+		$SCAN_DEVICE
 		while [ ! -e "$DEV_RADIO" ]; do
 			echo "Waiting for $DEV_RADIO"
 			sleep 10
+			$SCAN_DEVICE
 		done
 	fi
 	TIMESTAMP=`date`" : Starting 6LBR "
