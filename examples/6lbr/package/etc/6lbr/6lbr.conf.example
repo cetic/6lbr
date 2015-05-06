@@ -51,6 +51,11 @@
 
 #ETH_JOIN_BRIDGE=1
 
+#Multicast snooping is broken in several versions of the Linux kernel, it drops
+#multicast traffic after a while.
+
+#BRIDGE_DISABLE_SNOOPING=1
+
 ################################################################################
 #SLIP Radio configuration
 # These parameters define the SLIP Radio device and the Baudrate to be used to
