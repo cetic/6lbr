@@ -107,6 +107,10 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (*info == ' ') {
         info++;
       }
+      sep = index(info, '|');
+      if (sep != NULL) {
+        *sep = 0;
+      }
       if (uiplib_ipaddrconv(info, &node->ip_parent) == 0) {
         uip_create_unspecified(&node->ip_parent);
       }
