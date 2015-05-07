@@ -20,4 +20,7 @@ RAW_ETH_FCS=1
 DEV_RADIO=/dev/ttyUSB0
 BAUDRATE=115200
 
+#Enable this line if radio device is not detected
+#SCAN_DEVICE=/usr/lib/6lbr/bb-scan-usb.sh
+
 LOG_LEVEL=3 #INFO and above only
