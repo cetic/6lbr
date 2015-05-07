@@ -363,10 +363,12 @@ install:
 	cp -r package/usr/lib/6lbr $(DESTDIR)/usr/lib
 	install -d $(DESTDIR)/usr/lib/6lbr/bin
 	install bin/* $(DESTDIR)/usr/lib/6lbr/bin
+	install tools/nvm_tool $(DESTDIR)/usr/lib/6lbr/bin
+
+install_plugins:
 ifneq ($(PLUGINS_FILES),)
 	install $(PLUGINS_FILES) $(DESTDIR)/usr/lib/6lbr/plugins
 endif
-	install tools/nvm_tool $(DESTDIR)/usr/lib/6lbr/bin
 
 ipk:
 	rm -rf $(IPK)
