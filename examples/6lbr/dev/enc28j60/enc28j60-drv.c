@@ -56,17 +56,13 @@
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
-#if UIP_CONF_LLH_LEN == 0
-uint8_t ll_header[ETHERNET_LLH_LEN];
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 void
 eth_drv_send(void)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_OUT, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + UIP_LLH_LEN);
+  LOG6LBR_DUMP_PACKET(ETH_OUT, uip_buf, uip_len + UIP_LLH_LEN);
 
   enc28j60_send(uip_buf, uip_len + sizeof(struct uip_eth_hdr));
 }
@@ -74,8 +70,8 @@ eth_drv_send(void)
 void
 eth_drv_input(void)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_IN, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + UIP_LLH_LEN);
+  LOG6LBR_DUMP_PACKET(ETH_IN, uip_buf, uip_len + UIP_LLH_LEN);
 
   eth_input();
 }

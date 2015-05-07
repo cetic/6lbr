@@ -51,31 +51,22 @@
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
-#if UIP_CONF_LLH_LEN == 0
-uint8_t ll_header[ETHERNET_LLH_LEN];
-#endif
-
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
 void
 eth_drv_send(void)
 {
-  //Should remove ll_header
-  memcpy(tmp_tap_buf, ll_header, ETHERNET_LLH_LEN);
-  memcpy(tmp_tap_buf + ETHERNET_LLH_LEN, uip_buf, uip_len);
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + UIP_LLH_LEN);
+  LOG6LBR_DUMP_PACKET(ETH_OUT, uip_buf, uip_len + UIP_LLH_LEN);
 
-  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_DUMP_PACKET(ETH_OUT, tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
-
-  tun_output(tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
+  tun_output(uip_buf, uip_len + UIP_LLH_LEN);
 }
 
 void
 eth_drv_input(void)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  LOG6LBR_DUMP_PACKET_WITH_HEADER(ETH_IN, ll_header, ETHERNET_LLH_LEN, uip_buf, uip_len);
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + UIP_LLH_LEN);
+  LOG6LBR_DUMP_PACKET(ETH_IN, uip_buf, uip_len + UIP_LLH_LEN);
 
   eth_input();
 }

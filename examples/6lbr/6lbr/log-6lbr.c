@@ -89,29 +89,3 @@ log6lbr_dump_packet(uint8_t const *data, uint32_t len)
   printf("\n");
 }
 /*---------------------------------------------------------------------------*/
-void
-log6lbr_dump_packet_with_header(uint8_t const *header, uint32_t header_len, uint8_t const *data, uint32_t data_len)
-{
-  int i;
-#if WIRESHARK_IMPORT_FORMAT
-  printf("000000");
-  for(i = 0; i < header_len; i++)
-    printf(" %02x", ll_header[i]);
-  for(i = 0; i < data_len; i++)
-    printf(" %02x", data[i]);
-#else
-  printf("\n         ");
-  for(i = 0; i < header_len + data_len; i++) {
-    if ( i < header_len ) {
-      printf("%02x", header[i]);
-    } else {
-      printf("%02x", data[i - header_len]);
-    }
-    if((i & 3) == 3)
-      printf(" ");
-    if((i & 15) == 15)
-      printf("\n         ");
-  }
-#endif
-  printf("\n");
-}

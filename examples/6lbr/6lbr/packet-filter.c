@@ -70,7 +70,7 @@ int packet_filter_wsn_packet;
 static outputfunc_t wireless_outputfunc;
 static inputfunc_t tcpip_inputfunc;
 
-#define BUF ((struct uip_eth_hdr *)&ll_header[0])
+#define BUF ((struct uip_eth_hdr *)uip_buf)
 
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])

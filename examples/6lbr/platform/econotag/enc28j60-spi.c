@@ -93,22 +93,10 @@ enc28j60WriteOp(uint8_t op, uint8_t address, uint8_t data)
 void
 enc28j60ReadBuffer(uint16_t len, uint8_t * data)
 {
-#if UIP_CONF_LLH_LEN == 0
-  uint8_t header_counter = 0;
-#endif
   csactive();
   // issue read command
   *SPI_TX_DATA = ENC28J60_READ_BUF_MEM << 24;
   spitransaction(0, 8);
-#if UIP_CONF_LLH_LEN == 0
-  header_counter = 0;
-  while(header_counter < ETHERNET_LLH_LEN) {
-    len--;
-    // read data
-    spitransaction(8, 0);
-    ll_header[header_counter] = *SPI_RX_DATA;
-    header_counter++;
-  }
   while(len) {
     len--;
     // read data
@@ -117,40 +105,16 @@ enc28j60ReadBuffer(uint16_t len, uint8_t * data)
     data++;
   }
   *data = '\0';
-#elif UIP_CONF_LLH_LEN == 14
-  while(len) {
-    len--;
-    // read data
-    spitransaction(8, 0);
-    *data = *SPI_RX_DATA;
-    data++;
-  }
-  *data = '\0';
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   cspassive();
 }
 
 void
 enc28j60WriteBuffer(uint16_t len, uint8_t * data)
 {
-#if UIP_CONF_LLH_LEN == 0
-  uint8_t header_counter = 0;
-#endif
   csactive();
   // issue write command
   *SPI_TX_DATA = ENC28J60_WRITE_BUF_MEM << 24;
   spitransaction(0, 8);
-#if UIP_CONF_LLH_LEN == 0
-  header_counter = 0;
-  while(header_counter < ETHERNET_LLH_LEN) {
-    len--;
-    // write data
-    *SPI_TX_DATA = ((uint32_t) ll_header[header_counter]) << 24;
-    header_counter++;
-    spitransaction(0, 8);
-  }
   while(len) {
     len--;
     // write data
@@ -158,17 +122,6 @@ enc28j60WriteBuffer(uint16_t len, uint8_t * data)
     data++;
     spitransaction(0, 8);
   }
-#elif UIP_CONF_LLH_LEN == 14
-  while(len) {
-    len--;
-    // write data
-    *SPI_TX_DATA = ((uint32_t) * data) << 24;
-    data++;
-    spitransaction(0, 8);
-  }
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   cspassive();
 }
 
@@ -435,9 +388,5 @@ enc28j60_read(uint8_t *packet, uint16_t maxlen)
   enc28j60Write(ERXRDPTH, (NextPacketPtr) >> 8);
   // decrement the packet counter indicate we are done with this packet
   enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
-#if UIP_CONF_LLH_LEN == 0
-  return (len - ETHERNET_LLH_LEN);
-#elif UIP_CONF_LLH_LEN == 14
   return (len);
-#endif
 }

@@ -388,7 +388,7 @@ set_fd(fd_set * rset, fd_set * wset)
 
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
+static unsigned char tmp_tap_buf[UIP_LLH_LEN + UIP_BUFSIZE];
 
 static void
 handle_fd(fd_set * rset, fd_set * wset)
@@ -420,9 +420,8 @@ handle_fd(fd_set * rset, fd_set * wset)
         IP64_INPUT(tmp_tap_buf, size);
       } else {
 #endif
-        uip_len = size - ETHERNET_LLH_LEN;
-        memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
-        memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
+        uip_len = size - UIP_LLH_LEN;
+        memcpy(uip_buf, tmp_tap_buf, size);
         eth_drv_input();
 #if CETIC_6LBR_IP64
       }

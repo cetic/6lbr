@@ -40,11 +40,6 @@
 
 #define UIP_8023_ADDR_LEN 6
 
-#if UIP_CONF_LLH_LEN == 0
-#define ETHERNET_LLH_LEN 14
-extern uint8_t ll_header[ETHERNET_LLH_LEN];
-#endif
-
 //Initialisation flags
 extern int ethernet_ready;
 extern int eth_mac_addr_ready;

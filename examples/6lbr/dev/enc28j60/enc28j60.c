@@ -117,20 +117,9 @@ writedata(uint8_t *data, int datalen)
   enc28j60_arch_spi_select();
   /* The Write Buffer Memory (WBM) command is 0 1 1 1 1 0 1 0  */
   enc28j60_arch_spi_write(ENC28J60_WRITE_BUF_MEM);
-#if UIP_CONF_LLH_LEN == 0
-  for(i = 0; i < ETHERNET_LLH_LEN; i++) {
-    enc28j60_arch_spi_write(ll_header[i]);
-  }
-  for(i = 0; i < datalen - ETHERNET_LLH_LEN; i++) {
-    enc28j60_arch_spi_write(data[i]);
-  }
-#elif UIP_CONF_LLH_LEN == 14
   for(i = 0; i < datalen; i++) {
     enc28j60_arch_spi_write(data[i]);
   }
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
@@ -152,30 +141,12 @@ readdata(uint8_t *buf, int len)
   enc28j60_arch_spi_select();
   /* THe Read Buffer Memory (RBM) command is 0 0 1 1 1 0 1 0 */
   enc28j60_arch_spi_write(ENC28J60_READ_BUF_MEM);
-#if UIP_CONF_LLH_LEN == 0
-  int i = 0;
-  while(i < ETHERNET_LLH_LEN) {
-    len--;
-    /* read data */
-    ll_header[i] = enc28j60_arch_spi_read();
-    i++;
-  }
   while(len) {
     len--;
     /* read data */
     *buf = enc28j60_arch_spi_read();
     buf++;
   }
-#elif UIP_CONF_LLH_LEN == 14
-  while(len) {
-    len--;
-    /* read data */
-    *buf = enc28j60_arch_spi_read();
-    buff++;
-  }
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
@@ -443,11 +414,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
 
   received_packets++;
   LOG6LBR_PACKET("received_packets %d\n", received_packets);
-#if UIP_CONF_LLH_LEN == 0
-  return (len - ETHERNET_LLH_LEN);
-#elif UIP_CONF_LLH_LEN == 14
   return (len);
-#endif
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(enc_watchdog_process, ev, data)
