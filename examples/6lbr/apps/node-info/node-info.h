@@ -56,6 +56,7 @@ typedef struct node_info {
   uip_ipaddr_t ip_parent;
 
   //Stats
+  clock_time_t stats_start;
   uint32_t up_messages_lost;
   uint32_t down_messages_lost;
   uint16_t parent_switch;

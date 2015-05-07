@@ -90,6 +90,7 @@ node_info_add(uip_ipaddr_t * ipaddr)
     memset(node, 0, sizeof(node_info_t));
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
+    node->stats_start = clock_time();
     LOG6LBR_6ADDR(DEBUG, ipaddr, "New node created ");
   } else {
     LOG6LBR_6ADDR(ERROR, ipaddr, "Not enough memory to create node ");
@@ -220,6 +221,7 @@ node_info_lookup(uip_ipaddr_t * ipaddr)
 void
 node_info_reset_statistics(node_info_t * node_info)
 {
+  node_info->stats_start = clock_time();
   node_info->messages_received = 0;
   node_info->messages_sent = 0;
   node_info->replies_sent = 0;

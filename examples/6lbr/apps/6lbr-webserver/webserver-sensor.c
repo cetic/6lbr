@@ -87,10 +87,12 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       reset_buf();
 
       add("<br /><h2>Statistics</h2>");
+      add("Since : %d s<br />",
+        node_info->stats_start / CLOCK_SECOND);
+      add("Last seen : %d s<br />",
+        (clock_time() - node_info->last_seen) / CLOCK_SECOND);
       add("Hop count: %d<br />", node_info->hop_count);
       add("Parent switch: %d<br />", node_info->parent_switch);
-      add("Last seen : %d<br />",
-        (clock_time() - node_info->last_seen) / CLOCK_SECOND);
       add("<br /><h3>Upstream</h3>");
       add("Last sequence number: %d<br />", node_info->last_up_sequence);
       add("Messages sent: %d<br />", node_info->messages_sent);
