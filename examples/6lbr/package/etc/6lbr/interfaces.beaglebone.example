@@ -1,0 +1,41 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+#auto eth0
+#iface eth0 inet dhcp
+# Example to keep MAC address between reboots
+#hwaddress ether DE:AD:BE:EF:CA:FE
+
+# The secondary network interface
+#auto eth1
+#iface eth1 inet dhcp
+
+iface eth0 inet static
+address 0.0.0.0
+
+auto br0
+iface br0 inet dhcp
+    bridge_ports eth0
+    bridge_stp off
+    up echo 0 > /sys/devices/virtual/net/br0/bridge/multicast_snooping
+    post-up ip link set br0 address `ip link show eth0 | grep ether | awk '{print $2}'`
+
+# WiFi Example
+#auto wlan0
+#iface wlan0 inet dhcp
+#    wpa-ssid "essid"
+#    wpa-psk  "password"
+
+# Ethernet/RNDIS gadget (g_ether)
+# ... or on host side, usbnet and random hwaddr
+# Note on some boards, usb0 is automaticly setup with an init script
+iface usb0 inet static
+    address 192.168.7.2
+    netmask 255.255.255.0
+    network 192.168.7.0
+    gateway 192.168.7.1
