@@ -44,6 +44,9 @@
 #if CETIC_6LBR_IP64
 #include "ip64.h"
 #endif
+#if CETIC_6LBR_LLSEC_WRAPPER
+#include "llsec-wrapper.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
@@ -126,12 +129,16 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("<br /><h2>WSN</h2>");
 #if !CETIC_6LBR_ONE_ITF
-  add("MAC: %s<br />RDC: %s (%d Hz)<br />Security: %s<br />",
+  add("MAC: %s<br />RDC: %s (%d Hz)<br />",
       NETSTACK_MAC.name,
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
-       0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval(),
-      NETSTACK_LLSEC.name);
+       0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
+#if CETIC_6LBR_LLSEC_WRAPPER
+  add("Security: %s<br />", llsec_wrapper_name());
+#else
+  add("Security: %s<br />", NETSTACK_LLSEC.name);
+#endif
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br />");

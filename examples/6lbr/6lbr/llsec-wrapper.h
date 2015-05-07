@@ -40,5 +40,6 @@
 extern const struct llsec_driver llsec_wrapper_driver;
 
 void llsec_wrapper_init(void);
+char const * llsec_wrapper_name(void);
 
 #endif /* LLSEC_WRAPPER_H_ */

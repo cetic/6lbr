@@ -60,6 +60,11 @@ llsec_wrapper_init(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+char const * llsec_wrapper_name(void)
+{
+  return current_llsec_driver->name;
+}
+/*---------------------------------------------------------------------------*/
 static void
 bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
 {
