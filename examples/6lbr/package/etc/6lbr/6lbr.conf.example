@@ -77,6 +77,13 @@
 #CTS/RTS Hardware control
 #CTS_RTS_HW_CONTROL=0
 
+#Scan operation to be performed before checking the radio availability
+#SCAN_DEVICE=
+
+#On BeagleBone, the USB Host does not always scan and detect properly the slip
+#radio.
+#SCAN_DEVICE=/usr/lib/6lbr/bb-scan-usb.sh
+
 ################################################################################
 #NVM File
 # The NVM file contains the user configuration, like the network prefixes, the
