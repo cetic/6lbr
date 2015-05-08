@@ -1,5 +1,76 @@
+cetic-6lbr (1.4.O) unstable; urgency=low
+
+  * Features
+    Link layer Security
+    NAT 64 / Dual stack
+    RDNSS
+    DNS Forwarder
+    mDNS advertising
+    Static port mapping
+    Node Info (PRR, Hop Count, Parent Switch, ...)
+  * Platform
+    Zolertia Zoul/RE-Mote
+    OpenMote
+    CC26xx (experimental)
+    OpenWRT
+  * Network
+    6lowpan context configuration (limited)
+    RPL stability bugfixes
+    Static route support
+    Tap/bridge interface autoconfiguration
+    RFC 4193 configuration script
+  * Updates
+    Rebased on Contiki 3.0
+    TinyDTLS 1.9
+    RFC CoAP
+  * Development
+    User plugins
+    Out of tree development
+    Modular webserver
+    New configuration file
+  * 6lbr-demo
+    Simple Core Interface library
+    CC26xx support
+  * Simple Core Interface library ([draft-ietf-core-interfaces](https://tools.ietf.org/html/draft-ietf-core-interfaces-03))
+    Observe binding support
+    CoAP push binding support
+    Runtime configurable binding
+    Text, JSON, XML and SenML encoding
+    Linked list, batch and linked batch support
+    Simple Resource Directory client
+    IPSO Application Framework demo
+    LWM2M demo
+  * Bugfixes
+    Slip-Radio throughput improvements
+    Fix CRC when Adress overriding is enabled
+    CC2538DK alignment issues solved
+    Loss of connectivity in SmartBridge mode
+    Big Endian platform support
+    Multi-dodag bugfixes
+    Fix CSMA infinite retransmissions
+    Various webserver glitches fixed
+    Wrong month in logs fixed
+    LLSEC reboot workaround
+    Global DODAG id correction
+
+ -- 6lbr-team <6lbr@cetic.be>  Thu, 12 May 2016 16:32:25 +0200
+
 cetic-6lbr (1.3.3) unstable; urgency=low
 
-  * Initial Release.
+  * 6LoWPAN/RPL
+    Multi DODAG bugfixes
+    Support DAG parameter updates
+    Do not drop partially received segmented packets
+  * Slip-Radio
+    Better Z1 and CC2538 support
+    Check message format
+    Add more baud rates
+  * Network
+    Fix multicast snooping on bridge interface
+    Fix bridge hw address
+    Fix tap interface down issue
+  * BeagleBone
+    Add Debian support
+    Add USB scanning issue workaround
 
- -- 6LBR Team <6lbr@cetic.be>  Wed, 25 Mar 2015 13:27:37 +0000
+ -- 6lbr-team <6lbr@cetic.be>  Fri, 08 May 2015 12:23:54 +0000
