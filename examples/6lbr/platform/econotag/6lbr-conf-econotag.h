@@ -57,7 +57,7 @@
 #define UIP_CONF_MAX_ROUTES   25
 
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE     550
+#define UIP_CONF_BUFFER_SIZE     512
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          8
