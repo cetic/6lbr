@@ -44,8 +44,16 @@
 extern int ethernet_ready;
 extern int eth_mac_addr_ready;
 
-void eth_drv_send(void);
-void eth_drv_input(void);
+#if CETIC_6LBR_IP64
+extern uint8_t *ip64_packet_buffer;
+#define ethernet_tmp_buf ip64_packet_buffer
+#else
+extern uint8_t *ethernet_tmp_buf;
+#endif
+#define ETHERNET_TMP_BUF_SIZE UIP_BUFSIZE
+
+void eth_drv_send(uint8_t *packet, uint16_t len);
+void eth_drv_input(uint8_t *packet, uint16_t len);
 void eth_drv_exit(void);
 void eth_drv_init(void);
 

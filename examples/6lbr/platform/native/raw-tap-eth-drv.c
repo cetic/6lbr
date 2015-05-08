@@ -37,8 +37,6 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/ip/uip.h"
-#include "string.h"
 
 #include "log-6lbr.h"
 #include "cetic-6lbr.h"
@@ -48,36 +46,55 @@
 #include "slip-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#endif
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
+
+#if !CETIC_6LBR_IP64
+uip_buf_t ethernet_tmp_buf_aligned;
+uint8_t *ethernet_tmp_buf = ethernet_tmp_buf_aligned.u8;
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 void
-eth_drv_send(void)
+eth_drv_send(uint8_t *packet, uint16_t len)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + UIP_LLH_LEN);
-  LOG6LBR_DUMP_PACKET(ETH_OUT, uip_buf, uip_len + UIP_LLH_LEN);
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
+  LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
 
-  tun_output(uip_buf, uip_len + UIP_LLH_LEN);
+  tun_output(packet, len);
 }
-
+/*---------------------------------------------------------------------------*/
 void
-eth_drv_input(void)
+eth_drv_input(uint8_t *packet, uint16_t len)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + UIP_LLH_LEN);
-  LOG6LBR_DUMP_PACKET(ETH_IN, uip_buf, uip_len + UIP_LLH_LEN);
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", len);
+  LOG6LBR_DUMP_PACKET(ETH_IN, packet, len);
 
-  eth_input();
+#if CETIC_6LBR_IP64
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
+      (((struct uip_eth_hdr *)packet)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
+    IP64_INPUT(packet, len);
+  } else {
+#endif
+    uip_len = len - UIP_LLH_LEN;
+    memcpy(uip_buf, packet, len);
+    eth_input();
+#if CETIC_6LBR_IP64
+  }
+#endif
 }
-
+/*---------------------------------------------------------------------------*/
 void
 eth_drv_exit(void)
 {
 }
-
+/*---------------------------------------------------------------------------*/
 void
-eth_drv_init()
+eth_drv_init(void)
 {
   if(use_raw_ethernet) {
     LOG6LBR_INFO("RAW Ethernet interface init\n");
@@ -87,9 +104,7 @@ eth_drv_init()
   tun_init();
   process_start(&eth_drv_process, NULL);
 }
-
 /*---------------------------------------------------------------------------*/
-
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -116,5 +131,4 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 
   PROCESS_END();
 }
-
 /*---------------------------------------------------------------------------*/

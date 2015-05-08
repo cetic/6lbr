@@ -454,7 +454,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   //Sending packet
   //--------------
   LOG6LBR_PRINTF(PACKET, PF_OUT, "eth_output: Sending packet to Ethernet\n");
-  eth_drv_send();
+  eth_drv_send(uip_buf, uip_len + UIP_LLH_LEN);
 
   return 1;
 }

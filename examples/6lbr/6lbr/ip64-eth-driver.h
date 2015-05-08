@@ -29,16 +29,16 @@
 
 /**
  * \file
- *         TAP Driver for IP64
+ *         Ethernet Driver for IP64
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef IP64_TAP_DRIVER_H
-#define IP64_TAP_DRIVER_H
+#ifndef IP64_ETH_DRIVER_H
+#define IP64_ETH_DRIVER_H
 
 #include "ip64-driver.h"
 
-extern const struct ip64_driver ip64_tap_driver;
+extern const struct ip64_driver ip64_eth_driver;
 
-#endif /* IP64_TAP_DRIVER_H */
+#endif /* IP64_ETH_DRIVER_H */

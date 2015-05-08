@@ -29,16 +29,28 @@
 
 /**
  * \file
- *         ENC28J60 Driver for IP64
+ *         Ethernet Driver for IP64
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef IP64_ENC28J60_DRIVER_H
-#define IP64_ENC28J60_DRIVER_H
-
+#include "contiki.h"
+#include "eth-drv.h"
 #include "ip64-driver.h"
 
-extern const struct ip64_driver ip64_enc28j60_driver;
-
-#endif /* IP64_ENC28J60_DRIVER_H */
+/*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+}
+/*---------------------------------------------------------------------------*/
+static int
+output(uint8_t *packet, uint16_t packet_len)
+{
+  eth_drv_send(packet, packet_len);
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+const struct ip64_driver ip64_eth_driver = {
+  init, output
+};

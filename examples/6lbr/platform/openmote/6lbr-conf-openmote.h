@@ -84,7 +84,7 @@
 #define CETIC_CSMA_STATS      0
 
 #undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      0
+#define CETIC_6LBR_IP64      1
 
 /* Do not change lines below */
 
