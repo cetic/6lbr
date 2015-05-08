@@ -47,14 +47,14 @@
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     100
+#define UIP_CONF_DS6_NBR_NBU     90
 
 //Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   100
+#define UIP_CONF_DS6_ROUTE_NBU   90
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   100
+#define UIP_CONF_MAX_ROUTES   90
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
@@ -82,6 +82,8 @@
 #define NETSTACK_CONF_MAC     csma_driver
 
 #define CETIC_CSMA_STATS      0
+
+#define CETIC_6LBR_LLSEC_WRAPPER        1
 
 #undef CETIC_6LBR_IP64
 #define CETIC_6LBR_IP64      1
