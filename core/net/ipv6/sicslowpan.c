@@ -1707,7 +1707,7 @@ input(void)
      * reassembly is off
      * start it if we received a fragment
      */
-    if((frag_size > 0) && (frag_size <= UIP_BUFSIZE)) {
+    if((frag_size > 0) && (frag_size <= UIP_BUFSIZE - UIP_LLH_LEN)) {
       /* We are currently not reassembling a packet, but have received a packet fragment
        * that is not the first one. */
       if(is_fragment && !first_fragment) {
