@@ -130,7 +130,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if !CETIC_6LBR_ONE_ITF
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
-  INPUT_HEX("panid", channel, "PAN ID");
+  INPUT_HEX("panid", pan_id, "PAN ID");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
