@@ -80,12 +80,17 @@ config_default
 ################################################################################
 # Configure logs
 
-if [ "$LOG_6LBR_OUT" != "-" ]; then
-	exec >> $LOG_6LBR_OUT
-fi
-
-if [ "$LOG_6LBR_ERR" != "-" ]; then
-	exec 2>> $LOG_6LBR_ERR
+if [ "$GDB" = '1' ]; then
+LOG_6LBR_OUT='-'
+LOG_6LBR_ERR='-'
+else
+	if [ "$LOG_6LBR_OUT" != "-" ]; then
+		exec >> $LOG_6LBR_OUT
+	fi
+	
+	if [ "$LOG_6LBR_ERR" != "-" ]; then
+		exec 2>> $LOG_6LBR_ERR
+	fi
 fi
 
 export LOG_6LBR_OUT
@@ -171,6 +176,10 @@ else
 	BIN=$BIN_6LBR/cetic_6lbr_router
 fi
 
+if [ "$GDB" = '1' ]; then
+	gdb -args $BIN $PARAMS
+else
+
 ################################################################################
 # Launch 6LBR in a loop
 
@@ -218,3 +227,5 @@ while ((1)); do
 		sleep 1
 	fi
 done
+
+fi
