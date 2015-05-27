@@ -170,6 +170,9 @@
 #define RPL_MAX_DAG_PER_INSTANCE	2
 #define RPL_MAX_INSTANCES		1
 
+// Always use infinite upward route
+#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
+
 /* Z1 platform has limited RAM */
 
 #if defined CONTIKI_TARGET_Z1

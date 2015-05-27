@@ -88,6 +88,9 @@
 // RPL DODAG is by default grounded
 #define RPL_CONF_GROUNDED 1
 
+// Always use infinite upward route
+#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
+
 #if CETIC_6LBR_SMARTBRIDGE
 /*------------------------------------------------------------------*/
 /* SMART BRIDGE MODE                                                */
