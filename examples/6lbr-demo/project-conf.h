@@ -165,7 +165,7 @@
 /*---------------------------------------------------------------------------*/
 
 #undef RPL_CONF_INIT_LINK_METRIC
-#define RPL_CONF_INIT_LINK_METRIC			3
+#define RPL_CONF_INIT_LINK_METRIC			2
 
 #define RPL_MAX_DAG_PER_INSTANCE	2
 #define RPL_MAX_INSTANCES		1
