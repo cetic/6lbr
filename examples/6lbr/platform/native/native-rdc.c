@@ -170,7 +170,7 @@ send_packet(mac_callback_t sent, void *ptr)
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-  if(NETSTACK_FRAMER.create() < 0) {
+  if(NETSTACK_FRAMER.create_and_secure() < 0) {
     /* Failed to allocate space for headers */
     LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
     mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
