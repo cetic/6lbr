@@ -1195,9 +1195,6 @@ void
 rpl_recalculate_ranks(void)
 {
   rpl_parent_t *p;
-  rpl_instance_t *instance;
-  rpl_instance_t *end;
-  int i;
 
   /*
    * We recalculate ranks when we receive feedback from the system rather
