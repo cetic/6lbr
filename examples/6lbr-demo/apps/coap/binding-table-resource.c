@@ -76,10 +76,102 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
     pos += snprintf(buffer + pos, size - pos, ":%d", binding->dest_port);
   }
   pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"%s\";bind=\"push\"", binding->uri, binding->resource->url);
-  if (binding->pmin > 0) {
+  PRINTF("flags : %#x\n", binding->flags);
+  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0)
     pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->pmin);
-  }
+
+  if((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", binding->pmax);
+
+  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";st=\"%d\"", binding->step);
+
+  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", binding->less_than);
+
+  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", binding->greater_than);
+
   return pos;
+}
+/*---------------------------------------------------------------------------*/
+static int
+fill_flags(char **data, int *flag_value) {
+  *flag_value = 0;
+  while (**data) {
+    if(**data >= '0' && **data <= '9') {
+      *flag_value = (*flag_value * 10) + (**data - '0');
+    } else if (**data == '\0') {
+      break;
+    } else {
+      return 0;
+    }
+    (*data)++;
+  }
+  return 1;
+}
+
+static int
+parse_filter_tags(char **p, coap_binding_t **binding, char *data) {
+  int flag_status = 1;
+  int flag_value;
+
+  if (strcmp(*p, "pmin") == 0) {
+    flag_status = fill_flags(&data, &flag_value);
+    if (*data == '\0' && flag_status != 0 && flag_value > 0) {
+      (*binding)->pmin = flag_value;
+      (*binding)->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
+      PRINTF("Pmin set to %d\n", flag_value);
+    } else {
+      coap_error_message = "Pmin is invalid";
+      return 0;
+    }
+  } else if (strcmp(*p, "pmax") == 0) {
+    flag_status = fill_flags(&data, &flag_value);
+    if (*data == '\0' && flag_status != 0 && flag_value > 0) {
+      (*binding)->pmax = flag_value;
+      (*binding)->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
+      PRINTF("Pmax set to %d\n", flag_value);
+    } else {
+      coap_error_message = "Pmax is invalid";
+      return 0;
+    }
+  } else if (strcmp(*p, "st") == 0) {
+    flag_status = fill_flags(&data, &flag_value);
+    if (*data == '\0' && flag_status != 0  && flag_value > 0) {
+      (*binding)->step = flag_value;
+      (*binding)->flags |= COAP_BINDING_FLAGS_ST_VALID;
+      PRINTF("Change Step set to %d\n", flag_value);
+    } else {
+      coap_error_message = "Change Step is invalid";
+      return 0;
+    }
+  } else if (strcmp(*p, "lt") == 0) {
+    flag_status = fill_flags(&data, &flag_value);
+    if (*data == '\0' && flag_status != 0) {
+      (*binding)->less_than = flag_value;
+      (*binding)->flags |= COAP_BINDING_FLAGS_LT_VALID;
+      PRINTF("Less Than set to %d\n", flag_value);
+    } else {
+      coap_error_message = "Less Than is invalid";
+      return 0;
+    }
+  } else if (strcmp(*p, "gt") == 0) {
+    flag_status = fill_flags(&data, &flag_value);
+    if (*data == '\0' && flag_status != 0) {
+      (*binding)->greater_than = flag_value;
+      (*binding)->flags |= COAP_BINDING_FLAGS_GT_VALID;
+      PRINTF("Greater Than set to %d\n", flag_value);
+    } else {
+      coap_error_message = "Greater Than is invalid";
+      return 0;
+    }
+  } else {
+    coap_error_message = "Invalid filter detected";
+    return 0;
+  }
+
+  return flag_status;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -92,7 +184,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
   int rel = 0;
   int anchor = 0;
   int method = 0;
-  int pmin = 1;
+  int filters = 1;
 
   memset((void*)binding, 0, sizeof(coap_binding_t));
   do {
@@ -119,7 +211,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
     strcpy(binding->uri, p);
     p = sep;
 
-    while (*p) {
+    while (*p && filters) {
       if (*p++ != ';') break;
       sep = strchr(p, '=');
       if (sep == NULL) break;
@@ -129,6 +221,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
       sep = strchr(sep, '"');
       if (sep == NULL) break;
       *sep++ = '\0';
+
       if (strcmp(p, "rel") == 0 && strcmp(data, "boundto") == 0) {
         rel = 1;
       } else if (strcmp(p, "anchor") == 0) {
@@ -138,40 +231,31 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
         }
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
-      } else if (strcmp(p, "pmin") == 0) {
-        int int_value = 0;
-        while (*data) {
-          if(*data >= '0' && *data <= '9') {
-            int_value = (int_value * 10) + (*data - '0');
-          } else {
-            break;
-          }
-          data++;
-        }
-        if (*data == '\0' && int_value > 0) {
-          binding->pmin = int_value;
-          binding->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
-        } else {
-          pmin = 0;
-        }
       } else {
-        break;
+        filters = parse_filter_tags(&p, &binding, data);
       }
       p = sep;
     }
-    status = *p == '\0' && rel && anchor && method;
+
+    status = *p == '\0' && rel && anchor && method && filters;
   } while (0);
+
   if (*p != '\0') {
+    coap_error_message = "Parsing failed";
     PRINTF("Parsing failed at %ld ('%s')\n", p - buffer, p);
   } else if (!rel) {
+    coap_error_message = "Missing relation";
     PRINTF("Missing relation\n");
   } else if (!method) {
+    coap_error_message = "Wrong or missing binding method";
     PRINTF("Wrong or missing binding method\n");
   } else if (!anchor) {
+    coap_error_message = "Wrong or missing anchor";
     PRINTF("Wrong or missing anchor\n");
-  } else if (!pmin) {
-    PRINTF("Pmin is invalid\n");
+  } else if (!filters) {
+    PRINTF("Filter invalid\n");
   }
+
   return status;
 }
 /*---------------------------------------------------------------------------*/
@@ -233,8 +317,10 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
     if(coap_block1_handler(request, response, data_store, &data_size, sizeof(data_store)) == 0) {
       data_store[data_size] = '\0';
       coap_binding_t * binding = memb_alloc(&binding_memb);
+      PRINTF("Resource : %s\n", (char*)data_store);
       success = resource_binding_parse((char*)data_store, binding);
       if (success) {
+        PRINTF("Binding added\n");
         coap_push_add_binding(binding);
 #if WITH_NVM
         resource_binding_store_nvm_bindings();
@@ -242,7 +328,6 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
 #endif
       } else {
         erbium_status_code = REST.status.BAD_REQUEST;
-        coap_error_message = "Message invalid";
         memb_free(&binding_memb, binding);
       }
     }

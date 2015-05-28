@@ -33,12 +33,10 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+
 #ifndef LINKED_BATCH_RESOURCE_H_
 #define LINKED_BATCH_RESOURCE_H_
 
-#include "contiki.h"
-#include "coap-common.h"
-#include "ipso-profile.h"
 
 #ifdef REST_CONF_RES_LINKED_BATCH_TABLE
 #define REST_RES_LINKED_BATCH_TABLE REST_CONF_RES_LINKED_BATCH_TABLE
@@ -46,20 +44,16 @@
 #define REST_RES_LINKED_BATCH_TABLE 1
 #endif
 
-#ifdef CORE_ITF_CONF_USER_LINKED_BATCH_NB
-#define CORE_ITF_USER_LINKED_BATCH_NB CORE_ITF_CONF_USER_LINKED_BATCH_NB
+#if REST_RES_LINKED_BATCH_TABLE
+#define REST_RES_LINKED_BATCH_INIT() linked_batch_table_init();
 #else
-#define CORE_ITF_USER_LINKED_BATCH_NB 2
+#define REST_RES_LINKED_BATCH_INIT()
 #endif
 
 void
 linked_batch_table_init(void);
 
-#if REST_RES_LINKED_BATCH_TABLE
-#define REST_RES_LINKED_BATCH_INIT() \
-  linked_batch_table_init();
-#else
-#define REST_RES_LINKED_BATCH_INIT()
-#endif
+void
+linked_batch_table_clear_nvm_links(void);
 
 #endif /* DEVICE_RESOURCE_H_ */

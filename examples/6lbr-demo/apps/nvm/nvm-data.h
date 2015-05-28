@@ -5,6 +5,7 @@
 
 #include "device-resource.h"
 #include "binding-table-resource.h"
+#include "coap-linked-batch-nvm.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -16,7 +17,8 @@ typedef struct {
 
   //Version 0 Configuration data
   REST_RES_DEVICE_NVM;
-  CORE_INTERFACE_BINDING_TABLE_NVM;
+  CORE_INTERFACE_BINDING_TABLE_NVM_DATA;
+  CORE_INTERFACE_LINKED_BATCH_NVM_DATA;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/

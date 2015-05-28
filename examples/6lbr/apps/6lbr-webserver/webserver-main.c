@@ -55,6 +55,8 @@
 #include <unistd.h>
 #endif
 
+HTTPD_CGI_CALL_NAME(webserver_main)
+
 #if CONTIKI_TARGET_ECONOTAG
 extern void _start;
 //Code
@@ -207,6 +209,11 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("RAM : %d (%d %%)<br />", total, (100 * total) / (32 * 1024));
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
+#if CONTIKI_TARGET_NATIVE
+  //Button resource for 6lbr_router
+  add("<form action=\"sixlbr-button\" method=\"get\">");
+  add("<br/><input type=\"submit\" value=\"Push button\"/></form><br />");
 #endif
 
   PSOCK_END(&s->sout);

@@ -36,9 +36,8 @@
 #ifndef BINDING_TABLE_RESOURCE_H
 #define BINDING_TABLE_RESOURCE_H
 
-#include "coap-common.h"
+#include "contiki.h"
 #include "coap-push.h"
-#include "core-interface.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -54,23 +53,12 @@
 #define CORE_ITF_MAX_BINDING_SIZE 256
 #endif
 
-#ifdef CORE_ITF_CONF_USER_BINDING_NB
-#define CORE_ITF_USER_BINDING_NB CORE_ITF_CONF_USER_BINDING_NB
-#else
-#define CORE_ITF_USER_BINDING_NB 2
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 #if REST_RES_BINDING_TABLE
 #define REST_RES_BINDING_TABLE_INIT() binding_table_init();
-#define CORE_INTERFACE_BINDING_TABLE_NVM \
-  nvm_binding_data_t binding_data[CORE_ITF_USER_BINDING_NB]
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data) resource_binding_clear_nvm_bindings()
 #else
 #define REST_RES_BINDING_TABLE_INIT()
-#define CORE_INTERFACE_BINDING_TABLE_NVM
-#define CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data)
 #endif
 
 /*---------------------------------------------------------------------------*/

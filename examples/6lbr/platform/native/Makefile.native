@@ -27,7 +27,7 @@ CONF_6LR=WITH_UDPSERVER=0
 bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
 
 bin/cetic_6lbr_rpl_relay:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
@@ -37,17 +37,17 @@ bin/cetic_6lbr_rpl_relay:
 bin/cetic_6lbr_full_transparent_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
 
 bin/cetic_6lbr_router:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_router 
+	mv cetic-6lbr.native bin/cetic_6lbr_router
 
 bin/cetic_6lbr_ndp_router:
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
 	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router 
+	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
 
 bin/cetic_6lbr_6lr:
 	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(CONF_6LR)
@@ -63,15 +63,15 @@ all:
 	rm -rf bin
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_router
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
 	$(MAKE) TARGET=native clean

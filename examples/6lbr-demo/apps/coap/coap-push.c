@@ -39,7 +39,7 @@
 #include "coap-common.h"
 #include "coap-push.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #include "net/ip/uip-debug.h"
 
 extern void coap_blocking_request_callback(void *callback_data, void *response);
@@ -80,53 +80,53 @@ coap_push_remove_binding(coap_binding_t * binding)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store)
-{
-  memcpy(&store->dest_addr, &binding->dest_addr.u8, 16);
-  store->dest_port = binding->dest_port;
-  strcpy(store->uri, binding->uri);
-  strcpy(store->resource, binding->resource->url);
-  store->flags = binding->flags | COAP_BINDING_FLAGS_NVM_BINDING_VALID;
-  store->pmin = binding->pmin;
-  store->pmax = binding->pmax;
-  store->step = binding->step;
-  store->less_than = binding->less_than;
-  store->greater_than = binding->greater_than;
-}
-/*---------------------------------------------------------------------------*/
-int
-coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding)
-{
-  if ((store->flags & COAP_BINDING_FLAGS_NVM_BINDING_VALID) == 0) {
-    return 0;
+coap_push_update_binding(resource_t *event_resource, int value) {
+  static coap_binding_t * binding = NULL;
+  for(binding = (coap_binding_t *)list_head(coap_push_binding);
+    binding; binding = binding->next) {
+    if(binding->resource == event_resource) {
+      binding->last_value = value;
+      process_poll(&coap_push_process);
+      break;
+    }
   }
-  memcpy(&binding->dest_addr.u8, &store->dest_addr, 16);
-  binding->dest_port = store->dest_port;
-  strcpy(binding->uri, store->uri);
-  binding->resource = rest_find_resource_by_url(store->resource);
-  if (binding->resource == NULL) {
-    PRINTF("Resource %s not found\n", store->resource);
-    return 0;
-  }
-  binding->flags = store->flags;
-  binding->pmin = store->pmin;
-  binding->pmax = store->pmax;
-  binding->step = store->step;
-  binding->less_than = store->less_than;
-  binding->greater_than = store->greater_than;
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
 trigger_push(coap_binding_t * binding)
 {
-  if (binding->last_push + binding->pmin <= clock_seconds()) {
-    //if (binding->pmax != 0 && binding->last_push + binding->pmax >= clock_seconds()) {
-    //  return 1;
-    //}
+  int cl = clock_seconds();
+  PRINTF("Trigger : last + pmax = %d, clock = %d, delta = %d\n", binding->last_push + binding->pmax, cl, binding->last_push + binding->pmax - cl);
+  if ((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0 &&
+    binding->last_push + binding->pmax <= clock_seconds()) {
+    binding->last_sent_value = binding->last_value;
+    PRINTF("Push triggered, pmax reached");
     return 1;
   }
-  return 0;
+  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0 &&
+      binding->last_push + binding->pmin > clock_seconds()) {
+    PRINTF("Push not triggered, pmin unreached\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) != 0 &&
+      (binding->last_sent_value + binding->step > binding->last_value &&
+      binding->last_sent_value - binding->step < binding->last_value)) {
+    PRINTF("Push not triggered, step unreached\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) != 0 &&
+      binding->last_value >= binding->less_than) {
+    PRINTF("Push not triggered, value not less than threshold\n");
+    return 0;
+  }
+  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) != 0 &&
+      binding->last_value <= binding->greater_than) {
+    PRINTF("Push not triggered, value not greater than threshold\n");
+    return 0;
+  }
+  PRINTF("Push triggered, value : %d\n", binding->last_value);
+  binding->last_sent_value = binding->last_value;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #define COAP_BLOCKING_PUSH_STATE(request_state, ctx, server_addr, server_port, request, resource_handler) \
@@ -171,7 +171,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
                        REST_MAX_CHUNK_SIZE, &offset);
 
       if (offset != -1) {
-        PRINTF("Warning: push block transfer not yet implemented");
+        PRINTF("Warning: push block transfer not yet implemented, offset : %d\n", offset);
       }
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 
@@ -188,7 +188,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
     }
     else
     {
-      PRINTF("Could not allocate transaction buffer");
+      PRINTF("Could not allocate transaction buffer\n");
       state->status = 1;
       PT_EXIT(&state->pt);
     }
@@ -209,7 +209,7 @@ PROCESS_THREAD(coap_push_process, ev, data)
   etimer_set(&et, COAP_PUSH_INTERVAL * CLOCK_SECOND);
   while(1) {
     PROCESS_YIELD();
-    if(etimer_expired(&et)) {
+    if(etimer_expired(&et) || ev == PROCESS_EVENT_POLL) {
       static coap_binding_t * binding = NULL;
       for(binding = (coap_binding_t *)list_head(coap_push_binding);
           binding; binding = binding->next) {

@@ -2,6 +2,8 @@
 #define NVM_DATA_H_
 
 #include <stdint.h>
+#include "coap-binding-nvm.h"
+#include "coap-linked-batch-nvm.h"
 
 typedef struct {
   //NVM header
@@ -74,6 +76,7 @@ typedef struct {
   uint8_t eth_ip64_addr[4];
   uint8_t eth_ip64_netmask[4];
   uint8_t eth_ip64_gateway[4];
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/

@@ -63,7 +63,7 @@
 #define REST_CONF_RES_LED_R 0
 #define REST_CONF_RES_LED_G 0
 #define REST_CONF_RES_LED_B 0
-#define REST_CONF_RES_LIGHT_SOLAR 1
+#define REST_CONF_RES_LIGHT_SOLAR 0
 #define REST_CONF_RES_LIGHT_SOLAR_PERIODIC 0
 #define REST_CONF_RES_LIGHT_PHOTO 1
 #define REST_CONF_RES_LIGHT_PHOTO_PERIODIC 0
@@ -79,7 +79,7 @@
 #define REST_CONF_RES_CONFIG_STACK_RTG 0
 
 /* Disable .well-known/core filtering to save code */
-#define COAP_LINK_FORMAT_FILTERING      0
+#define COAP_LINK_FORMAT_FILTERING 0
 
 /* Disable observe */
 #define COAP_CORE_OBSERVE 0
@@ -90,8 +90,14 @@
 /* Disable core interface binding table */
 #define REST_CONF_RES_BINDING_TABLE 0
 
+/* Disable core interface binding nvm */
+#define CORE_ITF_CONF_BINDING_TABLE_NVM 0
+
 /* Disable core interface linked batch table */
 #define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
+/* Disable core interface linked batch nvm */
+#define CORE_ITF_CONF_LINKED_BATCH_NVM 0
 
 #else /* UIP_CONF_IPV6_RPL */
 
@@ -102,7 +108,7 @@
 #define REST_CONF_RES_CONFIG_STACK_RTG 0
 
 /* Disable .well-known/core filtering to save code */
-#define COAP_LINK_FORMAT_FILTERING      0
+#define COAP_LINK_FORMAT_FILTERING 0
 
 /* disable resources batch */
 #define REST_CONF_RES_DEVICE_BATCH 0
@@ -118,7 +124,7 @@
 
 #if CONTIKI_TARGET_ECONOTAG
 /* Disable .well-known/core filtering to save code */
-#define COAP_LINK_FORMAT_FILTERING      0
+#define COAP_LINK_FORMAT_FILTERING 0
 
 /* Disable coap push */
 #define COAP_PUSH_CONF_ENABLED 0
@@ -126,8 +132,14 @@
 /* Disable core interface binding table */
 #define REST_CONF_RES_BINDING_TABLE 0
 
+/* Disable core interface binding nvm */
+#define CORE_ITF_CONF_BINDING_TABLE_NVM 0
+
 /* Disable core interface linked batch table */
 #define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
+/* Disable core interface linked batch nvm */
+#define CORE_ITF_CONF_LINKED_BATCH_NVM 0
 
 #endif
 

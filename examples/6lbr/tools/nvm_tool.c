@@ -47,6 +47,7 @@
 
 #include "nvm-data.h"
 #include "native-nvm.h"
+#include "contiki-conf.h"
 #include <arpa/inet.h>
 
 /*---------------------------------------------------------------------------*/

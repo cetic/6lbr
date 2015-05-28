@@ -33,6 +33,7 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#define LOG6LBR_MODULE "NVM"
 #include "contiki.h"
 
 #include "er-coap-engine.h"
@@ -41,6 +42,7 @@
 #include "coap-common.h"
 #include "core-interface.h"
 #include "linked-batch-resource.h"
+#include "coap-linked-batch.h"
 
 #if WITH_NVM
 #include "nvm-config.h"
@@ -53,7 +55,7 @@
 
 #if REST_RES_LINKED_BATCH_TABLE
 
-resource_t const *linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB];
+resource_t *linked_batch_table[CORE_ITF_USER_LINKED_BATCH_NB];
 int linked_batch_table_size = 0;
 
 static void
@@ -101,18 +103,42 @@ resource_linked_batch_parse(char *buffer, resource_t *linked_batch_table[], int 
 /*---------------------------------------------------------------------------*/
 #if WITH_NVM
 static void
-linked_batch_table_store_nvm_links(void)
-{
+linked_batch_table_store_nvm_links(void) {
+  int i;
+  for(i = 0; i < CORE_ITF_USER_LINKED_BATCH_NB
+            && linked_batch_table[i] != NULL; i++) {
+    coap_linked_batch_serialize(linked_batch_table[i],
+                                  &nvm_data.linked_batch_data[i]);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
-linked_batch_table_load_nvm_links(void)
-{
+linked_batch_table_load_nvm_links(void) {
+  int i, result = 0;
+  for(i = 0; i < CORE_ITF_USER_LINKED_BATCH_NB; i++) {
+    resource_t *linked_batch;
+    result = coap_linked_batch_deserialize(&nvm_data.linked_batch_data[i],
+                                              &linked_batch);
+    if(result == 1) {
+      linked_batch_table[linked_batch_table_size] = linked_batch;
+      linked_batch_table_size++;
+    }
+    else if(result == -1) {
+      // There is no more linked batch to handle
+      break;
+    }
+    else {
+      PRINTF("Linked batch object badly deserialized\n");
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
-linked_batch_table_clear_nvm_links(void)
-{
+linked_batch_table_clear_nvm_links(void) {
+  int i;
+  for(i = 0; i < CORE_ITF_USER_LINKED_BATCH_NB; i++) {
+    nvm_data.linked_batch_data[i][0] = '\0';
+  }
 }
 #endif
 /*---------------------------------------------------------------------------*/
