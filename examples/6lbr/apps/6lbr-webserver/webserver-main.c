@@ -210,11 +210,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CONTIKI_TARGET_NATIVE
-  //Button resource for 6lbr_router
-  add("<form action=\"sixlbr-button\" method=\"get\">");
-  add("<br/><input type=\"submit\" value=\"Push button\"/></form><br />");
-#endif
 
   PSOCK_END(&s->sout);
 }
