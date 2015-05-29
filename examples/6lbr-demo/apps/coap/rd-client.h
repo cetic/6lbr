@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2015, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,53 +29,24 @@
 
 /**
  * \file
- *         6LBR CoAP Server
+ *         Simple CoAP Library
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef RD_CLIENT_H_
+#define RD_CLIENT_H_
 
 #include "contiki.h"
 
-#include "rest-engine.h"
-#include "er-coap.h"
-#include "coap-push.h"
-#include "rd-client.h"
-#include "core-interface.h"
-#include "button-resource.h"
-#include "device-resource.h"
-#include "config-stack-resource.h"
-#include "linked-batch-resource.h"
-#include "binding-table-resource.h"
-
-REST_RES_BUTTON_DEFINE();
-REST_RES_DEVICE_DEFINE();
-COAP_BINDING(device_model_sw, device_model_sw);
-
-PROCESS(coap_server_process, "Coap Server");
-
-PROCESS_THREAD(coap_server_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  rest_init_engine();
-#if COAP_PUSH_ENABLED
-  coap_push_init();
+#ifdef RD_CLIENT_CONF_ENABLED
+#define RD_CLIENT_ENABLED RD_CLIENT_CONF_ENABLED
+#else
+#define RD_CLIENT_ENABLED 1
 #endif
-#if RD_CLIENT_ENABLED
-  rd_client_init();
-#endif
-  REST_RES_BUTTON_INIT();
-  REST_RES_DEVICE_INIT();
-  REST_RES_CONFIG_STACK_INIT();
 
-  /* Linked batch and binding tables must be initialized after all the resources */
-  REST_RES_BINDING_TABLE_INIT();
-  REST_RES_LINKED_BATCH_INIT();
+#define RD_CLIENT_LIFETIME 6
 
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    REST_RES_BUTTON_EVENT_HANDLER(ev, data);
-  }
+void
+rd_client_init();
 
-  PROCESS_END();
-}
+#endif /* RD_CLIENT_H_ */
