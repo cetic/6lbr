@@ -37,8 +37,9 @@
 
 #define SLIP_CONF_BUF_NB        16
 
+/* Support one 802.15.4 packet plus 20 packet attributes plus slip command overhead */
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
+#define UIP_CONF_BUFFER_SIZE    (127+20*3+3)
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
