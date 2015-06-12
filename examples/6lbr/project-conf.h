@@ -80,11 +80,6 @@
 // Avoid 6lowpan fragmentation
 #define REST_MAX_CHUNK_SIZE                 64
 
-// Temporary, to avoid duplicate removal of frame header size
-// Contains 802.15.4 max frame size minus FCS size
-// 802.15.4 header and 6LoWPAN header will be subtracted in sicslowpan.c
-#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD     (127 - 2)
-
 // RPL DODAG is by default grounded
 #define RPL_CONF_GROUNDED 1
 
