@@ -100,6 +100,8 @@ PROCESS_THREAD(demo_6lbr_process, ev, data)
 #if SHELL
 #ifdef CONTIKI_TARGET_Z1
   uart0_set_input(serial_line_input_byte);
+#elif defined CONTIKI_TARGET_COOJA
+  rs232_set_input(serial_line_input_byte);
 #else
   uart1_set_input(serial_line_input_byte);
 #endif
