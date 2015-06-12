@@ -64,6 +64,31 @@
 #define CC2420_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
+/* Security                                                                  */
+/*---------------------------------------------------------------------------*/
+
+#if WITH_LLSEC
+
+#undef NETSTACK_LLSEC
+#define NETSTACK_LLSEC noncoresec_driver
+
+#undef LLSEC802154_CONF_SECURITY
+#define LLSEC802154_CONF_SECURITY 1
+#ifndef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL 6
+#endif
+
+#undef AES_128_CONF
+#define AES_128_CONF aes_128_driver
+
+#else
+
+#undef NETSTACK_LLSEC
+#define NETSTACK_LLSEC nullsec_driver
+
+#endif
+
+/*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
 /*---------------------------------------------------------------------------*/
 

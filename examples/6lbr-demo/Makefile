@@ -13,6 +13,7 @@ WITH_COAPSERVER?=0
 WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
+WITH_LLSEC?=0
 
 # UDP client configuration
 
@@ -89,6 +90,11 @@ endif
 
 ifneq ($(WITH_UDP_CLIENT_AUTOSTART),0)
 CFLAGS += -DUDP_CLIENT_AUTOSTART=1
+endif
+
+ifneq ($(WITH_LLSEC),0)
+CFLAGS += -DWITH_LLSEC=1
+MODULES += core/net/llsec/noncoresec
 endif
 
 ifneq ($(WITH_TINYDTLS), 0)
