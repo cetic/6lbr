@@ -138,6 +138,8 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->security_layer = CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER;
     nvm_data->security_level = CETIC_6LBR_NVM_DEFAULT_SECURITY_LEVEL;
+    uint8_t key[16] = CETIC_6LBR_NVM_DEFAULT_SECURITY_KEY;
+    memcpy(nvm_data->noncoresec_key, key, sizeof(key));
 
     nvm_data->pan_id = CETIC_6LBR_NVM_DEFAULT_PANID;
 
