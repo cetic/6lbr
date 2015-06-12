@@ -24,21 +24,21 @@ disjoint_dag=0
 
 mote_types = []
 
-mote_type_slipradio = {	'shortname':'slipradio', 
+mote_type_slipradio = {	'target': 'sky', 'shortname':'slipradio', 
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
 			'maketarget':'slip-radio', 
 			'makeargs':'', 
 			'description':"6LBR Slip Radio",
 			'serial':'socket' }
 
-mote_type_6lbrdemo_delay = {	'shortname':'node_delay', 
+mote_type_6lbrdemo_delay = { 'target': 'cooja', 'shortname':'node_delay', 
 				'fw_folder':'[CONTIKI_DIR]/examples/6lbr/test/coojagen/firmwares/6lbr-demo-delay', 
 				'maketarget':'6lbr-demo', 
 				'makeargs':'', 
 				'description':"6LBR Demo with delay",
 				'serial':'pty' }
 
-mote_type_6lbrdemo = {	'shortname':'node', 
+mote_type_6lbrdemo = { 'target': 'cooja', 'shortname':'node', 
 			'fw_folder':'[CONTIKI_DIR]/examples/6lbr/test/coojagen/firmwares/6lbr-demo', 
 			'maketarget':'6lbr-demo', 
 			'makeargs':'', 

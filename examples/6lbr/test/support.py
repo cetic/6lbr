@@ -424,7 +424,7 @@ class CoojaWsn(Wsn):
             if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote(self)
-                newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
+                newmote.setId(elems[-1].rstrip(), int(elems[-2]))
                 self.motelist.append(newmote)
             line = self.cooja.stdout.readline()
         print >> sys.stderr, "Cooja simulation started"
@@ -441,13 +441,16 @@ class CoojaWsn(Wsn):
                 line = line.rstrip()
                 parts = line.split(';')
                 nodeid = parts[0]
+                mote=self.get_mote(nodeid)
                 if parts[1] == 'slipradio':
                     self.add_slip_mote(nodeid)
                 if parts[1] == 'node_delay':
                     self.add_test_mote(nodeid)
-                if len(parts) > 2:
+                if mote is not None:
+                    mote.setTarget(parts[2])
+                if len(parts) > 3:
                     #The node has some mobility data attached, parse it
-                    for xy in parts[2:]:
+                    for xy in parts[3:]:
                         xy = xy.rstrip().split(',')
                         self.get_mote(nodeid).add_mobility_point(float(xy[0]), float(xy[1]))
                         print >> sys.stderr, "Adding mobility, point %f,%f to node %s" % (float(xy[0]), float(xy[1]), nodeid)
@@ -846,17 +849,23 @@ class VirtualTelosMote(MoteProxy):
 	        parity = serial.PARITY_NONE,
 	        timeout = 1)
         self.serialport.close()
-        self.reset_mote()
+        #self.reset_mote()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
         self.serialport=None
 
-    def setInfo(self, mote_dev, mote_id):
+    def setId(self, mote_dev, mote_id):
         self.mote_dev = mote_dev
         self.mote_id = mote_id
-        hex_mote_id = "%02x" % int(mote_id)
-        self.ip = self.wsn.create_address( '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id )
+
+    def setTarget(self, target):
+        self.target = target
+        hex_mote_id = "%02x" % int(self.mote_id)
+        if self.target == 'sky':
+            self.ip = self.wsn.create_address( '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id )
+        else:
+            self.ip = self.wsn.create_address( '02' + hex_mote_id +':' + hex_mote_id + ':' + hex_mote_id + ':' + hex_mote_id )
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -887,8 +896,9 @@ class VirtualTelosMote(MoteProxy):
         return ret
 
     def stop_mote(self):
-        print >> sys.stderr, "Stopping mote %d..." % self.mote_id
-        return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
+        #print >> sys.stderr, "Stopping mote %d..." % self.mote_id
+        #return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
+        return True
 
     def ping(self, address, expect_reply=False, count=0):
         print "Ping %s..." % address

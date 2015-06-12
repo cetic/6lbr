@@ -45,7 +45,7 @@
 #include "linked-batch-resource.h"
 #include "binding-table-resource.h"
 
-COAP_BINDING(device_model_sw, device_model_sw);
+REST_RES_DEVICE_DEFINE();
 
 PROCESS(coap_server_process, "Coap Server");
 
