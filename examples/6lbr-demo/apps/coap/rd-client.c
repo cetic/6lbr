@@ -53,6 +53,8 @@
 
 PROCESS(rd_client_process, "RD Client");
 
+static char const * resources_list = ",";
+
 static uip_ipaddr_t rd_server_ipaddr;
 
 #define REGISTRATION_NAME_MAX_SIZE 64
@@ -69,9 +71,8 @@ client_registration_response_handler(void *response)
     const char *str=NULL;
     int len = coap_get_header_location_path(response, &str);
     if(len > 0) {
-      registration_name[0] = '/';
-      memcpy(registration_name+1, str, len);
-      registration_name[len+1] = '\0';
+      memcpy(registration_name, str, len);
+      registration_name[len] = '\0';
       PRINTF("Registration name: %s\n", registration_name);
       registered = 1;
     } else {
@@ -97,27 +98,35 @@ PROCESS_THREAD(rd_client_process, ev, data)
 {
   static struct etimer et;
   static coap_packet_t request[1];      /* This way the packet can be treated as pointer as usual. */
+  static char query_buffer[200];
+  static char rd_client_name[64];
 
   PROCESS_BEGIN();
+  PROCESS_PAUSE();
   PRINTF("RD client started\n");
+  sprintf(rd_client_name, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+      uip_lladdr.addr[0], uip_lladdr.addr[1], uip_lladdr.addr[2], uip_lladdr.addr[3],
+      uip_lladdr.addr[4], uip_lladdr.addr[5], uip_lladdr.addr[6], uip_lladdr.addr[7]);
   SERVER_NODE(&rd_server_ipaddr);
   while(1) {
     while(!registered) {
       coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
-      coap_set_header_uri_path(request, "/rd");
-      coap_set_header_uri_query(request, "?ep=test&b=U&lt=60");
-      static const char msg[] = "";
-      coap_set_payload(request, (uint8_t *) msg, sizeof(msg) - 1);
+      coap_set_header_uri_path(request, "rd");
+      sprintf(query_buffer, "ep=%s&b=U&lt=%d", rd_client_name, RD_CLIENT_LIFETIME);
+      coap_set_header_uri_query(request, query_buffer);
+      printf("Register with %s\n", resources_list);
+      coap_set_payload(request, (uint8_t *) resources_list, strlen(resources_list) - 1);
 
       COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(COAP_DEFAULT_PORT), request, client_registration_response_handler);
     }
-    etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND);
+    etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
 
     registered = 0;
     coap_init_message(request, COAP_TYPE_CON, COAP_PUT, 0);
     coap_set_header_uri_path(request, registration_name);
-    coap_set_header_uri_query(request, "?b=U&lt=60");
+    sprintf(query_buffer, "b=U&lt=%d", RD_CLIENT_LIFETIME);
+    coap_set_header_uri_query(request, query_buffer);
 
     COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(COAP_DEFAULT_PORT), request, client_update_response_handler);
   }
@@ -129,5 +138,11 @@ void
 rd_client_init(void)
 {
   process_start(&rd_client_process, NULL);
+}
+/*---------------------------------------------------------------------------*/
+void
+rd_client_set_resources_list(char const * new_list)
+{
+  resources_list = new_list;
 }
 /*---------------------------------------------------------------------------*/

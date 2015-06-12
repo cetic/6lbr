@@ -44,9 +44,12 @@
 #define RD_CLIENT_ENABLED 1
 #endif
 
-#define RD_CLIENT_LIFETIME 6
+#define RD_CLIENT_LIFETIME 60
 
 void
 rd_client_init();
+
+void
+rd_client_set_resources_list(char const * resources_list);
 
 #endif /* RD_CLIENT_H_ */
