@@ -13,7 +13,7 @@ PLUGINS=${shell cd plugins  && find * -type d -prune}
 PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
 PLUGINS_FILES=${patsubst plugins/%, obj_$(TARGET)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
 
-PROJECTDIRS += platform/native
+PROJECTDIRS += $(6LBR)/platform/native
 
 PROJECTDIRS += $(PLUGINS_DIRS)
 

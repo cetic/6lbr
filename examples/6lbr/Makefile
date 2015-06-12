@@ -13,11 +13,13 @@ $(CONTIKI_PROJECT):
 
 CONTIKI_WITH_IPV6 = 1
 
-CONTIKI = ../..
+6LBR?=.
 
-APPDIRS = apps
+CONTIKI = $(6LBR)/../..
 
-PROJECTDIRS += 6lbr apps/coapserver ../6lbr-demo/apps/udp-client ../6lbr-demo/apps/coap ../6lbr-demo/apps/coap/rest-types
+APPDIRS = $(6LBR)/apps
+
+PROJECTDIRS += $(6LBR) $(6LBR)/6lbr $(6LBR)/apps/coapserver $(6LBR)/../6lbr-demo/apps/udp-client $(6LBR)/../6lbr-demo/apps/coap $(6LBR)/../6lbr-demo/apps/coap/rest-types
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
@@ -25,7 +27,7 @@ ifeq ($(TARGET),)
 TARGET=native
 endif
 
--include platform/$(TARGET)/Makefile.$(TARGET)
+-include $(6LBR)/platform/$(TARGET)/Makefile.$(TARGET)
 ifneq ("$(wildcard platform/$(TARGET)/6lbr-conf-$(TARGET).h)","")
 CFLAGS+=-DCETIC_6LBR_PLATFORM_CONF=\"6lbr-conf-$(TARGET).h\"
 endif
