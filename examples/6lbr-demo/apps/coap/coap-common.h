@@ -82,6 +82,14 @@ extern unsigned long coap_batch_basetime;
 
 /*---------------------------------------------------------------------------*/
 
+#define REST_PARSE_EMPTY(payload, len, actuator_set) {\
+  if(len==0) {\
+    success = actuator_set(); \
+  } else {\
+    printf("len: %d\n", len); \
+  } \
+}
+
 #define REST_PARSE_ONE_INT(payload, len, actuator_set) { \
   char * endstr; \
   int value = strtol((char const *)payload, &endstr, 10); \
@@ -138,12 +146,19 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     const uint8_t * payload; \
     int success = 0; \
     size_t len = REST.get_request_payload(request, &payload); \
-    if (len) { \
-      parser(payload, len, actuator_set); \
-    } \
-    if (!success) { \
-      REST.set_response_status(response, REST.status.BAD_REQUEST); \
-    } \
+    parser(payload, len, actuator_set); \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
+  }
+
+#define REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator_set) \
+  void \
+  resource_##resource_name##_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t * payload; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    parser(payload, len, actuator_set); \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
   }
 
 #define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
@@ -172,6 +187,11 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
+
+#define REST_EXEC(resource_name, ignore, resource_if, resource_type, parser, actuator) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator) \
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), NULL, resource_##resource_name##_post_handler, NULL, NULL);
 
 #define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
