@@ -31,8 +31,8 @@ endif
 
 ### Compilation rules
 
-%.so: $(OBJECTDIR)/%.o
-	$(LD) -shared -o $@ $^
+#%.so: $(OBJECTDIR)/%.o
+#	$(LD) -shared -o $@ $^
 
 ifdef CORE
 .PHONY: symbols.c symbols.h
