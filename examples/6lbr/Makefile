@@ -79,10 +79,11 @@ CFLAGS += -DREST=coap_rest_implementation
 APPS += er-coap
 APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c block-transfer.c \
-	device-resource.c config-stack-resource.c \
 	coap-common.c core-interface.c binding-table-resource.c \
 	linked-batch-resource.c coap-push.c coap-binding.c coap-linked-batch.c \
 	rd-client.c \
+	lwm2m-device-object.c lwm2m.c \
+#	device-resource.c config-stack-resource.c \
 	button-resource.c
 endif
 

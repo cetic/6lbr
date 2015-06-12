@@ -46,10 +46,10 @@
 #include "config-stack-resource.h"
 #include "linked-batch-resource.h"
 #include "binding-table-resource.h"
+#include "lwm2m.h"
 
 REST_RES_BUTTON_DEFINE();
 REST_RES_DEVICE_DEFINE();
-COAP_BINDING(device_model_sw, device_model_sw);
 
 PROCESS(coap_server_process, "Coap Server");
 
@@ -64,9 +64,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
 #if RD_CLIENT_ENABLED
   rd_client_init();
 #endif
-  REST_RES_BUTTON_INIT();
-  REST_RES_DEVICE_INIT();
-  REST_RES_CONFIG_STACK_INIT();
+  //REST_RES_BUTTON_INIT();
+  //REST_RES_DEVICE_INIT();
+  //REST_RES_CONFIG_STACK_INIT();
+  lwm2m_init();
 
   /* Linked batch and binding tables must be initialized after all the resources */
   REST_RES_BINDING_TABLE_INIT();
