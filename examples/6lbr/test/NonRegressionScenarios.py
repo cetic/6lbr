@@ -96,7 +96,7 @@ class NonRegressionScenarios(base.TestScenarios):
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @skipUnlessTrue("S5")
+    @unittest.skip("Not working on coojamote (and not really useful test")
     def test_S5_disconnect_mote(self):
         """
         Ping disconnected mote.
