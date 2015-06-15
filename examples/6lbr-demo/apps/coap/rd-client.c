@@ -47,6 +47,7 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 
 #define DEBUG 1
 #include "net/ip/uip-debug.h"
@@ -60,7 +61,11 @@ static uip_ipaddr_t rd_server_ipaddr;
 #define REGISTRATION_NAME_MAX_SIZE 64
 static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
 
-#define SERVER_NODE(ipaddr)   uip_ip6addr(ipaddr, 0xbbbb, 0, 0, 0, 0xa, 0xbff, 0xfe0c, 0xd0e)
+#ifdef RD_CLIENT_CONF_SERVER_ADDR
+#define RD_CLIENT_SERVER_ADDR(ipaddr) RD_CLIENT_CONF_SERVER_ADDR(ipaddr)
+#else
+#define RD_CLIENT_SERVER_ADDR(ipaddr)   uip_ip6addr(ipaddr, 0xbbbb, 0, 0, 0, 0xa, 0xbff, 0xfe0c, 0xd0e)
+#endif
 
 static uint8_t registered = 0;
 /*---------------------------------------------------------------------------*/
@@ -107,14 +112,18 @@ PROCESS_THREAD(rd_client_process, ev, data)
   sprintf(rd_client_name, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
       uip_lladdr.addr[0], uip_lladdr.addr[1], uip_lladdr.addr[2], uip_lladdr.addr[3],
       uip_lladdr.addr[4], uip_lladdr.addr[5], uip_lladdr.addr[6], uip_lladdr.addr[7]);
-  SERVER_NODE(&rd_server_ipaddr);
   while(1) {
+    while(uip_is_addr_unspecified(&rd_server_ipaddr)) {
+      PROCESS_YIELD();
+    }
     while(!registered) {
+      PRINTF("Registering to ");
+      PRINT6ADDR(&rd_server_ipaddr);
+      PRINTF(" with %s\n", resources_list);
       coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
       coap_set_header_uri_path(request, "rd");
       sprintf(query_buffer, "ep=%s&b=U&lt=%d", rd_client_name, RD_CLIENT_LIFETIME);
       coap_set_header_uri_query(request, query_buffer);
-      printf("Register with %s\n", resources_list);
       coap_set_payload(request, (uint8_t *) resources_list, strlen(resources_list) - 1);
 
       COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(COAP_DEFAULT_PORT), request, client_registration_response_handler);
@@ -122,6 +131,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
     etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
 
+    PRINTF("Update endpoint %s\n", registration_name);
     registered = 0;
     coap_init_message(request, COAP_TYPE_CON, COAP_PUT, 0);
     coap_set_header_uri_path(request, registration_name);
@@ -137,7 +147,15 @@ PROCESS_THREAD(rd_client_process, ev, data)
 void
 rd_client_init(void)
 {
+  RD_CLIENT_SERVER_ADDR(&rd_server_ipaddr);
   process_start(&rd_client_process, NULL);
+}
+/*---------------------------------------------------------------------------*/
+void
+rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr)
+{
+  uip_ipaddr_copy(&rd_server_ipaddr, new_rd_server_ipaddr);
+  process_poll(&rd_client_process);
 }
 /*---------------------------------------------------------------------------*/
 void

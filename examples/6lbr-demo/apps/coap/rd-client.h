@@ -37,6 +37,7 @@
 #define RD_CLIENT_H_
 
 #include "contiki.h"
+#include "contiki-net.h"
 
 #ifdef RD_CLIENT_CONF_ENABLED
 #define RD_CLIENT_ENABLED RD_CLIENT_CONF_ENABLED
@@ -48,6 +49,9 @@
 
 void
 rd_client_init();
+
+void
+rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr);
 
 void
 rd_client_set_resources_list(char const * resources_list);
