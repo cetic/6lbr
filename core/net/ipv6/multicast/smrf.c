@@ -81,10 +81,7 @@ mcast_fwd(void *p)
   uip_len = mcast_len;
   UIP_IP_BUF->ttl--;
   tcpip_output(NULL);
-  uip_len = 0;
-#if NETSTACK_CONF_WITH_IPV6
-  uip_ext_len = 0;
-#endif /*NETSTACK_CONF_WITH_IPV6*/
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
