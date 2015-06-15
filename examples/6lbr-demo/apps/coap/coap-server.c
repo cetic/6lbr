@@ -52,6 +52,8 @@
 #include "linked-batch-resource.h"
 #include "binding-table-resource.h"
 
+#include "rd-client.h"
+
 #define DEBUG 0
 #include "uip-debug.h"
 
@@ -78,6 +80,9 @@ PROCESS_THREAD(coap_server_process, ev, data)
   rest_init_engine();
 #if COAP_PUSH_ENABLED
   coap_push_init();
+#endif
+#if RD_CLIENT_ENABLED
+  rd_client_init();
 #endif
 
   //Init all resources
