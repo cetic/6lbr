@@ -45,6 +45,7 @@
 //#define REST_TYPE_APPLICATION_XML
 //#define REST_TYPE_APPLICATION_JSON
 //#define REST_TYPE_APPLICATION_SENML_PLUS_JSON
+#define REST_TYPE_SENML_CONF_TIMESTAMP 1
 
 /*------------------------------------------------------------------*/
 /* Mode selection                                                   */
@@ -86,8 +87,6 @@
 
 // Avoid 6lowpan fragmentation
 #define REST_MAX_CHUNK_SIZE                 64
-
-#define REST_TYPE_SENML_CONF_TIMESTAMP 1
 
 // RPL DODAG is by default grounded
 #define RPL_CONF_GROUNDED 1

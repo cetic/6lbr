@@ -48,7 +48,6 @@
 #include "binding-table-resource.h"
 #include "lwm2m.h"
 
-REST_RES_BUTTON_DEFINE();
 REST_RES_DEVICE_DEFINE();
 
 PROCESS(coap_server_process, "Coap Server");
@@ -64,7 +63,6 @@ PROCESS_THREAD(coap_server_process, ev, data)
 #if RD_CLIENT_ENABLED
   rd_client_init();
 #endif
-  //REST_RES_BUTTON_INIT();
   //REST_RES_DEVICE_INIT();
   //REST_RES_CONFIG_STACK_INIT();
   lwm2m_init();

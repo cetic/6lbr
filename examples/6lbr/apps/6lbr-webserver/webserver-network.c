@@ -259,7 +259,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");
-    struct ip64_addrmap_entry *m = NULL;
+    static struct ip64_addrmap_entry *m;
     for(m = ip64_addrmap_list();
         m != NULL;
         m = list_item_next(m)) {
