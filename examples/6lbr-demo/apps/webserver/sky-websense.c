@@ -40,8 +40,10 @@
 
 #include "contiki.h"
 #include "httpd-simple.h"
+#if CONTIKI_TARGET_SKY
 #include "dev/sht11/sht11-sensor.h"
 #include "dev/light-sensor.h"
+#endif
 #include "dev/leds.h"
 #include <stdio.h>
 
@@ -53,6 +55,7 @@ static int temperature[HISTORY];
 static int light1[HISTORY];
 static int sensors_pos;
 
+#if CONTIKI_TARGET_SKY
 /*---------------------------------------------------------------------------*/
 static int
 get_light(void)
@@ -66,6 +69,7 @@ get_temp(void)
   return ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
 }
 /*---------------------------------------------------------------------------*/
+#endif
 static const char *TOP = "<html><head><title>Contiki Web Sense</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
 /*---------------------------------------------------------------------------*/
@@ -102,12 +106,14 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
-    ADD("<h1>Current readings</h1>\n"
+    ADD("<h1>Websense</h1>\n");
+#if CONTIKI_TARGET_SKY
+    ADD("<h2>Current readings</h2>\n"
         "Light: %u<br>"
         "Temperature: %u&deg; C",
         get_light(), get_temp());
+#endif
     SEND_STRING(&s->sout, buf);
-
   } else if(s->filename[1] == '0') {
     /* Turn off leds */
     leds_off(LEDS_ALL);
@@ -119,6 +125,7 @@ PT_THREAD(send_values(struct httpd_state *s))
     SEND_STRING(&s->sout, "Turned on leds!");
 
   } else {
+#if CONTIKI_TARGET_SKY
     if(s->filename[1] != 't') {
       generate_chart("Light", "Light", 0, 500, light1);
       SEND_STRING(&s->sout, buf);
@@ -127,6 +134,7 @@ PT_THREAD(send_values(struct httpd_state *s))
       generate_chart("Temperature", "Celsius", 15, 50, temperature);
       SEND_STRING(&s->sout, buf);
     }
+#endif
   }
 
   SEND_STRING(&s->sout, BOTTOM);
@@ -148,16 +156,20 @@ PROCESS_THREAD(web_sense_process, ev, data)
   sensors_pos = 0;
 
   etimer_set(&timer, CLOCK_SECOND * 2);
+#if CONTIKI_TARGET_SKY
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(sht11_sensor);
+#endif
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
     etimer_reset(&timer);
 
+#if CONTIKI_TARGET_SKY
     light1[sensors_pos] = get_light();;
     temperature[sensors_pos] = get_temp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
+#endif
   }
 
   PROCESS_END();
