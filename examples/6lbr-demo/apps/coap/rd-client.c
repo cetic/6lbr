@@ -64,7 +64,8 @@ static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
 #ifdef RD_CLIENT_CONF_SERVER_ADDR
 #define RD_CLIENT_SERVER_ADDR(ipaddr) RD_CLIENT_CONF_SERVER_ADDR(ipaddr)
 #else
-#define RD_CLIENT_SERVER_ADDR(ipaddr)   uip_ip6addr(ipaddr, 0xbbbb, 0, 0, 0, 0xa, 0xbff, 0xfe0c, 0xd0e)
+#define RD_CLIENT_SERVER_ADDR(ipaddr)   uip_create_unspecified(ipaddr)
+//uip_ip6addr(ipaddr, 0xbbbb, 0, 0, 0, 0xa, 0xbff, 0xfe0c, 0xd0e)
 #endif
 
 static uint8_t registered = 0;
