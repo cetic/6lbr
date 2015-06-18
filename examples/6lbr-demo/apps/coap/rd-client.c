@@ -118,6 +118,8 @@ PROCESS_THREAD(rd_client_process, ev, data)
       PROCESS_YIELD();
     }
     while(!registered) {
+      etimer_set(&et, CLOCK_SECOND);
+      PROCESS_YIELD_UNTIL(etimer_expired(&et));
       PRINTF("Registering to ");
       PRINT6ADDR(&rd_server_ipaddr);
       PRINTF(" with %s\n", resources_list);
