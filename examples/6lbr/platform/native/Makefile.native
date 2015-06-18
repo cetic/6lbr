@@ -117,18 +117,19 @@ endif
 plugins: $(PLUGINS_FILES)
 
 ifeq ($(HOST_OS),Darwin)
-PLUGIN_LDFLAGS=-dynamiclib -Wl,-undefined,dynamic_lookup
+PLUGIN_LDFLAGS+=-dynamiclib -Wl,-undefined,dynamic_lookup
 else
-PLUGIN_LDFLAGS=-shared
+PLUGIN_LDFLAGS+=-shared
 CFLAGS+=-fPIC
 TARGET_LIBFILES+=-ldl
 endif
 
-%.so: obj_$(TARGET)/%.o
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
+PLUGIN_OBJS=$(patsubst %.c, obj_$(TARGET)/%.o, $(PLUGIN_SOURCEFILES))
+%.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
 
-obj_$(TARGET)/%.so: obj_$(TARGET)/%.o
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $<
+obj_$(TARGET)/%.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
 
 CLEAN += *.so obj_$(TARGET)/*.so
 
