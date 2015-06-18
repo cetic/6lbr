@@ -14,6 +14,7 @@ WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
+WITH_TCP?=0
 
 # UDP client configuration
 
@@ -67,14 +68,12 @@ endif
 ifneq ($(WITH_WEBSERVER),0)
 CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
+WITH_TCP=1
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
 CFLAGS += -DWITH_COAPSERVER=1
 CFLAGS += -DREST=coap_rest_implementation
-ifneq ($(TARGET),native)
-CFLAGS += -DUIP_CONF_TCP=0
-endif
 APPS += er-coap
 APPS += rest-engine
 PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
@@ -82,6 +81,10 @@ PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c l
 	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
 	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c \
 	coap-binding.c coap-linked-batch.c rd-client.c
+endif
+
+ifneq ($(WITH_TCP),1)
+CFLAGS += -DUIP_CONF_TCP=0
 endif
 
 ifneq ($(UDP_PERIOD),)
