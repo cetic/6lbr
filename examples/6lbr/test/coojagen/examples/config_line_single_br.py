@@ -20,7 +20,7 @@ multi_br=0
 
 mote_types = []
 
-mote_type_slipradio = {	'target': 'sky', 'shortname':'slipradio', 
+mote_type_slipradio = {	'target': 'cooja', 'shortname':'slipradio',
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
 			'maketarget':'slip-radio', 
 			'makeargs':'', 
