@@ -51,6 +51,8 @@
 
 #define w_memcpy memcpy
 
+#define SLIP_RADIO_CONF_NO_PUTCHAR 1
+
 #if NETSTACK_CONF_WITH_IPV4
 #if NETSTACK_CONF_WITH_IPV6
 #error NETSTACK_CONF_WITH_IPV4 && NETSTACK_CONF_WITH_IPV6: Bad configuration
