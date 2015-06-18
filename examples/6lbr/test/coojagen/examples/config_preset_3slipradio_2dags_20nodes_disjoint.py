@@ -16,7 +16,7 @@ interactive_mobility = {'-1':[[55,37],[-37,51]]}
 #assignment: all nodes except first 2 which are slip-radios and the last one which is an interactive mote (id: 23)
 assignment = {'all':'node', '0':'slipradio', '1':'slipradio', '2':'slipradio', '-1':'node_delay'}
 
-mote_type_slipradio = {	'target': 'sky', 'shortname':'slipradio', 
+mote_type_slipradio = {	'target': 'cooja', 'shortname':'slipradio',
 			'fw_folder':'[CONTIKI_DIR]/examples/ipv6/slip-radio/', 
 			'maketarget':'slip-radio', 
 			'makeargs':'', 
