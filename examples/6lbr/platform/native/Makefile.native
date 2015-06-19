@@ -124,6 +124,15 @@ CFLAGS+=-fPIC
 TARGET_LIBFILES+=-ldl
 endif
 
+ifndef RELSTR
+RELSTR:=${shell git --git-dir ${CONTIKI}/.git describe --tags --always}
+endif
+ifneq ($(RELSTR),)
+CFLAGS += -DPLUGIN_VERSION_STRING=\"$(RELSTR)\"
+else
+CFLAGS += -DPLUGIN_VERSION_STRING=\"Unknown\"
+endif
+
 PLUGIN_OBJS=$(patsubst %.c, obj_$(TARGET)/%.o, $(PLUGIN_SOURCEFILES))
 %.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
