@@ -51,7 +51,7 @@ void
 rd_client_init();
 
 void
-rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr);
+rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr, uint16_t port);
 
 void
 rd_client_set_resources_list(char const * resources_list);

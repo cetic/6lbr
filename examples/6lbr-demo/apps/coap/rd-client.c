@@ -57,6 +57,7 @@ PROCESS(rd_client_process, "RD Client");
 static char const * resources_list = ",";
 
 static uip_ipaddr_t rd_server_ipaddr;
+static uint16_t rd_server_port;
 
 #define REGISTRATION_NAME_MAX_SIZE 64
 static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
@@ -66,6 +67,12 @@ static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
 #else
 #define RD_CLIENT_SERVER_ADDR(ipaddr)   uip_create_unspecified(ipaddr)
 //uip_ip6addr(ipaddr, 0xbbbb, 0, 0, 0, 0xa, 0xbff, 0xfe0c, 0xd0e)
+#endif
+
+#ifdef RD_CLIENT_CONF_SERVER_PORT
+#define RD_CLIENT_SERVER_PORT RD_CLIENT_CONF_SERVER_PORT
+#else
+#define RD_CLIENT_SERVER_PORT COAP_DEFAULT_PORT
 #endif
 
 static uint8_t registered = 0;
@@ -122,14 +129,14 @@ PROCESS_THREAD(rd_client_process, ev, data)
       PROCESS_YIELD_UNTIL(etimer_expired(&et));
       PRINTF("Registering to ");
       PRINT6ADDR(&rd_server_ipaddr);
-      PRINTF(" with %s\n", resources_list);
+      PRINTF(" %d with %s\n", rd_server_port, resources_list);
       coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
       coap_set_header_uri_path(request, "rd");
       sprintf(query_buffer, "ep=%s&b=U&lt=%d", rd_client_name, RD_CLIENT_LIFETIME);
       coap_set_header_uri_query(request, query_buffer);
       coap_set_payload(request, (uint8_t *) resources_list, strlen(resources_list) - 1);
 
-      COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(COAP_DEFAULT_PORT), request, client_registration_response_handler);
+      COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_registration_response_handler);
     }
     etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
@@ -141,7 +148,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
     sprintf(query_buffer, "b=U&lt=%d", RD_CLIENT_LIFETIME);
     coap_set_header_uri_query(request, query_buffer);
 
-    COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(COAP_DEFAULT_PORT), request, client_update_response_handler);
+    COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_update_response_handler);
   }
 
   PROCESS_END();
@@ -151,13 +158,15 @@ void
 rd_client_init(void)
 {
   RD_CLIENT_SERVER_ADDR(&rd_server_ipaddr);
+  rd_server_port = RD_CLIENT_SERVER_PORT;
   process_start(&rd_client_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
-rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr)
+rd_client_set_rd_address(uip_ipaddr_t const *ipaddr, uint16_t port)
 {
-  uip_ipaddr_copy(&rd_server_ipaddr, new_rd_server_ipaddr);
+  uip_ipaddr_copy(&rd_server_ipaddr, ipaddr);
+  rd_server_port = port;
   process_poll(&rd_client_process);
 }
 /*---------------------------------------------------------------------------*/
