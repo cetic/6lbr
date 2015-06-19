@@ -13,6 +13,10 @@ PLUGINS=${shell test -e plugins && cd plugins  && find * -type d -prune}
 PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
 PLUGINS_FILES=${patsubst plugins/%, obj_$(TARGET)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
 
+ifneq ($(6LBR_PLUGIN),)
+CFLAGS+=-DCETIC_6LBR_PLUGIN
+endif
+
 PROJECTDIRS += $(6LBR)/platform/native
 
 PROJECTDIRS += $(PLUGINS_DIRS)
@@ -24,6 +28,7 @@ PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.
 CONF=WITH_UDPCLIENT=0
 CONF_6LR=WITH_UDPSERVER=0
 
+ifeq ($(6LBR_PLUGIN),)
 bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
 	mkdir -p bin
@@ -76,6 +81,12 @@ all:
 	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
+
+else
+
+all: $(6LBR_PLUGIN)
+
+endif
 
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
@@ -133,10 +144,16 @@ else
 CFLAGS += -DPLUGIN_VERSION_STRING=\"Unknown\"
 endif
 
-PLUGIN_OBJS=$(patsubst %.c, obj_$(TARGET)/%.o, $(PLUGIN_SOURCEFILES))
-%.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
+APPS+=$(PLUGIN_APPS)
+PLUGIN_SOURCEFILES+=${foreach APP, $(PLUGIN_APPS), $($(APP)_src)}
+oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
+PLUGIN_OBJS=${addprefix obj_$(TARGET)/,${call oname, $(PLUGIN_SOURCEFILES)}}
+
+.SECONDEXPANSION:
+%.so: obj_$(TARGET)/%.o $$(PLUGIN_OBJS)
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
 
+.SECONDEXPANSION:
 obj_$(TARGET)/%.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
 
