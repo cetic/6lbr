@@ -9,8 +9,6 @@ CETIC_6LBR_6LR=0
 CETIC_6LBR_ONE_ITF=0
 CETIC_6LBR_LEARN_RPL_MAC=1
 
-$(CONTIKI_PROJECT):
-
 CONTIKI_WITH_IPV6 = 1
 
 6LBR?=.
@@ -25,6 +23,10 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 ifeq ($(TARGET),)
 TARGET=native
+endif
+
+ifeq ($(6LBR_PLUGIN),)
+$(CONTIKI_PROJECT):
 endif
 
 -include $(6LBR)/platform/$(TARGET)/Makefile.$(TARGET)
