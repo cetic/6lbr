@@ -42,6 +42,7 @@
 #include "webserver-utils.h"
 
 #if CONTIKI_TARGET_NATIVE
+#include "plugin.h"
 #include "native-rdc.h"
 #endif
 
@@ -134,14 +135,55 @@ webserver_admin_halt(struct httpd_state *s)
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
   return &webserver_result_page;
 }
+
+static
+PT_THREAD(generate_plugins(struct httpd_state *s))
+{
+  static sixlbr_plugin_info_t const *info;
+  PSOCK_BEGIN(&s->sout);
+
+  add("<h2>Plugins</h2>");
+  add
+    ("<table>"
+     "<theader><tr class=\"row_first\"><td>Plugin ID</td><td>Description</td><td>Status</td><td>Version</td><td>Init</td><td>Status</td></tr></theader>"
+     "<tbody>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  info = plugins_list_head();
+  while(info != NULL) {
+    add("<tr><td>%s</td><td>%s</td>", info->plugin->id, info->plugin->description);
+    if(info->status == 0) {
+      add("<td>Loaded</td><td>%s</td><td>%s</td><td>%s</td></tr>",
+          info->plugin->version ? info->plugin->version() : "Unknown",
+          info->init_status == 0 ? "Successful" : "Failed",
+          info->plugin->status ? info->plugin->status() : "Unknown");
+    } else {
+      add("<td>Not loaded</td><td></td><td></td><td></td></tr>");
+    }
+    info = info->next;
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
+  }
+  add("</tbody></table><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PSOCK_END(&s->sout);
+}
+
 #endif
 
-HTTPD_CGI_CALL(webserver_admin, "admin.html", "Administration", generate_admin, 0);
-HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);
 #if CONTIKI_TARGET_NATIVE
+httpd_cgi_call_t * admin_group[];
+HTTPD_CGI_CALL_GROUP(webserver_admin, "admin.html", "Administration", generate_admin, 0, admin_group);
+HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);
 #if !CETIC_6LBR_ONE_ITF
 HTTPD_CGI_CMD(webserver_admin_reset_slip_radio_cmd, "reset-sr", webserver_admin_reset_slip_radio, 0);
 #endif
 HTTPD_CGI_CMD(webserver_admin_reboot_cmd, "reboot", webserver_admin_reboot, 0);
 HTTPD_CGI_CMD(webserver_admin_halt_cmd, "halt", webserver_admin_halt, 0);
+HTTPD_CGI_CALL_GROUP(webserver_plugins, "plugins.html", "Plugins", generate_plugins, WEBSERVER_NOMENU, admin_group);
+httpd_cgi_call_t * admin_group[] = {&webserver_admin, &webserver_plugins, NULL};
+#else
+HTTPD_CGI_CALL(webserver_admin, "admin.html", "Administration", generate_admin, 0);
+HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);
 #endif
