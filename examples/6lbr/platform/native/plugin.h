@@ -37,17 +37,32 @@
 #ifndef PLUGIN_H_
 #define PLUGIN_H_
 
+#include "contiki.h"
+
 struct _sixlbr_plugin {
   int32_t api_version;
   char const *  id;
   char const * description;
   int (*init)(void);
+  char const * (*status)(void);
+  char const * (*version)(void);
 };
 
 typedef struct _sixlbr_plugin sixlbr_plugin_t;
 
-#define SIXLBR_PLUGIN_API_VERSION 1
+struct _sixlbr_plugin_info {
+  struct _sixlbr_plugin_info *next;
+  sixlbr_plugin_t * plugin;
+  int status;
+  int init_status;
+};
+typedef struct _sixlbr_plugin_info sixlbr_plugin_info_t;
+
+#define SIXLBR_PLUGIN_API_VERSION 2
 
 void plugins_load();
+
+sixlbr_plugin_info_t *
+plugins_list_head(void);
 
 #endif

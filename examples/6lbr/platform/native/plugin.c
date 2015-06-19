@@ -37,6 +37,7 @@
 #define LOG6LBR_MODULE "PLUGIN"
 
 #include "contiki.h"
+#include "contiki-lib.h"
 
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -48,11 +49,14 @@
 #include "slip-config.h"
 #include "plugin.h"
 
+LIST(sixlbr_plugins);
+
 static void
 plugin_load(char const * plugin_file) {
   void *handle;
   const char *error;
   sixlbr_plugin_t *plugin_descriptor;
+  sixlbr_plugin_info_t *plugin_info;
 
   LOG6LBR_INFO("Loading %s\n", plugin_file);
   handle = dlopen(plugin_file, RTLD_NOW);
@@ -67,20 +71,29 @@ plugin_load(char const * plugin_file) {
     LOG6LBR_ERROR("Plugin descriptor not found in %s\n", plugin_file);
     return;
   }
+  plugin_info = (sixlbr_plugin_info_t *)malloc(sizeof(sixlbr_plugin_info_t));
+  plugin_info->plugin = plugin_descriptor;
+  list_add(sixlbr_plugins, plugin_info);
+
   if (plugin_descriptor->api_version < SIXLBR_PLUGIN_API_VERSION) {
     LOG6LBR_ERROR("Plugin %s use an obsolete api\n", plugin_file);
+    plugin_info->status = -1;
     return;
   }
+  plugin_info->status = 0;
   LOG6LBR_INFO("Initialising %s\n", plugin_descriptor->id);
   int result = plugin_descriptor->init();
   if (result != 0) {
     LOG6LBR_ERROR("Initialisation failed, error code is %d\n", result);
   }
+  plugin_info->init_status = result;
 }
 
 void plugins_load() {
   DIR *dirp;
   struct dirent *dp;
+
+  list_init(sixlbr_plugins);
 
   if (slip_config_plugins == NULL) return;
 
@@ -107,4 +120,10 @@ void plugins_load() {
     LOG6LBR_ERROR("error reading directory: %s", strerror(errno));
   }
   closedir(dirp);
+}
+
+sixlbr_plugin_info_t *
+plugins_list_head(void)
+{
+  return (sixlbr_plugin_info_t *)list_head(sixlbr_plugins);
 }
