@@ -31,6 +31,9 @@
 #if WITH_NVM
 #include "nvm-config.h"
 #endif
+#if WITH_COAPSERVER
+#include "coap-server.h"
+#endif
 
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
@@ -40,9 +43,6 @@ PROCESS_NAME(webserver_nogui_process);
 #endif
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
-#endif
-#if WITH_COAPSERVER
-PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -63,7 +63,7 @@ start_apps(void)
 #endif
 
 #if WITH_COAPSERVER
-  process_start(&coap_server_process, NULL);
+  coap_server_init();
 #endif
 
 #if WITH_DTLS_ECHO

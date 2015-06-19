@@ -94,7 +94,7 @@
 
 #define COAP_SERVER_PORT 5683
 
-#if WITH_COAPSERVER
+#if WITH_IPSO_APP_FW
 #include "default-resources-config.h"
 #endif
 

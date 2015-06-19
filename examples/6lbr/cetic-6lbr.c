@@ -78,6 +78,10 @@
 #include "node-info.h"
 #endif
 
+#if WITH_COAPSERVER
+#include "coap-server.h"
+#endif
+
 #if WITH_NVM_PROXY
 #include "nvm-proxy.h"
 #endif
@@ -127,7 +131,6 @@ cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
-PROCESS_NAME(coap_server_process);
 
 process_event_t cetic_6lbr_restart_event;
 
@@ -473,7 +476,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   process_start(&udp_client_process, NULL);
 #endif
 #if WITH_COAPSERVER
-  process_start(&coap_server_process, NULL);
+  coap_server_init();
 #endif
 
 #if WITH_NVM_PROXY

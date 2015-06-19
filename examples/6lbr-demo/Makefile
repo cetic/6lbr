@@ -33,8 +33,10 @@ CONTIKI?=../..
 
 PROJECTDIR?=.
 
+APPDIRS = $(PROJECTDIR)/apps
+
 PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
-	$(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap \
+	$(PROJECTDIR)/apps/shell \
 	$(PROJECTDIR)/apps/dtls-echo $(PROJECTDIR)/apps/coap/rest-types
 
 CONTIKI_WITH_IPV6 = 1
@@ -72,15 +74,7 @@ WITH_TCP=1
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-CFLAGS += -DWITH_COAPSERVER=1
-CFLAGS += -DREST=coap_rest_implementation
-APPS += er-coap
-APPS += rest-engine
-PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
-	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
-	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
-	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c \
-	coap-binding.c coap-linked-batch.c rd-client.c
+APPS += er-coap rest-engine coap
 endif
 
 ifneq ($(WITH_TCP),1)

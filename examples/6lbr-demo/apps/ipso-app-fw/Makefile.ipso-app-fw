@@ -1,0 +1,5 @@
+CFLAGS+=-DWITH_IPSO_APP_FW=1
+ipso-app-fw_src += ipso-app-fw.c light-sensor-resource.c button-resource.c leds-resource.c \
+	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
+	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
+	binding-table-resource.c
