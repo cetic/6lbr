@@ -96,85 +96,6 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
 }
 /*---------------------------------------------------------------------------*/
 static int
-fill_flags(char **data, int *flag_value) {
-  *flag_value = 0;
-  while (**data) {
-    if(**data >= '0' && **data <= '9') {
-      *flag_value = (*flag_value * 10) + (**data - '0');
-    } else if (**data == '\0') {
-      break;
-    } else {
-      return 0;
-    }
-    (*data)++;
-  }
-  return 1;
-}
-
-static int
-parse_filter_tags(char **p, coap_binding_t **binding, char *data) {
-  int flag_status = 1;
-  int flag_value;
-
-  if (strcmp(*p, "pmin") == 0) {
-    flag_status = fill_flags(&data, &flag_value);
-    if (*data == '\0' && flag_status != 0 && flag_value > 0) {
-      (*binding)->pmin = flag_value;
-      (*binding)->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
-      PRINTF("Pmin set to %d\n", flag_value);
-    } else {
-      coap_error_message = "Pmin is invalid";
-      return 0;
-    }
-  } else if (strcmp(*p, "pmax") == 0) {
-    flag_status = fill_flags(&data, &flag_value);
-    if (*data == '\0' && flag_status != 0 && flag_value > 0) {
-      (*binding)->pmax = flag_value;
-      (*binding)->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
-      PRINTF("Pmax set to %d\n", flag_value);
-    } else {
-      coap_error_message = "Pmax is invalid";
-      return 0;
-    }
-  } else if (strcmp(*p, "st") == 0) {
-    flag_status = fill_flags(&data, &flag_value);
-    if (*data == '\0' && flag_status != 0  && flag_value > 0) {
-      (*binding)->step = flag_value;
-      (*binding)->flags |= COAP_BINDING_FLAGS_ST_VALID;
-      PRINTF("Change Step set to %d\n", flag_value);
-    } else {
-      coap_error_message = "Change Step is invalid";
-      return 0;
-    }
-  } else if (strcmp(*p, "lt") == 0) {
-    flag_status = fill_flags(&data, &flag_value);
-    if (*data == '\0' && flag_status != 0) {
-      (*binding)->less_than = flag_value;
-      (*binding)->flags |= COAP_BINDING_FLAGS_LT_VALID;
-      PRINTF("Less Than set to %d\n", flag_value);
-    } else {
-      coap_error_message = "Less Than is invalid";
-      return 0;
-    }
-  } else if (strcmp(*p, "gt") == 0) {
-    flag_status = fill_flags(&data, &flag_value);
-    if (*data == '\0' && flag_status != 0) {
-      (*binding)->greater_than = flag_value;
-      (*binding)->flags |= COAP_BINDING_FLAGS_GT_VALID;
-      PRINTF("Greater Than set to %d\n", flag_value);
-    } else {
-      coap_error_message = "Greater Than is invalid";
-      return 0;
-    }
-  } else {
-    coap_error_message = "Invalid filter detected";
-    return 0;
-  }
-
-  return flag_status;
-}
-/*---------------------------------------------------------------------------*/
-static int
 resource_binding_parse(char *buffer, coap_binding_t *binding)
 {
   int status = 0;
@@ -232,7 +153,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        filters = parse_filter_tags(&p, &binding, data);
+        filters = coap_binding_parse_filter_tag(&p, &binding, data);
       }
       p = sep;
     }
