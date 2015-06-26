@@ -69,10 +69,52 @@ struct coap_binding_s {
 
 typedef struct coap_binding_s coap_binding_t;
 
+struct coap_binding_cond_s {
+    int flags;
+    int pmin;
+    int pmax;
+    int step;
+    int less_than;
+    int greater_than;
+};
+
+typedef struct coap_binding_cond_s coap_binding_cond_t;
+
+struct coap_resource_data_s {
+  int last_value;
+  int last_sent_value;
+  unsigned long last_sent_time;
+};
+typedef struct coap_resource_data_s coap_resource_data_t;
+
+struct coap_full_resource_s {
+  struct coap_full_resource_s *next;
+  resource_t *coap_resource;
+  void (*update_value)(coap_resource_data_t *data);
+  coap_binding_cond_t  trigger;
+  coap_resource_data_t data;
+};
+typedef struct coap_full_resource_s coap_full_resource_t;
+
 void
 coap_binding_serialize(coap_binding_t const *binding, nvm_binding_data_t *store);
 
 int
 coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding);
+
+int
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t **binding_cond, char *data, char *max);
+
+int
+coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond);
+
+int
+coap_binding_trigger_cond(coap_binding_cond_t * binding_cond, coap_resource_data_t *resource_data);
+
+void
+coap_binding_add_resource(coap_full_resource_t *resource);
+
+void
+coap_binding_init(void);
 
 #endif

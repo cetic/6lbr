@@ -43,6 +43,7 @@
 #include "contiki-net.h"
 
 #include "er-coap.h"
+#include "coap-binding.h"
 
 // Global variable for SenML basetime factorization
 extern unsigned long coap_batch_basetime;
@@ -161,6 +162,21 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
   }
 
+#define REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  void \
+  resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t * payload; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    if(len == 0) { \
+      const char * query; \
+      len = coap_get_header_uri_query(request, &query); \
+      success = coap_binding_parse_filters((char *)query, len, &resource_##resource_name##_info.trigger); \
+    } \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
+  }
+
 #define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
   void \
   resource_##resource_name##_periodic_handler(void) \
@@ -177,9 +193,9 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
 
 /*---------------------------------------------------------------------------*/
 
-#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
+#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
@@ -205,8 +221,26 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
+#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
+  RESOURCE_DECL(resource_name); \
+  extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
+  coap_full_resource_t resource_##resource_name##_info = {.coap_resource = &resource_##resource_name, .update_value =  update_resource_##resource_name##_value }; \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, (resource_##resource_name##_info.data.last_value))) \
+  REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  REST_RESOURCE_EVENT_HANDLER(resource_name) \
+  void update_resource_##resource_name##_value(coap_resource_data_t *data) { \
+    data->last_value = (resource_value); \
+  } \
+  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE) ";obs", resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler);
+
 #define INIT_RESOURCE(resource_name, path) \
     extern resource_t resource_##resource_name; \
     rest_activate_resource(&resource_##resource_name, path);
+
+#define INIT_FULL_RESOURCE(resource_name, path) \
+    extern resource_t resource_##resource_name; \
+    rest_activate_resource(&resource_##resource_name, path); \
+    extern coap_full_resource_t resource_##resource_name##_info; \
+    coap_binding_add_resource(&resource_##resource_name##_info);
 
 #endif /* COAP_COMMON_H */
