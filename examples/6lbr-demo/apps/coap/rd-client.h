@@ -47,8 +47,19 @@
 
 #define RD_CLIENT_LIFETIME 60
 
+enum rd_client_status_t
+{
+  RD_CLIENT_UNCONFIGURED,
+  RD_CLIENT_BOOTSTRAPPING,
+  RD_CLIENT_REGISTERING,
+  RD_CLIENT_REGISTERED,
+};
+
 void
-rd_client_init();
+rd_client_init(void);
+
+int
+rd_client_status(void);
 
 void
 rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr, uint16_t port);

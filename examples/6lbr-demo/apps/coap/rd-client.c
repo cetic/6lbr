@@ -162,6 +162,18 @@ rd_client_init(void)
   process_start(&rd_client_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
+int
+rd_client_status(void)
+{
+  if(uip_is_addr_unspecified(&rd_server_ipaddr)) {
+    return RD_CLIENT_UNCONFIGURED;
+  }
+  if(!registered) {
+    return RD_CLIENT_REGISTERING;
+  }
+  return RD_CLIENT_REGISTERED;
+}
+/*---------------------------------------------------------------------------*/
 void
 rd_client_set_rd_address(uip_ipaddr_t const *ipaddr, uint16_t port)
 {
