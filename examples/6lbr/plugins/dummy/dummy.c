@@ -35,23 +35,34 @@
  */
 #define LOG6LBR_MODULE "DUMMY"
 
-//TODO: Fix mode definition
-#undef CETIC_6LBR_ROUTER
-#define CETIC_6LBR_ROUTER 1
-
 #include "contiki.h"
 
 #include "log-6lbr.h"
 #include "plugin.h"
 
+/*---------------------------------------------------------------------------*/
 static int init(void) {
   LOG6LBR_INFO("Dummy init\n");
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
+static char const *
+version(void)
+{
+  return PLUGIN_VERSION_STRING;
+}
+/*---------------------------------------------------------------------------*/
+static char const *
+status(void)
+{
+  return "Started";
+}
+/*---------------------------------------------------------------------------*/
 sixlbr_plugin_t sixlbr_plugin_info = {
   .api_version = SIXLBR_PLUGIN_API_VERSION,
   .id = "dummy",
   .description = "Dummy plugin",
-  . init = init
+  .init = init,
+  .version = version,
+  .status = status,
 };
