@@ -9,17 +9,14 @@ WITH_WEBSERVER_LITE?=0
 WITH_COAPSERVER?=1
 WITH_NVM_PROXY?=0
 
-PLUGINS=${shell test -e plugins && cd plugins  && find * -type d -prune}
+PLUGINS=${shell test -e plugins && cd plugins && find * -type d -prune}
 PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
-PLUGINS_FILES=${patsubst plugins/%, obj_$(TARGET)/%, ${addsuffix .so,$(PLUGINS_DIRS)}}
 
 ifneq ($(6LBR_PLUGIN),)
 CFLAGS+=-DCETIC_6LBR_PLUGIN
 endif
 
 PROJECTDIRS += $(6LBR)/platform/native
-
-PROJECTDIRS += $(PLUGINS_DIRS)
 
 APPS += slip-cmd
 
@@ -125,7 +122,12 @@ endif
 	echo 2.0 > $(IPK)/debian-binary
 	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)-$(PKG_VERSION)_armv7a.ipk debian-binary data.tar.gz control.tar.gz
 
-plugins: $(PLUGINS_FILES)
+plugins: $(PLUGINS_DIRS)
+
+ifneq ($(PLUGINS_DIRS),)
+$(PLUGINS_DIRS):
+	$(MAKE) -C $@
+endif
 
 ifeq ($(HOST_OS),Darwin)
 PLUGIN_LDFLAGS+=-dynamiclib -Wl,-undefined,dynamic_lookup
@@ -133,8 +135,10 @@ else
 PLUGIN_LDFLAGS+=-shared
 CFLAGS+=-fPIC
 TARGET_LIBFILES+=-ldl
+ifeq ($(6LBR_PLUGIN),)
 LDFLAGS+=-Wl,--whole-archive
 LDFLAGS_AFTER=-Wl,--no-whole-archive
+endif
 endif
 
 ifndef RELSTR
@@ -152,13 +156,9 @@ oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
 PLUGIN_OBJS=${addprefix obj_$(TARGET)/,${call oname, $(PLUGIN_SOURCEFILES)}}
 
 .SECONDEXPANSION:
-%.so: obj_$(TARGET)/%.o $$(PLUGIN_OBJS)
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
-
-.SECONDEXPANSION:
-obj_$(TARGET)/%.so: obj_$(TARGET)/%.o $(PLUGIN_OBJS)
+%.so: $$(PLUGIN_OBJS)
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
 
 CLEAN += *.so obj_$(TARGET)/*.so
 
-.PHONY: bin/* plugins ipk
+.PHONY: bin/* plugins ipk $(PLUGINS_DIRS)
