@@ -41,7 +41,7 @@
 void
 lwm2m_init(void)
 {
-  LWM2M_OBJECT_DEVICE_INIT();
+  LWM2M_DEVICE_OBJECT_INIT();
 #if RD_CLIENT_ENABLED
   rd_client_set_resources_list(LWM2M_OBJECT_LINK);
 #endif
