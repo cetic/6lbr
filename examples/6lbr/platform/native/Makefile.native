@@ -23,7 +23,7 @@ PROJECTDIRS += $(PLUGINS_DIRS)
 
 APPS += slip-cmd
 
-PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c plugin.c
+PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c  node-config.c plugin.c lost-symbols.c
 
 CONF=WITH_UDPCLIENT=0
 CONF_6LR=WITH_UDPSERVER=0
@@ -133,6 +133,8 @@ else
 PLUGIN_LDFLAGS+=-shared
 CFLAGS+=-fPIC
 TARGET_LIBFILES+=-ldl
+LDFLAGS+=-Wl,--whole-archive
+LDFLAGS_AFTER=-Wl,--no-whole-archive
 endif
 
 ifndef RELSTR
