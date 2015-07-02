@@ -37,11 +37,14 @@
 #include "contiki.h"
 #include "rd-client.h"
 #include "lwm2m-device-object.h"
+#include "temp-sensor-resource.h"
+REST_RES_TEMP_DEFINE();
 
 void
 lwm2m_init(void)
 {
   LWM2M_DEVICE_OBJECT_INIT();
+  REST_RES_TEMP_INIT();
 #if RD_CLIENT_ENABLED
   rd_client_set_resources_list(LWM2M_OBJECT_LINK);
 #endif
