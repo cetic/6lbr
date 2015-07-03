@@ -271,6 +271,7 @@ PROCESS_THREAD(coap_binding_process, ev, data)
     coap_full_resource_t *resource = NULL;
     for(resource = (coap_full_resource_t *)list_head(full_resources);
               resource; resource = resource->next) {
+      PRINTF("Scanning resource %s\n", resource->coap_resource->url);
       resource->update_value(&resource->data);
       if(coap_binding_trigger_cond(&resource->trigger, &resource->data)) {
         resource->data.last_sent_time = clock_seconds();
