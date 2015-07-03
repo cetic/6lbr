@@ -39,8 +39,6 @@
 #include "lwm2m-device-object.h"
 #include "temp-sensor-resource.h"
 
-REST_RES_TEMP_DEFINE();
-
 #define LWM2M_OBJECTS_LINK LWM2M_DEVICE_OBJECT_LINK REST_RES_TEMP_OBJECT_LINK
 void
 lwm2m_init(void)
