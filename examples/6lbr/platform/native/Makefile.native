@@ -157,7 +157,7 @@ PLUGIN_OBJS=${addprefix obj_$(TARGET)/,${call oname, $(PLUGIN_SOURCEFILES)}}
 
 .SECONDEXPANSION:
 %.so: $$(PLUGIN_OBJS)
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) $(PLUGIN_LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(PLUGIN_LDFLAGS)
 
 CLEAN += *.so obj_$(TARGET)/*.so
 
