@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, CETIC.
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,78 @@
 
 /**
  * \file
- *         6LBR LWM2M Server
+ *         Simple CoAP Library
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef TEMP_SENSOR_RESOURCE_H
+#define TEMP_SENSOR_RESOURCE_H
 
 #include "contiki.h"
-#include "rd-client.h"
-#include "lwm2m-device-object.h"
-#include "temp-sensor-resource.h"
+#include "coap-common.h"
+#include "ipso-so.h"
 
-REST_RES_TEMP_DEFINE();
-
-#define LWM2M_OBJECTS_LINK LWM2M_DEVICE_OBJECT_LINK REST_RES_TEMP_OBJECT_LINK
-void
-lwm2m_init(void)
-{
-  LWM2M_DEVICE_OBJECT_INIT();
-  REST_RES_TEMP_INIT();
-#if RD_CLIENT_ENABLED
-  rd_client_set_resources_list(LWM2M_OBJECTS_LINK);
+#if PLATFORM_HAS_SHT11
+#include "sht11-sensor.h"
 #endif
-}
+
+#if PLATFORM_HAS_SHT21
+#include "sht21.h"
+#endif
+
+#if PLATFORM_HAS_SHT11 || PLATFORM_HAS_SHT21
+#ifdef REST_CONF_RES_TEMP
+#define REST_RES_TEMP REST_CONF_RES_TEMP
+#else
+#define REST_RES_TEMP 1
+#endif
+#else
+#define REST_RES_TEMP 0
+#endif
+
+#ifdef REST_CONF_RES_TEMP_PERIODIC
+#define REST_RES_TEMP_PERIODIC REST_CONF_RES_TEMP_PERIODIC
+#else
+#define REST_RES_TEMP_PERIODIC 0
+#endif
+
+#ifdef REST_CONF_RES_TEMP_PERIOD
+#define REST_RES_TEMP_PERIOD REST_CONF_RES_TEMP_PERIOD
+#else
+#define REST_RES_TEMP_PERIOD REST_DEFAULT_PERIOD
+#endif
+
+#ifdef REST_RES_TEMP_RAW
+#define REST_RES_TEMP_RAW REST_CONF_RES_TEMP_RAW
+#else
+#define REST_RES_TEMP_RAW 0
+#endif
+
+#if REST_RES_TEMP
+
+#define REST_RES_TEMP_DEFINE() \
+  extern resource_t resource_temp;
+
+#if PLATFORM_HAS_SHT11
+#define REST_RES_TEMP_INIT() \
+  SENSORS_ACTIVATE(sht11_sensor); \
+  rest_activate_resource(&resource_temp, LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, "0"));
+#else
+#define REST_RES_TEMP_INIT() \
+  rest_activate_resource(&resource_temp, LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, "0"));
+#endif
+
+#define REST_RES_TEMP_REF &resource_temp,
+
+#define REST_RES_TEMP_OBJECT_LINK "<" LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, "0") ">,"
+
+#else
+
+#define REST_RES_TEMP_DEFINE()
+#define REST_RES_TEMP_INIT()
+#define REST_RES_TEMP_REF
+#define REST_RES_TEMP_OBJECT_LINK
+
+#endif
+
+#endif /* TEMP_SENSOR_RESOURCE_H */

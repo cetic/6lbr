@@ -73,8 +73,8 @@
 #define LWM2M_DEVICE_REBOOT_RT ""
 #define LWM2M_DEVICE_TIME_RT ""
 
-#define LWM2M_INSTANCE_PATH(object_id, instance_id) (object_id "/" instance_id)
-#define LWM2M_RESOURCE_PATH(object_id, instance_id, resource_id) (object_id "/" instance_id "/" resource_id)
+#define LWM2M_INSTANCE_PATH(object_id, instance_id) object_id "/" instance_id
+#define LWM2M_RESOURCE_PATH(object_id, instance_id, resource_id) object_id "/" instance_id "/" resource_id
 
 #define LWM2M_SIMPLE_PATH(object_id, resource_id) LWM2M_RESOURCE_PATH(object_id, LWM2M_DEFAULT_INSTANCE_ID, resource_id)
 

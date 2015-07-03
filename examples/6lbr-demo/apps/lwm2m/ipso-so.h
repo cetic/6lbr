@@ -29,25 +29,34 @@
 
 /**
  * \file
- *         6LBR LWM2M Server
+ *         Simple CoAP Library
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef IPSO_SO_H
+#define IPSO_SO_H
 
-#include "contiki.h"
-#include "rd-client.h"
-#include "lwm2m-device-object.h"
-#include "temp-sensor-resource.h"
+#include "lwm2m.h"
 
-REST_RES_TEMP_DEFINE();
+#define IPSO_SO_DIG_IN_OBJECT_ID "3200"
+#define IPSO_SO_DIG_OUT_OBJECT_ID "3201"
+#define IPSO_SO_ANALOG_IN_OBJECT_ID "3202"
+#define IPSO_SO_ANALOG_OUT_OBJECT_ID "3203"
 
-#define LWM2M_OBJECTS_LINK LWM2M_DEVICE_OBJECT_LINK REST_RES_TEMP_OBJECT_LINK
-void
-lwm2m_init(void)
-{
-  LWM2M_DEVICE_OBJECT_INIT();
-  REST_RES_TEMP_INIT();
-#if RD_CLIENT_ENABLED
-  rd_client_set_resources_list(LWM2M_OBJECTS_LINK);
-#endif
-}
+#define IPSO_SO_GEN_SEN_OBJECT_ID "3300"
+#define IPSO_SO_LUMIN_OBJECT_ID "3301"
+#define IPSO_SO_PRES_SEN_OBJECT_ID "3302"
+#define IPSO_SO_TEMP_SEN_OBJECT_ID "3303"
+#define IPSO_SO_HUM_SEN_OBJECT_ID "3304"
+#define IPSO_SO_POWER_SEN_OBJECT_ID "3305"
+#define IPSO_SO_ACT_OBJECT_ID "3306"
+#define IPSO_SO_SET_POINT_OBJECT_ID "3308"
+#define IPSO_SO_LOAD_CON_OBJECT_ID "3310"
+#define IPSO_SO_LIGHT_CON_OBJECT_ID "3311"
+#define IPSO_SO_POWER_CON_OBJECT_ID "3312"
+#define IPSO_SO_LOAD_ACCEL_METER_OBJECT_ID "3313"
+#define IPSO_SO_LOAD_MAG_METER_OBJECT_ID "3314"
+#define IPSO_SO_LOAD_BARO_METER_OBJECT_ID "3315"
+
+
+#endif /* IPSO_SO_H */
