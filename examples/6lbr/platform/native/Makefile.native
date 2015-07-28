@@ -26,6 +26,9 @@ CONF=WITH_UDPCLIENT=0
 CONF_6LR=WITH_UDPSERVER=0
 
 ifeq ($(6LBR_PLUGIN),)
+
+# 6LBR targets
+
 bin/cetic_6lbr_smart_bridge:
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
 	mkdir -p bin
@@ -79,12 +82,6 @@ all:
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
 
-else
-
-all: $(6LBR_PLUGIN)
-
-endif
-
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
@@ -102,9 +99,6 @@ install:
 	cp -r package/usr/lib/6lbr $(DESTDIR)/usr/lib
 	install -d $(DESTDIR)/usr/lib/6lbr/bin
 	install bin/* $(DESTDIR)/usr/lib/6lbr/bin
-ifneq ($(PLUGINS_FILES),)
-	install $(PLUGINS_FILES) $(DESTDIR)/usr/lib/6lbr/plugins
-endif
 	install tools/nvm_tool $(DESTDIR)/usr/lib/6lbr/bin
 
 ipk:
@@ -113,9 +107,6 @@ ipk:
 	cp -R package $(IPK)
 	mkdir -p $(IPK)/usr/lib/6lbr/bin
 	cp bin/* $(IPK)/usr/lib/6lbr/bin
-ifneq ($(PLUGINS_FILES),)
-	cp $(PLUGINS_FILES) $(IPK)/usr/lib/6lbr/plugins
-endif
 	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd angstrom && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
@@ -129,6 +120,20 @@ $(PLUGINS_DIRS):
 	$(MAKE) -C $@
 endif
 
+plugins-install:
+	for plugin in $(PLUGINS_DIRS); do $(MAKE) -C $$plugin install; done
+else
+
+# Plugin targets
+
+all: $(6LBR_PLUGIN)
+
+install:
+	install $(6LBR_PLUGIN) $(DESTDIR)/usr/lib/6lbr/plugins
+
+endif
+
+HOST_OS=$(shell uname)
 ifeq ($(HOST_OS),Darwin)
 PLUGIN_LDFLAGS+=-dynamiclib -Wl,-undefined,dynamic_lookup
 else
