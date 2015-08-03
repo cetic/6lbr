@@ -77,26 +77,26 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
   }
   pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"%s\";bind=\"push\"", binding->uri, binding->resource->url);
   PRINTF("flags : %#x\n", binding->flags);
-  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->pmin);
+  if((binding->cond.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->cond.pmin);
 
-  if((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", binding->pmax);
+  if((binding->cond.flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", binding->cond.pmax);
 
-  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";st=\"%d\"", binding->step);
+  if((binding->cond.flags & COAP_BINDING_FLAGS_ST_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";st=\"%d\"", binding->cond.step);
 
-  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", binding->less_than);
+  if((binding->cond.flags & COAP_BINDING_FLAGS_LT_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", binding->cond.less_than);
 
-  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", binding->greater_than);
+  if((binding->cond.flags & COAP_BINDING_FLAGS_GT_VALID) != 0)
+    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", binding->cond.greater_than);
 
   return pos;
 }
 /*---------------------------------------------------------------------------*/
 static int
-resource_binding_parse(char *buffer, coap_binding_t *binding)
+resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
 {
   int status = 0;
   char *p = buffer;
@@ -153,7 +153,7 @@ resource_binding_parse(char *buffer, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        filters = coap_binding_parse_filter_tag(&p, &binding, data);
+        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, max);
       }
       p = sep;
     }
@@ -239,7 +239,7 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
       data_store[data_size] = '\0';
       coap_binding_t * binding = memb_alloc(&binding_memb);
       PRINTF("Resource : %s\n", (char*)data_store);
-      success = resource_binding_parse((char*)data_store, binding);
+      success = resource_binding_parse((char*)data_store, (char*)data_store + data_size, binding);
       if (success) {
         PRINTF("Binding added\n");
         coap_push_add_binding(binding);
