@@ -148,6 +148,7 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     int success = 0; \
     size_t len = REST.get_request_payload(request, &payload); \
     parser(payload, len, actuator_set); \
+    (void) len; \
     REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
   }
 
@@ -209,9 +210,9 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), NULL, resource_##resource_name##_post_handler, NULL, NULL);
 
-#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
+#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
   PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 

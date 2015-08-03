@@ -64,7 +64,7 @@ coap_push_add_binding(coap_binding_t * binding)
 
   PRINTF("Activating %s to %s\n", binding->resource->url, binding->uri);
 
-  binding->last_push = clock_seconds();
+  binding->data.last_sent_time = clock_seconds();
 
   return 1;
 }
@@ -85,48 +85,11 @@ coap_push_update_binding(resource_t *event_resource, int value) {
   for(binding = (coap_binding_t *)list_head(coap_push_binding);
     binding; binding = binding->next) {
     if(binding->resource == event_resource) {
-      binding->last_value = value;
+      binding->data.last_value = value;
       process_poll(&coap_push_process);
       break;
     }
   }
-}
-/*---------------------------------------------------------------------------*/
-static int
-trigger_push(coap_binding_t * binding)
-{
-  int cl = clock_seconds();
-  PRINTF("Trigger : last + pmax = %d, clock = %d, delta = %d\n", binding->last_push + binding->pmax, cl, binding->last_push + binding->pmax - cl);
-  if ((binding->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0 &&
-    binding->last_push + binding->pmax <= clock_seconds()) {
-    binding->last_sent_value = binding->last_value;
-    PRINTF("Push triggered, pmax reached");
-    return 1;
-  }
-  if((binding->flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0 &&
-      binding->last_push + binding->pmin > clock_seconds()) {
-    PRINTF("Push not triggered, pmin unreached\n");
-    return 0;
-  }
-  if((binding->flags & COAP_BINDING_FLAGS_ST_VALID) != 0 &&
-      (binding->last_sent_value + binding->step > binding->last_value &&
-      binding->last_sent_value - binding->step < binding->last_value)) {
-    PRINTF("Push not triggered, step unreached\n");
-    return 0;
-  }
-  if((binding->flags & COAP_BINDING_FLAGS_LT_VALID) != 0 &&
-      binding->last_value >= binding->less_than) {
-    PRINTF("Push not triggered, value not less than threshold\n");
-    return 0;
-  }
-  if((binding->flags & COAP_BINDING_FLAGS_GT_VALID) != 0 &&
-      binding->last_value <= binding->greater_than) {
-    PRINTF("Push not triggered, value not greater than threshold\n");
-    return 0;
-  }
-  PRINTF("Push triggered, value : %d\n", binding->last_value);
-  binding->last_sent_value = binding->last_value;
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #define COAP_BLOCKING_PUSH_STATE(request_state, ctx, server_addr, server_port, request, resource_handler) \
@@ -171,7 +134,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
                        REST_MAX_CHUNK_SIZE, &offset);
 
       if (offset != -1) {
-        PRINTF("Warning: push block transfer not yet implemented, offset : %d\n", offset);
+        PRINTF("Warning: push block transfer not yet implemented, offset : %ld\n", offset);
       }
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 
@@ -213,9 +176,9 @@ PROCESS_THREAD(coap_push_process, ev, data)
       static coap_binding_t * binding = NULL;
       for(binding = (coap_binding_t *)list_head(coap_push_binding);
           binding; binding = binding->next) {
-        if (trigger_push(binding)) {
+        if(coap_binding_trigger_cond(&binding->cond, &binding->data)) {
+          binding->data.last_sent_time = clock_seconds();
           static coap_packet_t request[1];
-          binding->last_push = clock_seconds();
           PRINTF("Pushing %s to %s\n", binding->resource->url, binding->uri);
           coap_init_message(request, COAP_TYPE_CON, COAP_PUT, 0);
           coap_set_header_uri_path(request, binding->uri);

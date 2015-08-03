@@ -50,25 +50,6 @@
 #define COAP_BINDING_FLAGS_LT_VALID 0x0008
 #define COAP_BINDING_FLAGS_GT_VALID 0x0010
 
-struct coap_binding_s {
-	struct coap_binding_s* next;
-	resource_t * resource;
-	uip_ip6addr_t dest_addr;
-	uint16_t dest_port;
-	char uri[COAP_BINDING_MAX_URI_SIZE];
-	int flags;
-	int pmin;
-	int pmax;
-	int step;
-	int less_than;
-	int greater_than;
-	int last_value;
-	int last_sent_value;
-	unsigned long last_push;
-};
-
-typedef struct coap_binding_s coap_binding_t;
-
 struct coap_binding_cond_s {
     int flags;
     int pmin;
@@ -87,6 +68,18 @@ struct coap_resource_data_s {
 };
 typedef struct coap_resource_data_s coap_resource_data_t;
 
+struct coap_binding_s {
+	struct coap_binding_s* next;
+	resource_t * resource;
+	uip_ip6addr_t dest_addr;
+	uint16_t dest_port;
+	char uri[COAP_BINDING_MAX_URI_SIZE];
+	coap_binding_cond_t cond;
+	coap_resource_data_t data;
+};
+
+typedef struct coap_binding_s coap_binding_t;
+
 struct coap_full_resource_s {
   struct coap_full_resource_s *next;
   resource_t *coap_resource;
@@ -103,7 +96,7 @@ int
 coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding);
 
 int
-coap_binding_parse_filter_tag(char *p, coap_binding_cond_t **binding_cond, char *data, char *max);
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max);
 
 int
 coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond);
