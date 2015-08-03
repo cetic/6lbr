@@ -31,8 +31,17 @@
 #if WITH_NVM
 #include "nvm-config.h"
 #endif
+
 #if WITH_COAPSERVER
 #include "coap-server.h"
+#endif
+
+#if WITH_IPSO_APP_FW
+#include "ipso-app-fw.h"
+#endif
+
+#if WITH_LWM2M
+#include "lwm2m.h"
 #endif
 
 PROCESS(demo_6lbr_process, "6LBR Demo");
@@ -64,6 +73,14 @@ start_apps(void)
 
 #if WITH_COAPSERVER
   coap_server_init();
+#endif
+
+#if WITH_IPSO_APP_FW
+  ipso_app_fw_init();
+#endif
+
+#if WITH_LWM2M
+  lwm2m_init();
 #endif
 
 #if WITH_DTLS_ECHO
