@@ -40,15 +40,7 @@
 #include "coap-common.h"
 #include "ipso-so.h"
 
-#if PLATFORM_HAS_SHT11
-#include "sht11-sensor.h"
-#endif
-
-#if PLATFORM_HAS_SHT21
-#include "sht21.h"
-#endif
-
-#if PLATFORM_HAS_SHT11 || PLATFORM_HAS_SHT21
+#if REST_CONF_PLATFORM_HAS_TEMP
 #ifdef REST_CONF_RES_TEMP
 #define REST_RES_TEMP REST_CONF_RES_TEMP
 #else
@@ -72,15 +64,9 @@
 
 #if REST_RES_TEMP
 
-
-#if PLATFORM_HAS_SHT11
 #define REST_RES_TEMP_INIT() \
-  SENSORS_ACTIVATE(sht11_sensor); \
+  SENSOR_INIT_TEMP(); \
   INIT_FULL_RESOURCE(temp, LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, IPSO_SO_SENSOR_VALUE_RESOURCE_ID));
-#else
-#define REST_RES_TEMP_INIT() \
-  INIT_FULL_RESOURCE(temp, LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, IPSO_SO_SENSOR_VALUE_RESOURCE_ID));
-#endif
 
 #define REST_RES_TEMP_REF &resource_temp,
 

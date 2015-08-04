@@ -35,32 +35,25 @@
  */
 #include "coap-common.h"
 #include "temp-sensor-resource.h"
+#include "platform-sensors.h"
 
 #if REST_RES_TEMP
-#if REST_RES_TEMP_PERIODIC
-#define REST_RES_TEMP_RESOURCE REST_PERIODIC_RESOURCE
-#else
+#if REST_RES_TEMP_SIMPLE
 #define REST_RES_TEMP_RESOURCE REST_RESOURCE
+#else
+#define REST_RES_TEMP_RESOURCE REST_FULL_RESOURCE
 #endif
 #else
 #define REST_RES_TEMP_RESOURCE(...)
 #endif
 
-#if PLATFORM_HAS_SHT11
-#if REST_RES_TEMP_RAW
-#define REST_REST_TEMP_FORMAT REST_FORMAT_ONE_INT
-#define REST_REST_TEMP_VALUE sht11_sensor.value(SHT11_SENSOR_TEMP)
-#else
-#define REST_REST_TEMP_FORMAT REST_FORMAT_TWO_DECIMAL
-#define REST_REST_TEMP_VALUE (sht11_sensor.value(SHT11_SENSOR_TEMP) - 3960)
-#endif
+#ifdef REST_CONF_RES_TEMP_FORMAT
+#define REST_REST_TEMP_FORMAT REST_CONF_RES_TEMP_FORMAT
 #else
 #if REST_RES_TEMP_RAW
 #define REST_REST_TEMP_FORMAT REST_FORMAT_ONE_INT
-#define REST_REST_TEMP_VALUE sht21_read_temp()
 #else
 #define REST_REST_TEMP_FORMAT REST_FORMAT_TWO_DECIMAL
-#define REST_REST_TEMP_VALUE (((uint32_t)sht21_read_temp()) * 17572 / 65536 - 4685)
 #endif
 #endif
 

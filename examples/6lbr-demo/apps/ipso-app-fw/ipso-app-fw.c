@@ -39,6 +39,8 @@
 #include "coap-push.h"
 #include "core-interface.h"
 
+#include "platform-sensors.h"
+
 #include "light-sensor-resource.h"
 #include "temp-sensor-resource.h"
 #include "humidity-sensor-resource.h"

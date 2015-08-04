@@ -40,15 +40,7 @@
 #include "coap-common.h"
 #include "ipso-profile.h"
 
-#if PLATFORM_HAS_SHT11
-#include "sht11-sensor.h"
-#endif
-
-#if PLATFORM_HAS_SHT21
-#include "sht21.h"
-#endif
-
-#if PLATFORM_HAS_SHT11 || PLATFORM_HAS_SHT21
+#if REST_CONF_PLATFORM_HAS_TEMP
 #ifdef REST_CONF_RES_TEMP
 #define REST_RES_TEMP REST_CONF_RES_TEMP
 #else
@@ -70,6 +62,12 @@
 #define REST_RES_TEMP_PERIOD REST_DEFAULT_PERIOD
 #endif
 
+#ifdef REST_CONF_RES_TEMP_SIMPLE
+#define REST_RES_TEMP_SIMPLE REST_CONF_RES_TEMP_SIMPLE
+#else
+#define REST_RES_TEMP_SIMPLE 1
+#endif
+
 #ifdef REST_RES_TEMP_RAW
 #define REST_RES_TEMP_RAW REST_CONF_RES_TEMP_RAW
 #else
@@ -81,14 +79,9 @@
 #define REST_RES_TEMP_DEFINE() \
   extern resource_t resource_temp;
 
-#if PLATFORM_HAS_SHT11
 #define REST_RES_TEMP_INIT() \
-  SENSORS_ACTIVATE(sht11_sensor); \
+  SENSOR_INIT_TEMP(); \
   rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
-#else
-#define REST_RES_TEMP_INIT() \
-  rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
-#endif
 
 #define REST_RES_TEMP_REF &resource_temp,
 
