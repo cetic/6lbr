@@ -36,6 +36,8 @@
 
 #include "contiki.h"
 #include "rd-client.h"
+#include "platform-sensors.h"
+
 #include "lwm2m-device-object.h"
 #include "temp-sensor-resource.h"
 
