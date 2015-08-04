@@ -79,9 +79,15 @@
 #define REST_RES_TEMP_DEFINE() \
   extern resource_t resource_temp;
 
+#if REST_RES_TEMP_SIMPLE
+#define REST_RES_TEMP_INIT_RESOURCE INIT_RESOURCE
+#else
+#define REST_RES_TEMP_INIT_RESOURCE INIT_FULL_RESOURCE
+#endif
+
 #define REST_RES_TEMP_INIT() \
   SENSOR_INIT_TEMP(); \
-  rest_activate_resource(&resource_temp, TEMPERATURE_SENSOR_RES);
+  REST_RES_TEMP_INIT_RESOURCE(temp, TEMPERATURE_SENSOR_RES);
 
 #define REST_RES_TEMP_REF &resource_temp,
 
