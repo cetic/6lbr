@@ -225,7 +225,10 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
 #define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
-  coap_full_resource_t resource_##resource_name##_info = {.coap_resource = &resource_##resource_name, .update_value =  update_resource_##resource_name##_value }; \
+  coap_full_resource_t resource_##resource_name##_info = { \
+      .coap_resource = &resource_##resource_name, \
+      .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
+      .update_value = update_resource_##resource_name##_value }; \
   REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, (resource_##resource_name##_info.data.last_value))) \
   REST_RESOURCE_CONFIG_HANDLER(resource_name) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
