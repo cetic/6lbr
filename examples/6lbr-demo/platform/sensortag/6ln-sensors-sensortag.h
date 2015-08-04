@@ -39,7 +39,19 @@
 
 #include "tmp-007-sensor.h"
 
+inline static int get_temp(void) {
+  int
+  value = tmp_007_sensor.value(TMP_007_SENSOR_TYPE_ALL);
+
+  if(value == CC26XX_SENSOR_READING_ERROR) {
+    printf("TMP: Ambient Read Error\n");
+    return -1;
+  }
+
+  return tmp_007_sensor.value(TMP_007_SENSOR_TYPE_AMBIENT);
+}
 #define SENSOR_INIT_TEMP() SENSORS_ACTIVATE(tmp_007_sensor)
-#define REST_REST_TEMP_VALUE tmp_007_sensor.value(TMP_007_SENSOR_TYPE_AMBIENT)
+#define REST_REST_TEMP_VALUE get_temp()
+#define REST_CONF_RES_TEMP_FORMAT REST_FORMAT_THREE_DECIMAL
 
 #endif
