@@ -42,6 +42,12 @@
 #include "rest-engine.h"
 #include "coap-binding-nvm.h"
 
+#ifdef COAP_BINDING_CONF_ENABLED
+#define COAP_BINDING_ENABLED COAP_BINDING_CONF_ENABLED
+#else
+#define COAP_BINDING_ENABLED 1
+#endif
+
 #define COAP_BINDING_FLAGS_NVM_BINDING_VALID 0x8000
 
 #define COAP_BINDING_FLAGS_PMIN_VALID 0x0001

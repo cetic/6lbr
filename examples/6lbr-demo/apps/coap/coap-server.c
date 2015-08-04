@@ -55,7 +55,9 @@ coap_server_init(void)
 #if RD_CLIENT_ENABLED
   rd_client_init();
 #endif
+#if COAP_BINDING_ENABLED
   coap_binding_init();
+#endif
 
   printf("CoAP server started\n");
 }

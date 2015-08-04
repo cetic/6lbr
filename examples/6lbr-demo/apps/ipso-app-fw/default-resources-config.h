@@ -99,6 +99,12 @@
 /* Disable core interface linked batch nvm */
 #define CORE_ITF_CONF_LINKED_BATCH_NVM 0
 
+/* Disable CoAP Binding */
+#define COAP_BINDING_CONF_ENABLED 0
+
+/* Disable RD Client */
+#define RD_CLIENT_CONF_ENABLED 0
+
 #else /* UIP_CONF_IPV6_RPL */
 
 /* Disable config stack */
@@ -117,6 +123,12 @@
 
 /* Disable core interface linked batch table */
 #define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
+/* Disable CoAP Binding */
+#define COAP_BINDING_CONF_ENABLED 0
+
+/* Disable RD Client */
+#define RD_CLIENT_CONF_ENABLED 0
 
 #endif /* UIP_CONF_IPV6_RPL */
 
