@@ -76,6 +76,9 @@
 
 #if REST_RES_TEMP
 
+#define REST_RES_TEMP_DEFINE() \
+  extern resource_t resource_temp;
+
 #if REST_RES_TEMP_SIMPLE
 #define REST_RES_TEMP_INIT_RESOURCE INIT_RESOURCE
 #else
@@ -90,6 +93,7 @@
 
 #else
 
+#define REST_RES_TEMP_DEFINE()
 #define REST_RES_TEMP_INIT()
 #define REST_RES_TEMP_REF
 
