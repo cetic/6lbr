@@ -47,6 +47,13 @@
 #include USER_PROJECT_CONF_H
 #endif
 
+/* Platform related configuration */
+#ifdef CETIC_6LN_PLATFORM_CONF
+#include CETIC_6LN_PLATFORM_CONF
+#endif
+
+#include "platform/6ln-conf-default.h"
+
 /*---------------------------------------------------------------------------*/
 /* Radio                                                                     */
 /*---------------------------------------------------------------------------*/

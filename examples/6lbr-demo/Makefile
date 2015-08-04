@@ -35,6 +35,7 @@ PROJECTDIR?=.
 
 APPDIRS = $(PROJECTDIR)/apps
 
+PROJECTDIRS += $(PROJECTDIR)/platform $(PROJECTDIR)/platform/$(TARGET)
 PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
 	$(PROJECTDIR)/apps/shell \
 	$(PROJECTDIR)/apps/dtls-echo $(PROJECTDIR)/apps/coap/rest-types
@@ -131,7 +132,6 @@ endif
 endif
 
 ifeq ($(TARGET),sky)
-PROJECTDIRS += $(PROJECTDIR)/platform/sky
 WITH_NVM?=0
 ifeq ($(WITH_NVM),1)
 PROJECT_SOURCEFILES += f1611-nvm.c
@@ -139,7 +139,7 @@ endif
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk $(PROJECTDIR)/dev/sht21
+PROJECTDIRS += $(PROJECTDIR)/dev/sht21
 PROJECT_SOURCEFILES += sht21.c
 WITH_NVM?=1
 ifeq ($(WITH_NVM),1)
@@ -156,6 +156,14 @@ endif
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 ifneq  ($(PROJECT_CONF),)
 CFLAGS += -DUSER_PROJECT_CONF_H=\"$(PROJECT_CONF)\"
+endif
+
+-include $(PROJECTDIR)/platform/$(TARGET)/Makefile.$(TARGET)
+ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-conf-$(TARGET).h)","")
+CFLAGS+=-DCETIC_6LN_PLATFORM_CONF=\"6ln-conf-$(TARGET).h\"
+endif
+ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-sensors-$(TARGET).h)","")
+CFLAGS+=-DCETIC_6LN_PLATFORM_SENSORS=\"6ln-sensors-$(TARGET).h\"
 endif
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c
