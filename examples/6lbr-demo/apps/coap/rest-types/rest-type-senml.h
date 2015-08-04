@@ -93,15 +93,21 @@ if (pos < size) { \
 #define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
 { \
 		int value = (resource_value); \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%u", (int)(value / 10), (int)(value % 10)); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%u", (int)(value / 10), (unsigned int)(value % 10)); \
 		REST_FORMAT_TIMESTAMP \
 }
 
 #define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
 { \
 		int value = (resource_value); \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%02u", (int)(value / 100), (int)(value % 100)); \
+		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%02u", (int)(value / 100), (unsigned int)(value % 100)); \
 		REST_FORMAT_TIMESTAMP \
+}
+#define REST_FORMAT_THREE_DECIMAL(resource_name, resource_value) \
+{ \
+                int value = (resource_value); \
+                pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%03u", (int)(value / 1000), (unsigned int)(value % 1000)); \
+                REST_FORMAT_TIMESTAMP \
 }
 
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \

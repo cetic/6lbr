@@ -60,13 +60,19 @@
 #define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
 { \
 		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (int)(value / 10), (int)(value % 10)); \
+		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (int)(value / 10), (unsigned int)(value % 10)); \
 }
 
 #define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
 { \
 	int value = (resource_value); \
-	snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%02u", (int)(value / 100), (int)(value % 100)); \
+	snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%02u", (int)(value / 100), (unsigned int)(value % 100)); \
+}
+
+#define REST_FORMAT_THREE_DECIMAL(resource_name, resource_value) \
+{ \
+        int value = (resource_value); \
+        snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%03u", (int)(value / 1000), (unsigned int)(value % 1000)); \
 }
 
 #define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
