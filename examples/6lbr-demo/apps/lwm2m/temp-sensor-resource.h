@@ -95,6 +95,7 @@
 
 #else
 
+#define REST_RES_TEMP_DEFINE()
 #define REST_RES_TEMP_INIT()
 #define REST_RES_TEMP_REF
 #define REST_RES_TEMP_OBJECT_LINK
