@@ -54,6 +54,7 @@
 #if CONTIKI_TARGET_NATIVE
 #include "slip-config.h"
 #endif
+#include "6lbr-hooks.h"
 
 #include "eth-drv.h"
 
@@ -173,7 +174,7 @@ wireless_input(void)
 
   //Handle packet
   //-------------
-  if(processFrame) {
+  if(processFrame && cetic_6lbr_allowed_node_hook(NULL, &UIP_IP_BUF->srcipaddr, 128) ) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "wireless_input: processing frame\n");
     send_to_uip();
   } else {
@@ -346,7 +347,7 @@ eth_input(void)
 
   //Handle packet
   //-------------
-  if(processFrame) {
+  if(processFrame && cetic_6lbr_allowed_node_hook(NULL, &UIP_IP_BUF->destipaddr, 128)) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: Processing frame\n");
 #if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
   //RPL uses source packet address to populate its neighbor table
