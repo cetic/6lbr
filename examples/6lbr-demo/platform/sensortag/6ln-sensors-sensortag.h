@@ -38,7 +38,11 @@
 #define SIXLN_SENSORS_SENSORTAG_H
 
 #include "tmp-007-sensor.h"
+#include "hdc-1000-sensor.h"
 
+#include "stdio.h"
+
+/*---------------------------------------------------------------------------*/
 inline static int get_temp(void) {
   int
   value = tmp_007_sensor.value(TMP_007_SENSOR_TYPE_ALL);
@@ -53,5 +57,23 @@ inline static int get_temp(void) {
 #define SENSOR_INIT_TEMP() SENSORS_ACTIVATE(tmp_007_sensor)
 #define REST_REST_TEMP_VALUE get_temp()
 #define REST_CONF_RES_TEMP_FORMAT REST_FORMAT_THREE_DECIMAL
+
+/*---------------------------------------------------------------------------*/
+
+inline static int get_humidity(void) {
+  int
+  value = tmp_007_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
+
+  if(value == CC26XX_SENSOR_READING_ERROR) {
+    printf("TMP: Humidity Read Error\n");
+    return -1;
+  }
+
+  return value;
+}
+
+#define SENSOR_INIT_HUMIDITY() SENSORS_ACTIVATE(hdc_1000_sensor)
+#define REST_REST_HUMIDITY_VALUE get_humidity()
+#define REST_CONF_RES_HUMIDITY_FORMAT REST_FORMAT_TWO_DECIMAL
 
 #endif

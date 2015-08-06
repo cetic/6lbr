@@ -47,24 +47,45 @@
 
 #if PLATFORM_HAS_SHT11
 #include "sht11-sensor.h"
+
 #define SENSOR_INIT_TEMP() SENSORS_ACTIVATE(sht11_sensor)
+#define SENSOR_INIT_HUMIDITY() SENSORS_ACTIVATE(sht11_sensor)
+
 #if REST_RES_TEMP_RAW
 #define REST_REST_TEMP_VALUE sht11_sensor.value(SHT11_SENSOR_TEMP)
 #else
 #define REST_REST_TEMP_VALUE (sht11_sensor.value(SHT11_SENSOR_TEMP) - 3960)
 #endif
+
+#if REST_RES_HUMIDITY_RAW
+#define REST_REST_HUMIDITY_VALUE sht11_sensor.value(SHT11_SENSOR_HUMIDITY)
+#else
+#define REST_REST_HUMIDITY_VALUE (((uint32_t)sht11_sensor.value(SHT11_SENSOR_HUMIDITY) * 367 - 20468) / 100)
 #endif
 
+#endif /* PLATFORM_HAS_SHT11 */
+
 #if PLATFORM_HAS_SHT21
+
 #include "sht21.h"
+
 #define SENSOR_INIT_TEMP()
+#define SENSOR_INIT_HUMIDITY()
+
 #if REST_RES_TEMP_RAW
 #define REST_REST_TEMP_VALUE sht21_read_temp()
 #else
 #define REST_REST_TEMP_VALUE (((uint32_t)sht21_read_temp()) * 17572 / 65536 - 4685)
 #endif
+
+#if REST_RES_HUMIDITY_RAW
+#define REST_REST_HUMIDITY_VALUE sht21_read_humidity()
+#else
+#define REST_REST_HUMIDITY_VALUE ((((uint32_t)sht21_read_humidity())*12500/65536)-600)
 #endif
 
-#endif
+#endif /* PLATFORM_HAS_SHT21 */
 
-#endif
+#endif /* CETIC_6LN_PLATFORM_SENSORS */
+
+#endif /* PLATFORM_SENSORS_H */
