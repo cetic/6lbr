@@ -62,7 +62,7 @@ inline static int get_temp(void) {
 
 inline static int get_humidity(void) {
   int
-  value = tmp_007_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
+  value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
 
   if(value == CC26XX_SENSOR_READING_ERROR) {
     printf("TMP: Humidity Read Error\n");
