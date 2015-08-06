@@ -38,7 +38,6 @@
 
 #include "contiki.h"
 #include "coap-common.h"
-#include "ipso-profile.h"
 
 #if REST_CONF_PLATFORM_HAS_TEMP
 #ifdef REST_CONF_RES_TEMP
@@ -68,33 +67,59 @@
 #define REST_RES_TEMP_SIMPLE 1
 #endif
 
-#ifdef REST_RES_TEMP_RAW
+#ifdef REST_CONF_RES_TEMP_RAW
 #define REST_RES_TEMP_RAW REST_CONF_RES_TEMP_RAW
 #else
 #define REST_RES_TEMP_RAW 0
 #endif
 
-#if REST_RES_TEMP
-
-#define REST_RES_TEMP_DEFINE() \
-  extern resource_t resource_temp;
+#ifdef REST_CONF_RES_TEMP_FORMAT
+#define REST_REST_TEMP_FORMAT REST_CONF_RES_TEMP_FORMAT
+#else
+#if REST_RES_TEMP_RAW
+#define REST_REST_TEMP_FORMAT REST_FORMAT_ONE_INT
+#else
+#define REST_REST_TEMP_FORMAT REST_FORMAT_TWO_DECIMAL
+#endif
+#endif
 
 #if REST_RES_TEMP_SIMPLE
 #define REST_RES_TEMP_INIT_RESOURCE INIT_RESOURCE
+#if REST_RES_TEMP_PERIODIC
+#define REST_RES_TEMP_RESOURCE REST_PERIODIC_RESOURCE
+#else
+#define REST_RES_TEMP_RESOURCE REST_RESOURCE
+#endif
 #else
 #define REST_RES_TEMP_INIT_RESOURCE INIT_FULL_RESOURCE
+#define REST_RES_TEMP_RESOURCE REST_FULL_RESOURCE
 #endif
 
-#define REST_RES_TEMP_INIT() \
+#if REST_RES_TEMP
+
+#define REST_RES_TEMP_DECLARE() \
+  extern resource_t resource_temp;
+
+#define REST_RES_TEMP_INIT(path) \
   SENSOR_INIT_TEMP(); \
-  REST_RES_TEMP_INIT_RESOURCE(temp, TEMPERATURE_SENSOR_RES);
+  REST_RES_TEMP_INIT_RESOURCE(temp, path);
+
+#define REST_RES_TEMP_DEFINE(res_if, res_t) \
+  REST_RES_TEMP_RESOURCE(temp, \
+    REST_RES_TEMP_PERIOD, \
+    res_if, \
+    res_t, \
+    REST_REST_TEMP_FORMAT, \
+    "temp", \
+    REST_REST_TEMP_VALUE)
 
 #define REST_RES_TEMP_REF &resource_temp,
 
 #else
 
-#define REST_RES_TEMP_DEFINE()
+#define REST_RES_TEMP_DECLARE()
 #define REST_RES_TEMP_INIT()
+#define REST_RES_TEMP_DEFINE(...)
 #define REST_RES_TEMP_REF
 
 #endif
