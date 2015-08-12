@@ -43,13 +43,16 @@
 
 #include "lwm2m-device-object.h"
 
-#define LWM2M_OBJECTS_LINK ""
-
 void
 lwm2m_init(void)
 {
   LWM2M_DEVICE_OBJECT_INIT();
+}
+
+void
+lwm2m_set_resources_list(char const * resources)
+{
 #if RD_CLIENT_ENABLED
-  rd_client_set_resources_list(LWM2M_OBJECTS_LINK);
+  rd_client_set_resources_list(resources);
 #endif
 }

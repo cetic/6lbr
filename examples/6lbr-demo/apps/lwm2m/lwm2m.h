@@ -83,4 +83,7 @@
 void
 lwm2m_init(void);
 
+void
+lwm2m_set_resources_list(char const * resources);
+
 #endif /* LWM2M_PROFILE_H */
