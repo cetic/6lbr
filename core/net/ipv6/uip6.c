@@ -82,6 +82,7 @@
 #include <string.h>
 
 #if CETIC_NODE_INFO
+#include "packet-filter.h"
 #include "node-info.h"
 #endif
 
@@ -1183,7 +1184,10 @@ uip_process(uint8_t flag)
   }
 
 #if CETIC_NODE_INFO
-  node_info_node_seen(&UIP_IP_BUF->srcipaddr, UIP_TTL - UIP_IP_BUF->ttl + 1);
+  if(packet_filter_wsn_packet) {
+    /* Take only into account packets coming directly from the WSN interface */
+    node_info_node_seen(&UIP_IP_BUF->srcipaddr, UIP_TTL - (int)UIP_IP_BUF->ttl + 1);
+  }
 #endif
   /*
    * Process Packets with a routable multicast destination:
