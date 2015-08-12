@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2015, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,20 @@
 
 /**
  * \file
- *         Simple CoAP Library
+ *         Z1 target resources initialisation
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#ifndef SENSORS_BATCH_RESOURCE_H_
-#define SENSORS_BATCH_RESOURCE_H_
 
 #include "contiki.h"
-#include "coap-common.h"
-#include "ipso-profile.h"
+#include "platform-sensors.h"
 
-#ifdef REST_CONF_RES_SENSORS_BATCH
-#define REST_RES_SENSORS_BATCH REST_CONF_RES_SENSORS_BATCH
-#else
-#define REST_RES_SENSORS_BATCH 1
+#if WITH_LWM2M
+#include "lwm2m.h"
+#include "ipso-so.h"
 #endif
 
-#if REST_RES_SENSORS_BATCH
-#define REST_RES_SENSORS_BATCH_INIT() INIT_RESOURCE(sensors, SENSORS_RES);
-#define REST_RES_SENSORS_BATCH_RESOURCE(...) BATCH_RESOURCE(sensors, IF_BATCH, SENSOR_RT, __VA_ARGS__)
-#else
-#define REST_RES_SENSORS_BATCH_INIT()
-#define REST_RES_SENSORS_BATCH_RESOURCE(...)
-#endif
-
-#endif /* DEVICE_RESOURCE_H_ */
+void
+platform_resources_init(void)
+{
+}

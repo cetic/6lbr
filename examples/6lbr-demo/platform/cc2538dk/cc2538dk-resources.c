@@ -29,16 +29,20 @@
 
 /**
  * \file
- *         6LBR-Demo Project Configuration
+ *         Z1 target resources initialisation
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SIXLN_SENSORS_SRF06_CC26XX_H
-#define SIXLN_SENSORS_SRF06_CC26XX_H
+#include "contiki.h"
+#include "platform-sensors.h"
 
-#if BOARD_SENSORTAG
-#include "../sensortag/6ln-sensors-sensortag.h"
+#if WITH_LWM2M
+#include "lwm2m.h"
+#include "ipso-so.h"
 #endif
 
-#endif
+void
+platform_resources_init(void)
+{
+}

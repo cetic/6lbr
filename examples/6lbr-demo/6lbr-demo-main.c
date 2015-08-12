@@ -83,6 +83,11 @@ start_apps(void)
   lwm2m_init();
 #endif
 
+#if defined CETIC_6LN_PLATFORM_CONF && WITH_COAPSERVER
+  extern void platform_resources_init();
+  platform_resources_init();
+#endif
+
 #if WITH_DTLS_ECHO
   process_start(&dtls_echo_server_process, NULL);
 #endif

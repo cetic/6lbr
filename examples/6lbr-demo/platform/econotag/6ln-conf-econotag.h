@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,49 +29,34 @@
 
 /**
  * \file
- *         Simple CoAP Library
+ *         6LBR-Demo Project Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#include "coap-common.h"
-#include "core-interface.h"
-#include "sensors-batch-resource.h"
 
-#include "battery-sensor-resource.h"
-#include "humidity-sensor-resource.h"
-#include "light-sensor-resource.h"
-#include "radio-sensor-resource.h"
-#include "temp-sensor-resource.h"
+#ifndef SIXLN_CONF_ECONOTAG_H
+#define SIXLN_CONF_ECONOTAG_H
 
-#if WITH_NVM
-#include "nvm-config.h"
-#endif
+#ifndef CUSTOM_COAP_RESOURCES
 
-/*---------------------------------------------------------------------------*/
+/* Disable .well-known/core filtering to save code */
+#define COAP_LINK_FORMAT_FILTERING 0
 
-#if REST_RES_SENSORS_BATCH
-#define REST_RES_SENSORS_BATCH_RESOURCE BATCH_RESOURCE
-#else
-#define REST_RES_SENSORS_BATCH_RESOURCE(...)
-#endif
+/* Disable coap push */
+#define COAP_PUSH_CONF_ENABLED 0
 
-/*---------------------------------------------------------------------------*/
+/* Disable core interface binding table */
+#define REST_CONF_RES_BINDING_TABLE 0
 
-REST_RES_LIGHT_SOLAR_DEFINE();
-REST_RES_LIGHT_PHOTO_DEFINE();
-REST_RES_TEMP_DECLARE();
-REST_RES_HUMIDITY_DECLARE();
-REST_RES_BATTERY_DEFINE();
-REST_RES_RADIO_LQI_DEFINE();
-REST_RES_RADIO_RSSI_DEFINE();
+/* Disable core interface binding nvm */
+#define CORE_ITF_CONF_BINDING_TABLE_NVM 0
 
-REST_RES_SENSORS_BATCH_RESOURCE(sensors, IF_BATCH, SENSOR_RT,
-    REST_RES_LIGHT_SOLAR_REF
-    REST_RES_LIGHT_PHOTO_REF
-    REST_RES_TEMP_REF
-    REST_RES_HUMIDITY_REF
-    REST_RES_BATTERY_REF
-    REST_RES_RADIO_LQI_REF
-    REST_RES_RADIO_RSSI_REF
-  )
-/*---------------------------------------------------------------------------*/
+/* Disable core interface linked batch table */
+#define REST_CONF_RES_LINKED_BATCH_TABLE 0
+
+/* Disable core interface linked batch nvm */
+#define CORE_ITF_CONF_LINKED_BATCH_NVM 0
+
+#endif /* CUSTOM_COAP_RESOURCES */
+
+#endif /* SIXLN_CONF_ECONOTAG_H */

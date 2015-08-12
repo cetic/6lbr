@@ -1,0 +1,6 @@
+PROJECTDIRS+=$(PROJECTDIR)/platform/sensortag
+
+ifneq ($(WITH_COAPSERVER),0)
+RESOURCES=temp humidity
+PROJECT_SOURCEFILES+=sensortag-resources.c
+endif

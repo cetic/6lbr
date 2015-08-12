@@ -29,13 +29,21 @@
 
 /**
  * \file
- *         6LBR-Demo Project Configuration
+ *         6LBR LWM2M Server
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SIXLN_SENSORS_SENSORTAG_H
-#define SIXLN_SENSORS_SENSORTAG_H
+#include "contiki.h"
+#include "platform-sensors.h"
+
+#if WITH_LWM2M
+#include "lwm2m.h"
+#include "ipso-so.h"
+#endif
+
+#include "temp-resource.h"
+#include "humidity-resource.h"
 
 #include "tmp-007-sensor.h"
 #include "hdc-1000-sensor.h"
@@ -57,9 +65,7 @@ inline static int get_temp(void) {
 #define SENSOR_INIT_TEMP() SENSORS_ACTIVATE(tmp_007_sensor)
 #define REST_REST_TEMP_VALUE get_temp()
 #define REST_CONF_RES_TEMP_FORMAT REST_FORMAT_THREE_DECIMAL
-
 /*---------------------------------------------------------------------------*/
-
 inline static int get_humidity(void) {
   int
   value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
@@ -75,5 +81,34 @@ inline static int get_humidity(void) {
 #define SENSOR_INIT_HUMIDITY() SENSORS_ACTIVATE(hdc_1000_sensor)
 #define REST_REST_HUMIDITY_VALUE get_humidity()
 #define REST_CONF_RES_HUMIDITY_FORMAT REST_FORMAT_TWO_DECIMAL
+/*---------------------------------------------------------------------------*/
 
+REST_RES_TEMP_DECLARE();
+REST_RES_HUMIDITY_DECLARE();
+
+REST_RES_TEMP_DEFINE("", "");
+REST_RES_HUMIDITY_DEFINE("", "");
+
+#if WITH_LWM2M
+#if REST_RES_TEMP
+#define REST_RES_TEMP_OBJECT_LINK "<" LWM2M_INSTANCE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, LWM2M_DEFAULT_INSTANCE_ID) ">,"
+#else
+#define REST_RES_TEMP_OBJECT_LINK
 #endif
+#if REST_RES_HUMIDITY
+#define REST_RES_HUMIDITY_OBJECT_LINK "<" LWM2M_INSTANCE_PATH(IPSO_SO_HUM_SEN_OBJECT_ID, LWM2M_DEFAULT_INSTANCE_ID) ">,"
+#else
+#define REST_RES_HUMIDITY_OBJECT_LINK
+#endif
+
+#define LWM2M_OBJECTS_LINK LWM2M_DEVICE_OBJECT_LINK REST_RES_TEMP_OBJECT_LINK REST_RES_HUMIDITY_OBJECT_LINK
+#endif
+
+void
+platform_resources_init(void)
+{
+#if WITH_LWM2M
+  REST_RES_TEMP_INIT(LWM2M_SIMPLE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, IPSO_SO_SENSOR_VALUE_RESOURCE_ID));
+  REST_RES_HUMIDITY_INIT(LWM2M_SIMPLE_PATH(IPSO_SO_HUM_SEN_OBJECT_ID, IPSO_SO_SENSOR_VALUE_RESOURCE_ID));
+#endif
+}

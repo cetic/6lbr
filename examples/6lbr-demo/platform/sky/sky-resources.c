@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2015, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,55 +29,70 @@
 
 /**
  * \file
- *         Simple CoAP Library
+ *         Sky target resources initialisation
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#include "coap-common.h"
-#include "light-sensor-resource.h"
 
-#if REST_RES_LIGHT_SOLAR
-#if REST_RES_LIGHT_SOLAR_PERIODIC
-#define REST_RES_LIGHT_SOLAR_RESOURCE REST_PERIODIC_RESOURCE
-#else
-#define REST_RES_LIGHT_SOLAR_RESOURCE REST_RESOURCE
-#endif
-#else
-#define REST_RES_LIGHT_SOLAR_RESOURCE(...)
+#include "contiki.h"
+#include "platform-sensors.h"
+
+#if WITH_IPSO_APP_FW
+#include "ipso-app-fw.h"
+#include "sensors-batch-resource.h"
 #endif
 
-#if REST_RES_LIGHT_PHOTO
-#if REST_RES_LIGHT_PHOTO_PERIODIC
-#define REST_RES_LIGHT_PHOTO_RESOURCE REST_PERIODIC_RESOURCE
-#else
-#define REST_RES_LIGHT_PHOTO_RESOURCE REST_RESOURCE
+#if WITH_LWM2M
+#include "lwm2m.h"
+#include "ipso-so.h"
 #endif
-#else
-#define REST_RES_LIGHT_PHOTO_RESOURCE(...)
-#endif
+
+#include "temp-resource.h"
+#include "humidity-resource.h"
+#include "photo-resource.h"
+#include "solar-resource.h"
+
+REST_RES_TEMP_DECLARE();
+REST_RES_HUMIDITY_DECLARE();
+REST_RES_PHOTO_DECLARE();
+REST_RES_SOLAR_DECLARE();
 
 #if REST_RES_LIGHT_SOLAR_RAW
-#define LIGHT_SOLAR_VALUE REST_FORMAT_ONE_INT("solar", light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR))
+#define LIGHT_SOLAR_VALUE light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR)
 #else
 //S1087-1 on 100kOhm with Vref=1.5V
-#define LIGHT_SOLAR_VALUE REST_FORMAT_ONE_INT("solar", ((uint32_t)light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR) * 282 / 1000))
+#define LIGHT_SOLAR_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR) * 282 / 1000)
 #endif
 
 #if REST_RES_LIGHT_PHOTO_RAW
-#define LIGHT_PHOTOSYNTHETIC_VALUE REST_FORMAT_ONE_INT("photo", light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC))
+#define LIGHT_PHOTOSYNTHETIC_VALUE light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC))
 #else
 //S1087 on 100kOhm with Vref=1.5V
-#define LIGHT_PHOTOSYNTHETIC_VALUE REST_FORMAT_ONE_INT("photo", ((uint32_t)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) * 2289 / 1000))
+#define LIGHT_PHOTOSYNTHETIC_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) * 2289 / 1000)
 #endif
 
-REST_RES_LIGHT_PHOTO_RESOURCE(light_photo,
-    REST_RES_LIGHT_PHOTO_PERIOD,
-    IF_SENSOR,
-    LIGHT_SENSOR_RT,
-    LIGHT_PHOTOSYNTHETIC_VALUE)
+REST_RES_TEMP_DEFINE(IF_SENSOR, TEMPERATURE_SENSOR_RT);
+REST_RES_HUMIDITY_DEFINE(IF_SENSOR, RELATIVE_HUMIDITY_SENSOR_RT);
+REST_RES_PHOTO_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT);
+REST_RES_SOLAR_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT);
 
-REST_RES_LIGHT_SOLAR_RESOURCE(light_solar,
-    REST_RES_LIGHT_SOLAR_PERIOD,
-    IF_SENSOR,
-    LIGHT_SENSOR_RT,
-    LIGHT_SOLAR_VALUE)
+void
+platform_resources_init(void)
+{
+  REST_RES_TEMP_INIT(TEMPERATURE_SENSOR_RES);
+  REST_RES_HUMIDITY_INIT(HUMIDITY_SENSOR_RES);
+  REST_RES_PHOTO_INIT(LIGHT_PHOTOSYNTHETIC_SENSOR_RES);
+  REST_RES_SOLAR_INIT(LIGHT_SOLAR_SENSOR_RES);
+
+#if WITH_IPSO_APP_FW
+  REST_RES_SENSORS_BATCH_RESOURCE(
+      REST_RES_SOLAR_REF
+      REST_RES_PHOTO_REF
+      REST_RES_TEMP_REF
+      REST_RES_HUMIDITY_REF
+      REST_RES_BATTERY_REF
+      REST_RES_RADIO_LQI_REF
+      REST_RES_RADIO_RSSI_REF
+    );
+#endif
+}

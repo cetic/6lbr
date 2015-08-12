@@ -34,12 +34,12 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef DEFAULT_RESOURCES_CONFIG_H
-#define DEFAULT_RESOURCES_CONFIG_H
+#ifndef SIXLN_CONF_Z1_H
+#define SIXLN_CONF_Z1_H
 
 #ifndef CUSTOM_COAP_RESOURCES
-/* Sky and Z1 in 16bits mode have limited code size */
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
+
+#if ! MSP430_20BITS
 
 /* Unless compiling in LARGE mode, only a few resources can be enabled at a time with RPL enabled*/
 #if UIP_CONF_IPV6_RPL
@@ -132,36 +132,13 @@
 
 #endif /* UIP_CONF_IPV6_RPL */
 
-#endif /* defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS) */
-
-#if CONTIKI_TARGET_ECONOTAG
-/* Disable .well-known/core filtering to save code */
-#define COAP_LINK_FORMAT_FILTERING 0
-
-/* Disable coap push */
-#define COAP_PUSH_CONF_ENABLED 0
-
-/* Disable core interface binding table */
-#define REST_CONF_RES_BINDING_TABLE 0
-
-/* Disable core interface binding nvm */
-#define CORE_ITF_CONF_BINDING_TABLE_NVM 0
-
-/* Disable core interface linked batch table */
-#define REST_CONF_RES_LINKED_BATCH_TABLE 0
-
-/* Disable core interface linked batch nvm */
-#define CORE_ITF_CONF_LINKED_BATCH_NVM 0
-
-#endif
+#endif /* ! MSP430_20BITS */
 
 #endif /* CUSTOM_COAP_RESOURCES */
 
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 /* NVM is too limited */
 #define REST_CONF_MAX_DEVICE_NAME_LENGTH 16
 #define COAP_PUSH_CONF_MAX_URI_SIZE 16
 #define CORE_ITF_CONF_USER_BINDING_NB 1
-#endif
 
-#endif /* DEFAULT_RESOURCES_CONFIG_H */
+#endif /* SIXLN_CONF_Z1_H */

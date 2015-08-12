@@ -36,6 +36,7 @@
 #include "coap-common.h"
 #include "core-interface.h"
 #include "device-resource.h"
+#include "device-info-resource.h"
 
 #if WITH_NVM
 #include "nvm-config.h"

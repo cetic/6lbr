@@ -15,6 +15,7 @@ WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
 WITH_TCP?=0
+WITH_COAP_PROFILE?=IPSO_APP_FW
 
 # UDP client configuration
 
@@ -76,6 +77,15 @@ endif
 
 ifneq ($(WITH_COAPSERVER),0)
 APPS += er-coap rest-engine coap
+ifeq ($(WITH_COAP_PROFILE),)
+WITH_COAP_PROFILE=IPSO_APP_FW
+endif
+ifeq ($(WITH_COAP_PROFILE),IPSO_APP_FW)
+APPS += ipso-app-fw
+endif
+ifeq ($(WITH_COAP_PROFILE),LWM2M)
+APPS += lwm2m
+endif
 endif
 
 ifneq ($(WITH_TCP),1)
@@ -161,9 +171,6 @@ endif
 -include $(PROJECTDIR)/platform/$(TARGET)/Makefile.$(TARGET)
 ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-conf-$(TARGET).h)","")
 CFLAGS+=-DCETIC_6LN_PLATFORM_CONF=\"6ln-conf-$(TARGET).h\"
-endif
-ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-sensors-$(TARGET).h)","")
-CFLAGS+=-DCETIC_6LN_PLATFORM_SENSORS=\"6ln-sensors-$(TARGET).h\"
 endif
 
 PROJECT_SOURCEFILES += 6lbr-demo-main.c

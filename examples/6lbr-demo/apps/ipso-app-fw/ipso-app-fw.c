@@ -43,9 +43,6 @@
 #include "ipso-app-fw.h"
 #include "ipso-profile.h"
 
-#include "light-sensor-resource.h"
-#include "temp-sensor-resource.h"
-#include "humidity-sensor-resource.h"
 #include "battery-sensor-resource.h"
 #include "radio-sensor-resource.h"
 #include "button-resource.h"
@@ -61,10 +58,6 @@
 #include "uip-debug.h"
 
 //Define all resources
-REST_RES_LIGHT_SOLAR_DEFINE();
-REST_RES_LIGHT_PHOTO_DEFINE();
-REST_RES_TEMP_DECLARE();
-REST_RES_HUMIDITY_DECLARE();
 REST_RES_BATTERY_DEFINE();
 REST_RES_BUTTON_DEFINE();
 REST_RES_LED_R_DEFINE();
@@ -74,17 +67,10 @@ REST_RES_DEVICE_DEFINE();
 REST_RES_RADIO_LQI_DEFINE();
 REST_RES_RADIO_RSSI_DEFINE();
 
-REST_RES_TEMP_DEFINE(IF_SENSOR, TEMPERATURE_SENSOR_RT);
-REST_RES_HUMIDITY_DEFINE(IF_SENSOR, RELATIVE_HUMIDITY_SENSOR_RT);
-
 void
 ipso_app_fw_init(void)
 {
   //Init all resources
-  REST_RES_LIGHT_SOLAR_INIT();
-  REST_RES_LIGHT_PHOTO_INIT();
-  REST_RES_TEMP_INIT(TEMPERATURE_SENSOR_RES);
-  REST_RES_HUMIDITY_INIT(HUMIDITY_SENSOR_RES);
   REST_RES_BATTERY_INIT();
   REST_RES_BUTTON_INIT();
   REST_RES_LED_R_INIT();
@@ -93,7 +79,6 @@ ipso_app_fw_init(void)
   REST_RES_DEVICE_INIT();
   REST_RES_RADIO_LQI_INIT();
   REST_RES_RADIO_RSSI_INIT();
-  REST_RES_SENSORS_BATCH_INIT();
   REST_RES_CONFIG_STACK_INIT();
 
   /* Linked batch and binding tables must be initialized after all the resources */

@@ -102,10 +102,6 @@
 
 #define COAP_SERVER_PORT 5683
 
-#if WITH_IPSO_APP_FW
-#include "default-resources-config.h"
-#endif
-
 /* Uncomment to remove /.well-known/core resource to save code */
 //#define WITH_WELL_KNOWN_CORE            0
 
