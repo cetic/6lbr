@@ -6,7 +6,8 @@ if [[ $# < 1 ]]; then
 fi
 
 for resourceid in $@; do
-	RESOURCEID=`echo $resourceid | tr '[:lower:]' '[:upper:]'`
+	cannon_resourceid=`echo $resourceid | tr '-' '_'`
+	RESOURCEID=`echo $cannon_resourceid | tr '[:lower:]' '[:upper:]'`
 
-	sed "s/resourceid/$resourceid/g; s/RESOURCEID/$RESOURCEID/g" `dirname $0`/resource-template.h > $resourceid-resource.h
+	sed "s/resourceid/$cannon_resourceid/g; s/RESOURCEID/$RESOURCEID/g" `dirname $0`/resource-template.h > $resourceid-resource.h
 done
