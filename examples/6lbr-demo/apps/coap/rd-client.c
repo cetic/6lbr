@@ -40,6 +40,7 @@
 
 #include "coap-common.h"
 #include "core-interface.h"
+#include "block-transfer.h"
 #include "rd-client.h"
 
 #if WITH_NVM
@@ -55,6 +56,7 @@
 PROCESS(rd_client_process, "RD Client");
 
 static char const * resources_list = ",";
+static int resources_list_size = 0;
 
 static uip_ipaddr_t rd_server_ipaddr;
 static uint16_t rd_server_port;
@@ -78,18 +80,46 @@ static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
 static uint8_t registered = 0;
 /*---------------------------------------------------------------------------*/
 void
+client_registration_request_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  /* Check the offset for boundaries of the resource data. */
+  PRINTF("Requesting %u bytes at %d\n", preferred_size, *offset);
+  if(*offset >= resources_list_size) {
+    PRINTF("Invalid offset %u\n", *offset);
+    *offset = -1;
+    return;
+  }
+
+  if(*offset + preferred_size > resources_list_size) {
+    preferred_size = resources_list_size - *offset;
+  }
+  coap_set_payload(request, resources_list + *offset, preferred_size);
+  *offset += preferred_size;
+  if(*offset >= resources_list_size) {
+    *offset = -1;
+  }
+
+}
+/*---------------------------------------------------------------------------*/
+void
 client_registration_response_handler(void *response)
 {
-  if(response != NULL && ((coap_packet_t *)response)->code == CREATED_2_01) {
-    const char *str=NULL;
-    int len = coap_get_header_location_path(response, &str);
-    if(len > 0) {
-      memcpy(registration_name, str, len);
-      registration_name[len] = '\0';
-      PRINTF("Registration name: %s\n", registration_name);
-      registered = 1;
+  if(response != NULL) {
+    if (((coap_packet_t *)response)->code == CREATED_2_01) {
+      const char *str=NULL;
+      int len = coap_get_header_location_path(response, &str);
+      if(len > 0) {
+        memcpy(registration_name, str, len);
+        registration_name[len] = '\0';
+        PRINTF("Registration name: %s\n", registration_name);
+        registered = 1;
+      } else {
+        PRINTF("Location-path missing\n");
+      }
+    } else if (((coap_packet_t *)response)->code == CONTINUE_2_31) {
+      /* Resource list not fully sent */
     } else {
-      PRINTF("Location-path missing\n");
+      PRINTF("Unknown response code : %d\n", ((coap_packet_t *)response)->code);
     }
   } else {
     PRINTF("Timeout or error status\n");
@@ -99,9 +129,13 @@ client_registration_response_handler(void *response)
 void
 client_update_response_handler(void *response)
 {
-  if(response != NULL && ((coap_packet_t *)response)->code == CHANGED_2_04) {
-    PRINTF("Updated\n");
-    registered = 1;
+  if(response != NULL) {
+    if (((coap_packet_t *)response)->code == CHANGED_2_04) {
+      PRINTF("Updated\n");
+      registered = 1;
+    } else {
+      PRINTF("Unknown response code : %d\n", ((coap_packet_t *)response)->code);
+    }
   } else {
     PRINTF("Timeout or error status\n");
   }
@@ -134,9 +168,9 @@ PROCESS_THREAD(rd_client_process, ev, data)
       coap_set_header_uri_path(request, "rd");
       sprintf(query_buffer, "ep=%s&b=U&lt=%d", rd_client_name, RD_CLIENT_LIFETIME);
       coap_set_header_uri_query(request, query_buffer);
-      coap_set_payload(request, (uint8_t *) resources_list, strlen(resources_list) - 1);
+      coap_set_payload(request, (uint8_t *) resources_list, resources_list_size);
 
-      COAP_BLOCKING_REQUEST(coap_default_context, &rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_registration_response_handler);
+      COAP_BLOCKING_REQUEST_BLOCK_RESPONSE(coap_default_context, &rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_registration_request_handler, client_registration_response_handler);
     }
     etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
@@ -186,5 +220,11 @@ void
 rd_client_set_resources_list(char const * new_list)
 {
   resources_list = new_list;
+  resources_list_size = strlen(new_list);
+  if(resources_list_size > 1) {
+    resources_list_size -= 1;
+  } else {
+    resources_list_size = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
