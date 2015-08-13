@@ -42,6 +42,19 @@
 #undef RF_CHANNEL
 #endif
 
+/* Undefine hardcoded platform configuration */
+#undef QUEUEBUF_CONF_NUM
+#undef UIP_CONF_BUFFER_SIZE
+#undef UIP_CONF_RECEIVE_WINDOW
+#undef WEBSERVER_CONF_CFS_CONNS
+#undef WEBSERVER_CONF_CFS_PATHLEN
+#undef NETSTACK_CONF_MAC
+#undef NETSTACK_CONF_RDC
+#undef SKY_CONF_MAX_TX_POWER
+#undef RPL_CONF_INIT_LINK_METRIC
+#undef UIP_CONF_DS6_NBR_NBU
+#undef UIP_CONF_MAX_ROUTES
+
 /* include the project config */
 #ifdef USER_PROJECT_CONF_H
 #include USER_PROJECT_CONF_H
@@ -149,38 +162,46 @@
 #define UIP_CONF_ROUTER            0
 #endif
 
-#undef QUEUEBUF_CONF_NUM
+#ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
+#endif
 
-#undef UIP_CONF_BUFFER_SIZE
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    260
+#endif
 
-#undef UIP_CONF_RECEIVE_WINDOW
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  60
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* WEBSERVER                                                                 */
 /*---------------------------------------------------------------------------*/
 
-#undef WEBSERVER_CONF_CFS_CONNS
+#ifndef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
+#endif
 
 /* Reserve space for a file name (default is to not use file name) */
-#undef WEBSERVER_CONF_CFS_PATHLEN
+#ifndef WEBSERVER_CONF_CFS_PATHLEN
 #define WEBSERVER_CONF_CFS_PATHLEN 80
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* RADIO                                                                     */
 /*---------------------------------------------------------------------------*/
 
-#undef NETSTACK_CONF_MAC
+#ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     		csma_driver
+#endif
 
-#undef NETSTACK_CONF_RDC
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     		nullrdc_driver
+#endif
 
-#undef SKY_CONF_MAX_TX_POWER
+#ifndef SKY_CONF_MAX_TX_POWER
 #define SKY_CONF_MAX_TX_POWER 	31
+#endif
 
 #if CONTIKI_TARGET_ECONOTAG
 #undef NULLRDC_CONF_802154_AUTOACK
@@ -194,8 +215,9 @@
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
 
-#undef RPL_CONF_INIT_LINK_METRIC
+#ifndef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			2
+#endif
 
 #define RPL_MAX_DAG_PER_INSTANCE	2
 #define RPL_MAX_INSTANCES		1
@@ -210,30 +232,26 @@
 #define RPL_CONF_MAX_PARENTS_PER_DAG    12
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     12
 
-#undef UIP_CONF_DS6_NBR_NBU
+#ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     12
+#endif
 
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   12
-
-#undef UIP_CONF_MAX_ROUTES
+#ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   12
+#endif
 
 #else
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    24
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     24
 
-#undef UIP_CONF_DS6_NBR_NBU
+#ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     24
+#endif
 
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   24
-
-#undef UIP_CONF_MAX_ROUTES
+#ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
+#endif
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA   1
