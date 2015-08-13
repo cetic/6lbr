@@ -59,7 +59,8 @@ extern void coap_blocking_request_callback(void *callback_data, void *response);
 PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_event_t ev,
                                 context_t *ctx,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
-                                coap_packet_t *request, block_handler block_callback)) {
+                                coap_packet_t *request, block_handler request_callback,
+                                blocking_response_handler response_callback)) {
   PT_BEGIN(&state->pt);
 
   static uint8_t more;
@@ -85,7 +86,7 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
       state->transaction->callback_data = state;
 
       offset = state->block_num*REST_MAX_CHUNK_SIZE;
-      block_callback((void *)request, (void *)state->response, state->transaction->packet+COAP_MAX_HEADER_SIZE, REST_MAX_CHUNK_SIZE, &offset);
+      request_callback((void *)request, (void *)state->response, state->transaction->packet+COAP_MAX_HEADER_SIZE, REST_MAX_CHUNK_SIZE, &offset);
       more = offset != -1;
       coap_set_header_block1(request, state->block_num, more, REST_MAX_CHUNK_SIZE);
 
@@ -109,6 +110,9 @@ PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_eve
 
       if (res_block==state->block_num)
       {
+        if(response_callback != NULL) {
+          response_callback(state->response);
+        }
         ++(state->block_num);
       }
       else
