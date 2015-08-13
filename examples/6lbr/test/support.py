@@ -443,7 +443,7 @@ class CoojaWsn(Wsn):
                 nodeid = parts[0]
                 mote=self.get_mote(nodeid)
                 if parts[1] == 'slipradio':
-                    self.add_slip_mote(nodeid)
+                    self.add_slip_mote(nodeid, parts[2])
                 if parts[1] == 'node_delay':
                     self.add_test_mote(nodeid)
                 if mote is not None:
@@ -478,9 +478,12 @@ class CoojaWsn(Wsn):
         self.err.close()
         self.motelist = []
 
-    def add_slip_mote(self, nodeid):
+    def add_slip_mote(self, nodeid, target):
         hex_mote_id = "%02x" % int(nodeid)
-        iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        if target == 'sky':
+            iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        else:
+            iid = '02' + hex_mote_id +':' + hex_mote_id + ':' + hex_mote_id + ':' + hex_mote_id
         self.slip_motes.append({'nodeid':nodeid, 'socket': 'localhost', 'port': 60000 + int(nodeid), 'iid': iid})
 
     def add_test_mote(self, nodeid):
