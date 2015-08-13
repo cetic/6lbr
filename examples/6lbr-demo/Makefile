@@ -34,7 +34,7 @@ CONTIKI?=../..
 
 PROJECTDIR?=.
 
-APPDIRS = $(PROJECTDIR)/apps
+APPDIRS += $(PROJECTDIR)/apps
 
 PROJECTDIRS += $(PROJECTDIR)/platform $(PROJECTDIR)/platform/$(TARGET)
 PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
