@@ -1,14 +1,14 @@
 CONTIKI_PROJECT=slip-radio
 all: $(CONTIKI_PROJECT)
-APPS = slip-cmd
+APPS+=slip-cmd
 
 ifeq ($(TARGET),)
   -include Makefile.target
 endif
 
-CONTIKI=../../..
+CONTIKI?=../../..
 
-DEFINES=NETSTACK_CONF_RDC=nullrdc_driver
+DEFINES?=NETSTACK_CONF_RDC=nullrdc_driver
 
 #linker optimizations
 SMALL=1
