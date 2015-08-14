@@ -2,8 +2,6 @@
 #define NVM_DATA_H_
 
 #include <stdint.h>
-#include "coap-binding-nvm.h"
-#include "coap-linked-batch-nvm.h"
 
 typedef struct {
   //NVM header
