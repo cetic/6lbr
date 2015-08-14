@@ -36,7 +36,6 @@
 
 #include "contiki.h"
 #include "rd-client.h"
-#include "platform-sensors.h"
 
 #include "lwm2m.h"
 #include "ipso-so.h"
