@@ -58,6 +58,10 @@ clean-cooja-firmwares:
 	cd ${COOJAGEN}/firmwares/6lbr-demo-delay && $(MAKE) TARGET=sky clean
 	cd ${COOJAGEN}/firmwares/6lbr-demo-ndp && $(MAKE) TARGET=sky clean
 	cd ${CONTIKIDIR}/examples/ipv6/slip-radio && $(MAKE) TARGET=sky clean
+	cd ${COOJAGEN}/firmwares/6lbr-demo && $(MAKE) TARGET=cooja clean
+	cd ${COOJAGEN}/firmwares/6lbr-demo-delay && $(MAKE) TARGET=cooja clean
+	cd ${COOJAGEN}/firmwares/6lbr-demo-ndp && $(MAKE) TARGET=cooja clean
+	cd ${CONTIKIDIR}/examples/ipv6/slip-radio && $(MAKE) TARGET=cooja clean
 
 build-cooja-firmwares:
 	cd ${COOJAGEN}/firmwares/6lbr-demo && $(MAKE) TARGET=sky

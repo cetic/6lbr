@@ -39,6 +39,9 @@ endif
 ifeq ($(TARGET),econotag)
   PROJECT_SOURCEFILES += slip-radio-mc1322x.c
 endif
+ifeq ($(TARGET),cooja)
+  PROJECT_SOURCEFILES += slip-radio-cooja.c
+endif
 endif
 
 CONTIKI_WITH_RPL = 0
