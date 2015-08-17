@@ -198,6 +198,7 @@ timeout_handler(void)
           p = p + sprintf(p, "(null)");
         }
 #else
+        uip_ipaddr_t * defrt = uip_ds6_defrt_choose();
         if (defrt != NULL) {
           p = add_ipaddr(p, defrt);
         } else {

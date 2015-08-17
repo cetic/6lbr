@@ -49,6 +49,8 @@ endif
 
 ifeq ($(WITH_RPL),1)
 CONTIKI_WITH_RPL = 1
+else
+CONTIKI_WITH_RPL = 0
 endif
 
 ifneq ($(WITH_SHELL),0)
