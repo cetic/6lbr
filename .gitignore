@@ -27,6 +27,7 @@
 *.c128
 *.c64
 *.cc2538dk
+*.remote
 *.srf06-cc26xx
 *.ev-aducrf101mkxz
 *.report
@@ -82,7 +83,7 @@ contiki-cc2530dk.lib
 *.S
 *.eth
 *.dsk
-*.2mg
+*.po
 *.atr
 *.d64
 *.d71

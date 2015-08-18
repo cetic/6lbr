@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,57 +29,47 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
+ * \addtogroup remote-sensors
+ * @{
+ *
+ * \defgroup remote-tmp102-sensor Re-Mote TMP102 Sensor
+ *
+ * Driver for the Re-Mote TMP102 sensor
+ *
+ * The TMP102 driver returns the converted temperature value in centiCelsius
+ * with 2 digits precision, to get Celsius just divide by 100.
+ * @{
+ *
  * \file
- *         CCM* header file.
- * \author
- *         Konrad Krentz <konrad.krentz@gmail.com>
+ * Header file for the Re-Mote TMP102 Sensor Driver
  */
-
+/*---------------------------------------------------------------------------*/
+#ifndef TMP102_H_
+#define TMP102_H_
+#include <stdio.h>
+#include "i2c.h"
+/* -------------------------------------------------------------------------- */
 /**
- * \addtogroup llsec802154
+ * \name Generic TMP102 sensor
  * @{
  */
+/* -------------------------------------------------------------------------- */
+#define TMP102_ADDR           0x48 /**< TMP102 slave address */
+#define TMP102_TEMP           0x00 /**< TMP102 temperature data register */
+/** @} */
+/* -------------------------------------------------------------------------- */
+#endif /* ifndef TMP102_H_ */
+/*---------------------------------------------------------------------------*/
 
-#ifndef CCM_STAR_H_
-#define CCM_STAR_H_
+/** \brief Initialiser for the TMP102 sensor driver */
+void tmp102_init(void);
 
-#include "contiki.h"
-#include "net/mac/frame802154.h"
-
-/* see RFC 3610 */
-#define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1 << 6) : 0) | (((M - 2) >> 1) << 3) | 1)
-#define CCM_STAR_ENCRYPTION_FLAGS     1
-
-#ifdef CCM_STAR_CONF
-#define CCM_STAR CCM_STAR_CONF
-#else /* CCM_STAR_CONF */
-#define CCM_STAR ccm_star_driver
-#endif /* CCM_STAR_CONF */
+/** \brief Get a temperature reading from the TMP102 sensor */
+uint8_t tmp102_read(uint16_t *data);
 
 /**
- * Structure of CCM* drivers.
+ * @}
+ * @}
  */
-struct ccm_star_driver {
-  
-   /**
-    * \brief         Generates a MIC over the frame in the packetbuf.
-    * \param result  The generated MIC will be put here
-    * \param mic_len  <= 16; set to LLSEC802154_MIC_LENGTH to be compliant
-    */
-  void (* mic)(const uint8_t *extended_source_address,
-      uint8_t *result,
-      uint8_t mic_len);
-  
-  /**
-   * \brief XORs the frame in the packetbuf with the key stream.
-   */
-  void (* ctr)(const uint8_t *extended_source_address);
-};
-
-extern const struct ccm_star_driver CCM_STAR;
-
-#endif /* CCM_STAR_H_ */
-
-/** @} */
