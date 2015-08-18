@@ -51,6 +51,11 @@ struct httpd_cgi_call;
 #define HTTPD_PATHLEN WEBSERVER_CONF_CFS_PATHLEN
 #endif /* WEBSERVER_CONF_CFS_CONNS */
 
+#define REQUEST_TYPE_GET 0x1
+#define REQUEST_TYPE_PUT 0x2
+#define REQUEST_TYPE_POST 0x4
+#define REQUEST_TYPE_DELETE 0x8
+
 struct httpd_state;
 
 struct httpd_state {
@@ -66,6 +71,7 @@ struct httpd_state {
   int to_send;
 #endif
   char filename[HTTPD_PATHLEN];
+  char request_type;
   struct httpd_cgi_call *script;
   char state;
 };

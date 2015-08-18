@@ -158,6 +158,9 @@ PT_THREAD(handle_output(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 const char http_get[] = "GET ";
+const char http_put[] = "PUT ";
+const char http_post[] = "POST ";
+const char http_delete[] = "DELETE ";
 const char http_index_html[] = "/index.html";
 
 static
@@ -167,7 +170,15 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
   PSOCK_READTO(&s->sin, ISO_space);
 
-  if(strncmp(s->inputbuf, http_get, 4) != 0) {
+  if(strncmp(s->inputbuf, http_get, 4) == 0) {
+    s->request_type = REQUEST_TYPE_GET;
+  } else if(strncmp(s->inputbuf, http_put, 4) == 0) {
+    s->request_type = REQUEST_TYPE_PUT;
+  } else if(strncmp(s->inputbuf, http_post, 5) == 0) {
+    s->request_type = REQUEST_TYPE_POST;
+  } else if(strncmp(s->inputbuf, http_delete, 7) == 0) {
+    s->request_type = REQUEST_TYPE_DELETE;
+  } else {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
   PSOCK_READTO(&s->sin, ISO_space);
