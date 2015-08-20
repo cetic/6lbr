@@ -43,13 +43,22 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
+#include "cetic-6lbr.h"
 
 uint8_t node_config_loaded = 0;
 
 static char const * unknown_name = "(Unknown)";
 LIST(node_config_list);
 
-void node_config_init(void) {
+void node_config_add_br(void) {
+  node_config_t *  node_config;
+  node_config = (node_config_t *)malloc(sizeof(node_config_t));
+  node_config->name = strdup("6LBR");
+  node_config->mac_address = wsn_mac_addr;
+  list_add(node_config_list, node_config);
+}
+
+void node_config_load(void) {
   FILE * node_config_file;
   int result;
   char name[200];
@@ -85,6 +94,25 @@ void node_config_init(void) {
   } else {
     LOG6LBR_INFO("No node_config.conf file specified\n");
   }
+  node_config_add_br();
+}
+
+void node_config_purge(void) {
+  node_config_t *  node_config;
+  LOG6LBR_INFO("Purging node config\n");
+  node_config = list_head(node_config_list);
+  while(node_config != NULL) {
+    node_config_t *  next = list_item_next(node_config);
+    free((void *)node_config->name);
+    free(node_config);
+    node_config = next;
+  }
+  list_init(node_config_list);
+}
+
+void node_config_reload(void) {
+  node_config_purge();
+  node_config_load();
 }
 
 node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
@@ -106,4 +134,21 @@ node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
 
 char const *  node_config_get_name(node_config_t const *  node_config) {
   return node_config ? node_config->name : unknown_name;
+}
+
+PROCESS(node_config_process, "Node config");
+
+PROCESS_THREAD(node_config_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_reload_event);
+    node_config_reload();
+  }
+  PROCESS_END();
+}
+
+void node_config_init(void) {
+  node_config_load();
+  process_start(&node_config_process, NULL);
 }

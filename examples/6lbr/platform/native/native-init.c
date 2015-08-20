@@ -39,12 +39,22 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "native-rdc.h"
-#include "node-config.h"
+#include "signal.h"
+
+static void
+reload_trigger(int signal)
+{
+  process_post(PROCESS_BROADCAST, cetic_6lbr_reload_event, NULL);
+}
 
 void
 platform_init(void)
 {
-  node_config_init();
+  struct sigaction action;
+  /* Trap SIGUSR1. */
+  action.sa_flags = SA_RESTART;
+  action.sa_handler = reload_trigger;
+  sigaction(SIGUSR1, &action, NULL);
 }
 
 void
