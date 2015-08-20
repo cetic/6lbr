@@ -45,10 +45,24 @@
 #include "errno.h"
 #include "cetic-6lbr.h"
 
+#if CONTIKI_TARGET_NATIVE && __linux__
+#include <sys/inotify.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#define INOTIFY 1
+#endif
+
 uint8_t node_config_loaded = 0;
 
 static char const * unknown_name = "(Unknown)";
 LIST(node_config_list);
+
+#if INOTIFY
+#define INNAMEMAX 12
+#define INBUFLEN (10 * (sizeof(struct inotify_event) + INNAMEMAX + 1))
+static int infd;
+#endif
 
 void node_config_add_br(void) {
   node_config_t *  node_config;
@@ -108,6 +122,7 @@ void node_config_purge(void) {
     node_config = next;
   }
   list_init(node_config_list);
+  node_config_loaded = 0;
 }
 
 void node_config_reload(void) {
@@ -140,15 +155,44 @@ PROCESS(node_config_process, "Node config");
 
 PROCESS_THREAD(node_config_process, ev, data)
 {
+  static struct etimer et;
   PROCESS_BEGIN();
+
+  etimer_set(&et, CLOCK_SECOND);
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_reload_event);
-    node_config_reload();
+    PROCESS_YIELD();
+    if(etimer_expired(&et)) {
+#if INOTIFY
+      char buf[INBUFLEN] __attribute__ ((aligned(8)));
+      ssize_t nr = read(infd, buf, INBUFLEN);
+      if(nr > 0) {
+        node_config_reload();
+      }
+      etimer_set(&et, CLOCK_SECOND);
+#endif
+    } else if (ev == cetic_6lbr_reload_event) {
+      node_config_reload();
+    }
   }
   PROCESS_END();
 }
 
 void node_config_init(void) {
   node_config_load();
+#if INOTIFY
+  if(node_config_loaded) {
+    infd = inotify_init();
+    if(infd == -1) {
+      LOG6LBR_ERROR("Error returned by inotify_init() : %s\n", strerror(errno));
+    }
+    int inwd = inotify_add_watch(infd, node_config_file_name, IN_CLOSE_WRITE);
+    if(inwd == -1) {
+      LOG6LBR_ERROR("Error returned by inotify_add_watch : %s\n", strerror(errno));
+    }
+    int mode = fcntl(infd, F_GETFL, 0);
+    mode |= O_NONBLOCK;
+    fcntl(infd, F_SETFL, mode);
+  }
+#endif
   process_start(&node_config_process, NULL);
 }
