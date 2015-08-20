@@ -104,6 +104,4 @@
 #define MACA_AUTOACK                            0
 #endif
 
-#define CETIC_NODE_CONFIG           0
-
 #endif /* SIXLBR_CONF_ECONOTAG_H */

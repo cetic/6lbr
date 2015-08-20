@@ -99,6 +99,4 @@
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
-#define CETIC_NODE_CONFIG           1
-
 #endif /* SIXLBR_CONF_NATIVE_H */

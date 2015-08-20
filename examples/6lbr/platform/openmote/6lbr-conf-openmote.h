@@ -96,8 +96,6 @@
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
-#define CETIC_NODE_CONFIG           0
-
 #define CC2538_ENC28J60_CONF_CLK_PORT GPIO_A_BASE
 #define CC2538_ENC28J60_CONF_CLK_PIN 2
 
