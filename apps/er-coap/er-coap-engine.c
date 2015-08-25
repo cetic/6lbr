@@ -105,7 +105,7 @@ coap_receive(context_t * ctx)
               coap_new_transaction(message->mid, ctx, &UIP_IP_BUF->srcipaddr,
                                    UIP_UDP_BUF->srcport))) {
           uint32_t block_num = 0;
-          uint16_t block_size = REST_MAX_CHUNK_SIZE;
+          uint16_t block_size = COAP_MAX_BLOCK_SIZE;
           uint32_t block_offset = 0;
           int32_t new_offset = 0;
 
@@ -126,8 +126,8 @@ coap_receive(context_t * ctx)
           if(coap_get_header_block2
                (message, &block_num, NULL, &block_size, &block_offset)) {
             PRINTF("Blockwise: block request %lu (%u/%u) @ %lu bytes\n",
-                   block_num, block_size, REST_MAX_CHUNK_SIZE, block_offset);
-            block_size = MIN(block_size, REST_MAX_CHUNK_SIZE);
+                   block_num, block_size, COAP_MAX_BLOCK_SIZE, block_offset);
+            block_size = MIN(block_size, COAP_MAX_BLOCK_SIZE);
             new_offset = block_offset;
           }
 
