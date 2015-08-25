@@ -39,6 +39,7 @@
 #include <string.h>
 #include "net/mac/frame802154.h"
 
+static linkaddr_t default_link_addr;
 int
 cmd_handler_cooja(const uint8_t *data, int len)
 {
@@ -48,12 +49,20 @@ cmd_handler_cooja(const uint8_t *data, int len)
       radio_set_channel(data[2]);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
-        printf("cooja_cmd: Set MAC disabled\n");
-        /*
-        printf("cooja_cmd: Got MAC\n");
-        memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
-        linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
-        */
+        if(!linkaddr_cmp((linkaddr_t *)(data+2), &linkaddr_null)) {
+          printf("cooja_cmd: Got MAC\n");
+          if(linkaddr_cmp(&default_link_addr, &linkaddr_null)) {
+            linkaddr_copy(&default_link_addr, &linkaddr_node_addr);
+          }
+          memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
+          linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+        } else {
+          printf("cooja_cmd: Clear MAC disabled\n");
+          if(!linkaddr_cmp(&default_link_addr, &linkaddr_null)) {
+            memcpy(uip_lladdr.addr, &default_link_addr, sizeof(uip_lladdr.addr));
+            linkaddr_set_node_addr(&default_link_addr);
+          }
+        }
         return 1;
       }
   } else if(data[0] == '?') {
