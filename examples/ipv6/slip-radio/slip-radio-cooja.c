@@ -48,9 +48,12 @@ cmd_handler_cooja(const uint8_t *data, int len)
       radio_set_channel(data[2]);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
+        printf("cooja_cmd: Set MAC disabled\n");
+        /*
         printf("cooja_cmd: Got MAC\n");
         memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
         linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+        */
         return 1;
       }
   } else if(data[0] == '?') {
