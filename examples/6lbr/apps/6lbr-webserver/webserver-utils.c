@@ -369,7 +369,11 @@ add(char const *str, ...)
   va_list arg;
 
   va_start(arg, str);
-  blen += vsnprintf(&buf[blen], sizeof(buf) - blen, str, arg);
+  if(blen<sizeof(buf)) {
+    blen += vsnprintf(&buf[blen], sizeof(buf) - blen, str, arg);
+  } else {
+    LOG6LBR_WARN("Buffer overflow\n");
+  }
   va_end(arg);
 }
 /*---------------------------------------------------------------------------*/

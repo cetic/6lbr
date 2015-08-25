@@ -15,9 +15,9 @@ CONTIKI_WITH_IPV6 = 1
 
 CONTIKI = $(6LBR)/../..
 
-APPDIRS = $(6LBR)/apps
+APPDIRS = $(6LBR)/apps $(6LBR)/../6lbr-demo/apps
 
-PROJECTDIRS += $(6LBR) $(6LBR)/6lbr $(6LBR)/apps/coapserver $(6LBR)/../6lbr-demo/apps/udp-client $(6LBR)/../6lbr-demo/apps/coap $(6LBR)/../6lbr-demo/apps/coap/rest-types
+PROJECTDIRS += $(6LBR) $(6LBR)/6lbr $(6LBR)/../6lbr-demo/apps/udp-client $(6LBR)/../6lbr-demo/apps/coap/rest-types
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
@@ -66,7 +66,7 @@ endif
 
 ifneq ($(WITH_UDPCLIENT),0)
 CFLAGS += -DUDPCLIENT=1 -DUDP_CLIENT_AUTOSTART
-PROJECT_SOURCEFILES += udp-client.c 
+PROJECT_SOURCEFILES += udp-client.c
 endif
 
 ifneq ($(WITH_NODE_INFO),0)
@@ -78,13 +78,7 @@ APPS+=nvm-proxy
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-CFLAGS += -DWITH_COAPSERVER=1
-CFLAGS += -DREST=coap_rest_implementation
-APPS += er-coap
-APPS += rest-engine
-PROJECT_SOURCEFILES += coap-server.c block-transfer.c \
-	device-resource.c config-stack-resource.c \
-	coap-common.c core-interface.c binding-table-resource.c linked-batch-resource.c coap-push.c
+APPS += er-coap rest-engine coap
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c

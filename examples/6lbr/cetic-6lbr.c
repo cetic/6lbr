@@ -78,6 +78,14 @@
 #include "node-info.h"
 #endif
 
+#if CETIC_NODE_CONFIG
+#include "node-config.h"
+#endif
+
+#if WITH_COAPSERVER
+#include "coap-server.h"
+#endif
+
 #if WITH_NVM_PROXY
 #include "nvm-proxy.h"
 #endif
@@ -127,9 +135,9 @@ cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
-PROCESS_NAME(coap_server_process);
 
 process_event_t cetic_6lbr_restart_event;
+process_event_t cetic_6lbr_reload_event;
 
 PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
@@ -398,6 +406,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   PROCESS_BEGIN();
 
   cetic_6lbr_restart_event = process_alloc_event();
+  cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
 #if CONTIKI_TARGET_NATIVE
@@ -463,6 +472,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   }
   cetic_6lbr_init_finalize();
 
+#if CETIC_NODE_CONFIG
+  node_config_init();
+#endif
+
 #if WEBSERVER
   webserver_init();
 #endif
@@ -473,7 +486,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   process_start(&udp_client_process, NULL);
 #endif
 #if WITH_COAPSERVER
-  process_start(&coap_server_process, NULL);
+  coap_server_init();
 #endif
 
 #if WITH_NVM_PROXY

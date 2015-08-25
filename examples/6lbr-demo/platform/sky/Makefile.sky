@@ -1,0 +1,5 @@
+ifneq ($(WITH_COAPSERVER),0)
+RESOURCES=temp humidity photo solar
+PROJECT_SOURCEFILES+=sky-resources.c
+sky-resources.c: dynamic-resources
+endif

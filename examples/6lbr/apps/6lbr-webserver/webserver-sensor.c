@@ -88,7 +88,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
 
       add("<br /><h2>Statistics</h2>");
       add("Since : %d s<br />",
-        node_info->stats_start / CLOCK_SECOND);
+          (clock_time() - node_info->stats_start) / CLOCK_SECOND);
       add("Last seen : %d s<br />",
         (clock_time() - node_info->last_seen) / CLOCK_SECOND);
       add("Hop count: %d<br />", node_info->hop_count);

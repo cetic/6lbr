@@ -43,6 +43,11 @@
 #include "contiki-net.h"
 
 #include "er-coap.h"
+#include "coap-binding.h"
+
+// Global variable for SenML basetime factorization
+extern unsigned long coap_batch_basetime;
+// -------------------------------------
 
 #ifdef REST_CONF_DEFAULT_PERIOD
 #define REST_DEFAULT_PERIOD REST_CONF_DEFAULT_PERIOD
@@ -57,7 +62,8 @@
 #error "Only one type of REST TYPE can be enabled"
 #endif
 
-#if ( !defined REST_TYPE_TEXT_PLAIN && !defined REST_TYPE_APPLICATION_XML && !defined REST_TYPE_APPLICATION_JSON)
+#if ( !defined REST_TYPE_TEXT_PLAIN && !defined REST_TYPE_APPLICATION_XML && \
+    !defined REST_TYPE_APPLICATION_JSON && !defined REST_TYPE_APPLICATION_SENML_PLUS_JSON)
 #define REST_TYPE_TEXT_PLAIN
 #endif
 
@@ -67,148 +73,23 @@
 #define TO_STRING2(x)  # x
 #define TO_STRING(x)  TO_STRING2(x)
 
-#ifdef REST_TYPE_TEXT_PLAIN
+/*---------------------------------------------------------------------------*/
 
-#define REST_TYPE 0 //REST.type.TEXT_PLAIN
+/* Inclusion of rest types available */
+#include "rest-type-text.h"
+#include "rest-type-xml.h"
+#include "rest-type-json.h"
+#include "rest-type-senml.h"
 
-#define REST_TYPE_ERROR "Supporting content-type: text/plain"
+/*---------------------------------------------------------------------------*/
 
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (resource_value))
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u", (resource_value))
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%ld", (resource_value))
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (resource_value))
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (int)(value / 10), (int)(value % 10)); \
- }
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%02u", (int)(value / 100), (int)(value % 100)); \
- }
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%s", (sensor_value))
-
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u", (sensor_a), (sensor_b))
-
-#define REST_FORMAT_BATCH_START(buffer, size, pos)
-#define REST_FORMAT_BATCH_END(buffer, size, pos)
-#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
-
-#endif
-
-#ifdef REST_TYPE_APPLICATION_XML
-
-#define REST_TYPE 41 //REST.type.APPLICATION_XML
-
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d\" />", (resource_value))
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%u\"/>", (resource_value))
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%ld\" />", (resource_value))
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%lu\" />", (resource_value))
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%u\" />", (int)(value / 10), (int)(value % 10)); \
- }
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%u\" />", (int)(value / 100), (int)(value % 100)); \
- }
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%s\" />", (sensor_value))
-
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%d\" "sensor_b_name"=\"%d\" />", (sensor_a), (sensor_b))
-
-#define REST_FORMAT_BATCH_START(buffer, size, pos) \
-  if (pos < size) { \
-    pos += snprintf((char *)buffer + pos, size - pos, "<batch>"); \
-    if (pos > size) pos = size; \
-  }
-#define REST_FORMAT_BATCH_END(buffer, size, pos) \
-  if (pos < size) { \
-    pos += snprintf((char *)buffer + pos, size - pos, "</batch>"); \
-    if (pos > size) pos = size; \
-  }
-#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos)
-
-#define REST_TYPE_ERROR "Supporting content-type: application/xml"
-
-#endif
-
-#ifdef REST_TYPE_APPLICATION_JSON
-
-#define REST_TYPE 50 //REST.type.APPLICATION_JSON
-
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d}", (resource_value))
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%u}", (resource_value))
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%ld}", (resource_value))
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%lu}", (resource_value))
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value, sensor_int, sensor_float) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d.%u}", (int)(value / 10), (int)(value % 10)); \
- }
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
- { \
-    int value = (resource_value); \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\":%d.%02u}", (int)(value / 100), (int)(value % 100)); \
- }
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""resource_name"\": \"%s\"}", (sensor_value))
-
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""#resource_name"\":{\""sensor_a_name"\":%d,\""sensor_b_name"\":%d}}", (sensor_a), (sensor_b))
-
-#define REST_FORMAT_BATCH_START(buffer, size, pos) \
-  if (pos < size) { \
-    pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
-    if (pos > size) pos = size; \
-  }
-#define REST_FORMAT_BATCH_END(buffer, size, pos) \
-  if (pos < size) { \
-    pos += snprintf((char *)buffer + pos, size - pos, "]}"); \
-    if (pos > size) pos = size; \
-  }
-
-#define REST_FORMAT_BATCH_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
-
-#define REST_TYPE_ERROR "Supporting content-type: application/json"
-
-#endif
+#define REST_PARSE_EMPTY(payload, len, actuator_set) {\
+  if(len==0) {\
+    success = actuator_set(); \
+  } else {\
+    printf("len: %d\n", len); \
+  } \
+}
 
 #define REST_PARSE_ONE_INT(payload, len, actuator_set) { \
   char * endstr; \
@@ -237,6 +118,19 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
+#ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
+#define REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  void \
+  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t *tmp_payload; \
+    uint8_t pos = 0; \
+    if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_START(buffer, preferred_size, pos) } \
+    format; \
+    if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_END(buffer, preferred_size, pos) } \
+    resource_get_handler(request, response, buffer, preferred_size, offset); \
+  }
+#else
 #define REST_RESOURCE_GET_HANDLER(resource_name, format) \
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
@@ -244,6 +138,7 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     format; \
     resource_get_handler(request, response, buffer, preferred_size, offset); \
   }
+#endif
 
 #define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
   void \
@@ -252,12 +147,35 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     const uint8_t * payload; \
     int success = 0; \
     size_t len = REST.get_request_payload(request, &payload); \
-    if (len) { \
-      parser(payload, len, actuator_set); \
+    parser(payload, len, actuator_set); \
+    (void) len; \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
+  }
+
+#define REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator_set) \
+  void \
+  resource_##resource_name##_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t * payload; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    parser(payload, len, actuator_set); \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
+  }
+
+#define REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  void \
+  resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    const uint8_t * payload; \
+    int success = 0; \
+    size_t len = REST.get_request_payload(request, &payload); \
+    if(len == 0) { \
+      const char * query; \
+      len = coap_get_header_uri_query(request, &query); \
+      success = coap_binding_parse_filters((char *)query, len, &resource_##resource_name##_info.trigger); \
     } \
-    if (!success) { \
-      REST.set_response_status(response, REST.status.BAD_REQUEST); \
-    } \
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
   }
 
 #define REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
@@ -276,9 +194,9 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
 
 /*---------------------------------------------------------------------------*/
 
-#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
+#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
@@ -287,9 +205,14 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
   RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
-#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, format) \
+#define REST_EXEC(resource_name, ignore, resource_if, resource_type, parser, actuator) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator) \
+  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), NULL, resource_##resource_name##_post_handler, NULL, NULL);
+
+#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
+  RESOURCE_DECL(resource_name); \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
   PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 
@@ -299,8 +222,29 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
+#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
+  RESOURCE_DECL(resource_name); \
+  extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
+  coap_full_resource_t resource_##resource_name##_info = { \
+      .coap_resource = &resource_##resource_name, \
+      .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
+      .update_value = update_resource_##resource_name##_value }; \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, (resource_##resource_name##_info.data.last_value))) \
+  REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  REST_RESOURCE_EVENT_HANDLER(resource_name) \
+  void update_resource_##resource_name##_value(coap_resource_data_t *data) { \
+    data->last_value = (resource_value); \
+  } \
+  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE) ";obs", resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler);
+
 #define INIT_RESOURCE(resource_name, path) \
     extern resource_t resource_##resource_name; \
     rest_activate_resource(&resource_##resource_name, path);
+
+#define INIT_FULL_RESOURCE(resource_name, path) \
+    extern resource_t resource_##resource_name; \
+    rest_activate_resource(&resource_##resource_name, path); \
+    extern coap_full_resource_t resource_##resource_name##_info; \
+    coap_binding_add_resource(&resource_##resource_name##_info);
 
 #endif /* COAP_COMMON_H */

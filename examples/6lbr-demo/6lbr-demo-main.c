@@ -32,6 +32,18 @@
 #include "nvm-config.h"
 #endif
 
+#if WITH_COAPSERVER
+#include "coap-server.h"
+#endif
+
+#if WITH_IPSO_APP_FW
+#include "ipso-app-fw.h"
+#endif
+
+#if WITH_LWM2M
+#include "lwm2m.h"
+#endif
+
 PROCESS(demo_6lbr_process, "6LBR Demo");
 
 #if WEBSERVER
@@ -40,9 +52,6 @@ PROCESS_NAME(webserver_nogui_process);
 #endif
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
-#endif
-#if WITH_COAPSERVER
-PROCESS_NAME(coap_server_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -63,7 +72,20 @@ start_apps(void)
 #endif
 
 #if WITH_COAPSERVER
-  process_start(&coap_server_process, NULL);
+  coap_server_init();
+#endif
+
+#if WITH_IPSO_APP_FW
+  ipso_app_fw_init();
+#endif
+
+#if WITH_LWM2M
+  lwm2m_init();
+#endif
+
+#if defined CETIC_6LN_PLATFORM_CONF && WITH_COAPSERVER
+  extern void platform_resources_init();
+  platform_resources_init();
 #endif
 
 #if WITH_DTLS_ECHO

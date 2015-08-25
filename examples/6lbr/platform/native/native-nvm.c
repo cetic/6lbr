@@ -47,7 +47,7 @@
 #include "nvm-config.h"
 #include "native-nvm.h"
 
-#define NVM_SIZE 0x100
+#define NVM_SIZE 0x800
 static uint8_t nvm_mem[NVM_SIZE];
 char const *nvm_file = NULL;
 

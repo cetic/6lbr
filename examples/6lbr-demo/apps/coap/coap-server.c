@@ -36,76 +36,28 @@
 #include "contiki.h"
 
 #include "coap-common.h"
-#include "light-sensor-resource.h"
-#include "temp-sensor-resource.h"
-#include "humidity-sensor-resource.h"
-#include "battery-sensor-resource.h"
-#include "radio-sensor-resource.h"
-#include "button-resource.h"
-#include "leds-resource.h"
-#include "device-resource.h"
-#include "config-stack-resource.h"
-#include "sensors-batch-resource.h"
 
 #include "coap-push.h"
 #include "core-interface.h"
-#include "linked-batch-resource.h"
-#include "binding-table-resource.h"
+#include "rd-client.h"
 
 #define DEBUG 0
 #include "uip-debug.h"
 
-//Define all resources
-REST_RES_LIGHT_SOLAR_DEFINE();
-REST_RES_LIGHT_PHOTO_DEFINE();
-REST_RES_TEMP_DEFINE();
-REST_RES_HUMIDITY_DEFINE();
-REST_RES_BATTERY_DEFINE();
-REST_RES_BUTTON_DEFINE();
-REST_RES_LED_R_DEFINE();
-REST_RES_LED_G_DEFINE();
-REST_RES_LED_B_DEFINE();
-REST_RES_DEVICE_DEFINE();
-REST_RES_RADIO_LQI_DEFINE();
-REST_RES_RADIO_RSSI_DEFINE();
 
-PROCESS(coap_server_process, "Coap Server");
-
-PROCESS_THREAD(coap_server_process, ev, data)
+void
+coap_server_init(void)
 {
-  PROCESS_BEGIN();
-
   rest_init_engine();
 #if COAP_PUSH_ENABLED
   coap_push_init();
 #endif
-
-  //Init all resources
-  REST_RES_LIGHT_SOLAR_INIT();
-  REST_RES_LIGHT_PHOTO_INIT();
-  REST_RES_TEMP_INIT();
-  REST_RES_HUMIDITY_INIT();
-  REST_RES_BATTERY_INIT();
-  REST_RES_BUTTON_INIT();
-  REST_RES_LED_R_INIT();
-  REST_RES_LED_G_INIT();
-  REST_RES_LED_B_INIT();
-  REST_RES_DEVICE_INIT();
-  REST_RES_RADIO_LQI_INIT();
-  REST_RES_RADIO_RSSI_INIT();
-  REST_RES_SENSORS_BATCH_INIT();
-  REST_RES_CONFIG_STACK_INIT();
-
-  /* Linked batch and binding tables must be initialized after all the resources */
-  REST_RES_LINKED_BATCH_INIT();
-  REST_RES_BINDING_TABLE_INIT();
+#if RD_CLIENT_ENABLED
+  rd_client_init();
+#endif
+#if COAP_BINDING_ENABLED
+  coap_binding_init();
+#endif
 
   printf("CoAP server started\n");
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    REST_RES_BUTTON_EVENT_HANDLER(ev, data);
-  }
-
-  PROCESS_END();
 }

@@ -36,6 +36,9 @@
  *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
+
+#define LOG6LBR_MODULE "CONF"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -277,9 +280,10 @@ slip_config_handle_arguments(int argc, char **argv)
   argv += optind - 1;
 
   if(argc > 1) {
-    err(1,
+    LOG6LBR_FATAL(
         "usage: %s [-B baudrate] [-H] [-L log] [-S services] [-s siodev] [-t dev] [-d delay] [-a serveraddress] [-p serverport] [-c conf] [-U ifup] [-D ifdown]",
         prog);
+    exit(1);
   }
 
   switch (baudrate) {
@@ -376,7 +380,8 @@ slip_config_handle_arguments(int argc, char **argv)
       case 4000000: slip_config_b_rate = B4000000; break;
   #endif
   default:
-    err(1, "unknown baudrate %d", baudrate);
+    LOG6LBR_FATAL("unknown baudrate %d", baudrate);
+    exit(1);
     break;
   }
 

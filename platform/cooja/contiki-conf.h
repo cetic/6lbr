@@ -80,7 +80,9 @@
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define NETSTACK_CONF_MAC           csma_driver
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC           nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 
@@ -91,7 +93,9 @@
 /* Network setup for IPv4 */
 #define NETSTACK_CONF_NETWORK rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
 #define NETSTACK_CONF_MAC nullmac_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
+#ifndef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC           nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO cooja_radio_driver
 #define UIP_CONF_IP_FORWARD           1
 
@@ -100,7 +104,9 @@
 /* Network setup for Rime */
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC csma_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
+#ifndef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC           nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO cooja_radio_driver
 /*#define NETSTACK_CONF_FRAMER framer_nullmac*/
 
@@ -119,7 +125,9 @@
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define NETSTACK_CONF_MAC           csma_driver
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC           nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 #define NETSTACK_CONF_WITH_IPV6               1

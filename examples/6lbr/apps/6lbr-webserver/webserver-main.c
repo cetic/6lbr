@@ -55,6 +55,8 @@
 #include <unistd.h>
 #endif
 
+HTTPD_CGI_CALL_NAME(webserver_main)
+
 #if CONTIKI_TARGET_ECONOTAG
 extern void _start;
 //Code

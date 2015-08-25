@@ -96,6 +96,4 @@
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
-#define CETIC_NODE_CONFIG           0
-
 #endif /* SIXLBR_CONF_CC2538DK_H */

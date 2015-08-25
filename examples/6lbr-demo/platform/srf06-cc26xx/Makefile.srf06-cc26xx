@@ -1,0 +1,3 @@
+ifeq ($(BOARD),sensortag)
+include $(PROJECTDIR)/platform/sensortag/Makefile.sensortag
+endif

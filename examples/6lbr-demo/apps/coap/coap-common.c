@@ -38,6 +38,8 @@
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
 
+unsigned long coap_batch_basetime = 0;
+
 /*---------------------------------------------------------------------------*/
 resource_t*
 rest_find_resource_by_url(const char *url)
@@ -89,7 +91,18 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE))
   {
     REST.set_header_content_type(response, REST_TYPE);
-    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+    int buffer_size = strlen((char *)buffer);
+    if(offset) {
+      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+      if(*offset + preferred_size >= buffer_size) {
+        *offset = -1;
+      } else {
+        *offset += preferred_size;
+      }
+      PRINTF("Offset : %d\n", *offset);
+    } else {
+      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
+    }
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
     const char *msg = REST_TYPE_ERROR;

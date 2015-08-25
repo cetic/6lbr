@@ -111,8 +111,10 @@
 #if NETSTACK_CONF_WITH_IPV6
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
-#define NETSTACK_CONF_MAC     nullmac_driver 
+#define NETSTACK_CONF_MAC     nullmac_driver
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
@@ -126,7 +128,9 @@
 
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
+#endif
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 

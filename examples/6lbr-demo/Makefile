@@ -4,7 +4,7 @@ PROJECT?=6lbr-demo
 
 WITH_RPL?=1
 
-# Applications 
+# Applications
 
 WITH_SHELL?=0
 WITH_UDPCLIENT?=1
@@ -15,6 +15,7 @@ WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
 WITH_TCP?=0
+WITH_COAP_PROFILE?=IPSO_APP_FW
 
 # UDP client configuration
 
@@ -33,7 +34,12 @@ CONTIKI?=../..
 
 PROJECTDIR?=.
 
-PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client $(PROJECTDIR)/apps/shell $(PROJECTDIR)/apps/coap $(PROJECTDIR)/apps/dtls-echo
+APPDIRS += $(PROJECTDIR)/apps
+
+PROJECTDIRS += $(PROJECTDIR)/platform $(PROJECTDIR)/platform/$(TARGET)
+PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
+	$(PROJECTDIR)/apps/shell \
+	$(PROJECTDIR)/apps/dtls-echo $(PROJECTDIR)/apps/coap/rest-types
 
 CONTIKI_WITH_IPV6 = 1
 
@@ -43,12 +49,14 @@ endif
 
 ifeq ($(WITH_RPL),1)
 CONTIKI_WITH_RPL = 1
+else
+CONTIKI_WITH_RPL = 0
 endif
 
 ifneq ($(WITH_SHELL),0)
 CFLAGS += -DSHELL=1 -DCETIC_6LBR_TRACE_PING=1
 APPS += serial-shell
-PROJECT_SOURCEFILES += shell-6lbr.c 
+PROJECT_SOURCEFILES += shell-6lbr.c
 endif
 
 WITH_DELAY_IP?=0
@@ -70,14 +78,20 @@ WITH_TCP=1
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-CFLAGS += -DWITH_COAPSERVER=1
-CFLAGS += -DREST=coap_rest_implementation
-APPS += er-coap
-APPS += rest-engine
-PROJECT_SOURCEFILES += coap-server.c light-sensor-resource.c button-resource.c leds-resource.c \
-	battery-sensor-resource.c device-resource.c temp-sensor-resource.c humidity-sensor-resource.c \
-	radio-sensor-resource.c config-stack-resource.c sensors-batch-resource.c linked-batch-resource.c \
-	block-transfer.c coap-common.c coap-push.c core-interface.c binding-table-resource.c
+APPS += er-coap rest-engine coap
+ifeq ($(WITH_COAP_PROFILE),)
+WITH_COAP_PROFILE=IPSO_APP_FW
+endif
+ifeq ($(WITH_COAP_PROFILE),IPSO_APP_FW)
+APPS += ipso-app-fw
+endif
+ifeq ($(WITH_COAP_PROFILE),LWM2M)
+APPS += lwm2m
+endif
+endif
+
+ifneq ($(WITH_TCP),1)
+CFLAGS += -DUIP_CONF_TCP=0
 endif
 
 ifneq ($(WITH_TCP),1)
@@ -134,7 +148,6 @@ endif
 endif
 
 ifeq ($(TARGET),sky)
-PROJECTDIRS += $(PROJECTDIR)/platform/sky
 WITH_NVM?=0
 ifeq ($(WITH_NVM),1)
 PROJECT_SOURCEFILES += f1611-nvm.c
@@ -142,9 +155,9 @@ endif
 endif
 
 ifeq ($(TARGET),cc2538dk)
-PROJECTDIRS += $(PROJECTDIR)/platform/cc2538dk $(PROJECTDIR)/dev/sht21
+PROJECTDIRS += $(PROJECTDIR)/dev/sht21
 PROJECT_SOURCEFILES += sht21.c
-WITH_NVM?=1
+WITH_NVM?=0
 ifeq ($(WITH_NVM),1)
 PROJECT_SOURCEFILES += cc2538dk-nvm.c
 endif
@@ -161,7 +174,12 @@ ifneq  ($(PROJECT_CONF),)
 CFLAGS += -DUSER_PROJECT_CONF_H=\"$(PROJECT_CONF)\"
 endif
 
-PROJECT_SOURCEFILES += 6lbr-demo-main.c 
+-include $(PROJECTDIR)/platform/$(TARGET)/Makefile.$(TARGET)
+ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-conf-$(TARGET).h)","")
+CFLAGS+=-DCETIC_6LN_PLATFORM_CONF=\"6ln-conf-$(TARGET).h\"
+endif
+
+PROJECT_SOURCEFILES += 6lbr-demo-main.c
 
 ifneq ($(USER_MODULES),)
 USER_MODULES_DEFINE=${addprefix INIT_USER_MOD(,${addsuffix );,${strip $(USER_MODULES)}}}
