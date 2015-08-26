@@ -372,6 +372,9 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
     num_routes++;
 
     PRINTF("uip_ds6_route_add num %d\n", num_routes);
+
+    /* lock this entry so that nexthop is not removed */
+    nbr_table_lock(nbr_routes, routes);
   }
 
   uip_ipaddr_copy(&(r->ipaddr), ipaddr);
