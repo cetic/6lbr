@@ -171,6 +171,7 @@ ns_input(void)
 #if CETIC_6LBR_SMARTBRIDGE
   uip_ds6_route_t * route;
 #endif
+  uip_ipaddr_t tgtipaddr;
 
   PRINTF("Received NS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -240,20 +241,21 @@ ns_input(void)
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
 
-  addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
+  memcpy(&tgtipaddr, &UIP_ND6_NS_BUF->tgtipaddr, sizeof(tgtipaddr));
+  addr = uip_ds6_addr_lookup(&tgtipaddr);
 #if CETIC_6LBR_SMARTBRIDGE
   //ND Proxy implementation
   if ( addr == NULL ) {
-    if ( (route = uip_ds6_route_lookup(&UIP_ND6_NS_BUF->tgtipaddr)) != NULL ) {
+    if ( (route = uip_ds6_route_lookup(&tgtipaddr)) != NULL ) {
       if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
         /* DAD CASE */
-        uip_create_linklocal_allnodes_mcast(&UIP_ND6_NS_BUF->tgtipaddr);
-        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        uip_create_linklocal_allnodes_mcast(&tgtipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tgtipaddr);
         flags = UIP_ND6_NA_FLAG_OVERRIDE;
         goto create_na;
       } else {
         uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
-        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tgtipaddr);
         flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
         goto create_na;
       }
@@ -302,7 +304,7 @@ ns_input(void)
     /* Address resolution case */
     if(uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
       uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
-      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tgtipaddr);
       flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
       goto create_na;
     }
@@ -310,7 +312,7 @@ ns_input(void)
     /* NUD CASE */
     if(uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr) == addr) {
       uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
-      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+      uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tgtipaddr);
       flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
       goto create_na;
     } else {
@@ -342,7 +344,7 @@ create_na:
   UIP_ICMP_BUF->icode = 0;
 
   UIP_ND6_NA_BUF->flagsreserved = flags;
-  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &UIP_ND6_NS_BUF->tgtipaddr, sizeof(uip_ipaddr_t));
+  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &tgtipaddr, sizeof(uip_ipaddr_t));
 
   create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
               UIP_ND6_OPT_TLLAO);
