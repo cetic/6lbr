@@ -260,7 +260,8 @@ dio_input(void)
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
-      return;
+
+      goto discard;
     }
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
@@ -310,7 +311,7 @@ dio_input(void)
     if(len + i > buffer_length) {
       PRINTF("RPL: Invalid DIO packet\n");
       RPL_STAT(rpl_stats.malformed_msgs++);
-      return;
+      goto discard;
     }
 
     PRINTF("RPL: DIO option %u, length: %u\n", subopt_type, len - 2);
@@ -320,7 +321,7 @@ dio_input(void)
       if(len < 6) {
         PRINTF("RPL: Invalid DAG MC, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
-        return;
+        goto discard;
       }
       dio.mc.type = buffer[i + 2];
       dio.mc.flags = buffer[i + 3] << 1;
@@ -346,14 +347,14 @@ dio_input(void)
         dio.mc.obj.energy.energy_est = buffer[i + 7];
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
-       return;
+       goto discard;
       }
       break;
     case RPL_OPTION_ROUTE_INFO:
       if(len < 9) {
         PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
-        return;
+        goto discard;
       }
 
       /* The flags field includes the preference value. */
@@ -369,7 +370,7 @@ dio_input(void)
       } else {
         PRINTF("RPL: Invalid route info option, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
-	return;
+        goto discard;
       }
 
       break;
@@ -377,7 +378,7 @@ dio_input(void)
       if(len != 16) {
         PRINTF("RPL: Invalid DAG configuration option, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
-        return;
+        goto discard;
       }
 
       /* Path control field not yet implemented - at i + 2 */
@@ -399,7 +400,7 @@ dio_input(void)
       if(len != 32) {
         PRINTF("RPL: Invalid DAG prefix info, len != 32\n");
 	RPL_STAT(rpl_stats.malformed_msgs++);
-        return;
+        goto discard;
       }
       dio.prefix_info.length = buffer[i + 2];
       dio.prefix_info.flags = buffer[i + 3];
@@ -422,6 +423,7 @@ dio_input(void)
 
   rpl_process_dio(&from, &dio);
 
+ discard:
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
@@ -626,7 +628,7 @@ dao_input(void)
   if(instance == NULL) {
     PRINTF("RPL: Ignoring a DAO for an unknown RPL instance(%u)\n",
            instance_id);
-    return;
+    goto discard;
   }
 
   lifetime = instance->default_lifetime;
@@ -641,7 +643,7 @@ dao_input(void)
   if(flags & RPL_DAO_D_FLAG) {
     if(memcmp(&dag->dag_id, &buffer[pos], sizeof(dag->dag_id))) {
       PRINTF("RPL: Ignoring a DAO for a DAG different from ours\n");
-      return;
+      goto discard;
     }
     pos += 16;
   }
@@ -662,7 +664,7 @@ dao_input(void)
           DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
-      return;
+      goto discard;
     }
 
     /* If we get the DAO from our parent, we also have a loop. */
@@ -670,7 +672,7 @@ dao_input(void)
       PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
-      return;
+      goto discard;
     }
   }
 
@@ -747,7 +749,7 @@ dao_input(void)
         dao_ack_output(instance, &dao_sender_addr, sequence);
       }
     }
-    return;
+    goto discard;
   }
 
   PRINTF("RPL: adding DAO route\n");
@@ -769,7 +771,7 @@ dao_input(void)
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
-      return;
+      goto discard;
     }
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
@@ -787,7 +789,7 @@ dao_input(void)
   if(rep == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
-    return;
+    goto discard;
   }
 
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
@@ -811,6 +813,8 @@ fwd_dao:
       dao_ack_output(instance, &dao_sender_addr, sequence);
     }
   }
+
+ discard:
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
