@@ -783,8 +783,6 @@ dao_input(void)
   }
 #endif
 
-  rpl_lock_parent(parent);
-
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
