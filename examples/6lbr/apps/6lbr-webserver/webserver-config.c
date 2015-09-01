@@ -104,7 +104,7 @@ HTTPD_CGI_CALL_NAME(webserver_config)
 
 #define INPUT_HEX(name, nvm_name, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
-    add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
+    add(text " : <input type=\"text\" name=\""name"\" value=\"%x\" /><br />", nvm_data.nvm_name); \
   } else { \
     add(text " : %x<br />", nvm_data.nvm_name); \
   }
