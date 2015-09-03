@@ -77,6 +77,8 @@ static char registration_name[REGISTRATION_NAME_MAX_SIZE+1];
 #define RD_CLIENT_SERVER_PORT COAP_DEFAULT_PORT
 #endif
 
+static enum rd_client_status_t status = RD_CLIENT_UNCONFIGURED;
+
 static uint8_t registered = 0;
 /*---------------------------------------------------------------------------*/
 void
@@ -156,9 +158,11 @@ PROCESS_THREAD(rd_client_process, ev, data)
       uip_lladdr.addr[4], uip_lladdr.addr[5], uip_lladdr.addr[6], uip_lladdr.addr[7]);
   while(1) {
     while(uip_is_addr_unspecified(&rd_server_ipaddr)) {
+      status = RD_CLIENT_UNCONFIGURED;
       PROCESS_YIELD();
     }
     while(!registered) {
+      status = RD_CLIENT_REGISTERING;
       etimer_set(&et, CLOCK_SECOND);
       PROCESS_YIELD_UNTIL(etimer_expired(&et));
       PRINTF("Registering to ");
@@ -172,6 +176,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
 
       COAP_BLOCKING_REQUEST_BLOCK_RESPONSE(coap_default_context, &rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_registration_request_handler, client_registration_response_handler);
     }
+    status = RD_CLIENT_REGISTERED;
     etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
 
@@ -199,13 +204,7 @@ rd_client_init(void)
 int
 rd_client_status(void)
 {
-  if(uip_is_addr_unspecified(&rd_server_ipaddr)) {
-    return RD_CLIENT_UNCONFIGURED;
-  }
-  if(!registered) {
-    return RD_CLIENT_REGISTERING;
-  }
-  return RD_CLIENT_REGISTERED;
+  return status;
 }
 /*---------------------------------------------------------------------------*/
 void
