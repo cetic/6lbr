@@ -135,11 +135,18 @@ div#content {min-height:300px; height:expression(this.scrollHeight > 300 ? "auto
     border-collapse:collapse;
     border: 1px solid #333;
 }
-tr.row_first
+
+#left_home tr
+{
+    background: #FFFFFF;
+}
+
+#left_home tr.row_first
 {
     background: #FFC;
     font-weight: bold;
 }
+
 #left_home td
 {
     padding: 5px;

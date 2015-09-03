@@ -300,6 +300,7 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
   add_menu(s);
   SEND_STRING(&s->sout, buf);
   reset_buf();
+  add(BODY_AFTER_MENU);
   if(webserver_result_title) {
     add_div_home(webserver_result_title);
   } else {
@@ -315,7 +316,8 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
     add
       ("<a href=\"/\">Click here if the page is not refreshing</a><br /><br />");
   }
-  add("</div>");
+  add_div_footer();
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   SEND_STRING(&s->sout, BOTTOM);
