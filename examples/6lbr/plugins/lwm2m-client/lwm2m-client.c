@@ -41,12 +41,17 @@
 #include "log-6lbr.h"
 #include "plugin.h"
 #include "lwm2m.h"
+#include "lwm2m-device-object.h"
 #include "rd-client.h"
 
+char const * lwm2m_objects_link = ""
+    LWM2M_DEVICE_OBJECT_LINK
+;
 /*---------------------------------------------------------------------------*/
 static int init(void) {
   LOG6LBR_INFO("LWM2M Client init\n");
   lwm2m_init();
+  lwm2m_set_resources_list(lwm2m_objects_link);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
