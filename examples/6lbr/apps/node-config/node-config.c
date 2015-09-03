@@ -67,7 +67,7 @@ static int infd;
 void node_config_add_br(void) {
   node_config_t *  node_config;
   node_config = (node_config_t *)malloc(sizeof(node_config_t));
-  node_config->name = strdup("6LBR");
+  node_config->name = strdup("BR");
   node_config->mac_address = wsn_mac_addr;
   list_add(node_config_list, node_config);
 }
