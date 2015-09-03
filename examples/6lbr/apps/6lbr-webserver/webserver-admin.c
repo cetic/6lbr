@@ -96,7 +96,7 @@ static httpd_cgi_call_t *
 webserver_admin_restart(struct httpd_state *s)
 {
   cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-  webserver_result_title = "Restart";
+  webserver_result_title = "Administration";
   webserver_result_text = "Restarting BR...";
   webserver_result_refresh = 15;
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
@@ -107,7 +107,7 @@ webserver_admin_restart(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_admin_reset_slip_radio(struct httpd_state *s)
 {
-  webserver_result_title = "Reset Slip-Radio";
+  webserver_result_title = "Administration";
   webserver_result_text = "Restarting Slip-Radio...";
   native_rdc_reset_slip();
   return &webserver_result_page;
@@ -118,7 +118,7 @@ static httpd_cgi_call_t *
 webserver_admin_reboot(struct httpd_state *s)
 {
   cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
-  webserver_result_title = "Reboot";
+  webserver_result_title = "Administration";
   webserver_result_text = "Rebooting BR...";
   webserver_result_refresh = 15;
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
@@ -129,7 +129,7 @@ static httpd_cgi_call_t *
 webserver_admin_halt(struct httpd_state *s)
 {
   cetic_6lbr_restart_type = CETIC_6LBR_HALT;
-  webserver_result_title = "Halt";
+  webserver_result_title = "Administration";
   webserver_result_text = "Halting BR...";
   webserver_result_refresh = 15;
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);

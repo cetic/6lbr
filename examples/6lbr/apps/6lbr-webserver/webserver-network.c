@@ -330,8 +330,8 @@ webserver_network_route_rm(struct httpd_state *s)
 {
   static uip_ds6_route_t *route;
   static uip_ipaddr_t ipaddr;
-  webserver_result_title = "Delete route";
-  webserver_result_text = "Route not found";
+  webserver_result_title = "Network";
+  webserver_result_text = "Delete route: Route not found";
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
     route = uip_ds6_route_lookup(&ipaddr);
     if(route) {
@@ -347,8 +347,8 @@ webserver_network_nbr_rm(struct httpd_state *s)
 {
   static uip_ds6_nbr_t *neighbor;
   static uip_ipaddr_t ipaddr;
-  webserver_result_title = "Delete neighbor";
-  webserver_result_text = "Neighbor not found";
+  webserver_result_title = "Network";
+  webserver_result_text = "Delete neighbor: Neighbor not found";
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
     neighbor = uip_ds6_nbr_lookup(&ipaddr);
     if (neighbor) {

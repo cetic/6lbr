@@ -131,8 +131,8 @@ clear_log(struct httpd_state *s)
     fclose(stdin);
     freopen(log_file, "w", stdin);
   }
-  webserver_result_title = "Clear log";
-  webserver_result_text = "Log cleared";
+  webserver_result_title = "Logs";
+  webserver_result_text = "Logs cleared";
   return &webserver_result_page;
 }
 HTTPD_CGI_CALL(webserver_log_send_log, "log", NULL, send_log, HTTPD_CUSTOM_TOP | HTTPD_CUSTOM_BOTTOM);

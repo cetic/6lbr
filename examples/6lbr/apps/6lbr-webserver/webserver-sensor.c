@@ -140,12 +140,12 @@ webserver_sensor_reset_stats(struct httpd_state *s)
 {
   static uip_ipaddr_t ipaddr;
   static node_info_t * node_info = NULL;
-  webserver_result_title = "Reset statistics";
+  webserver_result_title = "Sensor";
   if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       node_info_reset_statistics(node_info);
-      webserver_result_text = "Reset";
+      webserver_result_text = "Sensor statistics reset";
     } else {
       webserver_result_text = "Sensor address unknown";
     }
@@ -160,12 +160,12 @@ webserver_sensor_delete_node(struct httpd_state *s)
 {
   static uip_ipaddr_t ipaddr;
   static node_info_t * node_info = NULL;
-  webserver_result_title = "Delete node";
+  webserver_result_title = "Sensor";
   if(s->query && strncmp(s->query, "ip=", 3) == 0 && uiplib_ipaddrconv(s->query + 3, &ipaddr) != 0) {
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       node_info_rm(node_info);
-      webserver_result_text = "Deleted";
+      webserver_result_text = "Sensor deleted";
     } else {
       webserver_result_text = "Sensor address unknown";
     }

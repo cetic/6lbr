@@ -459,7 +459,7 @@ webserver_config_reset(struct httpd_state *s)
 {
   check_nvm(&nvm_data, 1);
   cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-  webserver_result_title = "Restart";
+  webserver_result_title = "Configuration";
   webserver_result_text = "Configuration reset, restarting BR...";
   webserver_result_refresh = 15;
   process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
