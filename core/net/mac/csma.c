@@ -248,6 +248,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
   case MAC_TX_COLLISION:
     csma_collisions += num_transmissions;
     n->collisions += num_transmissions;
+    n->transmissions += num_transmissions;
     break;
   case MAC_TX_DEFERRED:
     n->deferrals += num_transmissions;
