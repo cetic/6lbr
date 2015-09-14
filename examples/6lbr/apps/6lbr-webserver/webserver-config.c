@@ -245,7 +245,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h2>RPL Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
   INPUT_FLAG_CB( "dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, "Manual DODAG ID");
-  INPUT_IPADDR("dodag_id", dodag_id, "DODAG ID");
+  INPUT_IPADDR("dodag_id", rpl_dodag_id, "DODAG ID");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_FLAG_CB( "dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, "Global DODAG ID");
@@ -414,7 +414,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
     UPDATE_FLAG("dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, 1)
     UPDATE_FLAG("dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, 1)
-    UPDATE_IPADDR("dodag_id", dodag_id, 1)
+    UPDATE_IPADDR("dodag_id", rpl_dodag_id, 1)
     UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
     UPDATE_INT( "rpl_dio_intmin", rpl_dio_intmin, 1)

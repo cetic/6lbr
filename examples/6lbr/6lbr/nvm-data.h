@@ -67,7 +67,7 @@ typedef struct {
 
   uint16_t rpl_config;
   uint16_t rpl_max_rankinc;
-  uint8_t dodag_id[16];
+  uint8_t rpl_dodag_id[16];
 
   //IP64
   uint8_t eth_ip64_flags;

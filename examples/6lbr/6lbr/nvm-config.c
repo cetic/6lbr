@@ -146,7 +146,7 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     nvm_data->rpl_config = CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG;
     nvm_data->rpl_max_rankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MAX_RANK_INC;
     CETIC_6LBR_NVM_DEFAULT_RPL_DODAG_ID(&loc_fipaddr);
-    memcpy(&nvm_data->dodag_id, &loc_fipaddr.u8, 16);
+    memcpy(&nvm_data->rpl_dodag_id, &loc_fipaddr.u8, 16);
     nvm_data->eth_ip64_flags = CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS;
     CETIC_6LBR_NVM_DEFAULT_IP64_ADDRESS(&loc_fip4addr);
     memcpy(&nvm_data->eth_ip64_addr, &loc_fip4addr.u8, sizeof(loc_fip4addr));

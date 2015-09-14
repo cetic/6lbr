@@ -328,7 +328,7 @@ cetic_6lbr_init_finalize(void)
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
     //Manual DODAG ID
-    cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.dodag_id);
+    cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.rpl_dodag_id);
   } else {
     //Automatic DODAG ID
     if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
