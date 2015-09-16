@@ -26,14 +26,14 @@ case $OS in
 			brctl addbr $DEV_BRIDGE
 			brctl setfd $DEV_BRIDGE 0
 			if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
-				echo "6lbr-ifup: attach device $DEV_ETH"
+				echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
 				brctl addif $DEV_BRIDGE $DEV_ETH
 				ip addr flush dev $DEV_ETH
 			fi
 			ip link set $DEV_BRIDGE up
 		else
-			echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
 		fi
+		echo "6lbr-ifup: Attach device $DEV to bridge $DEV_BRIDGE"
 		ip addr flush dev $DEV
 		brctl addif $DEV_BRIDGE $DEV
 		;;
