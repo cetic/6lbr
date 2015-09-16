@@ -1,7 +1,7 @@
 ################################################################################
 # Validate parameters and set default values
 
-function config_default () {
+config_default () {
 
 # Configuration location
 
