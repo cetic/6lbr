@@ -69,7 +69,9 @@ typedef unsigned int uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
 #define UIP_CONF_BUFFER_SIZE     420
+#ifndef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
+#endif
 #define UIP_CONF_TCP_SPLIT       0
 #define UIP_CONF_LOGGING         0
 #define UIP_CONF_UDP_CHECKSUMS   1
