@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ################################################################################
 # Initialization
@@ -13,35 +13,10 @@ PARAMS=""
 #Signals management
 
 #If this script is killed, kills child processes
-trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+trap 'if [[ PID_6LBR != 0 ]]; then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if [[ $PID_WATCHDOG != 0 ]]; then kill $PID_WATCHDOG; fi' EXIT
 
 #Ignore sighup
 trap '' HUP
-
-################################################################################
-# Application Watchdog
-
-function application_watchdog () {
-	LAST_TIMESTAMP=""
-	WATCHDOG_LIMIT=$((WATCHDOG_INTERVAL * DEFAULT_WATCHDOG_SCALE))
-	while ((1)); do
-		sleep 1
-		if [ `uname` = "Linux" ]; then
-			TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
-		else
-			TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
-		fi
-		TIME=`date +%s`
-		if (( TIME - TIMESTAMP > WATCHDOG_LIMIT )); then
-			echo "6LBR watchdog failure, restarting..."
-			echo "6LBR watchdog failure, restarting..." >> /dev/stderr
-			if ((PID_6LBR != 0)); then
-				kill $PID_6LBR
-				break
-			fi
-		fi
-	done
-}
 
 ################################################################################
 # Read config file
@@ -194,7 +169,7 @@ else
 ################################################################################
 # Launch 6LBR in a loop
 
-while ((1)); do
+while true; do
 	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" ]; then
 		$SCAN_DEVICE
 		while [ ! -e "$DEV_RADIO" ]; do
@@ -214,7 +189,7 @@ while ((1)); do
 	PID_6LBR=$!
 	
 	if [ $WATCHDOG_INTERVAL != "0" ]; then
-		application_watchdog &
+		$LIB_6LBR/6lbr-watchdog $PID_6LBR $WATCHDOG_INTERVAL $DEFAULT_WATCHDOG_SCALE $WATCHDOG_FILE &
 		PID_WATCHDOG=$!
 	fi
 	
@@ -222,7 +197,7 @@ while ((1)); do
 	ECODE=$?
 	PID_6LBR=0
 	
-	if ((PID_WATCHDOG != 0)); then
+	if [ $PID_WATCHDOG != 0 ]; then
 		if kill -0 $PID_WATCHDOG 2> /dev/null; then
 			kill $PID_WATCHDOG
 			wait $PID_WATCHDOG
