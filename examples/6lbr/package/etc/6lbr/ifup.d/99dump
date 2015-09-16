@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 . $CETIC_6LBR_CONF
 . $1/6lbr-functions
