@@ -172,6 +172,11 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
+#if !UIP_CONF_IPV6_RPL
+//Support static routes only in non-rpl mode now
+#define UIP_CONF_DS6_STATIC_ROUTES 1
+#endif
+
 /* Do not change lines below */
 
 #undef UIP_CONF_ROUTER

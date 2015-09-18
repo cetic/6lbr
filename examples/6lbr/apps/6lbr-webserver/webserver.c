@@ -47,6 +47,7 @@
 
 HTTPD_CGI_CALL_NAME(webserver_main)
 HTTPD_CGI_CALL_NAME(webserver_network)
+HTTPD_CGI_CMD_NAME(webserver_network_route_add_cmd)
 HTTPD_CGI_CMD_NAME(webserver_network_route_rm_cmd)
 HTTPD_CGI_CMD_NAME(webserver_network_nbr_rm_cmd)
 HTTPD_CGI_CALL_NAME(webserver_rpl)
@@ -111,6 +112,7 @@ webserver_init(void)
     httpd_cgi_command_add(&webserver_rpl_reset_cmd);
     httpd_cgi_command_add(&webserver_rpl_child_cmd);
 #endif
+    httpd_cgi_command_add(&webserver_network_route_add_cmd);
     httpd_cgi_command_add(&webserver_network_route_rm_cmd);
     httpd_cgi_command_add(&webserver_network_nbr_rm_cmd);
     httpd_cgi_command_add(&webserver_config_set_cmd);

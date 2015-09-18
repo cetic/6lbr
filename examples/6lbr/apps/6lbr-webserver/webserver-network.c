@@ -326,10 +326,63 @@ add_network_cases(const uint8_t state)
 }
 
 static httpd_cgi_call_t *
+webserver_network_route_add(struct httpd_state *s)
+{
+#if UIP_DS6_STATIC_ROUTES
+  uip_ds6_route_t *route;
+  uip_ipaddr_t ipaddr;
+  uint8_t length;
+  uip_ipaddr_t nexthop;
+  char *p;
+  char *sep;
+  webserver_result_title = "Network";
+  webserver_result_text = "Add route: Route not created";
+  do {
+    if(!s->query) break;
+    p = s->query;
+    sep = index(p, '=');
+    if(sep == NULL) break;
+    *sep = 0;
+    if(strcmp(p, "target") != 0) break;
+    p = sep + 1;
+    sep = index(p, '&');
+    if(sep == NULL) break;
+    *sep = 0;
+    if(uiplib_ipaddrconv(p, &ipaddr) == 0) break;
+    p = sep + 1;
+    sep = index(p, '=');
+    if(sep == NULL) break;
+    *sep = 0;
+    if(strcmp(p, "length") != 0) break;
+    p = sep + 1;
+    sep = index(p, '&');
+    if(sep == NULL) break;
+    *sep = 0;
+    length = atoi(p);
+    p = sep + 1;
+    sep = index(p, '=');
+    if(sep == NULL) break;
+    *sep = 0;
+    if(strcmp(p, "nexthop") != 0) break;
+    p = sep + 1;
+    if(uiplib_ipaddrconv(p, &nexthop) == 0) break;
+    route = uip_ds6_route_add_static(&ipaddr, length, &nexthop);
+    if(route) {
+      webserver_result_text = "Route created";
+    }
+  } while (0);
+#else
+  webserver_result_title = "Network";
+  webserver_result_text = "Add route: not supported";
+#endif
+  return &webserver_result_page;
+}
+
+static httpd_cgi_call_t *
 webserver_network_route_rm(struct httpd_state *s)
 {
-  static uip_ds6_route_t *route;
-  static uip_ipaddr_t ipaddr;
+  uip_ds6_route_t *route;
+  uip_ipaddr_t ipaddr;
   webserver_result_title = "Network";
   webserver_result_text = "Delete route: Route not found";
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
@@ -345,8 +398,8 @@ webserver_network_route_rm(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_network_nbr_rm(struct httpd_state *s)
 {
-  static uip_ds6_nbr_t *neighbor;
-  static uip_ipaddr_t ipaddr;
+  uip_ds6_nbr_t *neighbor;
+  uip_ipaddr_t ipaddr;
   webserver_result_title = "Network";
   webserver_result_text = "Delete neighbor: Neighbor not found";
   if(s->query && uiplib_ipaddrconv(s->query, &ipaddr) != 0) {
@@ -360,5 +413,6 @@ webserver_network_nbr_rm(struct httpd_state *s)
 }
 
 HTTPD_CGI_CALL(webserver_network, "network.html", "Network", generate_network, 0);
+HTTPD_CGI_CMD(webserver_network_route_add_cmd, "route-add", webserver_network_route_add, 0);
 HTTPD_CGI_CMD(webserver_network_route_rm_cmd, "route-rm", webserver_network_route_rm, 0);
 HTTPD_CGI_CMD(webserver_network_nbr_rm_cmd, "nbr-rm", webserver_network_nbr_rm, 0);
