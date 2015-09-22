@@ -314,7 +314,11 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
      configuration (the values in MACON3) will be used.  */
 #define WITH_MANUAL_PADDING 1
 #if WITH_MANUAL_PADDING
+#if UIP_LLH_LEN == 16
+#define PADDING_MIN_SIZE (60 + 2)
+#else
 #define PADDING_MIN_SIZE 60
+#endif
   writedatabyte(0x0B); /* POVERRIDE, PCRCEN, PHUGEEN. Not PPADEN */
   if(datalen < PADDING_MIN_SIZE) {
     padding = PADDING_MIN_SIZE - datalen;
@@ -330,7 +334,15 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   writereg(ETXNDL, (TXSTART_INIT + datalen + 0 + padding) & 0xff);
   writereg(ETXNDH, (TXSTART_INIT + datalen + 0 + padding) >> 8);
 
+
+#if UIP_LLH_LEN == 16
+  /* Write Ethernet header */
+  writedata(data, 14);
+  /* Write Ehternet payload */
+  writedata(data + 16, datalen - 14);
+#else
   writedata(data, datalen);
+#endif
   if(padding > 0) {
     uint8_t padding_buf[60];
     memset(padding_buf, 0, padding);
@@ -398,7 +410,15 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
     len = 0;
   } else {
     /* copy the packet from the receive buffer */
+    len += 2;
+#if UIP_LLH_LEN == 16
+    /* Read Ethernet header */
+    readdata(buffer, 14);
+    /* Read Ethernet payload */
+    readdata(buffer + 16, len - 14);
+#else
     readdata(buffer, len);
+#endif
   }
 
   /* Move the RX read pointer to the start of the next received packet */

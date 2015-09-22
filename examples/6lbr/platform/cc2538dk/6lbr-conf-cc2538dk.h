@@ -90,6 +90,10 @@
 
 /* Do not change lines below */
 
+// IP packet must be 4 bytes aligned
+#undef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN 16
+
 #define LOG6LBR_TIMESTAMP           0
 #define LOG6LBR_STATIC              1
 

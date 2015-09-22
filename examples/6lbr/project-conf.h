@@ -94,6 +94,10 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+// Ethernet header is stored in uip_buf
+#undef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN 14
+
 #if CETIC_6LBR_SMARTBRIDGE
 /*------------------------------------------------------------------*/
 /* SMART BRIDGE MODE                                                */
@@ -235,9 +239,6 @@
 
 /* Do not change lines below */
 #define CETIC_6LBR_VERSION		"1.4.x"
-
-#undef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN 14
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF
 #define CETIC_6LBR_ETH_EXT_B	0xFF
