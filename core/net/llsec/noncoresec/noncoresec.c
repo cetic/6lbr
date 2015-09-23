@@ -54,6 +54,10 @@
 #include "lib/ccm-star.h"
 #include <string.h>
 
+#ifndef LLSEC_REBOOT_WORKAROUND_ENABLED
+#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
+#endif
+
 #define WITH_ENCRYPTION (LLSEC802154_SECURITY_LEVEL & (1 << 2))
 
 #ifdef NONCORESEC_CONF_KEY
@@ -189,6 +193,14 @@ input(void)
     
     anti_replay_init_info(info);
   } else {
+#if LLSEC_REBOOT_WORKAROUND_ENABLED
+    /* Temporary workaround for node reboot until proper reboot protocol is added */
+#warning LLSEC reboot workaround enabled
+    if(anti_replay_get_counter() == 0) {
+      /* Replay counter for the node has been reset, assume it is a reboot */
+      anti_replay_init_info(info);
+    } else
+#endif
     if(anti_replay_was_replayed(info)) {
        PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
            anti_replay_get_counter());
