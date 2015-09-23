@@ -189,7 +189,7 @@ endif
 all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
 all_z1: bin_z1/6lbr-demo-coapserver.z1
 all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
-all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
 
 bin_sky/6lbr-demo-webserver.sky:
 	mkdir -p bin_sky
@@ -214,6 +214,12 @@ bin_econotag/6lbr-demo-coapserver.econotag:
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
 	cp 6lbr-demo_econotag.bin bin_econotag/6lbr-demo-coapserver.econotag
+
+bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk:
+	mkdir -p bin_cc2538dk
+	$(MAKE) TARGET=cc2538dk clean
+	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_LLSEC=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-llsec-coapserver.$(CC2538DK_FW)
 
 bin_cc2538dk/6lbr-demo-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
