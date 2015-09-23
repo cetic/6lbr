@@ -53,7 +53,7 @@ if [ "$BRIDGE" = "" ]; then
 	BRIDGE="1"
 fi
 
-if [[ "$CREATE_BRIDGE" != "0" && "$CREATE_BRIDGE" != "LAZY" && "$CREATE_BRIDGE" != "MANUAL" && "$CREATE_BRIDGE" != "6LBR" ]]; then
+if [ "$CREATE_BRIDGE" != "0" -a "$CREATE_BRIDGE" != "LAZY" -a "$CREATE_BRIDGE" != "MANUAL" -a "$CREATE_BRIDGE" != "6LBR" ]; then
 	CREATE_BRIDGE="1"
 fi
 
@@ -69,7 +69,7 @@ fi
 
 # No default values as platform are too different
 
-if [[ "$DEV_RADIO" != "" && "$SOCK_RADIO" != "" ]]; then
+if [ "$DEV_RADIO" != "" -a "$SOCK_RADIO" != "" ]; then
 	echo WARNING: $CFG declares both DEV_RADIO and SOCK_RADIO. Using SOCK_RADIO=$SOCK_RADIO
 fi
 

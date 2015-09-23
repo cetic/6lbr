@@ -13,7 +13,7 @@ PARAMS=""
 #Signals management
 
 #If this script is killed, kills child processes
-trap 'if [[ PID_6LBR != 0 ]]; then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if [[ $PID_WATCHDOG != 0 ]]; then kill $PID_WATCHDOG; fi' EXIT
+trap 'if [ $PID_6LBR != 0 ]; then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if [ $PID_WATCHDOG != 0 ]; then kill $PID_WATCHDOG; fi; exit 1' INT TERM
 
 #Ignore sighup
 trap '' HUP
@@ -79,7 +79,7 @@ export LOG_6LBR_ERR
 if [ "$RAW_ETH" = "1" ]; then
 	PARAM_ETH="-r"
 	ETH_IF=$DEV_ETH
-	if [ "$RAW_ETH_FCS" == "1" ]; then
+	if [ "$RAW_ETH_FCS" = "1" ]; then
 		PARAM_ETH="$PARAM_ETH -f"
 	fi
 else
@@ -207,7 +207,7 @@ while true; do
 	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
         echo `date`" : $BIN failed, exit code: $ECODE" >> /dev/stderr
-        if [ "$STOP_AFTER_CRASH" == "1" ]; then
+        if [ "$STOP_AFTER_CRASH" = "1" ]; then
 			break
 		fi
 		sleep 1
