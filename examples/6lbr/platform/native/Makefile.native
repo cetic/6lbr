@@ -23,6 +23,7 @@ APPS += slip-cmd
 
 ifneq ($(WITH_NODE_CONFIG),0)
 APPS+=node-config
+endif
 
 PROJECT_SOURCEFILES += native-init.c native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c plugin.c lost-symbols.c
 
@@ -86,12 +87,6 @@ all:
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
 
-else
-
-all: $(6LBR_PLUGIN)
-
-endif
-
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 
@@ -139,6 +134,7 @@ else
 all: $(6LBR_PLUGIN)
 
 install:
+	install -d $(DESTDIR)/usr/lib/6lbr/plugins
 	install $(6LBR_PLUGIN) $(DESTDIR)/usr/lib/6lbr/plugins
 
 endif
