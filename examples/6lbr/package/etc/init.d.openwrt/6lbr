@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=80
+APP=6lbr
+PID_FILE=/var/run/$APP.pid
+
+start() {
+        start-stop-daemon -S -x $APP -p $PID_FILE -m -b
+}
+
+stop() {
+        start-stop-daemon -K -n $APP -p $PID_FILE -s TERM
+}
