@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -604,7 +605,6 @@ print_nvm(void)
   printf("\n");
 
   //RPL Configuration
-  uint16_t rpl_config;
   PRINT_INT("RPL instance ID", rpl_instance_id);
   PRINT_BOOL("RPL DODAG ID manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG);
   PRINT_IP("RPL DODAG ID", rpl_dodag_id);
@@ -1182,7 +1182,9 @@ main(int argc, char *argv[])
 
     //RPL Configuration
     UPDATE_INT("rpl-instance-id", rpl_instance_id)
+    UPDATE_FLAG("rpl-manual-dodag-id", rpl_manual_dodag_id, rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG)
     UPDATE_IP("rpl-dodag-id", rpl_dodag_id)
+    UPDATE_FLAG("rpl-global-dodag-id", rpl_global_dodag_id, rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG)
     UPDATE_INT("rpl-version", rpl_version_id)
     UPDATE_INT("rpl-preference", rpl_preference)
     UPDATE_INT("rpl-dio-int-doubling", rpl_dio_intdoubl)
