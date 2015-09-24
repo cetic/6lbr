@@ -1,0 +1,29 @@
+#This file contains a default configuration for OpenWRT platform using
+#a Telos SLIP Radio
+#The full list of parameters and their meaning can be found in 6lbr.conf.example
+
+MODE=ROUTER
+#MODE=SMART-BRIDGE
+#MODE=RPL-RELAY
+#MODE=FULL-TRANSPARENT-BRIDGE
+#MODE=NDP-ROUTER
+#MODE=6LR
+#MODE=RPL-ROOT
+
+RAW_ETH=0
+BRIDGE=0
+DEV_BRIDGE=br-lan
+DEV_TAP=tap0
+DEV_ETH=eth0
+RAW_ETH_FCS=0
+
+DEV_RADIO=/dev/ttyUSB0
+BAUDRATE=115200
+
+LOG_LEVEL=3 #INFO and above only
+
+#6LBR Watchdog does not work yet on OpenWRT
+WATCHDOG_INTERVAL=0
+
+#OpenWRT kernel still has multicast snooping bug
+BRIDGE_DISABLE_SNOOPING=1
