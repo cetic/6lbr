@@ -99,4 +99,24 @@
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
+    defined(__BIG_ENDIAN__) || \
+    defined(__ARMEB__) || \
+    defined(__THUMBEB__) || \
+    defined(__AARCH64EB__) || \
+    defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
+#undef UIP_CONF_BYTE_ORDER
+#define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
+    defined(__LITTLE_ENDIAN__) || \
+    defined(__ARMEL__) || \
+    defined(__THUMBEL__) || \
+    defined(__AARCH64EL__) || \
+    defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
+#undef UIP_CONF_BYTE_ORDER
+#define UIP_CONF_BYTE_ORDER UIP_LITTLE_ENDIAN
+#else
+#error "I don't know what architecture this is!"
+#endif
+
 #endif /* SIXLBR_CONF_NATIVE_H */
