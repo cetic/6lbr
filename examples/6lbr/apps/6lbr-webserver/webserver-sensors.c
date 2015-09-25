@@ -227,23 +227,23 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
         node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
         if ( node_config ) {
           if ( parent_node_config ) {
-            add("%s->%s;",
+            add("%%22%s%%22->%%22%s%%22;",
                 node_config_get_name(node_config),
                 node_config_get_name(parent_node_config));
           } else {
-            add("%s->_%04hx;",
+            add("%%22%s%%22->%%22%04hx%%22;",
                 node_config_get_name(node_config),
                 (node_info_table[i].ip_parent.u8[14] << 8) +
                 node_info_table[i].ip_parent.u8[15]);
           }
         } else {
           if (parent_node_config) {
-            add("_%04hx->%s;",
+            add("%%22%04hx%%22->%%22%s%%22;",
                 (node_info_table[i].ipaddr.u8[14] << 8) +
                 node_info_table[i].ipaddr.u8[15],
                 node_config_get_name(parent_node_config));
           } else {
-            add("_%04hx->_%04hx;",
+            add("%%22%04hx%%22->%%22%04hx%%22;",
                 (node_info_table[i].ipaddr.u8[14] << 8) +
                 node_info_table[i].ipaddr.u8[15],
                 (node_info_table[i].ip_parent.u8[14] << 8) +
@@ -251,7 +251,7 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
           }
         }
 #else
-        add("_%04hx->_%04hx;",
+        add("%%22%04hx%%22->%%22%04hx%%22;",
             (node_info_table[i].ipaddr.u8[14] << 8) +
             node_info_table[i].ipaddr.u8[15],
             (node_info_table[i].ip_parent.u8[14] << 8) +
