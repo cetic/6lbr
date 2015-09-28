@@ -1,2 +1,8 @@
-CFLAGS += -DCETIC_NODE_CONFIG=1
-node-config_src = node-config.c 
+CFLAGS += -DCETIC_NODE_CONFIG=1 -DIP64_SPECIAL_PORTS_CONF_ENABLE=1
+node-config_src = node-config.c node-config-ip64-ports.c
+
+ifeq ($(TARGET),native)
+node-config_src += node-config-file.c
+else
+node-config_src += node-config-memb.c
+endif

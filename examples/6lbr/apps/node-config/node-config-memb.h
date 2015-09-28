@@ -34,55 +34,12 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "NODECFG"
+#ifndef NODE_CONFIG_MEMB_H_
+#define NODE_CONFIG_MEMB_H_
 
-#include "node-config.h"
-#include "slip-config.h"
-#include "log-6lbr.h"
 
-#if CONTIKI_TARGET_NATIVE
-#include "node-config-file.h"
-#else
-#include "node-config-memb.h"
-#endif
+void node_config_impl_init(void);
+node_config_t* node_config_list_head(void);
 
-#include "cetic-6lbr.h"
 
-uint8_t node_config_loaded = 0;
-
-static char const * unknown_name = "(Unknown)";
-
-node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
-  uip_lladdr_t ll_addr;
-  memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
-  ll_addr.addr[0] ^= 0x02;
-  return node_config_find(&ll_addr);
-}
-
-node_config_t * node_config_find_from_port(uint16_t port) {
-  node_config_t *  node_config;
-  for(node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
-    if(port == node_config->coap_port || port == node_config->http_port) {
-      return node_config;
-    }
-  }
-  return NULL;
-}
-
-node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
-  node_config_t *  node_config;
-  for (node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
-    if ( memcmp(node_addr, &node_config->mac_address, sizeof(uip_lladdr_t)) == 0 ) {
-      return node_config;
-    }
-  }
-  return NULL;
-}
-
-char const *  node_config_get_name(node_config_t const *  node_config) {
-  return node_config ? node_config->name : unknown_name;
-}
-
-void node_config_init(void) {
-  node_config_impl_init();
-}
+#endif /* NODE_CONFIG_FILE_H_ */

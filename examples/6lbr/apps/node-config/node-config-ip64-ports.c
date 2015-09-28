@@ -34,55 +34,58 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "NODECFG"
-
+#include "ip64.h"
+#include "ip64-special-ports.h"
+#include "er-coap.h"
 #include "node-config.h"
-#include "slip-config.h"
-#include "log-6lbr.h"
-
-#if CONTIKI_TARGET_NATIVE
-#include "node-config-file.h"
-#else
-#include "node-config-memb.h"
-#endif
-
 #include "cetic-6lbr.h"
 
-uint8_t node_config_loaded = 0;
-
-static char const * unknown_name = "(Unknown)";
-
-node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
-  uip_lladdr_t ll_addr;
-  memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
-  ll_addr.addr[0] ^= 0x02;
-  return node_config_find(&ll_addr);
-}
-
-node_config_t * node_config_find_from_port(uint16_t port) {
-  node_config_t *  node_config;
-  for(node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
-    if(port == node_config->coap_port || port == node_config->http_port) {
-      return node_config;
+/*---------------------------------------------------------------------------*/
+int
+ip64_special_ports_translate_incoming(uint16_t incoming_port,
+				      uip_ip6addr_t *newaddr,
+				      uint16_t *newport)
+{
+  node_config_t * node_config = node_config_find_from_port(incoming_port);
+  if(node_config) {
+    uip_ipaddr_copy(newaddr, &wsn_net_prefix);
+    uip_ds6_set_addr_iid(newaddr, &node_config->mac_address);
+    if(incoming_port == node_config->coap_port) {
+      *newport = UIP_HTONS(COAP_DEFAULT_PORT);
+      return 1;
+    } else if(incoming_port == node_config->http_port) {
+      *newport = UIP_HTONS(80);
+      return 1;
+    } else {
+      return 0;
     }
+  } else {
+    return 0;
   }
-  return NULL;
 }
-
-node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
-  node_config_t *  node_config;
-  for (node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
-    if ( memcmp(node_addr, &node_config->mac_address, sizeof(uip_lladdr_t)) == 0 ) {
-      return node_config;
-    }
+/*---------------------------------------------------------------------------*/
+int
+ip64_special_ports_translate_outgoing(uint16_t incoming_port,
+				      const uip_ip6addr_t *ip6addr,
+				      uint16_t *newport)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+ip64_special_ports_incoming_is_special(uint16_t port)
+{
+  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+    return (port == UIP_HTONS(COAP_DEFAULT_PORT)) || (port == UIP_HTONS(80));
+  } else {
+    return 0;
   }
-  return NULL;
 }
-
-char const *  node_config_get_name(node_config_t const *  node_config) {
-  return node_config ? node_config->name : unknown_name;
+/*---------------------------------------------------------------------------*/
+int
+ip64_special_ports_outgoing_is_special(uint16_t port)
+{
+  /* Default is to have no special ports. */
+  return 0;
 }
-
-void node_config_init(void) {
-  node_config_impl_init();
-}
+/*---------------------------------------------------------------------------*/

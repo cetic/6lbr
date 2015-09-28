@@ -110,6 +110,7 @@ typedef struct {
 
 //IP64 Flags
 #define CETIC_6LBR_IP64_DHCP                    0x01
+#define CETIC_6LBR_IP64_SPECIAL_PORTS           0x02
 
 //Security
 #define CETIC_6LBR_SECURITY_LAYER_NONE  0
