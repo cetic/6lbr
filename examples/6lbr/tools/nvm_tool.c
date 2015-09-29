@@ -1227,4 +1227,6 @@ main(int argc, char *argv[])
     print_nvm();
     store_nvm_file(dest_nvm_file, fit);
   }
+
+  return 0;
 }
