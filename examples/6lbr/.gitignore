@@ -8,3 +8,4 @@ bin_red-io
 *.ipk
 *.deb
 *.zip
+plugins/*/*.so
