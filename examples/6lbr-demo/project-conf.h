@@ -107,6 +107,8 @@
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC nullsec_driver
 
+#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
+
 #endif
 
 /*---------------------------------------------------------------------------*/
