@@ -69,6 +69,10 @@ CFLAGS += -DUDPCLIENT=1 -DUDP_CLIENT_AUTOSTART
 PROJECT_SOURCEFILES += udp-client.c
 endif
 
+ifneq ($(WITH_NODE_CONFIG),0)
+APPS+=node-config
+endif
+
 ifneq ($(WITH_NODE_INFO),0)
 APPS+=node-info
 endif
