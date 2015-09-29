@@ -195,7 +195,9 @@ input(void)
   } else {
 #if LLSEC_REBOOT_WORKAROUND_ENABLED
     /* Temporary workaround for node reboot until proper reboot protocol is added */
+#if !CONTIKI_TARGET_ECONOTAG
 #warning LLSEC reboot workaround enabled
+#endif
     if(anti_replay_get_counter() == 1) {
       /* Replay counter for the node has been reset, assume it is a reboot */
       PRINTF("Reboot detected, Reseting replay counter\n");
