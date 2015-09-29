@@ -37,7 +37,6 @@
 #define LOG6LBR_MODULE "NODECFG"
 
 #include "node-config.h"
-#include "slip-config.h"
 #include "log-6lbr.h"
 #include "uip-ds6-route.h"
 
@@ -76,6 +75,8 @@ node_config_t* node_config_add_node(uip_lladdr_t *mac_address) {
   node_config->mac_address = *mac_address;
   node_config->coap_port = node_config_coap_port++;
   node_config->http_port = node_config_http_port++;
+
+  list_add(node_config_list, node_config);
   return node_config;
 }
 
@@ -90,6 +91,7 @@ node_config_route_notification_cb(int event,
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
     node_config = node_config_find_from_ip(route);
     if(node_config == NULL) {
+      LOG6LBR_6ADDR(DEBUG, route, "Adding node config for ");
       uip_lladdr_t ll_addr;
       memcpy(&ll_addr, route->u8 + 8, UIP_LLADDR_LEN);
       ll_addr.addr[0] ^= 0x02;
@@ -98,7 +100,7 @@ node_config_route_notification_cb(int event,
   }
 }
 
-void node_config_file_init(void) {
+void node_config_impl_init(void) {
   memb_init(&node_config_memb);
   list_init(node_config_list);
   node_config_coap_port = node_config_first_coap_port;

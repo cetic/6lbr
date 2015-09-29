@@ -37,7 +37,6 @@
 #define LOG6LBR_MODULE "NODECFG"
 
 #include "node-config.h"
-#include "slip-config.h"
 #include "log-6lbr.h"
 
 #if CONTIKI_TARGET_NATIVE
@@ -50,7 +49,9 @@
 
 uint8_t node_config_loaded = 0;
 
+#if CETIC_NODE_CONFIG_HAS_NAME
 static char const * unknown_name = "(Unknown)";
+#endif
 
 node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
   uip_lladdr_t ll_addr;
@@ -86,5 +87,6 @@ char const *  node_config_get_name(node_config_t const *  node_config) {
 #endif
 
 void node_config_init(void) {
+  LOG6LBR_INFO("Node Config init\n");
   node_config_impl_init();
 }
