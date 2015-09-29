@@ -629,6 +629,7 @@ print_nvm(void)
   //IP64
   PRINT_BOOL("NAT 64 Enabled", global_flags, CETIC_GLOBAL_IP64);
   PRINT_BOOL("NAT 64 DHCP Enabled", eth_ip64_flags, CETIC_6LBR_IP64_DHCP);
+  PRINT_BOOL("NAT 64 static port mapping Enabled", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS);
 
   PRINT_IP4("NAT 64 address", eth_ip64_addr);
   PRINT_IP4("NAT 64 netmask", eth_ip64_netmask);
@@ -713,6 +714,7 @@ print_nvm(void)
 // NAT64
 #define nat64_enable_option 13000
 #define nat64_dhcp_enable_option 13001
+#define nat64_static_ports_enable_option 13002
 #define eth_ip64_addr_option 13003
 #define eth_ip64_netmask_option 13004
 #define eth_ip64_gateway_option 13005
@@ -779,6 +781,7 @@ static struct option long_options[] = {
 // NAT64
   {"nat64-enable", required_argument, 0, nat64_enable_option},
   {"nat64-dhcp-enable", required_argument, 0, nat64_dhcp_enable_option},
+  {"nat64-static-ports-enable", required_argument, 0, nat64_static_ports_enable_option},
   {"nat64-addr", required_argument, 0, eth_ip64_addr_option},
   {"nat64-netmask", required_argument, 0, eth_ip64_netmask_option},
   {"nat64-gateway", required_argument, 0, eth_ip64_gateway_option},
@@ -885,6 +888,7 @@ help(char const *name)
   printf("\nNAT64 :\n");
   printf("\t--nat64-enable <0|1>\t\t Enable NAT64\n");
   printf("\t--nat64-dhcp-enable <0|1>\t Enable NAT64 configuration via DHCP\n");
+  printf("\t--nat64-static-ports-enable <0|1>\t Enable NAT64 static ports mapping\n");
   printf("\t--nat64-addr <ipv4 address>\t NAT64 ip address\n");
   printf("\t--nat64-netmask <ipv4 netmask>\t NAT64 netmask\n");
   printf("\t--nat64-gateway <ipv4 address>\t NAT64 gateway\n");
@@ -1009,6 +1013,7 @@ main(int argc, char *argv[])
   // NAT64
   char *nat64_enable = NULL;
   char *nat64_dhcp_enable = NULL;
+  char *nat64_static_ports_enable = NULL;
   char *eth_ip64_addr = NULL;
   char *eth_ip64_netmask = NULL;
   char *eth_ip64_gateway = NULL;
@@ -1094,6 +1099,7 @@ main(int argc, char *argv[])
     // NAT64
     CASE_OPTION(nat64_enable)
     CASE_OPTION(nat64_dhcp_enable)
+    CASE_OPTION(nat64_static_ports_enable)
     CASE_OPTION(eth_ip64_addr)
     CASE_OPTION(eth_ip64_netmask)
     CASE_OPTION(eth_ip64_gateway)
@@ -1203,6 +1209,7 @@ main(int argc, char *argv[])
     // NAT64
     UPDATE_FLAG("nat64-enable", nat64_enable, global_flags, CETIC_GLOBAL_IP64)
     UPDATE_FLAG("nat64-dhcp-enable", nat64_dhcp_enable, eth_ip64_flags, CETIC_6LBR_IP64_DHCP)
+    UPDATE_FLAG("nat64-static-ports-enable", nat64_static_ports_enable, eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS)
     UPDATE_IP4("nat64-ip-addr", eth_ip64_addr)
     UPDATE_IP4("nat64-ip-netmask", eth_ip64_netmask)
     UPDATE_IP4("nat64-ip-gateway", eth_ip64_gateway)
