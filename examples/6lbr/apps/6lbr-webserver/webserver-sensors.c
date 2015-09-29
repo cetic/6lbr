@@ -253,13 +253,13 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
 #if CETIC_NODE_CONFIG_HAS_NAME
   node_config_t *  my_config = node_config_find(&uip_lladdr);
   if (my_config) {
-    add("%s;", node_config_get_name(my_config));
+    add("%%22%s%%22;", node_config_get_name(my_config));
   } else {
-   add("_%04x;",
+   add("%%22%04hx%%22;",
      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
   }
 #else
-  add("_%04x;",
+  add("%%22%04hx%%22;",
     (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
 #endif
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
