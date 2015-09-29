@@ -55,7 +55,7 @@ HTTPD_CGI_CMD_NAME(webserver_rpl_gr_cmd)
 HTTPD_CGI_CMD_NAME(webserver_rpl_reset_cmd)
 HTTPD_CGI_CMD_NAME(webserver_rpl_child_cmd)
 #if CETIC_NODE_INFO
-HTTPD_CGI_CALL_NAME(webserver_sensors)
+HTTPD_CGI_CALL_NAME(webserver_sensors_info)
 HTTPD_CGI_CALL_NAME(webserver_sensor)
 HTTPD_CGI_CALL_NAME(webserver_sensors_tree)
 HTTPD_CGI_CALL_NAME(webserver_sensors_prr)
@@ -64,6 +64,9 @@ HTTPD_CGI_CALL_NAME(webserver_sensors_hc)
 HTTPD_CGI_CMD_NAME(webserver_sensors_reset_stats_all_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_reset_stats_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_delete_node_cmd)
+#endif
+#if CETIC_NODE_CONFIG
+HTTPD_CGI_CALL_NAME(webserver_sensors_config)
 #endif
 HTTPD_CGI_CALL_NAME(webserver_config)
 HTTPD_CGI_CMD_NAME(webserver_config_set_cmd)
@@ -90,7 +93,7 @@ webserver_init(void)
 
   httpd_cgi_add(&webserver_main);
 #if CETIC_NODE_INFO
-  httpd_cgi_add(&webserver_sensors);
+  httpd_cgi_add(&webserver_sensors_info);
   httpd_cgi_add(&webserver_sensor);
   httpd_cgi_add(&webserver_sensors_tree);
   httpd_cgi_add(&webserver_sensors_prr);
@@ -99,6 +102,9 @@ webserver_init(void)
   httpd_cgi_command_add(&webserver_sensors_reset_stats_all_cmd);
   httpd_cgi_command_add(&webserver_sensor_reset_stats_cmd);
   httpd_cgi_command_add(&webserver_sensor_delete_node_cmd);
+#endif
+#if CETIC_NODE_CONFIG
+  httpd_cgi_add(&webserver_sensors_config);
 #endif
 #if UIP_CONF_IPV6_RPL
   httpd_cgi_add(&webserver_rpl);

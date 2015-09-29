@@ -74,7 +74,7 @@ static const char * graph_bottom =
     "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
 
 static
-PT_THREAD(generate_sensors(struct httpd_state *s))
+PT_THREAD(generate_sensors_info(struct httpd_state *s))
 {
   static int i;
 
@@ -198,6 +198,43 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 
   PSOCK_END(&s->sout);
 }
+
+#if CETIC_NODE_CONFIG
+static
+PT_THREAD(generate_sensors_config(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  add("<br /><h2>Sensors configuration</h2>");
+  add
+    ("<table>"
+     "<theader><tr class=\"row_first\"><td>Node</td><td>Name</td>");
+  if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+    add("<td>CoAP</td><td>HTTP</td>");
+  }
+  add("</tr></theader><tbody>");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  if(node_config_loaded) {
+    static node_config_t *  node_config;
+    for(node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
+      add("<tr><td>");
+      lladdr_add(&node_config->mac_address);
+      add("</td><td>%s</td>", node_config_get_name(node_config));
+      if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+        add("<td>%d</td><td>%d</td>", node_config->coap_port, node_config->http_port);
+      }
+      add("</tr>");
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+  add("</tbody></table><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
+#endif
 
 static
 PT_THREAD(generate_sensors_tree(struct httpd_state *s))
@@ -390,10 +427,17 @@ webserver_sensors_reset_stats_all(struct httpd_state *s)
 }
 
 httpd_cgi_call_t * sensors_group[];
-HTTPD_CGI_CALL_GROUP(webserver_sensors, "sensors.html", "Sensors", generate_sensors, 0, sensors_group);
+HTTPD_CGI_CALL_GROUP(webserver_sensors_info, "sensors.html", "Sensors", generate_sensors_info, 0, sensors_group);
+#if CETIC_NODE_CONFIG
+HTTPD_CGI_CALL_GROUP(webserver_sensors_config, "sensors_config.html", "Config", generate_sensors_config, WEBSERVER_NOMENU, sensors_group);
+#endif
 HTTPD_CGI_CALL_GROUP(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CALL_GROUP(webserver_sensors_hc, "sensors_hc.html", "Hop count", generate_sensors_hop_count, WEBSERVER_NOMENU, sensors_group);
 HTTPD_CGI_CMD(webserver_sensors_reset_stats_all_cmd, "reset-stats-all", webserver_sensors_reset_stats_all, 0);
-httpd_cgi_call_t * sensors_group[] = {&webserver_sensors, &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, &webserver_sensors_hc, NULL};
+httpd_cgi_call_t * sensors_group[] = {&webserver_sensors_info,
+#if CETIC_NODE_CONFIG
+    &webserver_sensors_config,
+#endif
+    &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, &webserver_sensors_hc, NULL};

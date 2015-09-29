@@ -265,10 +265,17 @@ PT_THREAD(generate_network(struct httpd_state *s))
         m = list_item_next(m)) {
       if(timer_expired(&m->timer)) continue;
       ipaddr_add(&m->ip6addr);
-      add("%%%d (%d) -> ", m->ip6port, m->protocol);
+      add("%%%d (%d)", m->ip6port, m->protocol);
+      if(m->ip6to4 && m->ip4to6) {
+        add(" <-> ");
+      } else if(m->ip6to4) {
+        add(" -> ");
+      } else {
+        add(" <- ");
+      }
       ip4addr_add(&m->ip4addr);
       add("%%%d : %d (%x) %us\n", m->ip4port, m->mapped_port,
-          m->flags, m->timer.interval - (clock_time() - m->timer.start));
+          m->flags, (m->timer.interval - (clock_time() - m->timer.start)) / CLOCK_SECOND);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }

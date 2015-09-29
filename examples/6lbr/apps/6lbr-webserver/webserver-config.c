@@ -209,6 +209,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
   INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
   INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
+  INPUT_FLAG_CB("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, "Static port mapping" );
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -397,6 +398,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IP4ADDR("ip64_addr", eth_ip64_addr, 1)
     UPDATE_IP4ADDR("ip64_netmask", eth_ip64_netmask, 1)
     UPDATE_IP4ADDR("ip64_gateway", eth_ip64_gateway, 1)
+    UPDATE_FLAG("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, 1)
 #endif
 
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
