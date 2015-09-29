@@ -74,17 +74,17 @@ extern void _end;
 #endif
 
 #if CONTIKI_TARGET_CC2538DK || CONTIKI_TARGET_OPENMOTE
-extern void _text;
+extern uint8_t _text;
 //Code
-extern void _rodata;
+extern uint8_t _rodata;
 //RO data
-extern void _etext;
-extern void _data;
+extern uint8_t _etext;
+extern uint8_t _data;
 //Initialised data
-extern void _edata;
-extern void _bss;
+extern uint8_t _edata;
+extern uint8_t _bss;
 //Zero initialised data
-extern void _ebss;
+extern uint8_t _ebss;
 #endif
 
 PT_THREAD(generate_index(struct httpd_state *s))
