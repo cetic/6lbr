@@ -64,7 +64,9 @@ log6lbr_timestamp() {
   struct tm date;
   gettimeofday(&timestamp, NULL);
   localtime_r(&timestamp.tv_sec, &date);
-  printf("%d-%02d-%02d %d:%02d:%02d.%06"PRIu32": ", date.tm_year+1900, date.tm_mon + 1, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, timestamp.tv_usec);
+  printf("%d-%02d-%02d %d:%02d:%02d.%06"PRId32": ",
+      date.tm_year+1900, date.tm_mon + 1, date.tm_mday,
+      date.tm_hour, date.tm_min, date.tm_sec, (int32_t)(timestamp.tv_usec));
 }
 #endif
 /*---------------------------------------------------------------------------*/
