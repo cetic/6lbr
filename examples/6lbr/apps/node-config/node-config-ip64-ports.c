@@ -38,10 +38,11 @@
 
 #include "ip64.h"
 #include "ip64-special-ports.h"
-#include "er-coap.h"
 #include "node-config.h"
 #include "log-6lbr.h"
 #include "cetic-6lbr.h"
+
+#define COAP_DEFAULT_PORT                    5683
 
 /*---------------------------------------------------------------------------*/
 int
