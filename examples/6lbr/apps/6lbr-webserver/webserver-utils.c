@@ -254,7 +254,11 @@ PT_THREAD(generate_top(struct httpd_state *s))
   add_menu(s);
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  add_submenu(s);
+  if(s->script != NULL && s->script->group != NULL) {
+    add_submenu(s);
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
+  }
   add(BODY_AFTER_MENU);
   if(s->script->title) {
     add_div_home(s->script->title);
