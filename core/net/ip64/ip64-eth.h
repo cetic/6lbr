@@ -52,6 +52,9 @@ struct ip64_eth_hdr {
   struct ip64_eth_addr dest;
   struct ip64_eth_addr src;
   uint16_t type;
+#if UIP_LLH_LEN == 16
+  uint16_t padding;
+#endif
 };
 
 #define IP64_ETH_TYPE_ARP  0x0806
