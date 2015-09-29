@@ -34,10 +34,13 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "NAT64"
+
 #include "ip64.h"
 #include "ip64-special-ports.h"
 #include "er-coap.h"
 #include "node-config.h"
+#include "log-6lbr.h"
 #include "cetic-6lbr.h"
 
 /*---------------------------------------------------------------------------*/
@@ -51,15 +54,23 @@ ip64_special_ports_translate_incoming(uint16_t incoming_port,
     uip_ipaddr_copy(newaddr, &wsn_net_prefix);
     uip_ds6_set_addr_iid(newaddr, &node_config->mac_address);
     if(incoming_port == node_config->coap_port) {
-      *newport = UIP_HTONS(COAP_DEFAULT_PORT);
+      *newport = COAP_DEFAULT_PORT;
       return 1;
     } else if(incoming_port == node_config->http_port) {
-      *newport = UIP_HTONS(80);
+      *newport = 80;
       return 1;
     } else {
+      /* We should not get here, port matching has already been checked in
+       * ip64_special_ports_incoming_is_special()
+       */
+      LOG6LBR_ERROR("Can not match incoming port\n");
       return 0;
     }
   } else {
+    /* We should not get here, port matching has already been checked in
+     * ip64_special_ports_incoming_is_special()
+     */
+    LOG6LBR_ERROR("Can not match incoming port\n");
     return 0;
   }
 }
@@ -69,14 +80,44 @@ ip64_special_ports_translate_outgoing(uint16_t incoming_port,
 				      const uip_ip6addr_t *ip6addr,
 				      uint16_t *newport)
 {
-  return 0;
+  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+    node_config_t * node_config = node_config_find_from_ip(ip6addr);
+    if(node_config != NULL) {
+      if(incoming_port == COAP_DEFAULT_PORT) {
+        *newport = node_config->coap_port;
+        return 1;
+      } else if(incoming_port == 80) {
+        *newport = node_config->http_port;
+        return 1;
+      } else {
+        /* We should not get here, port matching has already been checked in
+         * ip64_special_ports_outgoing_is_special()
+         */
+        LOG6LBR_ERROR("Can not match outgoing port\n");
+        return 0;
+      }
+    } else {
+      LOG6LBR_6ADDR(PACKET, ip6addr, "No port forwarding configuration for host ");
+      return 0;
+    }
+  } else {
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
 ip64_special_ports_incoming_is_special(uint16_t port)
 {
   if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
-    return (port == UIP_HTONS(COAP_DEFAULT_PORT)) || (port == UIP_HTONS(80));
+    LOG6LBR_PACKET("Looking for incoming %d\n", port);
+    node_config_t * node_config = node_config_find_from_port(port);
+    if(node_config != NULL) {
+      LOG6LBR_PACKET("Incoming port %d found\n", port);
+      return 1;
+    } else {
+      LOG6LBR_PACKET("Incoming port %d not found\n", port);
+      return 0;
+    }
   } else {
     return 0;
   }
@@ -85,7 +126,14 @@ ip64_special_ports_incoming_is_special(uint16_t port)
 int
 ip64_special_ports_outgoing_is_special(uint16_t port)
 {
-  /* Default is to have no special ports. */
-  return 0;
+  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+    if(port == COAP_DEFAULT_PORT || port == 80) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/

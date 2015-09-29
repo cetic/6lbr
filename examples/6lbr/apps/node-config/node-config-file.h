@@ -39,7 +39,5 @@
 
 
 void node_config_impl_init(void);
-node_config_t* node_config_list_head(void);
-
 
 #endif /* NODE_CONFIG_FILE_H_ */

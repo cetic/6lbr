@@ -51,6 +51,8 @@ typedef struct node_config node_config_t;
 extern uint8_t node_config_loaded;
 
 void node_config_init(void);
+node_config_t* node_config_list_head(void);
+
 node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr);
 node_config_t * node_config_find_from_port(uint16_t port);
 node_config_t * node_config_find(uip_lladdr_t const * node_addr);

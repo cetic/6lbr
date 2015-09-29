@@ -47,8 +47,8 @@
 LIST(node_config_list);
 MEMB(node_config_memb, node_config_t, UIP_DS6_ROUTE_NB);
 
-static uint16_t node_config_first_coap_port = 10000;
-static uint16_t node_config_first_http_port = 15000;
+static uint16_t node_config_first_coap_port = 20000;
+static uint16_t node_config_first_http_port = 25000;
 static uint16_t node_config_coap_port;
 static uint16_t node_config_http_port;
 
