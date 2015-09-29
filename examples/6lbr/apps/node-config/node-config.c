@@ -79,9 +79,11 @@ node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
   return NULL;
 }
 
+#if CETIC_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const *  node_config) {
   return node_config ? node_config->name : unknown_name;
 }
+#endif
 
 void node_config_init(void) {
   node_config_impl_init();

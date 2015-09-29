@@ -70,7 +70,9 @@ node_config_t* node_config_add_node(uip_lladdr_t *mac_address) {
     return NULL;
   }
 
+#if CETIC_NODE_CONFIG_HAS_NAME
   node_config->name = NULL;
+#endif
   node_config->mac_address = *mac_address;
   node_config->coap_port = node_config_coap_port++;
   node_config->http_port = node_config_http_port++;

@@ -39,10 +39,20 @@
 
 #include "contiki-net.h"
 
+/* Temporarily until more complete support of node-config */
+#if CONTIKI_TARGET_NATIVE
+#define CETIC_NODE_CONFIG_HAS_NAME 1
+#else
+#define CETIC_NODE_CONFIG_HAS_NAME 0
+#endif
+
 struct node_config {
   struct node_config * next;
   uip_lladdr_t mac_address;
+#if CETIC_NODE_CONFIG_HAS_NAME
   char const * name;
+#endif
+  /* Temporarily hardcoded list of ports */
   uint16_t coap_port;
   uint16_t http_port;
 };
@@ -54,8 +64,11 @@ void node_config_init(void);
 node_config_t* node_config_list_head(void);
 
 node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr);
-node_config_t * node_config_find_from_port(uint16_t port);
 node_config_t * node_config_find(uip_lladdr_t const * node_addr);
+
+node_config_t * node_config_find_from_port(uint16_t port);
+#if CETIC_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const * node_config);
+#endif
 
 #endif /* NODE_CONFIG_H_ */

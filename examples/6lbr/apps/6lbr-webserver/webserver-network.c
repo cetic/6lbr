@@ -175,7 +175,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&nbr->ipaddr);
       add("\">del</a>] ");
     }
-#if CETIC_NODE_CONFIG
+#if CETIC_NODE_CONFIG_HAS_NAME
     if ( node_config_loaded ) {
       add("%s : ", node_config_get_name(node_config_find(uip_ds6_nbr_get_ll(nbr))));
     }
@@ -200,7 +200,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&r->ipaddr);
       add("\">del</a>] ");
     }
-#if CETIC_NODE_CONFIG
+#if CETIC_NODE_CONFIG_HAS_NAME
     if ( node_config_loaded ) {
       add("%s (", node_config_get_name(node_config_find_from_ip(&r->ipaddr)));
       ipaddr_add(&r->ipaddr);
