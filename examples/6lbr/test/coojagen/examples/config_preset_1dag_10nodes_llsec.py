@@ -26,14 +26,14 @@ mote_type_slipradio = {	'target': 'cooja', 'shortname':'slipradio',
 mote_type_6lbrdemo_delay = { 'target': 'cooja', 'shortname':'node_delay', 
 				'fw_folder':'[CONTIKI_DIR]/examples/6lbr/test/coojagen/firmwares/6lbr-demo-delay', 
 				'maketarget':'6lbr-demo-delay', 
-				'makeargs':'WITH_LLSEC=1', 
+				'makeargs':'WITH_LLSEC=1 WITH_COAPSERVER=1 WITH_WEBSERVER=1',
 				'description':"6LBR Demo with delay",
 				'serial':'pty' }
 
 mote_type_6lbrdemo = {	'target': 'cooja', 'shortname':'node',
 			'fw_folder':'[CONTIKI_DIR]/examples/6lbr/test/coojagen/firmwares/6lbr-demo',
 			'maketarget':'6lbr-demo', 
-			'makeargs':'WITH_LLSEC=1', 
+			'makeargs':'WITH_LLSEC=1 WITH_COAPSERVER=1 WITH_WEBSERVER=1',
 			'description':"6LBR Demo",
 			'serial':'pty' }
 
