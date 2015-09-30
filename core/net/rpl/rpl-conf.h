@@ -106,15 +106,6 @@
 #endif /* RPL_CONF_MAX_DAG_PER_INSTANCE */
 
 /*
- * Maximum lifetime of a DAG
- */
-#ifdef RPL_CONF_DAG_LIFETIME
-#define RPL_DAG_LIFETIME                    RPL_CONF_DAG_LIFETIME
-#else
-#define RPL_DAG_LIFETIME                    1200
-#endif /* RPL_CONF_DAG_LIFETIME */
-
-/*
  * RPL Default route lifetime
  * The RPL route lifetime is used for the downward routes and for the default
  * route. In a high density network with DIO suppression activated it may happen
@@ -129,6 +120,18 @@
 #else
 #define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    0
 #endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
+
+/*
+ * Maximum lifetime of a DAG
+ * When a DODAG is not updated since RPL_CONF_DAG_LIFETIME times the DODAG
+ * maximum DIO interval the DODAG is removed from the list of DODAGS of the
+ * related instance, except if it is the currently joined DODAG.
+ */
+#ifdef RPL_CONF_DAG_LIFETIME
+#define RPL_DAG_LIFETIME                    RPL_CONF_DAG_LIFETIME
+#else
+#define RPL_DAG_LIFETIME                    3
+#endif /* RPL_CONF_DAG_LIFETIME */
 
 /*
  * 

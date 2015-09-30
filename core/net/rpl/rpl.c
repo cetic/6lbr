@@ -325,6 +325,9 @@ rpl_purge_dags(void)
         if(instance->dag_table[i].used) {
           if(instance->dag_table[i].lifetime == 0) {
             if(!instance->dag_table[i].joined) {
+              PRINTF("Removing dag ");
+              PRINT6ADDR(&instance->dag_table[i].dag_id);
+              PRINTF("\n");
               rpl_free_dag(&instance->dag_table[i]);
             }
           } else {
