@@ -370,9 +370,9 @@ cetic_6lbr_init_finalize(void)
   if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
     LOG6LBR_INFO("Starting MDNS\n");
     process_start(&resolv_process, NULL);
-    resolv_set_hostname("6lbr");
+    resolv_set_hostname((char *)nvm_data.dns_host_name);
 #if RESOLV_CONF_SUPPORTS_DNS_SD
-    if((nvm_data.global_flags & CETIC_GLOBAL_DNS_SD) != 0) {
+    if((nvm_data.dns_flags & CETIC_6LBR_DNS_DNS_SD) != 0) {
       resolv_add_service("_6lbr._tcp", "", 80);
     }
 #endif

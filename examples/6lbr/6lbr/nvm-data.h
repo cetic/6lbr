@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define NVM_DATA_DNS_HOST_NAME_SIZE 32
+
 typedef struct {
   //NVM header
   uint16_t magic;
@@ -75,6 +77,10 @@ typedef struct {
   uint8_t eth_ip64_netmask[4];
   uint8_t eth_ip64_gateway[4];
 
+  //DNS
+  uint8_t dns_flags;
+  uint8_t dns_host_name[NVM_DATA_DNS_HOST_NAME_SIZE + 1];
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -100,7 +106,6 @@ typedef struct {
 #define CETIC_GLOBAL_DISABLE_CONFIG     0x0001
 #define CETIC_GLOBAL_IP64               0x0002
 #define CETIC_GLOBAL_MDNS               0x0004
-#define CETIC_GLOBAL_DNS_SD             0x0008
 
 //RA Mode flags
 
@@ -131,6 +136,9 @@ typedef struct {
 
 #define CETIC_6LBR_MODE_MANUAL_DODAG                0x0001
 #define CETIC_6LBR_MODE_GLOBAL_DODAG                0x0002
+
+// DNS
+#define CETIC_6LBR_DNS_DNS_SD             0x01
 
 /*---------------------------------------------------------------------------*/
 
@@ -196,6 +204,9 @@ typedef struct {
     0x04 , 0x05 , 0x06 , 0x07 , \
     0x08 , 0x09 , 0x0A , 0x0B , \
     0x0C , 0x0D , 0x0E , 0x0F }
+
+#define CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS (CETIC_6LBR_DNS_DNS_SD)
+#define CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME "6lbr"
 
 /*---------------------------------------------------------------------------*/
 

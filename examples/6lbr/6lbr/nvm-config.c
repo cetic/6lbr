@@ -155,6 +155,9 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(&loc_fip4addr);
     memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
 
+    nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
+    strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+
     flash = 1;
   }
 

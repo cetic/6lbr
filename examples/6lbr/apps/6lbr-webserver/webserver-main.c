@@ -89,17 +89,21 @@ extern uint8_t _ebss;
 
 PT_THREAD(generate_index(struct httpd_state *s))
 {
-#if CONTIKI_TARGET_NATIVE
-#define HOSTNAME_LEN 200
-  char hostname[HOSTNAME_LEN];
-#endif
-
   PSOCK_BEGIN(&s->sout);
   reset_buf();
   add("<h2>Info</h2>");
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
+    add("Hostname : %s<br />", nvm_data.dns_host_name);
+  } else
+#endif
 #if CONTIKI_TARGET_NATIVE
-  gethostname(hostname, HOSTNAME_LEN);
-  add("Hostname : %s<br />", hostname);
+  {
+#define HOSTNAME_LEN 200
+    char hostname[HOSTNAME_LEN];
+    gethostname(hostname, HOSTNAME_LEN);
+    add("Hostname : %s<br />", hostname);
+  }
 #endif
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
   add("Mode : ");

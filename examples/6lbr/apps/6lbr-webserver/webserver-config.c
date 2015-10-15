@@ -118,6 +118,13 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add(text " : ****<br />"); \
   }
 
+#define INPUT_STRING(name, nvm_name, size, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" size=\"%d\" value=\"%s\" /><br />", size, nvm_data.nvm_name); \
+  } else { \
+    add(text " : \"%s\"<br />", nvm_data.nvm_name); \
+  }
+
 #define SELECT_OPTION(nvm_name, value, name) add("<option value=\"%d\" %s>%s</option>", value, nvm_data.nvm_name == value ? "selected" : "", name)
 
 static
@@ -216,8 +223,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if RESOLV_CONF_SUPPORTS_MDNS
   add("<br /><h3>MDNS</h3>");
   INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
+  INPUT_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, "Hostname");
 #if RESOLV_CONF_SUPPORTS_DNS_SD
-  INPUT_FLAG_CB("dns_sd", global_flags, CETIC_GLOBAL_DNS_SD, "DNS-SD publishing" );
+  INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
 #endif
 #endif
 #if CETIC_6LBR_ROUTER
@@ -349,6 +357,12 @@ else if(strcmp(param, name) == 0) { \
     } \
   }
 
+#define UPDATE_STRING(name, nvm_name, size, reboot) \
+  else if(strcmp(param, name) == 0) { \
+    strncpy((char *)nvm_data.nvm_name, value, size); \
+    *reboot_needed |= (reboot); \
+  }
+
 static int
 update_config(const char *name, uint8_t *reboot_needed)
 {
@@ -409,8 +423,9 @@ update_config(const char *name, uint8_t *reboot_needed)
 #endif
 #if RESOLV_CONF_SUPPORTS_MDNS
     UPDATE_FLAG("mdns", global_flags, CETIC_GLOBAL_MDNS, 1)
+    UPDATE_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, 1)
 #if RESOLV_CONF_SUPPORTS_DNS_SD
-    UPDATE_FLAG("dns_sd", global_flags, CETIC_GLOBAL_DNS_SD, 1)
+    UPDATE_FLAG("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, 1)
 #endif
 #endif
 
