@@ -99,6 +99,8 @@ typedef struct {
 //Global Mode flags
 #define CETIC_GLOBAL_DISABLE_CONFIG     0x0001
 #define CETIC_GLOBAL_IP64               0x0002
+#define CETIC_GLOBAL_MDNS               0x0004
+#define CETIC_GLOBAL_DNS_SD             0x0008
 
 //RA Mode flags
 

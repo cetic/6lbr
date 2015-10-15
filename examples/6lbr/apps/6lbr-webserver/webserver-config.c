@@ -213,6 +213,13 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+#if RESOLV_CONF_SUPPORTS_MDNS
+  add("<br /><h3>MDNS</h3>");
+  INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+  INPUT_FLAG_CB("dns_sd", global_flags, CETIC_GLOBAL_DNS_SD, "DNS-SD publishing" );
+#endif
+#endif
 #if CETIC_6LBR_ROUTER
   add("<br /><h2>RA Daemon</h2>");
   INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
@@ -399,6 +406,12 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IP4ADDR("ip64_netmask", eth_ip64_netmask, 1)
     UPDATE_IP4ADDR("ip64_gateway", eth_ip64_gateway, 1)
     UPDATE_FLAG("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, 1)
+#endif
+#if RESOLV_CONF_SUPPORTS_MDNS
+    UPDATE_FLAG("mdns", global_flags, CETIC_GLOBAL_MDNS, 1)
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+    UPDATE_FLAG("dns_sd", global_flags, CETIC_GLOBAL_DNS_SD, 1)
+#endif
 #endif
 
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)

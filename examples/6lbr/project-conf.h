@@ -98,6 +98,9 @@
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN 14
 
+// Include Global addresses in mDNS
+#define RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS 1
+
 #if CETIC_6LBR_SMARTBRIDGE
 /*------------------------------------------------------------------*/
 /* SMART BRIDGE MODE                                                */

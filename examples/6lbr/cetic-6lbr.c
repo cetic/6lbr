@@ -366,6 +366,19 @@ cetic_6lbr_init_finalize(void)
   }
 #endif
 
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
+    LOG6LBR_INFO("Starting MDNS\n");
+    process_start(&resolv_process, NULL);
+    resolv_set_hostname("6lbr");
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+    if((nvm_data.global_flags & CETIC_GLOBAL_DNS_SD) != 0) {
+      resolv_add_service("_6lbr._tcp", "", 80);
+    }
+#endif
+  }
+#endif
+
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 #if CETIC_6LBR_LEARN_RPL_MAC
   LOG6LBR_INFO("Starting as RPL Relay\n");
