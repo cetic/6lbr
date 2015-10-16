@@ -132,13 +132,12 @@ PT_THREAD(generate_network(struct httpd_state *s))
       add("\n");
     }
   }
-  add("</pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-    add("<h2>IP64</h2>");
+    add("</pre><h2>IP64</h2><pre>");
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
       add("Address : ");
       ip4addr_add(ip64_get_hostaddr());
@@ -164,7 +163,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
 #endif
 
-  add("<br /><h2>Neighbors</h2><pre>");
+  add("</pre><h2>Neighbors</h2><pre>");
 
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
