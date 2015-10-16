@@ -127,3 +127,16 @@ plugins_list_head(void)
 {
   return (sixlbr_plugin_info_t *)list_head(sixlbr_plugins);
 }
+
+sixlbr_plugin_info_t *
+plugins_get_plugin_by_name(char const * name)
+{
+  sixlbr_plugin_info_t *info = plugins_list_head();
+  while(info != NULL) {
+    if(strcmp(info->plugin->id, name) == 0) {
+      return info;
+    }
+    info = info->next;
+  }
+  return NULL;
+}

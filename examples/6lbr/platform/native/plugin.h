@@ -65,4 +65,7 @@ void plugins_load();
 sixlbr_plugin_info_t *
 plugins_list_head(void);
 
+sixlbr_plugin_info_t *
+plugins_get_plugin_by_name(char const * id);
+
 #endif
