@@ -47,14 +47,10 @@
 
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     20
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   20
+#define UIP_CONF_DS6_NBR_NBU     15
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   20
+#define UIP_CONF_MAX_ROUTES   15
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE     512
@@ -65,10 +61,6 @@
 #else
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     100
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   100
 
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   100
