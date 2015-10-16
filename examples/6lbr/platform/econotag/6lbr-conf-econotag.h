@@ -75,6 +75,8 @@
 
 #endif
 
+#define RESOLV_CONF_SUPPORTS_MDNS       0
+
 #define WEBSERVER_CONF_CFS_URLCONV      0
 
 #define WEBSERVER_CONF_CFS_CONNS        1
