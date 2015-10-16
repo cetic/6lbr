@@ -244,8 +244,6 @@ slip_config_handle_arguments(int argc, char **argv)
     case '?':
     case 'h':
     default:
-      fprintf(stderr, "usage:  %s [options] ipaddress\n", prog);
-      fprintf(stderr, "example: %s -L -v2 -s ttyUSB1\n", prog);
       fprintf(stderr, "Options are:\n");
       fprintf(stderr,
               " -B baudrate    Slip-radio baudrate (default 115200)\n");
@@ -257,7 +255,7 @@ slip_config_handle_arguments(int argc, char **argv)
               " -a host        Connect via TCP to server at <host>\n");
       fprintf(stderr,
               " -p port        Connect via TCP to server at <host>:<port>\n");
-      fprintf(stderr, " -t dev         Name of interface (default eth0)\n");
+      fprintf(stderr, " -t dev         Name of interface\n");
       fprintf(stderr, " -r	        Use Raw Ethernet interface\n");
       fprintf(stderr, " -R             Use Tap Ethernet interface\n");
       fprintf(stderr, " -f             Raw Ethernet frames contains FCS\n");
