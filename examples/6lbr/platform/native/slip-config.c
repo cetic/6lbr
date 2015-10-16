@@ -383,10 +383,6 @@ slip_config_handle_arguments(int argc, char **argv)
     break;
   }
 
-  if(*slip_config_tundev == '\0') {
-    /* Use default. */
-    strcpy(slip_config_tundev, "eth0");
-  }
   if(nvm_file == NULL) {
     nvm_file = default_nvm_file;
   }
