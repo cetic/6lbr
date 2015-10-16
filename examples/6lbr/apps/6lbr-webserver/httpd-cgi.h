@@ -39,13 +39,26 @@
 
 typedef PT_THREAD((* httpd_cgifunction)(struct httpd_state *));
 
+struct httpd_cgi_call;
+
+struct httpd_group {
+  struct httpd_group *next;
+  const char *title;
+  struct httpd_cgi_call *first_page;
+  int count;
+};
+
+typedef struct httpd_group httpd_group_t;
+
 struct httpd_cgi_call {
   struct httpd_cgi_call *next;
   const char *name;
   const char *title;
   uint32_t flags;
   httpd_cgifunction function;
-  struct httpd_cgi_call **group;
+
+  httpd_group_t *group;
+  struct httpd_cgi_call *next_in_group;
 
   uint32_t numtimes;
   clock_time_t numticks;
@@ -66,6 +79,10 @@ typedef struct httpd_cgi_command httpd_cgi_command_t;
 #define HTTPD_CUSTOM_TOP    0x00000002
 #define HTTPD_CUSTOM_BOTTOM 0x00000004
 
+void httpd_group_add(httpd_group_t *group);
+void httpd_group_add_page(httpd_group_t *group, httpd_cgi_call_t *c);
+httpd_group_t* httpd_group_head(void);
+
 void httpd_cgi_add(httpd_cgi_call_t *c);
 httpd_cgi_call_t * httpd_cgi(char *name);
 httpd_cgi_call_t* httpd_cgi_head(void);
@@ -77,11 +94,14 @@ httpd_cgi_command_t* httpd_cgi_command_head(void);
 #define HTTPD_CGI_CALL_NAME(name) \
 extern struct httpd_cgi_call name;
 
-#define HTTPD_CGI_CALL(name, str, title, function, flags) \
-struct httpd_cgi_call name = {NULL, str, title, flags, function, NULL, 0, 0}
+#define HTTPD_GROUP_NAME(name) \
+    extern httpd_group_t name;
 
-#define HTTPD_CGI_CALL_GROUP(name, str, title, function, flags, group) \
-struct httpd_cgi_call name = {NULL, str, title, flags, function, group, 0, 0}
+#define HTTPD_GROUP(name, str) \
+httpd_group_t name = {NULL, str, NULL, 0}
+
+#define HTTPD_CGI_CALL(name, str, title, function, flags) \
+struct httpd_cgi_call name = {NULL, str, title, flags, function, NULL, NULL, 0, 0}
 
 #define HTTPD_CGI_CMD_NAME(name) \
 extern struct httpd_cgi_command name;

@@ -37,6 +37,15 @@
 #ifndef WEBSERVER_H_
 #define WEBSERVER_H_
 
+#include "httpd-cgi.h"
+
+HTTPD_GROUP_NAME(main_group);
+HTTPD_GROUP_NAME(sensors_group);
+HTTPD_GROUP_NAME(status_group);
+HTTPD_GROUP_NAME(config_group);
+HTTPD_GROUP_NAME(statistics_group);
+HTTPD_GROUP_NAME(admin_group);
+
 void
 webserver_init(void);
 

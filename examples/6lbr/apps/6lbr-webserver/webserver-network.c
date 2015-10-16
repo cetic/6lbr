@@ -419,7 +419,7 @@ webserver_network_nbr_rm(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-HTTPD_CGI_CALL(webserver_network, "network.html", "Network", generate_network, 0);
+HTTPD_CGI_CALL(webserver_network, "network.html", "IPv6", generate_network, 0);
 HTTPD_CGI_CMD(webserver_network_route_add_cmd, "route-add", webserver_network_route_add, 0);
 HTTPD_CGI_CMD(webserver_network_route_rm_cmd, "route-rm", webserver_network_route_rm, 0);
 HTTPD_CGI_CMD(webserver_network_nbr_rm_cmd, "nbr-rm", webserver_network_nbr_rm, 0);

@@ -431,19 +431,12 @@ webserver_sensors_reset_stats_all(struct httpd_state *s)
   webserver_result_text = "All statistics reset";
   return &webserver_result_page;
 }
-
-httpd_cgi_call_t * sensors_group[];
-HTTPD_CGI_CALL_GROUP(webserver_sensors_info, "sensors.html", "Sensors", generate_sensors_info, 0, sensors_group);
+HTTPD_CGI_CALL(webserver_sensors_info, "sensors.html", "Sensors", generate_sensors_info, 0);
 #if CETIC_NODE_CONFIG
-HTTPD_CGI_CALL_GROUP(webserver_sensors_config, "sensors_config.html", "Config", generate_sensors_config, WEBSERVER_NOMENU, sensors_group);
+HTTPD_CGI_CALL(webserver_sensors_config, "sensors_config.html", "Config", generate_sensors_config, 0);
 #endif
-HTTPD_CGI_CALL_GROUP(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, WEBSERVER_NOMENU, sensors_group);
-HTTPD_CGI_CALL_GROUP(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, WEBSERVER_NOMENU, sensors_group);
-HTTPD_CGI_CALL_GROUP(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, WEBSERVER_NOMENU, sensors_group);
-HTTPD_CGI_CALL_GROUP(webserver_sensors_hc, "sensors_hc.html", "Hop count", generate_sensors_hop_count, WEBSERVER_NOMENU, sensors_group);
+HTTPD_CGI_CALL(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, 0);
+HTTPD_CGI_CALL(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, 0);
+HTTPD_CGI_CALL(webserver_sensors_ps, "sensors_ps.html", "Parent switch", generate_sensors_parent_switch, 0);
+HTTPD_CGI_CALL(webserver_sensors_hc, "sensors_hc.html", "Hop count", generate_sensors_hop_count, 0);
 HTTPD_CGI_CMD(webserver_sensors_reset_stats_all_cmd, "reset-stats-all", webserver_sensors_reset_stats_all, 0);
-httpd_cgi_call_t * sensors_group[] = {&webserver_sensors_info,
-#if CETIC_NODE_CONFIG
-    &webserver_sensors_config,
-#endif
-    &webserver_sensors_tree, &webserver_sensors_prr, &webserver_sensors_ps, &webserver_sensors_hc, NULL};

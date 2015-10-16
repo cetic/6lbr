@@ -173,16 +173,14 @@ PT_THREAD(generate_plugins(struct httpd_state *s))
 #endif
 
 #if CONTIKI_TARGET_NATIVE
-httpd_cgi_call_t * admin_group[];
-HTTPD_CGI_CALL_GROUP(webserver_admin, "admin.html", "Administration", generate_admin, 0, admin_group);
 HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);
 #if !CETIC_6LBR_ONE_ITF
 HTTPD_CGI_CMD(webserver_admin_reset_slip_radio_cmd, "reset-sr", webserver_admin_reset_slip_radio, 0);
 #endif
 HTTPD_CGI_CMD(webserver_admin_reboot_cmd, "reboot", webserver_admin_reboot, 0);
 HTTPD_CGI_CMD(webserver_admin_halt_cmd, "halt", webserver_admin_halt, 0);
-HTTPD_CGI_CALL_GROUP(webserver_plugins, "plugins.html", "Plugins", generate_plugins, WEBSERVER_NOMENU, admin_group);
-httpd_cgi_call_t * admin_group[] = {&webserver_admin, &webserver_plugins, NULL};
+HTTPD_CGI_CALL(webserver_admin, "admin.html", "Administration", generate_admin, 0);
+HTTPD_CGI_CALL(webserver_plugins, "plugins.html", "Plugins", generate_plugins, 0);
 #else
 HTTPD_CGI_CALL(webserver_admin, "admin.html", "Administration", generate_admin, 0);
 HTTPD_CGI_CMD(webserver_admin_restart_cmd, "restart", webserver_admin_restart, 0);

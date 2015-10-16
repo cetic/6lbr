@@ -217,5 +217,5 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   PSOCK_END(&s->sout);
 }
-
+HTTPD_CGI_CALL_NAME(webserver_main);
 HTTPD_CGI_CALL(webserver_main, "index.html", "Info", generate_index, 0);

@@ -45,6 +45,13 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
+HTTPD_GROUP(main_group, "System");
+HTTPD_GROUP(sensors_group, "Sensors");
+HTTPD_GROUP(status_group, "Status");
+HTTPD_GROUP(config_group, "Configuration");
+HTTPD_GROUP(statistics_group, "Statistics");
+HTTPD_GROUP(admin_group, "Administration");
+
 HTTPD_CGI_CALL_NAME(webserver_main)
 HTTPD_CGI_CALL_NAME(webserver_network)
 HTTPD_CGI_CMD_NAME(webserver_network_route_add_cmd)
@@ -91,27 +98,34 @@ webserver_init(void)
 {
   httpd_init();
 
-  httpd_cgi_add(&webserver_main);
+  httpd_group_add(&main_group);
+  httpd_group_add(&sensors_group);
+  httpd_group_add(&status_group);
+  httpd_group_add(&config_group);
+  httpd_group_add(&statistics_group);
+  httpd_group_add(&admin_group);
+
+  httpd_group_add_page(&main_group, &webserver_main);
 #if CETIC_NODE_INFO
-  httpd_cgi_add(&webserver_sensors_info);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_info);
   httpd_cgi_add(&webserver_sensor);
-  httpd_cgi_add(&webserver_sensors_tree);
-  httpd_cgi_add(&webserver_sensors_prr);
-  httpd_cgi_add(&webserver_sensors_ps);
-  httpd_cgi_add(&webserver_sensors_hc);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_tree);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_prr);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_ps);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_hc);
   httpd_cgi_command_add(&webserver_sensors_reset_stats_all_cmd);
   httpd_cgi_command_add(&webserver_sensor_reset_stats_cmd);
   httpd_cgi_command_add(&webserver_sensor_delete_node_cmd);
 #endif
 #if CETIC_NODE_CONFIG
-  httpd_cgi_add(&webserver_sensors_config);
+  httpd_group_add_page(&sensors_group, &webserver_sensors_config);
 #endif
+  httpd_group_add_page(&status_group, &webserver_network);
 #if UIP_CONF_IPV6_RPL
-  httpd_cgi_add(&webserver_rpl);
+  httpd_group_add_page(&status_group, &webserver_rpl);
 #endif
-  httpd_cgi_add(&webserver_network);
-  httpd_cgi_add(&webserver_config);
-  httpd_cgi_add(&webserver_statistics);
+  httpd_group_add_page(&config_group, &webserver_config);
+  httpd_group_add_page(&statistics_group, &webserver_statistics);
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
 #if UIP_CONF_IPV6_RPL
     httpd_cgi_command_add(&webserver_rpl_gr_cmd);
@@ -123,7 +137,7 @@ webserver_init(void)
     httpd_cgi_command_add(&webserver_network_nbr_rm_cmd);
     httpd_cgi_command_add(&webserver_config_set_cmd);
     httpd_cgi_command_add(&webserver_config_reset_cmd);
-    httpd_cgi_add(&webserver_admin);
+    httpd_group_add_page(&admin_group, &webserver_admin);
     httpd_cgi_command_add(&webserver_admin_restart_cmd);
 #if CONTIKI_TARGET_NATIVE
 #if !CETIC_6LBR_ONE_ITF
@@ -134,7 +148,7 @@ webserver_init(void)
     httpd_cgi_add(&webserver_log_send_log);
     httpd_cgi_add(&webserver_log_send_err);
     httpd_cgi_command_add(&webserver_log_clear_log_cmd);
-    httpd_cgi_add(&webserver_plugins);
+    httpd_group_add_page(&admin_group, &webserver_plugins);
 #endif
   }
 }

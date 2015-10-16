@@ -175,7 +175,6 @@ webserver_sensor_delete_node(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-extern httpd_cgi_call_t * sensors_group[];
-HTTPD_CGI_CALL_GROUP(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU | WEBSERVER_NOSUBMENU, sensors_group);
+HTTPD_CGI_CALL(webserver_sensor, "sensor", "Sensor", generate_sensor, WEBSERVER_NOMENU);
 HTTPD_CGI_CMD(webserver_sensor_reset_stats_cmd, "reset-stats", webserver_sensor_reset_stats, 0);
 HTTPD_CGI_CMD(webserver_sensor_delete_node_cmd, "rm-node", webserver_sensor_delete_node, 0);

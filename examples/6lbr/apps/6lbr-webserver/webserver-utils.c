@@ -200,34 +200,31 @@ key_conv(const char *str, uint8_t * key, int size)
 static void
 add_menu(struct httpd_state *s)
 {
-  httpd_cgi_call_t *f;
-  for(f = httpd_cgi_head(); f != NULL; f = f->next) {
-    if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
-      add("<div class=\"menu-general\">");
-      if(f == s->script ||
-         (f->group != NULL && s->script != NULL && f->group == s->script->group)) {
-        add("<span>%s</span>", f->title);
-      } else {
-        add("<a href=\"%s\">%s</a>", f->name, f->title);
-      }
-      add("</div>");
+  httpd_group_t *f;
+  for(f = httpd_group_head(); f != NULL; f = f->next) {
+    add("<div class=\"menu-general\">");
+    if(s->script != NULL && f == s->script->group) {
+      add("<span>%s</span>", f->title);
+    } else {
+      add("<a href=\"%s\">%s</a>", f->first_page->name, f->title);
     }
+    add("</div>");
   }
 }
 
 static void
 add_submenu(struct httpd_state *s)
 {
-  httpd_cgi_call_t **f;
-  if(s->script != NULL && s->script->group != NULL) {
+  httpd_cgi_call_t *f;
+  if(s->script != NULL && s->script->group != NULL && s->script->group->count > 1) {
     add("</div><div class=\"barre_nav\">");
-    for(f = s->script->group; *f != NULL; ++f) {
-      if((*f)->title != NULL && ((*f)->flags & WEBSERVER_NOSUBMENU) == 0) {
+    for(f = s->script->group->first_page; f != NULL; f = f->next_in_group) {
+      if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
         add("<div class=\"menu-general\">");
-        if(*f == s->script) {
-          add("<span>%s</span>", (*f)->title);
+        if(f == s->script) {
+          add("<span>%s</span>", f->title);
         } else {
-          add("<a href=\"%s\">%s</a>", (*f)->name, (*f)->title);
+          add("<a href=\"%s\">%s</a>", f->name, f->title);
         }
         add("</div>");
       }
@@ -254,7 +251,7 @@ PT_THREAD(generate_top(struct httpd_state *s))
   add_menu(s);
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  if(s->script != NULL && s->script->group != NULL) {
+  if(s->script != NULL && s->script->group != NULL && s->script->group->count > 1) {
     add_submenu(s);
     SEND_STRING(&s->sout, buf);
     reset_buf();
