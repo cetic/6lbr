@@ -120,12 +120,17 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       break;
     }
     if (*p == ':') {
-      //TODO: add custom port support
+      p++;
+      sep = strchr(p, '/');
+      if (sep == NULL) break;
+      *sep++ = '\0';
+      binding->dest_port = atoi(p);
+      p = sep;
       break;
     } else {
       binding->dest_port = COAP_DEFAULT_PORT;
+      if (*p++ != '/') break;
     }
-    if (*p++ != '/') break;
     sep = strchr(p, '>');
     if (sep == NULL) break;
     *sep++ = '\0';
@@ -146,6 +151,9 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       if (strcmp(p, "rel") == 0 && strcmp(data, "boundto") == 0) {
         rel = 1;
       } else if (strcmp(p, "anchor") == 0) {
+        if(*data == '/') {
+          data++;
+        }
         binding->resource = rest_find_resource_by_url(data);
         if (binding->resource != NULL ) {
           anchor = 1;
@@ -153,7 +161,7 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, max);
+        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1);
       }
       p = sep;
     }
