@@ -83,6 +83,9 @@ extern unsigned long coap_batch_basetime;
 
 /*---------------------------------------------------------------------------*/
 
+int
+coap_strtoul(char const *data, char const *max, unsigned long *value);
+
 #define REST_PARSE_EMPTY(payload, len, actuator_set) {\
   if(len==0) {\
     success = actuator_set(); \
@@ -96,6 +99,14 @@ extern unsigned long coap_batch_basetime;
   int value = strtol((char const *)payload, &endstr, 10); \
   if ( ! *endstr ) { \
     success = actuator_set(value); \
+  } \
+}
+
+#define REST_PARSE_ONE_UINT(buffer, max, data) { \
+  unsigned long value; \
+  if (coap_strtoul((char const *)buffer, max, &value)) { \
+    data = value; \
+    success = 1; \
   } \
 }
 
@@ -113,6 +124,12 @@ rest_find_resource_by_url(const char *url);
 
 void
 resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+
+void
+full_resource_get_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+
+void
+full_resource_config_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /*---------------------------------------------------------------------------*/
 
@@ -140,6 +157,28 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   }
 #endif
 
+#define REST_FULL_RESOURCE_GET_HANDLER(resource_name, format, parser) \
+  int resource_##resource_name##_format_value(char *buffer, int data) {\
+    return format(resource_name, data); \
+  } \
+ int resource_##resource_name##_parse_value(char const *buffer, char const *max, int *data) {\
+   int success = 0; \
+   parser(buffer, max, *data); \
+   return success; \
+ } \
+  void \
+  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    full_resource_get_handler(&resource_##resource_name##_info, request, response, buffer, preferred_size, offset); \
+  }
+
+#define REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  void \
+  resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+  { \
+    full_resource_config_handler(&resource_##resource_name##_info, request, response, buffer, preferred_size, offset); \
+  }
+
 #define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
@@ -160,21 +199,6 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
     int success = 0; \
     size_t len = REST.get_request_payload(request, &payload); \
     parser(payload, len, actuator_set); \
-    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
-  }
-
-#define REST_RESOURCE_CONFIG_HANDLER(resource_name) \
-  void \
-  resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
-  { \
-    const uint8_t * payload; \
-    int success = 0; \
-    size_t len = REST.get_request_payload(request, &payload); \
-    if(len == 0) { \
-      const char * query; \
-      len = coap_get_header_uri_query(request, &query); \
-      success = coap_binding_parse_filters((char *)query, len, &resource_##resource_name##_info.trigger); \
-    } \
     REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
   }
 
@@ -222,14 +246,18 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
-#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
+#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_parse, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
+  extern int resource_##resource_name##_format_value(char * buffer, int data); \
+  extern int resource_##resource_name##_parse_value(char const *buffer, char const *max, int *data); \
   coap_full_resource_t resource_##resource_name##_info = { \
       .coap_resource = &resource_##resource_name, \
       .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
-      .update_value = update_resource_##resource_name##_value }; \
-  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, (resource_##resource_name##_info.data.last_value))) \
+      .update_value = update_resource_##resource_name##_value, \
+      .format_value = resource_##resource_name##_format_value, \
+      .parse_value = resource_##resource_name##_parse_value }; \
+  REST_FULL_RESOURCE_GET_HANDLER(resource_name, resource_format, resource_parse) \
   REST_RESOURCE_CONFIG_HANDLER(resource_name) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   void update_resource_##resource_name##_value(coap_resource_data_t *data) { \

@@ -75,7 +75,7 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
   if (binding->dest_port != COAP_DEFAULT_PORT) {
     pos += snprintf(buffer + pos, size - pos, ":%d", binding->dest_port);
   }
-  pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"%s\";bind=\"push\"", binding->uri, binding->resource->url);
+  pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"/%s\";bind=\"push\"", binding->uri, binding->resource->url);
   PRINTF("flags : %#x\n", binding->flags);
   if((binding->cond.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0)
     pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->cond.pmin);
@@ -161,7 +161,8 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1);
+        //TODO: Must have proper parsing function here !
+        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1, NULL);
       }
       p = sep;
     }

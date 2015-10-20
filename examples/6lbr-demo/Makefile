@@ -84,9 +84,14 @@ WITH_COAP_PROFILE=IPSO_APP_FW
 endif
 ifeq ($(WITH_COAP_PROFILE),IPSO_APP_FW)
 APPS += ipso-app-fw
+VALID_COAP_PROFILE=1
 endif
 ifeq ($(WITH_COAP_PROFILE),LWM2M)
 APPS += lwm2m
+VALID_COAP_PROFILE=1
+endif
+ifneq ($(VALID_COAP_PROFILE),1)
+$(error Invalid CoAP Profile)
 endif
 endif
 

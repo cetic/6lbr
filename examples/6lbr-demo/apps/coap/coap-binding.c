@@ -84,75 +84,63 @@ coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *bindin
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
-fill_flags(char **data, char *max, int *flag_value) {
-  *flag_value = 0;
-  while (*data != max) {
-    if(**data >= '0' && **data <= '9') {
-      *flag_value = (*flag_value * 10) + (**data - '0');
-    } else {
-      return 0;
-    }
-    (*data)++;
-  }
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max) {
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond, char *data, char *max, coap_parse_func_t parse_func)
+{
   int flag_status = 1;
-  int flag_value;
+  unsigned long flag_value;
+  coap_binding_cond_t binding_cond;
 
   if (strcmp(p, "pmin") == 0) {
-    flag_status = fill_flags(&data, max, &flag_value);
+    flag_status = coap_strtoul(data, max, &flag_value);
     if (flag_status != 0 && flag_value > 0) {
-      binding_cond->pmin = flag_value;
-      binding_cond->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
-      PRINTF("Pmin set to %d\n", flag_value);
+      binding_cond.pmin = flag_value;
+      binding_cond.flags |= COAP_BINDING_FLAGS_PMIN_VALID;
+      PRINTF("Pmin set to %lu\n", flag_value);
     } else {
       PRINTF("Pmin is invalid");
       coap_error_message = "Pmin is invalid";
       return 0;
     }
   } else if (strcmp(p, "pmax") == 0) {
-    flag_status = fill_flags(&data, max, &flag_value);
+    flag_status = coap_strtoul(data, max, &flag_value);
     if (flag_status != 0 && flag_value > 0) {
-      binding_cond->pmax = flag_value;
-      binding_cond->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
-      PRINTF("Pmax set to %d\n", flag_value);
+      binding_cond.pmax = flag_value;
+      binding_cond.flags |= COAP_BINDING_FLAGS_PMAX_VALID;
+      PRINTF("Pmax set to %lu\n", flag_value);
     } else {
       PRINTF("Pmax is invalid");
       coap_error_message = "Pmax is invalid";
       return 0;
     }
   } else if (strcmp(p, "st") == 0) {
-    flag_status = fill_flags(&data, max, &flag_value);
-    if (flag_status != 0  && flag_value > 0) {
-      binding_cond->step = flag_value;
-      binding_cond->flags |= COAP_BINDING_FLAGS_ST_VALID;
-      PRINTF("Change Step set to %d\n", flag_value);
+    flag_status = parse_func(data, max, &flag_value);
+    if (flag_status != 0) {
+      binding_cond.step = flag_value;
+      binding_cond.flags |= COAP_BINDING_FLAGS_ST_VALID;
+      PRINTF("Change Step set to %.*s\n", max - data, data);
     } else {
       PRINTF("Change Step is invalid");
       coap_error_message = "Change Step is invalid";
       return 0;
     }
   } else if (strcmp(p, "lt") == 0) {
-    flag_status = fill_flags(&data, max, &flag_value);
+    flag_status = parse_func(data, max, &flag_value);
     if (flag_status != 0) {
-      binding_cond->less_than = flag_value;
-      binding_cond->flags |= COAP_BINDING_FLAGS_LT_VALID;
-      PRINTF("Less Than set to %d\n", flag_value);
+      binding_cond.less_than = flag_value;
+      binding_cond.flags |= COAP_BINDING_FLAGS_LT_VALID;
+      PRINTF("Less Than set to %.*s\n", max - data, data);
     } else {
       PRINTF("Less Than is invalid");
       coap_error_message = "Less Than is invalid";
       return 0;
     }
   } else if (strcmp(p, "gt") == 0) {
-    flag_status = fill_flags(&data, max, &flag_value);
+    flag_status = parse_func(data, max, &flag_value);
     if (flag_status != 0) {
-      binding_cond->greater_than = flag_value;
-      binding_cond->flags |= COAP_BINDING_FLAGS_GT_VALID;
-      PRINTF("Greater Than set to %d\n", flag_value);
+      binding_cond.greater_than = flag_value;
+      binding_cond.flags |= COAP_BINDING_FLAGS_GT_VALID;
+      PRINTF("Greater Than set to %.*s\n", max - data, data);
     } else {
       PRINTF("Greater Than is invalid");
       coap_error_message = "Greater Than is invalid";
@@ -164,11 +152,12 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *
     return 0;
   }
 
+  *target_binding_cond = binding_cond;
   return flag_status;
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond)
+coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond, coap_parse_func_t parse_func)
 {
   int status = 0;
   char *p = buffer;
@@ -201,14 +190,14 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *bindin
       while (*sep != '&' && sep != max) ++sep;
       data_max = sep;
     }
-    filters = coap_binding_parse_filter_tag(p, binding_cond, data, data_max);
+    filters = coap_binding_parse_filter_tag(p, binding_cond, data, data_max, parse_func);
     p = sep;
   }
   status = p == max && filters;
 
   if (p != max) {
     coap_error_message = "Parsing failed";
-    PRINTF("Parsing failed at %ld ('%.*s')\n", p - buffer, max - p, p);
+    PRINTF("Parsing failed at %d ('%.*s')\n", p - buffer, max - p, p);
   } else if (!filters) {
     PRINTF("Filter invalid\n");
   }
@@ -219,11 +208,11 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *bindin
 int
 coap_binding_trigger_cond(coap_binding_cond_t * binding_cond, coap_resource_data_t *resource_data)
 {
-  int current_time = clock_seconds();
+  unsigned long current_time = clock_seconds();
   if(binding_cond->flags == 0) {
     return 0;
   }
-  PRINTF("Trigger : last + pmax = %d, clock = %d, delta = %d\n", resource_data->last_sent_time + binding_cond->pmax, current_time, resource_data->last_sent_time + binding_cond->pmax - current_time);
+  PRINTF("Trigger : last + pmax = %lu, clock = %lu, delta = %ld\n", resource_data->last_sent_time + binding_cond->pmax, current_time, resource_data->last_sent_time + binding_cond->pmax - current_time);
   if ((binding_cond->flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0 &&
       resource_data->last_sent_time + binding_cond->pmax <= current_time) {
     resource_data->last_sent_value = resource_data->last_value;
