@@ -55,6 +55,28 @@ coap_strtoul(char const *data, char const *max, unsigned long *value) {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+int
+coap_strtofix(char const *data, char const *max, unsigned long *value, int precision) {
+  int cur_precision = -1;
+  *value = 0;
+  while (data != max) {
+    if(*data >= '0' && *data <= '9') {
+      if(cur_precision < precision) {
+        *value = (*value * 10) + (*data - '0');
+        if(cur_precision != -1) {
+          cur_precision++;
+        }
+      }
+    } else if(*data == '.' && cur_precision == -1) {
+      cur_precision = 0;
+    } else {
+      return 0;
+    }
+    data++;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 resource_t*
 rest_find_resource_by_url(const char *url)
 {

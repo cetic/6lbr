@@ -138,12 +138,12 @@ LWM2M_DEVICE_TIME_RESOURCE(device_time,
     LWM2M_DEVICE_TIME_RT,
     REST_FORMAT_ONE_ULONG, REST_PARSE_ONE_UINT, LWM2M_DEVICE_CURRENT_TIME_RESOURCE_ID, RES_DEVICE_TIME_VALUE)
 
-int counter_count = 0;
+unsigned long counter_count = 0;
 LWM2M_DEVICE_TIME_RESOURCE(device_counter,
         REST_DEFAULT_PERIOD,
         IF_RO_PARAMETER,
         LWM2M_DEVICE_TIME_RT,
-        REST_FORMAT_ONE_ULONG, REST_PARSE_ONE_UINT, "99", ++counter_count)
+        REST_FORMAT_ONE_DECIMAL, REST_PARSE_ONE_DECIMAL, "99", ++counter_count)
 
 /*---------------------------------------------------------------------------*/
 LWM2M_DEVICE_BATCH_RESOURCE(device, IF_BATCH, LWM2M_DEVICE_RT,

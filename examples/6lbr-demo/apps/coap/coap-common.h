@@ -86,6 +86,9 @@ extern unsigned long coap_batch_basetime;
 int
 coap_strtoul(char const *data, char const *max, unsigned long *value);
 
+int
+coap_strtofix(char const *data, char const *max, unsigned long *value, int precision);
+
 #define REST_PARSE_EMPTY(payload, len, actuator_set) {\
   if(len==0) {\
     success = actuator_set(); \
@@ -105,6 +108,14 @@ coap_strtoul(char const *data, char const *max, unsigned long *value);
 #define REST_PARSE_ONE_UINT(buffer, max, data) { \
   unsigned long value; \
   if (coap_strtoul((char const *)buffer, max, &value)) { \
+    data = value; \
+    success = 1; \
+  } \
+}
+
+#define REST_PARSE_ONE_DECIMAL(buffer, max, data) { \
+  unsigned long value; \
+  if (coap_strtofix((char const *)buffer, max, &value, 1)) { \
     data = value; \
     success = 1; \
   } \
@@ -152,16 +163,20 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
+    int len; \
     format; \
+    (void) len; \
     resource_get_handler(request, response, buffer, preferred_size, offset); \
   }
 #endif
 
 #define REST_FULL_RESOURCE_GET_HANDLER(resource_name, format, parser) \
-  int resource_##resource_name##_format_value(char *buffer, int data) {\
-    return format(resource_name, data); \
+  int resource_##resource_name##_format_value(char *buffer, unsigned long data) {\
+    int len; \
+    format(resource_name, data); \
+    return len; \
   } \
- int resource_##resource_name##_parse_value(char const *buffer, char const *max, int *data) {\
+ int resource_##resource_name##_parse_value(char const *buffer, char const *max, unsigned long *data) {\
    int success = 0; \
    parser(buffer, max, *data); \
    return success; \
@@ -249,8 +264,8 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
 #define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_parse, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
-  extern int resource_##resource_name##_format_value(char * buffer, int data); \
-  extern int resource_##resource_name##_parse_value(char const *buffer, char const *max, int *data); \
+  extern int resource_##resource_name##_format_value(char * buffer, unsigned long data); \
+  extern int resource_##resource_name##_parse_value(char const *buffer, char const *max, unsigned long *data); \
   coap_full_resource_t resource_##resource_name##_info = { \
       .coap_resource = &resource_##resource_name, \
       .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \

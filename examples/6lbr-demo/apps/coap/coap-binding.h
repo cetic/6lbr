@@ -68,8 +68,8 @@ struct coap_binding_cond_s {
 typedef struct coap_binding_cond_s coap_binding_cond_t;
 
 struct coap_resource_data_s {
-  int last_value;
-  int last_sent_value;
+  unsigned long last_value;
+  unsigned long last_sent_value;
   unsigned long last_sent_time;
 };
 typedef struct coap_resource_data_s coap_resource_data_t;
@@ -92,7 +92,7 @@ struct coap_full_resource_s {
   struct coap_full_resource_s *next;
   resource_t *coap_resource;
   void (*update_value)(coap_resource_data_t *data);
-  int (*format_value)(char *buffer, int data);
+  int (*format_value)(char *buffer, unsigned long data);
   coap_parse_func_t parse_value;
   coap_binding_cond_t  trigger;
   coap_resource_data_t data;

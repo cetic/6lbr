@@ -85,17 +85,16 @@ coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *bindin
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond, char *data, char *max, coap_parse_func_t parse_func)
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, coap_parse_func_t parse_func)
 {
   int flag_status = 1;
   unsigned long flag_value;
-  coap_binding_cond_t binding_cond;
 
   if (strcmp(p, "pmin") == 0) {
     flag_status = coap_strtoul(data, max, &flag_value);
     if (flag_status != 0 && flag_value > 0) {
-      binding_cond.pmin = flag_value;
-      binding_cond.flags |= COAP_BINDING_FLAGS_PMIN_VALID;
+      binding_cond->pmin = flag_value;
+      binding_cond->flags |= COAP_BINDING_FLAGS_PMIN_VALID;
       PRINTF("Pmin set to %lu\n", flag_value);
     } else {
       PRINTF("Pmin is invalid");
@@ -105,8 +104,8 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond,
   } else if (strcmp(p, "pmax") == 0) {
     flag_status = coap_strtoul(data, max, &flag_value);
     if (flag_status != 0 && flag_value > 0) {
-      binding_cond.pmax = flag_value;
-      binding_cond.flags |= COAP_BINDING_FLAGS_PMAX_VALID;
+      binding_cond->pmax = flag_value;
+      binding_cond->flags |= COAP_BINDING_FLAGS_PMAX_VALID;
       PRINTF("Pmax set to %lu\n", flag_value);
     } else {
       PRINTF("Pmax is invalid");
@@ -116,8 +115,8 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond,
   } else if (strcmp(p, "st") == 0) {
     flag_status = parse_func(data, max, &flag_value);
     if (flag_status != 0) {
-      binding_cond.step = flag_value;
-      binding_cond.flags |= COAP_BINDING_FLAGS_ST_VALID;
+      binding_cond->step = flag_value;
+      binding_cond->flags |= COAP_BINDING_FLAGS_ST_VALID;
       PRINTF("Change Step set to %.*s\n", max - data, data);
     } else {
       PRINTF("Change Step is invalid");
@@ -127,8 +126,8 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond,
   } else if (strcmp(p, "lt") == 0) {
     flag_status = parse_func(data, max, &flag_value);
     if (flag_status != 0) {
-      binding_cond.less_than = flag_value;
-      binding_cond.flags |= COAP_BINDING_FLAGS_LT_VALID;
+      binding_cond->less_than = flag_value;
+      binding_cond->flags |= COAP_BINDING_FLAGS_LT_VALID;
       PRINTF("Less Than set to %.*s\n", max - data, data);
     } else {
       PRINTF("Less Than is invalid");
@@ -138,8 +137,8 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond,
   } else if (strcmp(p, "gt") == 0) {
     flag_status = parse_func(data, max, &flag_value);
     if (flag_status != 0) {
-      binding_cond.greater_than = flag_value;
-      binding_cond.flags |= COAP_BINDING_FLAGS_GT_VALID;
+      binding_cond->greater_than = flag_value;
+      binding_cond->flags |= COAP_BINDING_FLAGS_GT_VALID;
       PRINTF("Greater Than set to %.*s\n", max - data, data);
     } else {
       PRINTF("Greater Than is invalid");
@@ -152,12 +151,11 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *target_binding_cond,
     return 0;
   }
 
-  *target_binding_cond = binding_cond;
   return flag_status;
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond, coap_parse_func_t parse_func)
+coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *target_binding_cond, coap_parse_func_t parse_func)
 {
   int status = 0;
   char *p = buffer;
@@ -166,9 +164,10 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *bindin
   char *data;
   char *data_max;
   int filters = 1;
+  coap_binding_cond_t binding_cond;
 
   PRINTF("Parsing %.*s\n", len, buffer);
-  memset((void*)binding_cond, 0, sizeof(coap_binding_cond_t));
+  memset((void*)&binding_cond, 0, sizeof(coap_binding_cond_t));
   while (p != max && filters) {
     if(*p == '&') ++p;
     if(p == max) break;
@@ -190,7 +189,7 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *bindin
       while (*sep != '&' && sep != max) ++sep;
       data_max = sep;
     }
-    filters = coap_binding_parse_filter_tag(p, binding_cond, data, data_max, parse_func);
+    filters = coap_binding_parse_filter_tag(p, &binding_cond, data, data_max, parse_func);
     p = sep;
   }
   status = p == max && filters;
@@ -200,6 +199,8 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *bindin
     PRINTF("Parsing failed at %d ('%.*s')\n", p - buffer, max - p, p);
   } else if (!filters) {
     PRINTF("Filter invalid\n");
+  } else {
+    *target_binding_cond = binding_cond;
   }
 
   return status;
@@ -240,7 +241,7 @@ coap_binding_trigger_cond(coap_binding_cond_t * binding_cond, coap_resource_data
     PRINTF("Cond not triggered, value not greater than threshold\n");
     return 0;
   }
-  PRINTF("Push triggered, value : %d\n", resource_data->last_value);
+  PRINTF("Push triggered, value : %lu\n", resource_data->last_value);
   resource_data->last_sent_value = resource_data->last_value;
   return 1;
 }
