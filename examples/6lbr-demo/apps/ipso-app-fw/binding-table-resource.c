@@ -161,7 +161,6 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        //TODO: Must have proper parsing function here !
         filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1, NULL);
       }
       p = sep;

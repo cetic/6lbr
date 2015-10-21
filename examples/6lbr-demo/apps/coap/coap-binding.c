@@ -88,7 +88,7 @@ int
 coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, coap_parse_func_t parse_func)
 {
   int flag_status = 1;
-  unsigned long flag_value;
+  uint32_t flag_value;
 
   if (strcmp(p, "pmin") == 0) {
     flag_status = coap_strtoul(data, max, &flag_value);

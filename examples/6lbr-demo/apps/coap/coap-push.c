@@ -134,7 +134,7 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
                        REST_MAX_CHUNK_SIZE, &offset);
 
       if (offset != -1) {
-        PRINTF("Warning: push block transfer not yet implemented, offset : %ld\n", offset);
+        PRINTF("Warning: push block transfer not yet implemented, offset : %ld\n", (long)offset);
       }
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 

@@ -57,20 +57,20 @@
 #define COAP_BINDING_FLAGS_GT_VALID 0x0010
 
 struct coap_binding_cond_s {
-    int flags;
-    int pmin;
-    int pmax;
-    int step;
-    int less_than;
-    int greater_than;
+    uint32_t flags;
+    uint32_t pmin;
+    uint32_t pmax;
+    uint32_t step;
+    uint32_t less_than;
+    uint32_t greater_than;
 };
 
 typedef struct coap_binding_cond_s coap_binding_cond_t;
 
 struct coap_resource_data_s {
-  unsigned long last_value;
-  unsigned long last_sent_value;
-  unsigned long last_sent_time;
+  uint32_t last_value;
+  uint32_t last_sent_value;
+  uint32_t last_sent_time;
 };
 typedef struct coap_resource_data_s coap_resource_data_t;
 
@@ -86,13 +86,13 @@ struct coap_binding_s {
 
 typedef struct coap_binding_s coap_binding_t;
 
-typedef int (*coap_parse_func_t)(char const *buffer, char const * max, unsigned long *data);
+typedef int (*coap_parse_func_t)(char const *buffer, char const * max, uint32_t *data);
 
 struct coap_full_resource_s {
   struct coap_full_resource_s *next;
   resource_t *coap_resource;
   void (*update_value)(coap_resource_data_t *data);
-  int (*format_value)(char *buffer, unsigned long data);
+  int (*format_value)(char *buffer, uint32_t data);
   coap_parse_func_t parse_value;
   coap_binding_cond_t  trigger;
   coap_resource_data_t data;

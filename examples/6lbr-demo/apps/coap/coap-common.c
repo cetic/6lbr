@@ -42,7 +42,7 @@ unsigned long coap_batch_basetime = 0;
 
 /*---------------------------------------------------------------------------*/
 int
-coap_strtoul(char const *data, char const *max, unsigned long *value) {
+coap_strtoul(char const *data, char const *max, uint32_t *value) {
   *value = 0;
   while (data != max) {
     if(*data >= '0' && *data <= '9') {
@@ -56,7 +56,7 @@ coap_strtoul(char const *data, char const *max, unsigned long *value) {
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_strtofix(char const *data, char const *max, unsigned long *value, int precision) {
+coap_strtofix(char const *data, char const *max, uint32_t *value, int precision) {
   int cur_precision = -1;
   *value = 0;
   while (data != max) {
@@ -219,14 +219,23 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
 void
 full_resource_config_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
 {
-  const uint8_t * payload;
-  int success = 0;
-  size_t len = REST.get_request_payload(request, &payload);
-  if(len == 0) {
-    const char * query;
-    len = coap_get_header_uri_query(request, &query);
-    success = coap_binding_parse_filters((char *)query, len, &resource_info->trigger, resource_info->parse_value);
+  unsigned int accept = -1;
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
   }
-  REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST);
+  if (accept == -1 || accept == APPLICATION_LINK_FORMAT)
+  {
+    const uint8_t * payload;
+    int success = 0;
+    size_t len = REST.get_request_payload(request, &payload);
+    if(len == 0) {
+      const char * query;
+      len = coap_get_header_uri_query(request, &query);
+      success = coap_binding_parse_filters((char *)query, len, &resource_info->trigger, resource_info->parse_value);
+    }
+    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST);
+  } else {
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+  }
 }
 /*---------------------------------------------------------------------------*/

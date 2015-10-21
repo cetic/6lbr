@@ -46,16 +46,16 @@
 #define REST_FORMAT_BASETIME(buffer, size, pos)
 
 #define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (resource_value))
+		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (int)(resource_value))
 
 #define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u", (resource_value))
+		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u", (unsigned int)(resource_value))
 
 #define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%ld", (resource_value))
+		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%ld", (long)(resource_value))
 
 #define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (resource_value))
+		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (unsigned long)(resource_value))
 
 #define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
 { \
