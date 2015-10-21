@@ -231,15 +231,23 @@ coap_binding_trigger_cond(coap_binding_cond_t * binding_cond, coap_resource_data
     PRINTF("Cond not triggered, step unreached\n");
     return 0;
   }
-  if((binding_cond->flags & COAP_BINDING_FLAGS_LT_VALID) != 0 &&
-      resource_data->last_value >= binding_cond->less_than) {
-    PRINTF("Cond not triggered, value not less than threshold\n");
-    return 0;
+  if((binding_cond->flags & COAP_BINDING_FLAGS_LT_VALID) != 0) {
+    if(resource_data->last_value >= binding_cond->less_than) {
+      PRINTF("Cond not triggered, value not less than threshold\n");
+      return 0;
+    } else if (resource_data->last_sent_value < binding_cond->less_than) {
+      PRINTF("Cond not triggered, value already crossed threshold\n");
+      return 0;
+    }
   }
-  if((binding_cond->flags & COAP_BINDING_FLAGS_GT_VALID) != 0 &&
-      resource_data->last_value <= binding_cond->greater_than) {
-    PRINTF("Cond not triggered, value not greater than threshold\n");
-    return 0;
+  if((binding_cond->flags & COAP_BINDING_FLAGS_GT_VALID) != 0) {
+    if(resource_data->last_value <= binding_cond->greater_than) {
+      PRINTF("Cond not triggered, value not greater than threshold\n");
+      return 0;
+    } else if (resource_data->last_sent_value > binding_cond->greater_than) {
+      PRINTF("Cond not triggered, value already crossed threshold\n");
+      return 0;
+    }
   }
   PRINTF("Push triggered, value : %lu\n", resource_data->last_value);
   resource_data->last_sent_value = resource_data->last_value;
