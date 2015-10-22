@@ -83,11 +83,30 @@ extern unsigned long coap_batch_basetime;
 
 /*---------------------------------------------------------------------------*/
 
+#define COAP_RESOURCE_TYPE_BOOLEAN 0
+#define COAP_RESOURCE_TYPE_SIGNED_INT 1
+#define COAP_RESOURCE_TYPE_UNSIGNED_INT 2
+#define COAP_RESOURCE_TYPE_DECIMAL_ONE 3
+#define COAP_RESOURCE_TYPE_DECIMAL_TWO 4
+#define COAP_RESOURCE_TYPE_DECIMAL_THREE 5
+#define COAP_RESOURCE_TYPE_STRING 6
+#define COAP_RESOURCE_TYPE_OPAQUE 7
+
+/*---------------------------------------------------------------------------*/
+
 int
 coap_strtoul(char const *data, char const *max, uint32_t *value);
 
 int
 coap_strtofix(char const *data, char const *max, uint32_t *value, int precision);
+
+int
+coap_format_binding_value(int resource_type, char *buffer, int size, uint32_t data);
+
+int
+coap_parse_binding_value(int resource_type, char const *buffer, char const * max, uint32_t *data);
+
+/*---------------------------------------------------------------------------*/
 
 #define REST_PARSE_EMPTY(payload, len, actuator_set) {\
   if(len==0) {\
@@ -261,13 +280,14 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
-#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_parse, resource_id, resource_value) \
+#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_parse, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
   extern int resource_##resource_name##_format_value(char * buffer, uint32_t data); \
   extern int resource_##resource_name##_parse_value(char const *buffer, char const *max, uint32_t *data); \
   coap_full_resource_t resource_##resource_name##_info = { \
       .coap_resource = &resource_##resource_name, \
+      .flags = resource_format_type, \
       .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
       .update_value = update_resource_##resource_name##_value, \
       .format_value = resource_##resource_name##_format_value, \

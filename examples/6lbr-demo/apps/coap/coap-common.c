@@ -77,6 +77,56 @@ coap_strtofix(char const *data, char const *max, uint32_t *value, int precision)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+int
+coap_format_binding_value(int resource_type, char *buffer, int size, uint32_t data)
+{
+  switch(resource_type) {
+  case COAP_RESOURCE_TYPE_SIGNED_INT:
+    return snprintf(buffer, size, "%ld", (signed long int)data);
+    break;
+  case COAP_RESOURCE_TYPE_UNSIGNED_INT:
+    return snprintf(buffer, size, "%ld", (unsigned long int)data);
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_ONE:
+    return snprintf(buffer, size, "%d.%u", (int)(data / 10), (unsigned int)(data % 10));
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_TWO:
+    return snprintf(buffer, size, "%d.%02u", (int)(data / 100), (unsigned int)(data % 100));
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_THREE:
+    return snprintf(buffer, size, "%d.%03u", (int)(data / 1000), (unsigned int)(data % 1000));
+    break;
+  default:
+    break;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+coap_parse_binding_value(int resource_type, char const *buffer, char const * max, uint32_t *data)
+{
+  switch(resource_type) {
+  case COAP_RESOURCE_TYPE_SIGNED_INT:
+    return coap_strtoul(buffer, max, data);
+    break;
+  case COAP_RESOURCE_TYPE_UNSIGNED_INT:
+    return coap_strtoul(buffer, max, data);
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_ONE:
+    return coap_strtofix(buffer, max, data, 1);
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_TWO:
+    return coap_strtofix(buffer, max, data, 2);
+    break;
+  case COAP_RESOURCE_TYPE_DECIMAL_THREE:
+    return coap_strtofix(buffer, max, data, 3);
+    break;
+  default:
+    break;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 resource_t*
 rest_find_resource_by_url(const char *url)
 {
@@ -184,17 +234,17 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
     }
     if((resource_info->trigger.flags & COAP_BINDING_FLAGS_ST_VALID) != 0) {
       pos += snprintf((char *)buffer + pos, preferred_size - pos, ";st=\"");
-      pos += resource_info->format_value((char *)buffer + pos, resource_info->trigger.step);
+      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.step);
       pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
     }
     if((resource_info->trigger.flags & COAP_BINDING_FLAGS_LT_VALID) != 0) {
       pos += snprintf((char *)buffer + pos, preferred_size - pos, ";lt=\"");
-      pos += resource_info->format_value((char *)buffer + pos, resource_info->trigger.less_than);
+      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.less_than);
       pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
     }
     if((resource_info->trigger.flags & COAP_BINDING_FLAGS_GT_VALID) != 0) {
       pos += snprintf((char *)buffer + pos, preferred_size - pos, ";gt=\"");
-      pos += resource_info->format_value((char *)buffer + pos, resource_info->trigger.greater_than);
+      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.greater_than);
       pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
     }
     int buffer_size = pos;
@@ -231,7 +281,7 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
     if(len == 0) {
       const char * query;
       len = coap_get_header_uri_query(request, &query);
-      success = coap_binding_parse_filters((char *)query, len, &resource_info->trigger, resource_info->parse_value);
+      success = coap_binding_parse_filters((char *)query, len, &resource_info->trigger, resource_info->flags);
     }
     REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST);
   } else {

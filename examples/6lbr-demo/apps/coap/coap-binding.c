@@ -85,7 +85,7 @@ coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *bindin
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, coap_parse_func_t parse_func)
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, int resource_type)
 {
   int flag_status = 1;
   uint32_t flag_value;
@@ -113,7 +113,7 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *
       return 0;
     }
   } else if (strcmp(p, "st") == 0) {
-    flag_status = parse_func(data, max, &flag_value);
+    flag_status = coap_parse_binding_value(resource_type, data, max, &flag_value);
     if (flag_status != 0) {
       binding_cond->step = flag_value;
       binding_cond->flags |= COAP_BINDING_FLAGS_ST_VALID;
@@ -124,7 +124,7 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *
       return 0;
     }
   } else if (strcmp(p, "lt") == 0) {
-    flag_status = parse_func(data, max, &flag_value);
+    flag_status = coap_parse_binding_value(resource_type, data, max, &flag_value);
     if (flag_status != 0) {
       binding_cond->less_than = flag_value;
       binding_cond->flags |= COAP_BINDING_FLAGS_LT_VALID;
@@ -135,7 +135,7 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *
       return 0;
     }
   } else if (strcmp(p, "gt") == 0) {
-    flag_status = parse_func(data, max, &flag_value);
+    flag_status = coap_parse_binding_value(resource_type, data, max, &flag_value);
     if (flag_status != 0) {
       binding_cond->greater_than = flag_value;
       binding_cond->flags |= COAP_BINDING_FLAGS_GT_VALID;
@@ -155,7 +155,7 @@ coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *target_binding_cond, coap_parse_func_t parse_func)
+coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *target_binding_cond, int resource_type)
 {
   int status = 0;
   char *p = buffer;
@@ -189,7 +189,7 @@ coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *target
       while (*sep != '&' && sep != max) ++sep;
       data_max = sep;
     }
-    filters = coap_binding_parse_filter_tag(p, &binding_cond, data, data_max, parse_func);
+    filters = coap_binding_parse_filter_tag(p, &binding_cond, data, data_max, resource_type);
     p = sep;
   }
   status = p == max && filters;

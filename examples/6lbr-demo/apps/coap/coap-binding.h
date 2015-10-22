@@ -91,6 +91,7 @@ typedef int (*coap_parse_func_t)(char const *buffer, char const * max, uint32_t 
 struct coap_full_resource_s {
   struct coap_full_resource_s *next;
   resource_t *coap_resource;
+  uint32_t flags;
   void (*update_value)(coap_resource_data_t *data);
   int (*format_value)(char *buffer, uint32_t data);
   coap_parse_func_t parse_value;
@@ -106,11 +107,10 @@ int
 coap_binding_deserialize(nvm_binding_data_t const *store, coap_binding_t *binding);
 
 int
-coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, coap_parse_func_t parse_func);
+coap_binding_parse_filter_tag(char *p, coap_binding_cond_t *binding_cond, char *data, char *max, int resource_type);
 
 int
-coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond, coap_parse_func_t parse_func);
-
+coap_binding_parse_filters(char *buffer, size_t len, coap_binding_cond_t *binding_cond, int resource_type);
 int
 coap_binding_trigger_cond(coap_binding_cond_t * binding_cond, coap_resource_data_t *resource_data);
 
