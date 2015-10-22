@@ -189,17 +189,7 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   }
 #endif
 
-#define REST_FULL_RESOURCE_GET_HANDLER(resource_name, format, parser) \
-  int resource_##resource_name##_format_value(char *buffer, uint32_t data) {\
-    int len; \
-    format(resource_name, data); \
-    return len; \
-  } \
- int resource_##resource_name##_parse_value(char const *buffer, char const *max, uint32_t *data) {\
-   int success = 0; \
-   parser(buffer, max, *data); \
-   return success; \
- } \
+#define REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
@@ -280,19 +270,16 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
-#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_parse, resource_format_type, resource_id, resource_value) \
+#define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   extern void update_resource_##resource_name##_value(coap_resource_data_t *data); \
-  extern int resource_##resource_name##_format_value(char * buffer, uint32_t data); \
-  extern int resource_##resource_name##_parse_value(char const *buffer, char const *max, uint32_t *data); \
   coap_full_resource_t resource_##resource_name##_info = { \
       .coap_resource = &resource_##resource_name, \
       .flags = resource_format_type, \
       .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
       .update_value = update_resource_##resource_name##_value, \
-      .format_value = resource_##resource_name##_format_value, \
-      .parse_value = resource_##resource_name##_parse_value }; \
-  REST_FULL_RESOURCE_GET_HANDLER(resource_name, resource_format, resource_parse) \
+  }; \
+  REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
   REST_RESOURCE_CONFIG_HANDLER(resource_name) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   void update_resource_##resource_name##_value(coap_resource_data_t *data) { \

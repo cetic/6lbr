@@ -83,18 +83,13 @@ struct coap_binding_s {
 	coap_binding_cond_t cond;
 	coap_resource_data_t data;
 };
-
 typedef struct coap_binding_s coap_binding_t;
-
-typedef int (*coap_parse_func_t)(char const *buffer, char const * max, uint32_t *data);
 
 struct coap_full_resource_s {
   struct coap_full_resource_s *next;
   resource_t *coap_resource;
   uint32_t flags;
   void (*update_value)(coap_resource_data_t *data);
-  int (*format_value)(char *buffer, uint32_t data);
-  coap_parse_func_t parse_value;
   coap_binding_cond_t  trigger;
   coap_resource_data_t data;
 };

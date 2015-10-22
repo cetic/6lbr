@@ -34,6 +34,7 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 #include "coap-common.h"
+#include "coap-data-format.h"
 
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
@@ -206,10 +207,10 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   if (request != NULL) {
     REST.get_header_accept(request, &accept);
   }
-  if (accept == -1 || accept == REST_TYPE)
+  if (coap_data_format.accepted_type(accept))
   {
-    int buffer_size = resource_info->format_value((char *)buffer, resource_info->data.last_value);
-    REST.set_header_content_type(response, REST_TYPE);
+    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, accept, resource_info->flags, resource_info->data.last_value);
+    REST.set_header_content_type(response, coap_data_format.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
       if(*offset + preferred_size >= buffer_size) {
