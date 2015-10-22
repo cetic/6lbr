@@ -71,7 +71,7 @@ extern void
 resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 extern void
-resource_linked_list_get_handler(resource_t const * linked_resource_list[], int linked_resource_list_size,
+resource_linked_list_get_handler(resource_t const * linked_resource_list[], int linked_resource_list_size, int include_attr,
     void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset);
 
@@ -90,16 +90,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
   { \
     static uint8_t batch_buffer[CORE_ITF_MAX_BATCH_BUFFER_SIZE+1]; \
     static int batch_buffer_size = 0; \
-    unsigned int accept = -1; \
-    if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==REST_TYPE)) \
-    { \
-      REST.set_header_content_type(response, REST_TYPE); \
-      resource_batch_get_handler(batch_buffer, &batch_buffer_size, resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
-    } else { \
-      REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
-      const char *msg = REST_TYPE_ERROR; \
-      REST.set_response_payload(response, msg, strlen(msg)); \
-    } \
+    resource_batch_get_handler(batch_buffer, &batch_buffer_size, resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
   }
 
 #define REST_RESOURCE_LINKED_LIST_HANDLER(resource_name, ...) \
@@ -111,7 +102,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
       if (request == NULL || !REST.get_header_accept(request, &accept) || (accept==APPLICATION_LINK_FORMAT)) \
       { \
         REST.set_header_content_type(response, REST_TYPE); \
-        resource_linked_list_get_handler(resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), request, response, buffer, preferred_size, offset); \
+        resource_linked_list_get_handler(resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), 1, request, response, buffer, preferred_size, offset); \
       } else { \
         REST.set_response_status(response, REST.status.NOT_ACCEPTABLE); \
         const char *msg = REST_TYPE_ERROR; \

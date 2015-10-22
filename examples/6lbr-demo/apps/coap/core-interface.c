@@ -77,7 +77,7 @@ int core_itf_linked_batch_resource = 0;
   strpos += tmplen
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_data_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int i;
   int32_t tmp = 0;
@@ -121,7 +121,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
 /*---------------------------------------------------------------------------*/
 void
 resource_linked_list_get_handler(resource_t const * linked_resource_list[], int linked_resource_list_size,
-    void *request, void *response, uint8_t *buffer,
+    int include_attr, void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset)
 {
   size_t strpos = 0;            /* position in overall string (which is larger than the buffer) */
@@ -142,7 +142,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
     ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->url, >=);
     ADD_CHAR_IF_POSSIBLE('>');
 
-    if(linked_resource_list[i]->attributes[0]) {
+    if(include_attr && linked_resource_list[i]->attributes[0]) {
       ADD_CHAR_IF_POSSIBLE(';');
       ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
     }
@@ -175,3 +175,22 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  unsigned int accept = -1;
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
+  }
+  if (accept == -1 || accept == REST_TYPE)
+  {
+    REST.set_header_content_type(response, REST_TYPE);
+    resource_batch_get_data_handler(batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
+  } else if (accept == APPLICATION_LINK_FORMAT) {
+    resource_linked_list_get_handler(batch_resource_list, batch_resource_list_size, 0, request, response, buffer, preferred_size, offset);
+  } else {
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+    const char *msg = REST_TYPE_ERROR;
+    REST.set_response_payload(response, msg, strlen(msg));
+  }
+}
