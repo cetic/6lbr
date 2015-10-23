@@ -124,54 +124,65 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
     int include_attr, void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset)
 {
-  size_t strpos = 0;            /* position in overall string (which is larger than the buffer) */
-  size_t bufpos = 0;            /* position within buffer (bytes written) */
-  size_t tmplen = 0;
-  int i;
-
-  if (offset == NULL) {
-    PRINTF("Invalid offset\n");
-    return;
+  unsigned int accept = -1;
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
   }
-  for (i = 0; i < linked_resource_list_size; ++i) {
-    if(strpos > 0) {
-      ADD_CHAR_IF_POSSIBLE(',');
+  if (accept == -1 || accept == APPLICATION_LINK_FORMAT)
+  {
+    size_t strpos = 0;            /* position in overall string (which is larger than the buffer) */
+    size_t bufpos = 0;            /* position within buffer (bytes written) */
+    size_t tmplen = 0;
+    int i;
+
+    if (offset == NULL) {
+      PRINTF("Invalid offset\n");
+      return;
     }
-    ADD_CHAR_IF_POSSIBLE('<');
-    ADD_CHAR_IF_POSSIBLE('/');
-    ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->url, >=);
-    ADD_CHAR_IF_POSSIBLE('>');
+    for (i = 0; i < linked_resource_list_size; ++i) {
+      if(strpos > 0) {
+        ADD_CHAR_IF_POSSIBLE(',');
+      }
+      ADD_CHAR_IF_POSSIBLE('<');
+      ADD_CHAR_IF_POSSIBLE('/');
+      ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->url, >=);
+      ADD_CHAR_IF_POSSIBLE('>');
 
-    if(include_attr && linked_resource_list[i]->attributes[0]) {
-      ADD_CHAR_IF_POSSIBLE(';');
-      ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
+      if(include_attr && linked_resource_list[i]->attributes[0]) {
+        ADD_CHAR_IF_POSSIBLE(';');
+        ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
+      }
+
+      /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
+      if(bufpos > preferred_size && strpos - bufpos > *offset) {
+        PRINTF("res: BREAK at %s (%p)\n", linked_resource_list[i]->url, linked_resource_list[i]);
+        break;
+      }
     }
 
-    /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
-    if(bufpos > preferred_size && strpos - bufpos > *offset) {
-      PRINTF("res: BREAK at %s (%p)\n", linked_resource_list[i]->url, linked_resource_list[i]);
-      break;
+    if(bufpos > 0) {
+      PRINTF("BUF %d: %.*s\n", bufpos, bufpos, (char *)buffer);
+
+      coap_set_payload(response, buffer, bufpos);
+      coap_set_header_content_format(response, APPLICATION_LINK_FORMAT);
+    } else if(strpos > 0) {
+      PRINTF("well_known_core_handler(): bufpos<=0\n");
+
+      coap_set_status_code(response, BAD_OPTION_4_02);
+      coap_set_payload(response, "BlockOutOfScope", 15);
     }
-  }
 
-  if(bufpos > 0) {
-    PRINTF("BUF %d: %.*s\n", bufpos, bufpos, (char *)buffer);
-
-    coap_set_payload(response, buffer, bufpos);
-    coap_set_header_content_format(response, APPLICATION_LINK_FORMAT);
-  } else if(strpos > 0) {
-    PRINTF("well_known_core_handler(): bufpos<=0\n");
-
-    coap_set_status_code(response, BAD_OPTION_4_02);
-    coap_set_payload(response, "BlockOutOfScope", 15);
-  }
-
-  if(i == linked_resource_list_size) {
-    PRINTF("res: DONE\n");
-    *offset = -1;
+    if(i == linked_resource_list_size) {
+      PRINTF("res: DONE\n");
+      *offset = -1;
+    } else {
+      PRINTF("res: MORE at %s (%p)\n", linked_resource_list[i]->url, linked_resource_list[i]);
+      *offset += preferred_size;
+    }
   } else {
-    PRINTF("res: MORE at %s (%p)\n", linked_resource_list[i]->url, linked_resource_list[i]);
-    *offset += preferred_size;
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+    const char *msg = REST_TYPE_ERROR;
+    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 /*---------------------------------------------------------------------------*/
