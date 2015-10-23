@@ -112,7 +112,10 @@ typedef enum {
   HAS_SUB_RESOURCES = (1 << 4),
   IS_SEPARATE = (1 << 5),
   IS_OBSERVABLE = (1 << 6),
-  IS_PERIODIC = (1 << 7)
+  IS_PERIODIC = (1 << 7),
+
+  /* Extensions */
+  METHOD_ATTR = (1 << 8),
 } rest_resource_flags_t;
 
 #endif /* REST_CONSTANTS_H_ */

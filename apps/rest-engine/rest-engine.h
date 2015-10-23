@@ -95,6 +95,9 @@ struct resource_s {
     restful_trigger_handler trigger;
     restful_trigger_handler resume;
   };
+#if REST_HAS_ATTR_METHOD
+  int (*attr_handler)(char *buffer, int buffer_size);
+#endif
 };
 typedef struct resource_s resource_t;
 
