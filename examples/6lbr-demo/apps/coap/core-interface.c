@@ -156,7 +156,9 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
 
       if((flags & LIST_INCLUDE_ATTR) != 0) {
         if(linked_resource_list[i]->attributes[0]) {
-          ADD_CHAR_IF_POSSIBLE(';');
+          if(linked_resource_list[i]->attributes[0] != ';') {
+            ADD_CHAR_IF_POSSIBLE(';');
+          }
           ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
         }
 #if REST_HAS_ATTR_METHOD
