@@ -166,6 +166,27 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
 
 /*---------------------------------------------------------------------------*/
 
+#define IF_MACRO(x) REST_CONF_IF(x)
+#define RT_MACRO(x) REST_CONF_RT(x)
+#define CT_MACRO(x) REST_CONF_CT(x)
+#define OBS_MACRO REST_CONF_OBS
+
+#ifndef REST_CONF_IF
+#define REST_CONF_IF(resource_if) ";if=\""resource_if"\""
+#endif
+#ifndef REST_CONF_RT
+#define REST_CONF_RT(resource_rt) ";rt=\""resource_rt"\""
+#endif
+#ifndef REST_CONF_CT
+#define REST_CONF_CT(resource_ct) ";ct=" resource_ct
+#endif
+#ifndef REST_CONF_OBS
+#define REST_CONF_OBS ";obs"
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
 #ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
@@ -263,30 +284,30 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
 #define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
 #define REST_EXEC(resource_name, ignore, resource_if, resource_type, parser, actuator) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE), NULL, resource_##resource_name##_post_handler, NULL, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), NULL, resource_##resource_name##_post_handler, NULL, NULL);
 
 #define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
-  PERIODIC_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
+  PERIODIC_RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)) OBS_MACRO, resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 
 #define REST_EVENT_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, format) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
-  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";obs;ct=" TO_STRING(REST_TYPE), resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
+  EVENT_RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)) OBS_MACRO, resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 
 #define REST_FULL_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
@@ -304,7 +325,7 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
   void update_resource_##resource_name##_value(coap_resource_data_t *data) { \
     data->last_value = (resource_value); \
   } \
-  EVENT_RESOURCE_ATTR(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE) ";obs", resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler, resource_##resource_name##_attr_handler);
+  EVENT_RESOURCE_ATTR(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)) OBS_MACRO, resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler, resource_##resource_name##_attr_handler);
 
 #define INIT_RESOURCE(resource_name, path) \
     extern resource_t resource_##resource_name; \

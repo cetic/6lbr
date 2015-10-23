@@ -62,7 +62,7 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
 static void
 resource_binding_table_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-RESOURCE(resource_binding_table, "if=\""IF_BINDING"\";ct=" TO_STRING(40), resource_binding_table_get_handler, resource_binding_table_post_handler, NULL, resource_binding_table_delete_handler);
+RESOURCE(resource_binding_table,  "" IF_MACRO(IF_BINDING) CT_MACRO(TO_STRING(40)), resource_binding_table_get_handler, resource_binding_table_post_handler, NULL, resource_binding_table_delete_handler);
 
 /*---------------------------------------------------------------------------*/
 static int

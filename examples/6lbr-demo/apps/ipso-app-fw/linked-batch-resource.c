@@ -65,7 +65,7 @@ resource_linked_batch_table_post_handler(void* request, void* response, uint8_t 
 static void
 resource_linked_batch_table_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-RESOURCE(resource_linked_batch_table, "if=\""IF_LINKED_BATCH"\";ct=\"" TO_STRING(40) " " TO_STRING(REST_TYPE) "\"", resource_linked_batch_table_get_handler, resource_linked_batch_table_post_handler, NULL, resource_linked_batch_table_delete_handler);
+RESOURCE(resource_linked_batch_table,  "" IF_MACRO(IF_LINKED_BATCH) CT_MACRO(TO_STRING(40) " " TO_STRING(REST_TYPE)), resource_linked_batch_table_get_handler, resource_linked_batch_table_post_handler, NULL, resource_linked_batch_table_delete_handler);
 
 /*---------------------------------------------------------------------------*/
 static int

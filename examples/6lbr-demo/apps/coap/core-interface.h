@@ -109,11 +109,11 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
 #define BATCH_RESOURCE(resource_name, flags, resource_if, resource_type, ...) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_BATCH_HANDLER(resource_name, flags, __VA_ARGS__) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=\"" TO_STRING(40) " " TO_STRING(REST_TYPE) "\"", resource_##resource_name##_get_handler, NULL, NULL, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(40) " " TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define LINKED_LIST_RESOURCE(resource_name, flags, resource_if, resource_type, ...) \
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_LINKED_LIST_HANDLER(resource_name, flags, __VA_ARGS__) \
-  RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(40), resource_##resource_name##_get_handler, NULL, NULL, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(40) OBS_MACRO, resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #endif /* CORE_INTERFACE_H */

@@ -86,4 +86,13 @@ lwm2m_init(void);
 void
 lwm2m_set_resources_list(char const * resources);
 
+#undef REST_CONF_IF
+#define REST_CONF_IF(resource_if)
+#undef REST_CONF_RT
+#define REST_CONF_RT(resource_rt)
+#undef REST_CONF_CT
+#define REST_CONF_CT(resource_ct)
+#undef REST_CONF_OBS
+#define REST_CONF_OBS
+
 #endif /* LWM2M_PROFILE_H */
