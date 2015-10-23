@@ -88,6 +88,9 @@
 // Avoid 6lowpan fragmentation
 #define REST_MAX_CHUNK_SIZE                 64
 
+// Support dynamic attributes in CoAP resources
+#define REST_HAS_ATTR_METHOD                1
+
 // RPL DODAG is by default grounded
 #define RPL_CONF_GROUNDED 1
 
