@@ -200,6 +200,34 @@ resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
   }
 }
 /*---------------------------------------------------------------------------*/
+int
+full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buffer, int size)
+{
+  int pos = 0;
+  if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0) {
+    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", resource_info->trigger.pmin);
+  }
+  if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0) {
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", resource_info->trigger.pmax);
+  }
+  if((resource_info->trigger.flags & COAP_BINDING_FLAGS_ST_VALID) != 0) {
+    pos += snprintf(buffer + pos, size - pos, ";st=\"");
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.step);
+    pos += snprintf(buffer + pos, size - pos, "\"");
+  }
+  if((resource_info->trigger.flags & COAP_BINDING_FLAGS_LT_VALID) != 0) {
+    pos += snprintf(buffer + pos, size - pos, ";lt=\"");
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.less_than);
+    pos += snprintf(buffer + pos, size - pos, "\"");
+  }
+  if((resource_info->trigger.flags & COAP_BINDING_FLAGS_GT_VALID) != 0) {
+    pos += snprintf(buffer + pos, size - pos, ";gt=\"");
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.greater_than);
+    pos += snprintf(buffer + pos, size - pos, "\"");
+  }
+  return pos;
+}
+/*---------------------------------------------------------------------------*/
 void
 full_resource_get_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
@@ -225,29 +253,8 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   } else if (accept == APPLICATION_LINK_FORMAT) {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);
     int pos = 0;
-    // TODO: Refactor in its own function
     pos += snprintf((char *)buffer + pos, preferred_size - pos, "</%s>", resource_info->coap_resource->url);
-    if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0) {
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, ";pmin=\"%d\"", resource_info->trigger.pmin);
-    }
-    if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0) {
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, ";pmax=\"%d\"", resource_info->trigger.pmax);
-    }
-    if((resource_info->trigger.flags & COAP_BINDING_FLAGS_ST_VALID) != 0) {
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, ";st=\"");
-      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.step);
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
-    }
-    if((resource_info->trigger.flags & COAP_BINDING_FLAGS_LT_VALID) != 0) {
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, ";lt=\"");
-      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.less_than);
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
-    }
-    if((resource_info->trigger.flags & COAP_BINDING_FLAGS_GT_VALID) != 0) {
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, ";gt=\"");
-      pos += coap_format_binding_value(resource_info->flags, (char *)buffer + pos, preferred_size - pos, resource_info->trigger.greater_than);
-      pos += snprintf((char *)buffer + pos, preferred_size - pos, "\"");
-    }
+    pos += full_resource_config_attr_handler(resource_info, (char *)buffer + pos, preferred_size - pos);
     int buffer_size = pos;
     if(offset) {
       REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);

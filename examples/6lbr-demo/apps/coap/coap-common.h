@@ -161,6 +161,9 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
 void
 full_resource_config_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
+int
+full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buffer, int size);
+
 /*---------------------------------------------------------------------------*/
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
@@ -203,6 +206,13 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
     full_resource_config_handler(&resource_##resource_name##_info, request, response, buffer, preferred_size, offset); \
   }
 
+#define REST_RESOURCE_CONFIG_ATTR_HANDLER(resource_name) \
+  int \
+  resource_##resource_name##_attr_handler(char *buffer, int size) \
+  { \
+    return full_resource_config_attr_handler(&resource_##resource_name##_info, buffer, size); \
+  }
+
 #define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
@@ -239,6 +249,14 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   { \
     REST.notify_subscribers(&resource_##resource_name);\
   }
+
+#if REST_HAS_ATTR_METHOD
+#define EVENT_RESOURCE_ATTR(name, attributes, get_handler, post_handler, put_handler, delete_handler, event_handler, attr_handler) \
+resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_handler, put_handler, delete_handler, { .trigger = event_handler }, attr_handler }
+#else
+#define EVENT_RESOURCE_ATTR(name, attributes, get_handler, post_handler, put_handler, delete_handler, event_handler, attr_handler) \
+resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_handler, put_handler, delete_handler, { .trigger = event_handler } }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -281,11 +299,12 @@ full_resource_config_handler(coap_full_resource_t *resource_info, void* request,
   }; \
   REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
   REST_RESOURCE_CONFIG_HANDLER(resource_name) \
+  REST_RESOURCE_CONFIG_ATTR_HANDLER(resource_name) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   void update_resource_##resource_name##_value(coap_resource_data_t *data) { \
     data->last_value = (resource_value); \
   } \
-  EVENT_RESOURCE(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE) ";obs", resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler);
+  EVENT_RESOURCE_ATTR(resource_##resource_name, "if=\""resource_if"\";rt=\""resource_type"\";ct=" TO_STRING(REST_TYPE) ";obs", resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL, resource_##resource_name##_event_handler, resource_##resource_name##_attr_handler);
 
 #define INIT_RESOURCE(resource_name, path) \
     extern resource_t resource_##resource_name; \

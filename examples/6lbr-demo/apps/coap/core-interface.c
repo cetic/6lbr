@@ -120,8 +120,8 @@ resource_batch_get_data_handler(uint8_t *batch_buffer, int *batch_buffer_size, r
 }
 /*---------------------------------------------------------------------------*/
 void
-resource_linked_list_get_handler(resource_t const * linked_resource_list[], int linked_resource_list_size,
-    int include_attr, void *request, void *response, uint8_t *buffer,
+resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t const * linked_resource_list[], int linked_resource_list_size,
+    uint16_t flags, void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
@@ -139,6 +139,12 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
       PRINTF("Invalid offset\n");
       return;
     }
+    if((flags & LIST_INCLUDE_SELF) != 0) do {
+      ADD_CHAR_IF_POSSIBLE('<');
+      ADD_CHAR_IF_POSSIBLE('/');
+      ADD_STRING_IF_POSSIBLE(linked_list_resource->url, >=);
+      ADD_CHAR_IF_POSSIBLE('>');
+    } while(0);
     for (i = 0; i < linked_resource_list_size; ++i) {
       if(strpos > 0) {
         ADD_CHAR_IF_POSSIBLE(',');
@@ -148,9 +154,18 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
       ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->url, >=);
       ADD_CHAR_IF_POSSIBLE('>');
 
-      if(include_attr && linked_resource_list[i]->attributes[0]) {
-        ADD_CHAR_IF_POSSIBLE(';');
-        ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
+      if((flags & LIST_INCLUDE_ATTR) != 0) {
+        if(linked_resource_list[i]->attributes[0]) {
+          ADD_CHAR_IF_POSSIBLE(';');
+          ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
+        }
+#if REST_HAS_ATTR_METHOD
+        if(linked_resource_list[i]->attr_handler) {
+          char attr[64];
+          linked_resource_list[i]->attr_handler(attr, 64);
+          ADD_STRING_IF_POSSIBLE(attr, >);
+        }
+#endif
       }
 
       /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
@@ -187,7 +202,7 @@ resource_linked_list_get_handler(resource_t const * linked_resource_list[], int 
 }
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t const * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
@@ -198,7 +213,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
     REST.set_header_content_type(response, REST_TYPE);
     resource_batch_get_data_handler(batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
   } else if (accept == APPLICATION_LINK_FORMAT) {
-    resource_linked_list_get_handler(batch_resource_list, batch_resource_list_size, 0, request, response, buffer, preferred_size, offset);
+    resource_linked_list_get_handler(batch_resource, batch_resource_list, batch_resource_list_size, flags, request, response, buffer, preferred_size, offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
     const char *msg = REST_TYPE_ERROR;
