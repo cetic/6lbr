@@ -171,7 +171,9 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
     ADD_CHAR_IF_POSSIBLE('>');
 
     if(resource->attributes[0]) {
-      ADD_CHAR_IF_POSSIBLE(';');
+      if(resource->attributes[0] != ';') {
+        ADD_CHAR_IF_POSSIBLE(';');
+      }
       ADD_STRING_IF_POSSIBLE(resource->attributes, >);
     }
 
