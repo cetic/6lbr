@@ -35,7 +35,6 @@
  */
 
 #include "contiki.h"
-#include "platform-sensors.h"
 
 #if WITH_IPSO_APP_FW
 #include "ipso-app-fw.h"

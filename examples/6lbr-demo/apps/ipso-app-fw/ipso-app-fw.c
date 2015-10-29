@@ -39,7 +39,6 @@
 #include "coap-push.h"
 #include "core-interface.h"
 
-#include "platform-sensors.h"
 #include "ipso-app-fw.h"
 #include "ipso-profile.h"
 

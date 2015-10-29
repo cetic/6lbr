@@ -83,6 +83,11 @@ start_apps(void)
   lwm2m_init();
 #endif
 
+#if !IGNORE_CETIC_CONTIKI_PLATFORM && WITH_COAPSERVER
+  extern void contiki_platform_resources_init();
+  contiki_platform_resources_init();
+#endif
+
 #if defined CETIC_6LN_PLATFORM_CONF && WITH_COAPSERVER
   extern void platform_resources_init();
   platform_resources_init();

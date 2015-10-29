@@ -10,7 +10,7 @@ RESOURCE_FILES=$(addsuffix -resource.h,$(RESOURCES))
 dynamic-resources:
 	mkdir -p $(PROJECTDIR)/dyn_resources
 	$(PROJECTDIR)/apps/coap/tools/mk_resource.sh $(RESOURCES)
-	mv $(RESOURCE_FILES) $(PROJECTDIR)/dyn_resources/
+	mv -f $(RESOURCE_FILES) $(PROJECTDIR)/dyn_resources/
 
 PROJECTDIRS+=$(PROJECTDIR)/dyn_resources
 

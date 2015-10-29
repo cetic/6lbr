@@ -35,7 +35,6 @@
  */
 
 #include "contiki.h"
-#include "platform-sensors.h"
 
 #if WITH_LWM2M
 #include "lwm2m.h"

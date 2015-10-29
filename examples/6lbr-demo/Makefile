@@ -36,7 +36,7 @@ PROJECTDIR?=.
 
 APPDIRS += $(PROJECTDIR)/apps
 
-PROJECTDIRS += $(PROJECTDIR)/platform $(PROJECTDIR)/platform/$(TARGET)
+PROJECTDIRS += $(PROJECTDIR)/platform $(PROJECTDIR)/platform/contiki $(PROJECTDIR)/platform/$(TARGET)
 PROJECTDIRS += $(PROJECTDIR)/apps/webserver $(PROJECTDIR)/apps/udp-client \
 	$(PROJECTDIR)/apps/shell \
 	$(PROJECTDIR)/apps/dtls-echo $(PROJECTDIR)/apps/coap/rest-types
@@ -178,6 +178,7 @@ ifneq  ($(PROJECT_CONF),)
 CFLAGS += -DUSER_PROJECT_CONF_H=\"$(PROJECT_CONF)\"
 endif
 
+-include $(PROJECTDIR)/platform/contiki/Makefile.contiki
 -include $(PROJECTDIR)/platform/$(TARGET)/Makefile.$(TARGET)
 ifneq ("$(wildcard $(PROJECTDIR)/platform/$(TARGET)/6ln-conf-$(TARGET).h)","")
 CFLAGS+=-DCETIC_6LN_PLATFORM_CONF=\"6ln-conf-$(TARGET).h\"

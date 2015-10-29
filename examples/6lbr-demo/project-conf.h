@@ -65,7 +65,9 @@
 #include CETIC_6LN_PLATFORM_CONF
 #endif
 
-#include "platform/6ln-conf-default.h"
+#if !IGNORE_CETIC_CONTIKI_PLATFORM
+#include "platform/contiki/6ln-conf-contiki.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Radio                                                                     */
