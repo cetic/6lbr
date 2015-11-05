@@ -171,35 +171,6 @@ coap_add_ipaddr(char * buf, int size, const uip_ipaddr_t *addr)
   return pos;
 }
 /*---------------------------------------------------------------------------*/
-void
-resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
-{
-  unsigned int accept = -1;
-  if (request != NULL) {
-    REST.get_header_accept(request, &accept);
-  }
-  if (accept == -1 || accept == REST_TYPE)
-  {
-    REST.set_header_content_type(response, REST_TYPE);
-    int buffer_size = strlen((char *)buffer);
-    if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
-      if(*offset + preferred_size >= buffer_size) {
-        *offset = -1;
-      } else {
-        *offset += preferred_size;
-      }
-      PRINTF("Offset : %d\n", *offset);
-    } else {
-      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
-    }
-  } else {
-    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
-    const char *msg = REST_TYPE_ERROR;
-    REST.set_response_payload(response, msg, strlen(msg));
-  }
-}
-/*---------------------------------------------------------------------------*/
 int
 full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buffer, int size)
 {
@@ -226,6 +197,58 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
     pos += snprintf(buffer + pos, size - pos, "\"");
   }
   return pos;
+}/*---------------------------------------------------------------------------*/
+void
+simple_resource_get_handler(int resource_type, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  unsigned int accept = -1;
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
+  }
+  if (coap_data_format.accepted_type(accept))
+  {
+    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, accept, resource_type, resource_value);
+    REST.set_header_content_type(response, coap_data_format.format_type(accept));
+    if(offset) {
+      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+      if(*offset + preferred_size >= buffer_size) {
+        *offset = -1;
+      } else {
+        *offset += preferred_size;
+      }
+      PRINTF("Offset : %d\n", *offset);
+    } else {
+      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
+    }
+  } else {
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  unsigned int accept = -1;
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
+  }
+  if (coap_data_format.accepted_type(accept))
+  {
+    const uint8_t * payload;
+    size_t len = REST.get_request_payload(request, &payload);
+    uint32_t value;
+    if (coap_data_format.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, &value)) {
+      if(resource_set(value)) {
+        REST.set_response_status(response, REST.status.CHANGED);
+      } else {
+        REST.set_response_status(response, REST.status.BAD_REQUEST);
+      }
+    } else {
+      REST.set_response_status(response, REST.status.BAD_REQUEST);
+    }
+  } else {
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -269,8 +292,6 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
     }
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
-    const char *msg = REST_TYPE_ERROR;
-    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 /*---------------------------------------------------------------------------*/

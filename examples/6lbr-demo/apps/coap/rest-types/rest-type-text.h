@@ -41,45 +41,7 @@
 
 #define REST_TYPE 0 //REST.type.TEXT_PLAIN
 
-#define REST_TYPE_ERROR "Supporting content-type: text/plain"
-
 #define REST_FORMAT_BASETIME(buffer, size, pos)
-
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", (int)(resource_value))
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u", (unsigned int)(resource_value))
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%ld", (long)(resource_value))
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%lu", (unsigned long)(resource_value))
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
-{ \
-		int value = (resource_value); \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%u", (int)(value / 10), (unsigned int)(value % 10)); \
-}
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
-{ \
-	int value = (resource_value); \
-	len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%02u", (int)(value / 100), (unsigned int)(value % 100)); \
-}
-
-#define REST_FORMAT_THREE_DECIMAL(resource_name, resource_value) \
-{ \
-        int value = (resource_value); \
-        len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d.%03u", (int)(value / 1000), (unsigned int)(value % 1000)); \
-}
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%s", (sensor_value))
-
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-		len = snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u", (sensor_a), (sensor_b))
 
 #define REST_FORMAT_BATCH_START(buffer, size, pos)
 

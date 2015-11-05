@@ -42,6 +42,11 @@
 #include "lwm2m-device-object.h"
 #endif
 
+#if WITH_IPSO_APP_FW
+#include "ipso-app-fw.h"
+#include "sensors-batch-resource.h"
+#endif
+
 #include "ambient-temp-resource.h"
 #include "object-temp-resource.h"
 #include "humidity-resource.h"

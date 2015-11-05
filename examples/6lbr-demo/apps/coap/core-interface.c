@@ -198,8 +198,6 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
     }
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
-    const char *msg = REST_TYPE_ERROR;
-    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -218,7 +216,5 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
     resource_linked_list_get_handler(batch_resource, batch_resource_list, batch_resource_list_size, flags, request, response, buffer, preferred_size, offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
-    const char *msg = REST_TYPE_ERROR;
-    REST.set_response_payload(response, msg, strlen(msg));
   }
 }

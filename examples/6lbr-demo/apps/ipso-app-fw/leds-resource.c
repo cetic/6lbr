@@ -103,17 +103,17 @@ REST_RES_LED_R_RESOURCE(led_r,
     ,
     IF_ACTUATOR,
     LIGHT_CONTROL_RT,
-    REST_FORMAT_ONE_INT("r", led_r_value()), REST_PARSE_ONE_INT, led_r_set)
+    COAP_RESOURCE_TYPE_SIGNED_INT, "r", led_r_value(), led_r_set)
 
 REST_RES_LED_G_RESOURCE(led_g,
     ,
     IF_ACTUATOR,
     LIGHT_CONTROL_RT,
-    REST_FORMAT_ONE_INT("g", led_g_value()), REST_PARSE_ONE_INT, led_g_set)
+    COAP_RESOURCE_TYPE_SIGNED_INT, "g", led_g_value(), led_g_set)
 
 REST_RES_LED_B_RESOURCE(led_b,
     ,
     IF_ACTUATOR,
     LIGHT_CONTROL_RT,
-    REST_FORMAT_ONE_INT("b", led_b_value()), REST_PARSE_ONE_INT, led_b_set)
+    COAP_RESOURCE_TYPE_SIGNED_INT, "b", led_b_value(), led_b_set)
 

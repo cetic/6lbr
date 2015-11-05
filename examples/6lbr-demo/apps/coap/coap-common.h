@@ -156,6 +156,9 @@ void
 resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 void
+simple_resource_get_handler(int resource_type, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+
+void
 full_resource_get_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 void
@@ -190,7 +193,7 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
 
 #ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
-#define REST_RESOURCE_GET_HANDLER(resource_name, format) \
+#define REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
@@ -199,18 +202,15 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
     if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_START(buffer, preferred_size, pos) } \
     format; \
     if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_END(buffer, preferred_size, pos) } \
-    resource_get_handler(request, response, buffer, preferred_size, offset); \
+    simple_resource_get_handler(resource_format_type, resource_value, request, response, buffer, preferred_size, offset); \
   }
 #else
-#define REST_RESOURCE_GET_HANDLER(resource_name, format) \
-  void \
-  resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
-  { \
-    int len; \
-    format; \
-    (void) len; \
-    resource_get_handler(request, response, buffer, preferred_size, offset); \
-  }
+#define REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
+    void \
+    resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
+    { \
+      simple_resource_get_handler(resource_format_type, resource_value, request, response, buffer, preferred_size, offset); \
+    }
 #endif
 
 #define REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
@@ -234,16 +234,11 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
     return full_resource_config_attr_handler(&resource_##resource_name##_info, buffer, size); \
   }
 
-#define REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator_set) \
+#define REST_RESOURCE_PUT_HANDLER(resource_name, resource_format_type, resource_id, resource_actuator) \
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    const uint8_t * payload; \
-    int success = 0; \
-    size_t len = REST.get_request_payload(request, &payload); \
-    parser(payload, len, actuator_set); \
-    (void) len; \
-    REST.set_response_status(response, success ? REST.status.CHANGED : REST.status.BAD_REQUEST); \
+  simple_resource_set_handler(resource_format_type, resource_actuator, request, response, buffer, preferred_size, offset); \
   }
 
 #define REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator_set) \
@@ -281,15 +276,15 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
 
 /*---------------------------------------------------------------------------*/
 
-#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format, resource_id, resource_value) \
+#define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
-#define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, format, parser, actuator) \
+#define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value, resource_actuator) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
-  REST_RESOURCE_PUT_HANDLER(resource_name, parser, actuator) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
+  REST_RESOURCE_PUT_HANDLER(resource_name, resource_format_type, resource_id, resource_actuator) \
   RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
 #define REST_EXEC(resource_name, ignore, resource_if, resource_type, parser, actuator) \
@@ -297,15 +292,15 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
   REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator) \
   RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), NULL, resource_##resource_name##_post_handler, NULL, NULL);
 
-#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format, resource_id, resource_value) \
+#define REST_PERIODIC_RESOURCE(resource_name, resource_period, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, resource_format(resource_id, resource_value)) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   REST_RESOURCE_PERIODIC_HANDLER(resource_name) \
   PERIODIC_RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)) OBS_MACRO, resource_##resource_name##_get_handler, NULL, NULL, NULL, (resource_period * CLOCK_SECOND), resource_##resource_name##_periodic_handler);
 
-#define REST_EVENT_RESOURCE(resource_name, ignore, resource_if, resource_type, format) \
+#define REST_EVENT_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, format) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   REST_RESOURCE_EVENT_HANDLER(resource_name) \
   EVENT_RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)) OBS_MACRO, resource_##resource_name##_get_handler, NULL, NULL, NULL, resource_##resource_name##_event_handler);
 

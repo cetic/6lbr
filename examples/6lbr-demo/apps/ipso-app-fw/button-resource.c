@@ -50,5 +50,5 @@ REST_RES_BUTTON_RESOURCE(button,
     ,
     IF_SENSOR,
     GPIO_BUTTON_RT,
-    REST_FORMAT_ONE_INT("count", button_sensor.value(0)))
+    COAP_RESOURCE_TYPE_SIGNED_INT, "count", button_sensor.value(0))
 
