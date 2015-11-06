@@ -226,7 +226,7 @@ simple_resource_get_handler(int resource_type, uint32_t resource_value, void* re
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value, uint32_t len), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
@@ -238,7 +238,7 @@ simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value
     size_t len = REST.get_request_payload(request, &payload);
     uint32_t value;
     if (coap_data_format.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, &value)) {
-      if(resource_set(value)) {
+      if(resource_set(value, len)) {
         REST.set_response_status(response, REST.status.CHANGED);
       } else {
         REST.set_response_status(response, REST.status.BAD_REQUEST);

@@ -332,4 +332,6 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
     extern coap_full_resource_t resource_##resource_name##_info; \
     coap_binding_add_resource(&resource_##resource_name##_info);
 
+#define REST_RES_REF(resource_name) &resource_##resource_name,
+
 #endif /* COAP_COMMON_H */

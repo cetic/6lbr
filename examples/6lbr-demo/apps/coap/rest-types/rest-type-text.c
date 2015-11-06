@@ -54,11 +54,12 @@ format_value(char *buffer, int size, unsigned int accepted_type, int resource_ty
 {
   (void)accepted_type;
   switch(resource_type) {
+  case COAP_RESOURCE_TYPE_BOOLEAN:
   case COAP_RESOURCE_TYPE_SIGNED_INT:
     return snprintf(buffer, size, "%ld", (signed long int)data);
     break;
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-    return snprintf(buffer, size, "%ld", (unsigned long int)data);
+    return snprintf(buffer, size, "%lu", (unsigned long int)data);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_ONE:
     return snprintf(buffer, size, "%d.%u", (int)(data / 10), (unsigned int)(data % 10));
@@ -69,7 +70,10 @@ format_value(char *buffer, int size, unsigned int accepted_type, int resource_ty
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
     return snprintf(buffer, size, "%d.%03u", (int)(data / 1000), (unsigned int)(data % 1000));
     break;
+  case COAP_RESOURCE_TYPE_STRING:
+    return snprintf(buffer, size, "%s", (char *)data);
   default:
+    printf("Unsupported resource type %d\n", resource_type);
     break;
   }
   return 0;
@@ -108,9 +112,8 @@ parse_value(char const *buffer, char const * max, unsigned int data_type, int re
 {
   (void)accepted_type;
   switch(resource_type) {
+  case COAP_RESOURCE_TYPE_BOOLEAN:
   case COAP_RESOURCE_TYPE_SIGNED_INT:
-    return coap_strtoul(buffer, max, data);
-    break;
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
     return coap_strtoul(buffer, max, data);
     break;
@@ -123,6 +126,9 @@ parse_value(char const *buffer, char const * max, unsigned int data_type, int re
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
     return coap_strtofix(buffer, max, data, 3);
     break;
+  case COAP_RESOURCE_TYPE_STRING:
+    *data = buffer;
+    return 1;
   default:
     break;
   }

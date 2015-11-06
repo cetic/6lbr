@@ -78,5 +78,12 @@
 #define IPSO_SO_MAX_RANGE_VALUE_RESOURCE_ID "5604"
 #define IPSO_SO_RESET_MIN_MAX_VALUE_RESOURCE_ID "5605"
 
+#define IPSO_SO_OBJECT(object_name, ...) BATCH_RESOURCE(object_name ## _object, LIST_INCLUDE_SELF | LIST_INCLUDE_ATTR, IF_BATCH, "", __VA_ARGS__)
+#define IPSO_SO_INSTANCE(instance_name, ...) BATCH_RESOURCE(instance_name ## _instance, LIST_INCLUDE_SELF | LIST_INCLUDE_ATTR, IF_BATCH, "", __VA_ARGS__)
+
+
+#define IPSO_SO_APPLICATION_TYPE(resource, get_app_type, set_app_type) REST_ACTUATOR(resource ## _application_type, 0, "", "", COAP_RESOURCE_TYPE_STRING, "", get_app_type, set_app_type)
+#define IPSO_SO_SENSOR_TYPE(resource, sensor_type) REST_RESOURCE(resource ## _sensor_type, 0, "", "", COAP_RESOURCE_TYPE_STRING, "", sensor_type)
+#define IPSO_SO_UNIT(resource, unit) REST_RESOURCE(resource ## _unit, 0, "", "", COAP_RESOURCE_TYPE_STRING, "", unit)
 
 #endif /* IPSO_SO_H */
