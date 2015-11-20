@@ -522,15 +522,29 @@ bridge_output(const uip_lladdr_t * dest)
   } else {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
   }
-  if(IS_EUI64_ADDR(dest)) {
+
+  if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &eth_net_prefix, "dest prefix eth : ");
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "dest eth : ");
+    //Packet destinated to the Ethernet subnet
+    ethernetDest = 1;
+  } else if(uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &wsn_net_prefix, "dest prefix wsn : ");
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "dest prefix wsn : ");
+    //Packet destinated to the WSN subnet
+    wsnDest = 1;
+  } else if(IS_EUI64_ADDR(dest)) {
+    //Destination unknown but next-hop is in WSN subnet
     wsnDest = 1;
   } else if (IS_EUI48_ADDR(dest)) {
+    //Destination unknown but next-hop is in Ethernet subnet
     ethernetDest = 1;
   } else {
     //Obviously we can not guess the target segment for a multicast packet
     //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
     //or, in case of link-local packet, check packet type and/or packet data
 #if UIP_CONF_IPV6_RPL
+    //in RPL mode, RA and RS packets are used to configure the Ethernet subnet
     if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
         (UIP_ICMP_BUF->type == ICMP6_RA || UIP_ICMP_BUF->type == ICMP6_RS)) {
       ethernetDest = 1;
@@ -540,6 +554,7 @@ bridge_output(const uip_lladdr_t * dest)
                                 &UIP_ND6_NS_BUF->tgtipaddr, 64)) {
       ethernetDest = 1;
 #else
+    //in NDP mode, RA and RS packets are used to configure the WSN subnet
     if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
         (UIP_ICMP_BUF->type == ICMP6_RA || UIP_ICMP_BUF->type == ICMP6_RS)) {
       wsnDest = 1;
@@ -551,11 +566,14 @@ bridge_output(const uip_lladdr_t * dest)
 #endif
     } else if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
         UIP_ICMP_BUF->type == ICMP6_RPL) {
+      //RPL packets are always for WSN subnet
       wsnDest = 1;
     } else if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+      //Packet type unknown, but source is from Ethernet subnet
       ethernetDest = 1;
-    } else if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
-      ethernetDest = 1;
+    } else if(uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
+      //Packet type unknown, but source is from WSN subnet
+      wsnDest = 1;
     } else {
       // We could not guess the destination, forward to both
       ethernetDest = 1;
