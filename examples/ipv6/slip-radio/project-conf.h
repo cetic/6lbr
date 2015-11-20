@@ -127,5 +127,10 @@
 /* A slip radio does not need to go in deep sleep */
 #define LPM_CONF_MAX_PM                  0
 
+#if CETIC_6LBR_TRANSPARENT_BRIDGE
+#define NULLRDC_CONF_ADDRESS_FILTER 0
+#define NULLRDC_CONF_SEND_802154_ACK 1
+#endif
+
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* PROJECT_CONF_H_ */
