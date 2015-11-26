@@ -99,55 +99,71 @@ int webserver_result_refresh;
 void
 ip4addr_add_u8(const uint8_t * u8)
 {
-  add("%d.%d.%d.%d", u8[0], u8[1], u8[2], u8[3]);
+  if(u8 != NULL) {
+    add("%d.%d.%d.%d", u8[0], u8[1], u8[2], u8[3]);
+  } else {
+    add("(null)");
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
 ipaddr_add_u8(const uint8_t * addr)
 {
-  uint16_t a;
-  int i, f;
+  if(addr != NULL) {
+    uint16_t a;
+    int i, f;
 
-  for(i = 0, f = 0; i < 16; i += 2) {
-    a = (addr[i] << 8) + addr[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0)
-        add("::");
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        add(":");
+    for(i = 0, f = 0; i < 16; i += 2) {
+      a = (addr[i] << 8) + addr[i + 1];
+      if(a == 0 && f >= 0) {
+        if(f++ == 0)
+          add("::");
+      } else {
+        if(f > 0) {
+          f = -1;
+        } else if(i > 0) {
+          add(":");
+        }
+        add("%x", a);
       }
-      add("%x", a);
     }
+  } else {
+    add("(null)");
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 lladdr_add(const uip_lladdr_t * addr)
 {
-  int i;
+  if(addr != NULL) {
+    int i;
 
-  for(i = 0; i < sizeof(uip_lladdr_t); i++) {
-    if(i > 0) {
-      add(":");
+    for(i = 0; i < sizeof(uip_lladdr_t); i++) {
+      if(i > 0) {
+        add(":");
+      }
+      add("%x", addr->addr[i]);
     }
-    add("%x", addr->addr[i]);
+  } else {
+    add("(null)");
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 ethaddr_add(const ethaddr_t * addr)
 {
-  int i;
+  if(addr != NULL) {
+    int i;
 
-  for(i = 0; i < 6; i++) {
-    if(i > 0) {
-      add(":");
+    for(i = 0; i < 6; i++) {
+      if(i > 0) {
+        add(":");
+      }
+
+      add("%x", (*addr)[i]);
     }
-
-    add("%x", (*addr)[i]);
+  } else {
+    add("(null)");
   }
 }
 /*---------------------------------------------------------------------------*/

@@ -54,10 +54,14 @@ static char const * unknown_name = "(Unknown)";
 #endif
 
 node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
-  uip_lladdr_t ll_addr;
-  memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
-  ll_addr.addr[0] ^= 0x02;
-  return node_config_find(&ll_addr);
+  if(ipaddr != NULL) {
+    uip_lladdr_t ll_addr;
+    memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
+    ll_addr.addr[0] ^= 0x02;
+    return node_config_find(&ll_addr);
+  } else {
+    return NULL;
+  }
 }
 
 node_config_t * node_config_find_from_port(uint16_t port) {
@@ -71,10 +75,12 @@ node_config_t * node_config_find_from_port(uint16_t port) {
 }
 
 node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
-  node_config_t *  node_config;
-  for (node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
-    if ( memcmp(node_addr, &node_config->mac_address, sizeof(uip_lladdr_t)) == 0 ) {
-      return node_config;
+  if(node_addr != NULL) {
+    node_config_t *  node_config;
+    for (node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
+      if ( memcmp(node_addr, &node_config->mac_address, sizeof(uip_lladdr_t)) == 0 ) {
+        return node_config;
+      }
     }
   }
   return NULL;
