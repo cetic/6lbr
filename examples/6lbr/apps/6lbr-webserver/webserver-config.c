@@ -227,6 +227,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if RESOLV_CONF_SUPPORTS_DNS_SD
   INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
 #endif
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #endif
 #if CETIC_6LBR_ROUTER
   add("<br /><h2>RA Daemon</h2>");
