@@ -81,6 +81,9 @@ typedef struct {
   uint8_t dns_flags;
   uint8_t dns_host_name[NVM_DATA_DNS_HOST_NAME_SIZE + 1];
 
+  //Webserver configuration
+  uint16_t webserver_port;
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -90,7 +93,7 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
-#define CETIC_6LBR_NVM_VERSION_2        2
+#define CETIC_6LBR_NVM_VERSION_2        3
 
 #define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
 
@@ -207,6 +210,8 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS (CETIC_6LBR_DNS_DNS_SD)
 #define CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME "6lbr"
+
+#define CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT 80
 
 /*---------------------------------------------------------------------------*/
 

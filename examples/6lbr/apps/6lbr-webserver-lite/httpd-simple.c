@@ -309,7 +309,7 @@ void
 httpd_init(void)
 {
 
-  tcp_listen(UIP_HTONS(80));
+  tcp_listen(UIP_HTONS(nvm_data.webserver_port));
   memb_init(&conns);
 #if URLCONV
   urlconv_init();

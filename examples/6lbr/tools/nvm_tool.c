@@ -391,7 +391,7 @@ migrate_nvm(uint8_t print_info)
 
     nvm_data->channel = CETIC_6LBR_NVM_DEFAULT_CHANNEL;
   }
-  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_1)
   {
 	if (print_info) {
 	  printf("Migrate NVM version 0 towards 1\n");
@@ -424,10 +424,10 @@ migrate_nvm(uint8_t print_info)
     nvm_data->rpl_min_hoprankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC;
     nvm_data->rpl_lifetime_unit = CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT;
   }
-  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_1)
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_2)
   {
     if (print_info) {
-      printf("Migrate NVM version 1 towards 2\n");
+      printf("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_2);
     }
     nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
 
@@ -640,6 +640,7 @@ print_nvm(void)
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
   PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
   PRINT_BOOL("Webserver configuration page disabled", global_flags, CETIC_GLOBAL_DISABLE_CONFIG);
+  PRINT_INT("Webserver port", webserver_port);
   printf("\n");
 }
 
@@ -705,6 +706,7 @@ print_nvm(void)
 
 //Global flags
 #define disable_config_option 11001
+#define webserver_port_option 11002
 
 //Security
 #define security_layer_option 12000
@@ -790,6 +792,7 @@ static struct option long_options[] = {
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
   {"smart-multi-br", required_argument, 0, smart_multi_br_option},
   {"disable-config", required_argument, 0, disable_config_option},
+  {"webserver-port", required_argument, 0, webserver_port_option},
 
   {"fit", no_argument, 0, fit_option},
 };
@@ -899,6 +902,7 @@ help(char const *name)
   printf("\n");
   //Global flags
   printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
+  printf("\t--webserver-port <port> \t\t Configure Webserver port\n");
   printf("\n");
 
   printf
@@ -1020,6 +1024,7 @@ main(int argc, char *argv[])
 
   //Global flags
   char *disable_config = NULL;
+  char *webserver_port = NULL;
 
   int file_nb;
 
@@ -1106,6 +1111,7 @@ main(int argc, char *argv[])
 
     //Global flags
     CASE_OPTION(disable_config)
+    CASE_OPTION(webserver_port)
 
     case fit_option:
       fit = 1;
@@ -1216,6 +1222,7 @@ main(int argc, char *argv[])
 
     //Global flags
     UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)
+    UPDATE_INT("webserver-port", webserver_port)
 
   } else if(print_nvm_file) {
     print_nvm();

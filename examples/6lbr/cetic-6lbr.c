@@ -373,7 +373,7 @@ cetic_6lbr_init_finalize(void)
     resolv_set_hostname((char *)nvm_data.dns_host_name);
 #if RESOLV_CONF_SUPPORTS_DNS_SD
     if((nvm_data.dns_flags & CETIC_6LBR_DNS_DNS_SD) != 0) {
-      resolv_add_service("_6lbr._tcp", "", 80);
+      resolv_add_service("_6lbr._tcp", "", nvm_data.webserver_port);
     }
 #endif
   }

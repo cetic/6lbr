@@ -269,7 +269,8 @@ PROCESS_THREAD(httpd_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  tcp_listen(UIP_HTONS(80));
+  tcp_listen(UIP_HTONS(nvm_data.webserver_port));
+  LOG6LBR_INFO("Starting webserver on port %d\n", nvm_data.webserver_port);
   memb_init(&conns);
 
   while(1) {

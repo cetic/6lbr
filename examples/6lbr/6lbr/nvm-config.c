@@ -94,7 +94,7 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
-  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_1)
   {
     if (!reset) {
       LOG6LBR_WARN("Migrate NVM version 0 towards 1\n");
@@ -129,10 +129,10 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
-  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_1)
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_2)
   {
     if (!reset) {
-      LOG6LBR_WARN("Migrate NVM version 1 towards 2\n");
+      LOG6LBR_WARN("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_2);
     }
     nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
 
@@ -157,6 +157,8 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
     strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+
+    nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
 
     flash = 1;
   }
