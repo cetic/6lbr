@@ -40,27 +40,32 @@
 static int
 accepted_type(unsigned int type)
 {
-  return type == -1 || type == REST.type.TEXT_PLAIN;
+  return type == -1 || type == REST.type.APPLICATION_JSON;
 }
 
 static int
 format_type(unsigned int type)
 {
-  return REST.type.TEXT_PLAIN;
+  return REST.type.APPLICATION_JSON;
 }
 
 static int
 format_value(char *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data)
 {
   (void)accepted_type;
-  (void)resource_name;
   int strpos = 0;
   int bufpos = 0;
   int tmplen = 0;
   char tmpbuf[16];
+
   do {
+    ADD_STATIC_IF_POSSIBLE("{\"");
+    ADD_STRING_IF_POSSIBLE(resource_name);
+    ADD_STATIC_IF_POSSIBLE("\":");
     switch(resource_type) {
     case COAP_RESOURCE_TYPE_BOOLEAN:
+      ADD_STRING_IF_POSSIBLE(data ? "true" : "false");
+      break;
     case COAP_RESOURCE_TYPE_SIGNED_INT:
       ADD_FORMATTED_STRING_IF_POSSIBLE("%ld", (long int)data);
       break;
@@ -77,12 +82,15 @@ format_value(char *buffer, int buffer_size, int offset, unsigned int accepted_ty
       ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%03u", (int)(data / 1000), (unsigned int)(data % 1000));
       break;
     case COAP_RESOURCE_TYPE_STRING:
+      ADD_CHAR_IF_POSSIBLE('"');
       ADD_STRING_IF_POSSIBLE((char *)data);
+      ADD_CHAR_IF_POSSIBLE('"');
       break;
     default:
       printf("Unsupported resource type %d\n", resource_type);
       break;
     }
+    ADD_CHAR_IF_POSSIBLE('}');
   } while (0);
   return bufpos;
 }
@@ -90,10 +98,8 @@ format_value(char *buffer, int buffer_size, int offset, unsigned int accepted_ty
 static int
 start_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
 {
-  (void)buffer;
-  (void)buffer_size;
   (void)accepted_type;
-  return  0;
+  return snprintf((char *)buffer, buffer_size, "{\"e\":[");
 }
 
 static int
@@ -109,10 +115,8 @@ batch_separator(char *buffer, int buffer_size, int offset, unsigned int accepted
 static int
 end_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
 {
-  (void)buffer;
-  (void)buffer_size;
   (void)accepted_type;
-  return  0;
+  return snprintf((char *)buffer, buffer_size, "]}");
 }
 
 static int
@@ -144,7 +148,7 @@ parse_value(char const *buffer, char const * max, unsigned int data_type, int re
   return 0;
 }
 
-coap_data_format_t coap_data_format_text = {
+coap_data_format_t coap_data_format_json = {
     accepted_type,
     format_type,
     format_value,

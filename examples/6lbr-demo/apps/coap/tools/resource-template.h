@@ -104,13 +104,13 @@
   SENSOR_INIT_RESOURCEID(); \
   REST_RES_RESOURCEID_INIT_RESOURCE(resourceid, path);
 
-#define REST_RES_RESOURCEID_DEFINE(res_if, res_t) \
+#define REST_RES_RESOURCEID_DEFINE(res_if, res_t, res_id) \
   REST_RES_RESOURCEID_RESOURCE(resourceid, \
     REST_RES_RESOURCEID_PERIOD, \
     res_if, \
     res_t, \
     REST_REST_RESOURCEID_FORMAT, \
-    "resourceid", \
+    res_id, \
     REST_REST_RESOURCEID_VALUE)
 
 #define REST_RES_RESOURCEID_REF &resource_resourceid,

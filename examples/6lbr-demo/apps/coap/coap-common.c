@@ -199,7 +199,7 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
   return pos;
 }/*---------------------------------------------------------------------------*/
 void
-simple_resource_get_handler(int resource_type, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+simple_resource_get_handler(int resource_type, char const *resource_name, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
@@ -207,16 +207,17 @@ simple_resource_get_handler(int resource_type, uint32_t resource_value, void* re
   }
   if (coap_data_format.accepted_type(accept))
   {
-    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, accept, resource_type, resource_value);
+    PRINTF("In Offset : %d, pref: %d\n", *offset, preferred_size);
+    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
     REST.set_header_content_type(response, coap_data_format.format_type(accept));
     if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+      REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
         *offset = -1;
       } else {
         *offset += preferred_size;
       }
-      PRINTF("Offset : %d\n", *offset);
+      PRINTF("Out Offset : %d, buf: %d\n", *offset, buffer_size);
     } else {
       REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
     }
@@ -226,7 +227,7 @@ simple_resource_get_handler(int resource_type, uint32_t resource_value, void* re
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value, uint32_t len), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+simple_resource_set_handler(int resource_type, char const * resource_name, int(*resource_set)(uint32_t value, uint32_t len), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
@@ -237,7 +238,7 @@ simple_resource_set_handler(int resource_type, int(*resource_set)(uint32_t value
     const uint8_t * payload;
     size_t len = REST.get_request_payload(request, &payload);
     uint32_t value;
-    if (coap_data_format.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, &value)) {
+    if (coap_data_format.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, resource_name, &value)) {
       if(resource_set(value, len)) {
         REST.set_response_status(response, REST.status.CHANGED);
       } else {
@@ -260,10 +261,10 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   }
   if (coap_data_format.accepted_type(accept))
   {
-    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, accept, resource_info->flags, resource_info->data.last_value);
+    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
     REST.set_header_content_type(response, coap_data_format.format_type(accept));
     if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+      REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
         *offset = -1;
       } else {

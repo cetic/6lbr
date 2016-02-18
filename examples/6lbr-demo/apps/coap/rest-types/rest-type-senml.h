@@ -39,33 +39,6 @@
 
 #ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
 
-#ifdef REST_TYPE_SENML_CONF_TIMESTAMP
-#define REST_TYPE_SENML_TIMESTAMP REST_TYPE_SENML_CONF_TIMESTAMP
-#else
-#define REST_TYPE_SENML_TIMESTAMP 1
-#endif
-
-// To modify : actually JSON number
-#define REST_TYPE 50 //REST.type.APPLICATION_SENML_PLUS_JSON
-
-#define REST_FORMAT_SENML_START(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "{\"e\":["); \
-		if (pos > size) pos = size; \
-	}
-
-#define REST_FORMAT_SENML_SQ_BRACKET_END(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "]"); \
-		if (pos > size) pos = size; \
-	}
-
-#define REST_FORMAT_SENML_CUR_BRACKET_END(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "}"); \
-		if (pos > size) pos = size; \
-	}
-
 #define REST_FORMAT_BASETIME(buffer, size, pos) \
 if (pos < size) { \
 	pos += snprintf((char *)buffer + pos, size - pos, ",\"bt\":%u", coap_batch_basetime); \
@@ -78,60 +51,12 @@ if (pos < size) { \
 	} \
 	pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "}")
 
-#define REST_FORMAT_ONE_GENERAL(resource_name, format_specifier, resource_value) \
-	pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":"format_specifier, (resource_value)); \
-	REST_FORMAT_TIMESTAMP
-
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) REST_FORMAT_ONE_GENERAL(resource_name, "%d", resource_value)
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) REST_FORMAT_ONE_GENERAL(resource_name, "%u", resource_value)
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) REST_FORMAT_ONE_GENERAL(resource_name, "%ld", resource_value)
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) REST_FORMAT_ONE_GENERAL(resource_name, "%lu", resource_value)
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
-{ \
-		int value = (resource_value); \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%u", (int)(value / 10), (unsigned int)(value % 10)); \
-		REST_FORMAT_TIMESTAMP \
-}
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
-{ \
-		int value = (resource_value); \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%02u", (int)(value / 100), (unsigned int)(value % 100)); \
-		REST_FORMAT_TIMESTAMP \
-}
-#define REST_FORMAT_THREE_DECIMAL(resource_name, resource_value) \
-{ \
-                int value = (resource_value); \
-                pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"v\":%d.%03u", (int)(value / 1000), (unsigned int)(value % 1000)); \
-                REST_FORMAT_TIMESTAMP \
-}
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-		pos += snprintf((char *)buffer + pos, REST_MAX_CHUNK_SIZE - pos, "{\"n\":\""resource_name"\",\"sv\":\"%s\"", (sensor_value)); \
-		REST_FORMAT_TIMESTAMP
-
-/* To modify : actually JSON
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\""#resource_name"\":{\""sensor_a_name"\":%d,\""sensor_b_name"\":%d}}", (sensor_a), (sensor_b))
-*/
-
-#define REST_FORMAT_BATCH_START(buffer, size, pos) REST_FORMAT_SENML_START(buffer, size, pos)
-
-#define REST_FORMAT_SEPARATOR(buffer, size, pos) if (pos < size) { buffer[(pos)++] = ','; }
-
-#define REST_FORMAT_BATCH_END(buffer, size, pos) REST_FORMAT_SENML_END(buffer, size, pos)
 
 #define REST_FORMAT_SENML_END(buffer, size, pos) \
 	REST_FORMAT_SENML_SQ_BRACKET_END(buffer, size, pos) \
 	if(coap_batch_basetime) \
 		REST_FORMAT_BASETIME(buffer, size, pos) \
 	REST_FORMAT_SENML_CUR_BRACKET_END(buffer, size, pos)
-
-#define REST_TYPE_ERROR "Supporting content-type: application/senml+json"
 
 #endif
 #endif /* REST_TYPE_SENML_H */

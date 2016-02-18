@@ -43,17 +43,55 @@ struct coap_data_format_s {
   int (*format_type)(unsigned int type);
 
   /* Write data */
-  int (*format_value)(char *buffer, int size, unsigned int accepted_type, int resource_type, uint32_t data);
-  int (*start_batch)(char *buffer, int size, unsigned int accepted_type);
-  int (*batch_separator)(char *buffer, int size, unsigned int accepted_type);
-  int (*end_batch)(char *buffer, int size, unsigned int accepted_type);
+  int (*format_value)(char *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data);
+  int (*start_batch)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
+  int (*batch_separator)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
+  int (*end_batch)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
 
   /* Parse data */
-  int (*parse_value)(char const *buffer, char const * max, unsigned int data_type, int resource_type, uint32_t *data);
+  int (*parse_value)(char const *buffer, char const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data);
 };
 
 typedef struct coap_data_format_s coap_data_format_t;
 
 extern coap_data_format_t coap_data_format;
+
+#define ADD_CHAR_IF_POSSIBLE(c) \
+  if(strpos >= offset && bufpos < buffer_size) { \
+    buffer[bufpos++] = c; \
+  } \
+  ++strpos
+
+#define ADD_STRING_IF_POSSIBLE(string) \
+  tmplen = strlen(string); \
+  if(strpos + tmplen > offset) { \
+    bufpos += snprintf((char *)buffer + bufpos, \
+                       buffer_size - bufpos + 1, \
+                       "%s", \
+                       string \
+                       + (offset - (int32_t)strpos > 0 ? \
+                          offset - (int32_t)strpos : 0)); \
+    if(bufpos > buffer_size) { \
+      break; \
+    } \
+  } \
+  strpos += tmplen
+
+#define ADD_STATIC_IF_POSSIBLE(string) \
+  if(strpos + sizeof(string) - 1 > offset) { \
+    bufpos += snprintf((char *)buffer + bufpos, \
+                       buffer_size - bufpos + 1, \
+                       (const char *)string \
+                       + (offset - (int32_t)strpos > 0 ? \
+                          offset - (int32_t)strpos : 0)); \
+    if(bufpos > buffer_size) { \
+      break; \
+    } \
+  } \
+  strpos += sizeof(string) - 1
+
+#define ADD_FORMATTED_STRING_IF_POSSIBLE(fmt, ...) \
+  snprintf(tmpbuf, 16, fmt, __VA_ARGS__); \
+  ADD_STRING_IF_POSSIBLE(tmpbuf)
 
 #endif

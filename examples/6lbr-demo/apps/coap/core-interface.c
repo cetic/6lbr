@@ -40,6 +40,7 @@
 
 #include "core-interface.h"
 #include "coap-common.h"
+#include "coap-data-format.h"
 #include "coap-push.h"
 
 #if WITH_NVM
@@ -77,7 +78,7 @@ int core_itf_linked_batch_resource = 0;
   strpos += tmplen
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_data_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int i;
   int32_t tmp = 0;
@@ -91,17 +92,17 @@ resource_batch_get_data_handler(uint8_t *batch_buffer, int *batch_buffer_size, r
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
     if(batch_resource_list_size > 0)
-      REST_FORMAT_BATCH_START(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+      *batch_buffer_size += coap_data_format.start_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
     for (i = 0; i < batch_resource_list_size; ++i) {
       tmp = 0;
       batch_resource_list[i]->get_handler(request, response, batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
       *batch_buffer_size += REST.get_request_payload(response, &tmp_payload);
       if (i + 1 < batch_resource_list_size ) {
-        REST_FORMAT_SEPARATOR(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+        *batch_buffer_size += coap_data_format.batch_separator(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
       }
     }
     if(batch_resource_list_size > 0)
-      REST_FORMAT_BATCH_END(batch_buffer, CORE_ITF_MAX_BATCH_BUFFER_SIZE, *batch_buffer_size);
+      *batch_buffer_size += coap_data_format.end_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
   }
   if (*offset > *batch_buffer_size) {
     coap_set_status_code(response, BAD_OPTION_4_02);
@@ -109,7 +110,7 @@ resource_batch_get_data_handler(uint8_t *batch_buffer, int *batch_buffer_size, r
     return;
   }
   coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
-  coap_set_header_content_format(response, REST_TYPE);
+  coap_set_header_content_format(response, coap_data_format.format_type(accepted_type));
   if (*offset + preferred_size >= *batch_buffer_size) {
     *offset = -1;
   } else {
@@ -211,7 +212,7 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   if (accept == -1 || accept == REST_TYPE)
   {
     REST.set_header_content_type(response, REST_TYPE);
-    resource_batch_get_data_handler(batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
+    resource_batch_get_data_handler(accept, batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
   } else if (accept == APPLICATION_LINK_FORMAT) {
     resource_linked_list_get_handler(batch_resource, batch_resource_list, batch_resource_list_size, flags, request, response, buffer, preferred_size, offset);
   } else {

@@ -153,10 +153,10 @@ resource_t*
 rest_find_resource_by_url(const char *url);
 
 void
-resource_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+simple_resource_get_handler(int resource_type, char const * resource_name, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 void
-simple_resource_get_handler(int resource_type, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+simple_resource_set_handler(int resource_type, char const * resource_name, int(*resource_set)(uint32_t value, uint32_t len), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 void
 full_resource_get_handler(coap_full_resource_t *resource_info, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -202,14 +202,14 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
     if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_START(buffer, preferred_size, pos) } \
     format; \
     if(!core_itf_linked_batch_resource) { REST_FORMAT_SENML_END(buffer, preferred_size, pos) } \
-    simple_resource_get_handler(resource_format_type, resource_value, request, response, buffer, preferred_size, offset); \
+    simple_resource_get_handler(resource_format_type, resource_id, esource_value, request, response, buffer, preferred_size, offset); \
   }
 #else
 #define REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
     void \
     resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
     { \
-      simple_resource_get_handler(resource_format_type, resource_value, request, response, buffer, preferred_size, offset); \
+      simple_resource_get_handler(resource_format_type, resource_id, resource_value, request, response, buffer, preferred_size, offset); \
     }
 #endif
 
@@ -238,7 +238,7 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
   void \
   resource_##resource_name##_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-  simple_resource_set_handler(resource_format_type, resource_actuator, request, response, buffer, preferred_size, offset); \
+  simple_resource_set_handler(resource_format_type, resource_id, resource_actuator, request, response, buffer, preferred_size, offset); \
   }
 
 #define REST_RESOURCE_POST_HANDLER(resource_name, parser, actuator_set) \
@@ -312,6 +312,7 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
       .flags = resource_format_type, \
       .trigger = { .flags = resource_period != 0 ? COAP_BINDING_FLAGS_PMIN_VALID : 0, .pmin = resource_period }, \
       .update_value = update_resource_##resource_name##_value, \
+      .name = resource_id, \
   }; \
   REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
   REST_RESOURCE_CONFIG_HANDLER(resource_name) \

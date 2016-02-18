@@ -92,6 +92,7 @@ struct coap_full_resource_s {
   void (*update_value)(coap_resource_data_t *data);
   coap_binding_cond_t  trigger;
   coap_resource_data_t data;
+  char const * name;
 };
 typedef struct coap_full_resource_s coap_full_resource_t;
 
