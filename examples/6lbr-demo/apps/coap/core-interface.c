@@ -92,17 +92,17 @@ resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffe
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
     if(batch_resource_list_size > 0)
-      *batch_buffer_size += coap_data_format.start_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+      *batch_buffer_size += COAP_DATA_FORMAT.start_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
     for (i = 0; i < batch_resource_list_size; ++i) {
       tmp = 0;
       batch_resource_list[i]->get_handler(request, response, batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
       *batch_buffer_size += REST.get_request_payload(response, &tmp_payload);
       if (i + 1 < batch_resource_list_size ) {
-        *batch_buffer_size += coap_data_format.batch_separator(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+        *batch_buffer_size += COAP_DATA_FORMAT.batch_separator(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
       }
     }
     if(batch_resource_list_size > 0)
-      *batch_buffer_size += coap_data_format.end_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+      *batch_buffer_size += COAP_DATA_FORMAT.end_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
   }
   if (*offset > *batch_buffer_size) {
     coap_set_status_code(response, BAD_OPTION_4_02);
@@ -110,7 +110,7 @@ resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffe
     return;
   }
   coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
-  coap_set_header_content_format(response, coap_data_format.format_type(accepted_type));
+  coap_set_header_content_format(response, COAP_DATA_FORMAT.format_type(accepted_type));
   if (*offset + preferred_size >= *batch_buffer_size) {
     *offset = -1;
   } else {

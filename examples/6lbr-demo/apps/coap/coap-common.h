@@ -45,9 +45,22 @@
 #include "er-coap.h"
 #include "coap-binding.h"
 
+#include "coap-data-format.h"
+
 // Global variable for SenML basetime factorization
 extern unsigned long coap_batch_basetime;
-// -------------------------------------
+
+/*---------------------------------------------------------------------------*/
+
+#ifndef COAP_CONF_DATA_FORMAT
+#define COAP_DATA_FORMAT coap_data_format_text
+#else
+#define COAP_DATA_FORMAT COAP_CONF_DATA_FORMAT
+#endif
+
+extern coap_data_format_t COAP_DATA_FORMAT;
+
+/*---------------------------------------------------------------------------*/
 
 #ifdef REST_CONF_DEFAULT_PERIOD
 #define REST_DEFAULT_PERIOD REST_CONF_DEFAULT_PERIOD

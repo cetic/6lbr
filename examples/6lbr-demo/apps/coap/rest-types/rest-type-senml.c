@@ -170,7 +170,7 @@ parse_value(char const *buffer, char const * max, unsigned int data_type, int re
   return 0;
 }
 
-coap_data_format_t coap_data_format = {
+coap_data_format_t coap_data_format_senml = {
     accepted_type,
     format_type,
     format_value,

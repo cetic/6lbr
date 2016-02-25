@@ -54,8 +54,6 @@ struct coap_data_format_s {
 
 typedef struct coap_data_format_s coap_data_format_t;
 
-extern coap_data_format_t coap_data_format;
-
 #define ADD_CHAR_IF_POSSIBLE(c) \
   if(strpos >= offset && bufpos < buffer_size) { \
     buffer[bufpos++] = c; \

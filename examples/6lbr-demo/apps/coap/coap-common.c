@@ -205,11 +205,11 @@ simple_resource_get_handler(int resource_type, char const *resource_name, uint32
   if (request != NULL) {
     REST.get_header_accept(request, &accept);
   }
-  if (coap_data_format.accepted_type(accept))
+  if (COAP_DATA_FORMAT.accepted_type(accept))
   {
     PRINTF("In Offset : %d, pref: %d\n", *offset, preferred_size);
-    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
-    REST.set_header_content_type(response, coap_data_format.format_type(accept));
+    int buffer_size = COAP_DATA_FORMAT.format_value((char *)buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
+    REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
@@ -233,12 +233,12 @@ simple_resource_set_handler(int resource_type, char const * resource_name, int(*
   if (request != NULL) {
     REST.get_header_accept(request, &accept);
   }
-  if (coap_data_format.accepted_type(accept))
+  if (COAP_DATA_FORMAT.accepted_type(accept))
   {
     const uint8_t * payload;
     size_t len = REST.get_request_payload(request, &payload);
     uint32_t value;
-    if (coap_data_format.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, resource_name, &value)) {
+    if (COAP_DATA_FORMAT.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, resource_name, &value)) {
       if(resource_set(value, len)) {
         REST.set_response_status(response, REST.status.CHANGED);
       } else {
@@ -259,10 +259,10 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   if (request != NULL) {
     REST.get_header_accept(request, &accept);
   }
-  if (coap_data_format.accepted_type(accept))
+  if (COAP_DATA_FORMAT.accepted_type(accept))
   {
-    int buffer_size = coap_data_format.format_value((char *)buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
-    REST.set_header_content_type(response, coap_data_format.format_type(accept));
+    int buffer_size = COAP_DATA_FORMAT.format_value((char *)buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
+    REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
