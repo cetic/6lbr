@@ -30,8 +30,6 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
-#define LLSEC802154_CONF_SECURITY 1
-
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          16
 
