@@ -70,7 +70,21 @@ on_frame_created(void)
 static void
 input(void)
 {
-  NETSTACK_NETWORK.input();
+  int duplicate = 0;
+#if !RDC_WITH_DUPLICATE_DETECTION
+  /* Check for duplicate packet. */
+  duplicate = mac_sequence_is_duplicate();
+  if(duplicate) {
+    /* Drop the packet. */
+    printf("nullsec: drop duplicate link layer packet %u\n",
+           packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+  } else {
+    mac_sequence_register_seqno();
+  }
+#endif
+  if(!duplicate) {
+    NETSTACK_NETWORK.input();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
