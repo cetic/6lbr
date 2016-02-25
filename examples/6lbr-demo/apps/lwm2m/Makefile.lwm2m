@@ -1,2 +1,5 @@
 CFLAGS+=-DWITH_LWM2M=1
+
+RESOURCES_TEMPLATE=$(PROJECTDIR)/apps/lwm2m/resource-template.h
+
 lwm2m_src = lwm2m.c lwm2m-device-object.c

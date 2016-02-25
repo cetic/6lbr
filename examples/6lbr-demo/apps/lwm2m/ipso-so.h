@@ -86,4 +86,77 @@
 #define IPSO_SO_SENSOR_TYPE(resource, sensor_type) REST_RESOURCE(resource ## _sensor_type, 0, "", "", COAP_RESOURCE_TYPE_STRING, IPSO_SO_SENSOR_TYPE_RESOURCE_ID, sensor_type)
 #define IPSO_SO_UNIT(resource, unit) REST_RESOURCE(resource ## _unit, 0, "", "", COAP_RESOURCE_TYPE_STRING, IPSO_SO_SENSOR_UNIT_RESOURCE_ID, unit)
 
+
+#define IPSO_SO_GENERIC_SENSOR_OBJECT_INSTANCE_DEFINE(instance_name, unit, sensor_type, get_app_type, set_app_type) \
+  IPSO_SO_UNIT(instance_name, unit); \
+  IPSO_SO_SENSOR_TYPE(instance_name, sensor_type); \
+  IPSO_SO_APPLICATION_TYPE(instance_name); \
+  IPSO_SO_INSTANCE(instance_name, \
+    REST_RES_REF(instance_name) \
+    REST_RES_REF(instance_name ## _unit) \
+    REST_RES_REF(instance_name ## _application_type) \
+    REST_RES_REF(instance_name ## _sensor_type));
+
+#define IPSO_SO_GENERIC_SENSOR_OBJECT_INSTANCE_INIT(instance_name, instance_id) \
+  INIT_RESOURCE(instance_name ## _instance, LWM2M_INSTANCE_PATH(IPSO_SO_GEN_SEN_OBJECT_ID, instance_id)); \
+  INIT_RESOURCE(instance_name ## _unit, LWM2M_RESOURCE_PATH(IPSO_SO_GEN_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_UNIT_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _application_type, LWM2M_RESOURCE_PATH(IPSO_SO_GEN_SEN_OBJECT_ID, instance_id, IPSO_SO_APPLICATION_TYPE_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _sensor_type, LWM2M_RESOURCE_PATH(IPSO_SO_GEN_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_TYPE_RESOURCE_ID));
+
+#define IPSO_SO_LUMIN_OBJECT_INSTANCE_DEFINE(instance_name, unit, sensor_type) \
+  IPSO_SO_UNIT(instance_name, unit); \
+  IPSO_SO_SENSOR_TYPE(instance_name, sensor_type); \
+  IPSO_SO_INSTANCE(instance_name, \
+    REST_RES_REF(instance_name) \
+    REST_RES_REF(instance_name ## _unit) \
+    REST_RES_REF(instance_name ## _sensor_type));
+
+#define IPSO_SO_LUMIN_OBJECT_INSTANCE_INIT(instance_name, instance_id) \
+  INIT_RESOURCE(instance_name ## _instance, LWM2M_INSTANCE_PATH(IPSO_SO_LUMIN_OBJECT_ID, instance_id)); \
+  INIT_RESOURCE(instance_name ## _unit, LWM2M_RESOURCE_PATH(IPSO_SO_LUMIN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_UNIT_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _sensor_type, LWM2M_RESOURCE_PATH(IPSO_SO_LUMIN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_TYPE_RESOURCE_ID));
+
+#define IPSO_SO_TEMP_SEN_OBJECT_INSTANCE_DEFINE(instance_name, unit, sensor_type) \
+  IPSO_SO_UNIT(instance_name, unit); \
+  IPSO_SO_SENSOR_TYPE(instance_name, sensor_type); \
+  IPSO_SO_INSTANCE(instance_name, \
+    REST_RES_REF(instance_name) \
+    REST_RES_REF(instance_name ## _unit) \
+    REST_RES_REF(instance_name ## _sensor_type));
+
+#define IPSO_SO_TEMP_SEN_OBJECT_INSTANCE_INIT(instance_name, instance_id) \
+  INIT_RESOURCE(instance_name ## _instance, LWM2M_INSTANCE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, instance_id)); \
+  INIT_RESOURCE(instance_name ## _unit, LWM2M_RESOURCE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_UNIT_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _sensor_type, LWM2M_RESOURCE_PATH(IPSO_SO_TEMP_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_TYPE_RESOURCE_ID));
+
+#define IPSO_SO_HUM_SEN_OBJECT_INSTANCE_DEFINE(instance_name, unit, sensor_type) \
+  IPSO_SO_UNIT(instance_name, unit); \
+  IPSO_SO_SENSOR_TYPE(instance_name, sensor_type); \
+  IPSO_SO_INSTANCE(instance_name, \
+    REST_RES_REF(instance_name) \
+    REST_RES_REF(instance_name ## _unit) \
+    REST_RES_REF(instance_name ## _sensor_type));
+
+#define IPSO_SO_HUM_SEN_OBJECT_INSTANCE_INIT(instance_name, instance_id) \
+  INIT_RESOURCE(instance_name ## _instance, LWM2M_INSTANCE_PATH(IPSO_SO_HUM_SEN_OBJECT_ID, instance_id)); \
+  INIT_RESOURCE(instance_name ## _unit, LWM2M_RESOURCE_PATH(IPSO_SO_HUM_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_UNIT_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _sensor_type, LWM2M_RESOURCE_PATH(IPSO_SO_HUM_SEN_OBJECT_ID, instance_id, IPSO_SO_SENSOR_TYPE_RESOURCE_ID));
+
+#define IPSO_SO_BARO_METER_OBJECT_INSTANCE_DEFINE(instance_name, unit, sensor_type) \
+  IPSO_SO_UNIT(instance_name, unit); \
+  IPSO_SO_SENSOR_TYPE(instance_name, sensor_type); \
+  IPSO_SO_INSTANCE(instance_name, \
+    REST_RES_REF(instance_name) \
+    REST_RES_REF(instance_name ## _unit) \
+    REST_RES_REF(instance_name ## _sensor_type));
+
+#define IPSO_SO_BARO_METER_OBJECT_INSTANCE_INIT(instance_name, instance_id) \
+  INIT_RESOURCE(instance_name ## _instance, LWM2M_INSTANCE_PATH(IPSO_SO_BARO_METER_OBJECT_ID, instance_id)); \
+  INIT_RESOURCE(instance_name ## _unit, LWM2M_RESOURCE_PATH(IPSO_SO_BARO_METER_OBJECT_ID, instance_id, IPSO_SO_SENSOR_UNIT_RESOURCE_ID)); \
+  INIT_RESOURCE(instance_name ## _sensor_type, LWM2M_RESOURCE_PATH(IPSO_SO_BARO_METER_OBJECT_ID, instance_id, IPSO_SO_SENSOR_TYPE_RESOURCE_ID));
+
+#define IPSO_SO_CONCAT_(x, y) IPSO_SO_ ## x ## y
+
+#define IPSO_SO_EVAL(x, y) IPSO_SO_CONCAT_(x, y)
+
 #endif /* IPSO_SO_H */

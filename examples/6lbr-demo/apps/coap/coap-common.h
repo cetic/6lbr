@@ -278,7 +278,7 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
 
 #define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, (uint32_t)resource_value) \
   RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TO_STRING(REST_TYPE)), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value, resource_actuator) \
