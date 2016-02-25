@@ -158,7 +158,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 {
 #if CETIC_6LBR_SMARTBRIDGE
   int new_prefix = !uip_ipaddr_prefixcmp(&wsn_net_prefix, prefix, len);
-  int new_dag_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
+  int new_dag_prefix = cetic_dag == NULL || !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
@@ -175,9 +175,15 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 #endif
   }
   if(new_dag_prefix) {
-    rpl_set_prefix(cetic_dag, prefix, len);
-    LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
-    rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
+      rpl_set_prefix(cetic_dag, prefix, len);
+      LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+    } else {
+      rpl_set_prefix(cetic_dag, prefix, len);
+      LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
+      rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    }
   }
 #endif
 }
@@ -321,8 +327,17 @@ cetic_6lbr_init_finalize(void)
   } else {
     //Automatic DODAG ID
     if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+#if CETIC_6LBR_SMARTBRIDGE
+      if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+#endif
       //DODAGID = global address used !
       cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
+#if CETIC_6LBR_SMARTBRIDGE
+      } else {
+        //Not global IP yet configured
+        cetic_dag = NULL;
+      }
+#endif
     } else {
       //DODAGID = link-local address used !
       cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
@@ -335,7 +350,9 @@ cetic_6lbr_init_finalize(void)
 #else
   rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
 #endif
-  LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+  if(cetic_dag) {
+    LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+  }
 #endif
 
 #if CETIC_6LBR_IP64
