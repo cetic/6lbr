@@ -46,6 +46,15 @@
 #include "net/mac/frame802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "net/mac/mac-sequence.h"
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -76,7 +85,7 @@ input(void)
   duplicate = mac_sequence_is_duplicate();
   if(duplicate) {
     /* Drop the packet. */
-    printf("nullsec: drop duplicate link layer packet %u\n",
+    PRINTF("nullsec: drop duplicate link layer packet %u\n",
            packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
   } else {
     mac_sequence_register_seqno();
