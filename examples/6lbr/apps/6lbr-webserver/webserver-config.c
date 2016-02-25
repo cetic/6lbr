@@ -372,7 +372,9 @@ update_config(const char *name, uint8_t *reboot_needed)
   char *next;
   uint8_t do_update = 1;
   uip_ipaddr_t loc_fipaddr;
+#if CETIC_6LBR_IP64
   uip_ip4addr_t loc_fip4addr;
+#endif
 
   *reboot_needed = 0;
 
