@@ -102,12 +102,12 @@
 #undef AES_128_CONF
 #define AES_128_CONF aes_128_driver
 
+#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
+
 #else
 
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC nullsec_driver
-
-#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
 
 #endif
 
