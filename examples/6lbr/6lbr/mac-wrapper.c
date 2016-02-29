@@ -56,7 +56,8 @@ mac_wrapper_init(void)
     current_mac_driver = &csma_driver;
   } else {
     LOG6LBR_ERROR("Unknown mac driver, using 'csma' instead\n");
-    current_mac_driver = &nullmac_driver;
+    current_mac_driver = &csma_driver;
+    nvm_data.mac_layer = CETIC_6LBR_MAC_LAYER_CSMA;
   }
 }
 /*---------------------------------------------------------------------------*/

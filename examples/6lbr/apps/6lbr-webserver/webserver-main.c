@@ -44,6 +44,9 @@
 #if CETIC_6LBR_IP64
 #include "ip64.h"
 #endif
+#if CETIC_6LBR_MACC_WRAPPER
+#include "mac-wrapper.h"
+#endif
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #endif
@@ -135,8 +138,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("<br /><h2>WSN</h2>");
 #if !CETIC_6LBR_ONE_ITF
-  add("MAC: %s<br />RDC: %s (%d Hz)<br />",
-      NETSTACK_MAC.name,
+#if CETIC_6LBR_MAC_WRAPPER
+  add("MAC: %s<br />", mac_wrapper_name());
+#else
+  add("MAC: %s<br />", NETSTACK_MAC.name);
+#endif
+  add("RDC: %s (%d Hz)<br />",
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());

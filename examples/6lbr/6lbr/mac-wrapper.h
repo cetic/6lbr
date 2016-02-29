@@ -40,5 +40,6 @@
 extern const struct mac_driver mac_wrapper_driver;
 
 void mac_wrapper_init(void);
+char const * mac_wrapper_name(void);
 
 #endif /* MAC_WRAPPER_H_ */
