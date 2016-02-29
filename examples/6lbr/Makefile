@@ -85,7 +85,7 @@ ifneq ($(WITH_COAPSERVER),0)
 APPS += er-coap rest-engine coap
 endif
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c mac-wrapper.c
 MODULES += core/net/llsec/noncoresec
 
 ifeq ($(WITH_IP64),1)

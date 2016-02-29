@@ -58,7 +58,7 @@ typedef struct {
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
 
-  //Security
+  //Security Layer
   uint8_t security_layer;
   uint8_t security_level;
 
@@ -84,6 +84,8 @@ typedef struct {
   //Webserver configuration
   uint16_t webserver_port;
 
+  //MAC Layer
+  uint8_t mac_layer;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -142,6 +144,10 @@ typedef struct {
 
 // DNS
 #define CETIC_6LBR_DNS_DNS_SD             0x01
+
+//MAC
+#define CETIC_6LBR_MAC_LAYER_NONE  0
+#define CETIC_6LBR_MAC_LAYER_CSMA  1
 
 /*---------------------------------------------------------------------------*/
 
@@ -212,6 +218,9 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME "6lbr"
 
 #define CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT 80
+
+//MAC
+#define CETIC_6LBR_NVM_DEFAULT_MAC_LAYER CETIC_6LBR_MAC_LAYER_NONE
 
 /*---------------------------------------------------------------------------*/
 

@@ -449,6 +449,13 @@ migrate_nvm(uint8_t print_info)
     memcpy(&nvm_data->eth_ip64_netmask, &loc_fip4addr.u8, sizeof(loc_fip4addr));
     CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(&loc_fip4addr);
     memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+
+    nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
+    strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+
+    nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
+
+    nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
   }
 }
 
@@ -620,6 +627,9 @@ print_nvm(void)
   PRINT_INT("RPL lifetime unit", rpl_lifetime_unit);
   printf("\n");
 
+  //MAC Configuration
+  PRINT_INT("MAC layer", mac_layer);
+
   //Security Configuration
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
@@ -721,6 +731,9 @@ print_nvm(void)
 #define eth_ip64_netmask_option 13004
 #define eth_ip64_gateway_option 13005
 
+//MAC
+#define mac_layer_option 14000
+
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
   {"new", no_argument, 0, new_nvm_action},
@@ -779,6 +792,9 @@ static struct option long_options[] = {
   {"security-layer", required_argument, 0, security_layer_option},
   {"security-level", required_argument, 0, security_level_option},
   {"security-key", required_argument, 0, noncoresec_key_option},
+
+  //MAC
+  {"mac-layer", required_argument, 0, mac_layer_option},
 
 // NAT64
   {"nat64-enable", required_argument, 0, nat64_enable_option},
@@ -880,6 +896,10 @@ help(char const *name)
   printf("\t--rpl-min-rank-inc <number> \t RPL Minimum Rank increment\n");
   printf("\t--rpl-lifetime-unit <seconds> \t RPL lifetime unit\n");
   printf("\n");
+
+  //MAC
+  printf("\nMAC :\n");
+  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA)\n");
 
   //Security
   printf("\nSecurity :\n");
@@ -1009,6 +1029,9 @@ main(int argc, char *argv[])
   char *rpl_min_hoprankinc = NULL;
   char *rpl_lifetime_unit = NULL;
 
+  //MAC
+  char *mac_layer = NULL;
+
   //Security
   char *security_layer = NULL;
   char *security_level = NULL;
@@ -1095,6 +1118,9 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_max_rankinc)
     CASE_OPTION(rpl_min_hoprankinc)
     CASE_OPTION(rpl_lifetime_unit)
+
+    //Security
+    CASE_OPTION(mac_layer)
 
     //Security
     CASE_OPTION(security_layer)
@@ -1206,6 +1232,9 @@ main(int argc, char *argv[])
     UPDATE_INT("rpl-max-rank-inc", rpl_max_rankinc)
     UPDATE_INT("rpl-min-rank-inc", rpl_min_hoprankinc)
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
+
+    //Security
+    UPDATE_INT("mac-layer", mac_layer)
 
     //Security
     UPDATE_INT("security-layer", security_layer)

@@ -66,6 +66,10 @@
 #include "ip64-eth.h"
 #endif
 
+#if CETIC_6LBR_MAC_WRAPPER
+#include "mac-wrapper.h"
+#endif
+
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #endif
@@ -436,6 +440,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   load_nvm_config();
 
   platform_init();
+
+#if CETIC_6LBR_MAC_WRAPPER
+  mac_wrapper_init();
+#endif
 
 #if !CETIC_6LBR_ONE_ITF
   platform_radio_init();

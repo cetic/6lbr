@@ -61,9 +61,6 @@
 //Use the whole uip buffer
 #undef UIP_CONF_TCP_MSS
 
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
 #define CETIC_CSMA_STATS      1
 
 #define CSMA_CONF_MAX_NEIGHBOR_QUEUES 16
@@ -75,6 +72,8 @@
 
 #undef RPL_CONF_STATS
 #define RPL_CONF_STATS              1
+
+#define CETIC_6LBR_MAC_WRAPPER        1
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
 

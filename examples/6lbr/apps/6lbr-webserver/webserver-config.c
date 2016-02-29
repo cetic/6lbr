@@ -166,6 +166,13 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+  add("<br /><h3>MAC</h3>");
+  add("MAC Layer : <select name=\"mac\">");
+  SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
+  SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_CSMA, "CSMA");
+  add("</select><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 
   add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
@@ -403,6 +410,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
     UPDATE_HEX("panid", pan_id, 1)
+    UPDATE_INT("mac", mac_layer, 1)
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)

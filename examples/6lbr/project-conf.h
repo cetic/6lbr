@@ -263,6 +263,11 @@
 #endif
 #endif
 
+#if CETIC_6LBR_MAC_WRAPPER
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     mac_wrapper_driver
+#endif
+
 #if CETIC_6LBR_LLSEC_WRAPPER
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC llsec_wrapper_driver

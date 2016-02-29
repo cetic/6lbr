@@ -160,6 +160,8 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
 
+    nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
+
     flash = 1;
   }
 
