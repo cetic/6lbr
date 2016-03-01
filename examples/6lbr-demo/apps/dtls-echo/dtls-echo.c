@@ -33,8 +33,6 @@
 
 #include <string.h>
 
-#include "config.h"
-
 #include "uip-debug.h"
 
 #include "debug.h"
@@ -52,12 +50,12 @@
 #endif
 
 #if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
-#define DTLS_PSK_KEY DTLS_CONF_PSK_KEY
-#define DTLS_PSK_KEY_LENGTH DTLS_CONF_PSK_KEY_LENGTH
+#define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
+#define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
 #else
 #warning "DTLS: Using default secret key !"
-#define DTLS_PSK_KEY "secretPSK"
-#define DTLS_PSK_KEY_LENGTH 9
+#define DTLS_PSK_KEY_VALUE "secretPSK"
+#define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -70,8 +68,6 @@
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[UIP_LLIPH_LEN])
-
-#define MAX_PAYLOAD_LEN 120
 
 static struct uip_udp_conn *server_conn;
 
@@ -105,42 +101,45 @@ send_to_peer(struct dtls_context_t *ctx,
   return len;
 }
 
+#ifdef DTLS_PSK
 /* This function is the "key store" for tinyDTLS. It is called to
  * retrieve a key for the given identiy within this particular
  * session. */
-#if DTLS_VERSION_0_4_0
-int
-get_key(struct dtls_context_t *ctx,
-        const session_t *session,
-        const unsigned char *id, size_t id_len,
-        const dtls_key_t **result) {
+static int
+get_psk_info(struct dtls_context_t *ctx, const session_t *session,
+         dtls_credentials_type_t type,
+         const unsigned char *id, size_t id_len,
+         unsigned char *result, size_t result_length) {
 
-  static const dtls_key_t psk = {
-    .type = DTLS_KEY_PSK,
-    .key.psk.id = (unsigned char *)DTLS_IDENTITY_HINT,
-    .key.psk.id_length = DTLS_IDENTITY_HINT_LENGTH,
-    .key.psk.key = (unsigned char *)DTLS_PSK_KEY,
-    .key.psk.key_length = DTLS_PSK_KEY_LENGTH
+  struct keymap_t {
+    unsigned char *id;
+    size_t id_length;
+    unsigned char *key;
+    size_t key_length;
+  } psk[1] = {
+    { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
 
-  *result = &psk;
-  return 0;
-}
-#else
-int
-get_psk_key(struct dtls_context_t *ctx,
-            const session_t *session,
-            const unsigned char *id, size_t id_len,
-            const dtls_psk_key_t **result) {
-  static const dtls_psk_key_t psk = {
-    .id = (unsigned char *)DTLS_IDENTITY_HINT,
-    .id_length = DTLS_IDENTITY_HINT_LENGTH,
-    .key = (unsigned char *)DTLS_PSK_KEY,
-    .key_length = DTLS_PSK_KEY_LENGTH
-  };
+  if (type != DTLS_PSK_KEY) {
+    return 0;
+  }
 
-  *result = &psk;
-  return 0;
+  if (id) {
+    int i;
+    for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
+      if (id_len == psk[i].id_length && memcmp(id, psk[i].id, id_len) == 0) {
+    if (result_length < psk[i].key_length) {
+      dtls_warn("buffer too small for PSK");
+      return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
+    }
+
+    memcpy(result, psk[i].key, psk[i].key_length);
+    return psk[i].key_length;
+      }
+    }
+  }
+
+  return dtls_alert_fatal_create(DTLS_ALERT_DECRYPT_ERROR);
 }
 #endif
 
@@ -164,19 +163,19 @@ init_dtls() {
     .write = send_to_peer,
     .read  = read_from_peer,
     .event = NULL,
-#if DTLS_VERSION_0_4_0
-    .get_key = get_key
-#else
-    .get_psk_key = get_psk_key,
+#ifdef DTLS_PSK
+    .get_psk_info = get_psk_info,
+#endif
+#ifdef DTLS_ECC
     .get_ecdsa_key = NULL,
-    .verify_ecdsa_key = NULL
+    .verify_ecdsa_key = NULL,
 #endif
   };
 
   server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, UIP_HTONS(DTLS_ECHO_PORT));
 
-  dtls_set_log_level(LOG_DEBUG);
+  dtls_set_log_level(DTLS_LOG_DEBUG);
 
   dtls_context = dtls_new_context(server_conn);
   if (dtls_context)
@@ -193,7 +192,7 @@ PROCESS_THREAD(dtls_echo_server_process, ev, data)
   init_dtls();
 
   if (!dtls_context) {
-    dsrv_log(LOG_EMERG, "cannot create context\n");
+    dsrv_log(DTLS_LOG_EMERG, "cannot create context\n");
     PROCESS_EXIT();
   }
 
