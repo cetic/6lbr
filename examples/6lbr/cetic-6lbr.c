@@ -90,6 +90,15 @@
 #include "coap-server.h"
 #endif
 
+
+#if WITH_TINYDTLS
+#include "dtls.h"
+#endif
+
+#if WITH_DTLS_ECHO
+#include "dtls-echo.h"
+#endif
+
 #if WITH_NVM_PROXY
 #include "nvm-proxy.h"
 #endif
@@ -506,8 +515,17 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
 #endif
+
+#if WITH_TINYDTLS
+dtls_init();
+#endif
+
 #if WITH_COAPSERVER
   coap_server_init();
+#endif
+
+#if WITH_DTLS_ECHO
+  process_start(&dtls_echo_server_process, NULL);
 #endif
 
 #if WITH_NVM_PROXY

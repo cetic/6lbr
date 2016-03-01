@@ -43,6 +43,8 @@ CFLAGS +=-DCETIC_6LBR_LEARN_RPL_MAC=$(CETIC_6LBR_LEARN_RPL_MAC)
 
 CONTIKI_WITH_RPL ?= 1
 WITH_IP64?=1
+WITH_TINYDTLS?=0
+WITH_DTLSECHO?=0
 
 ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
 CONTIKI_WITH_RPL = 0
@@ -83,6 +85,19 @@ endif
 
 ifneq ($(WITH_COAPSERVER),0)
 APPS += er-coap rest-engine coap
+endif
+
+ifneq ($(WITH_TINYDTLS), 0)
+APPS += tinydtls
+CFLAGS += -DWITH_TINYDTLS=1
+CFLAGS += -DUIP_CONF_TCP=0
+PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
+endif
+
+ifneq ($(WITH_DTLSECHO), 0)
+CFLAGS += -DWITH_DTLS_ECHO=1
+PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo
+PROJECT_SOURCEFILES += dtls-echo.c
 endif
 
 PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c mac-wrapper.c
