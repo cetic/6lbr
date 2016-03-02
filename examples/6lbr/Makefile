@@ -45,6 +45,7 @@ CONTIKI_WITH_RPL ?= 1
 WITH_IP64?=1
 WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
+WITH_DTLS_COAP?=0
 
 ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
 CONTIKI_WITH_RPL = 0
@@ -90,7 +91,6 @@ endif
 ifneq ($(WITH_TINYDTLS), 0)
 APPS += tinydtls
 CFLAGS += -DWITH_TINYDTLS=1
-CFLAGS += -DUIP_CONF_TCP=0
 PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 endif
 
