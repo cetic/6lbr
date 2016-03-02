@@ -5,12 +5,11 @@
 #include "er-coap-dtls.h"
 
 #include "dtls.h"
-#include "debug.h"
 
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
-#include "uip-debug.h"
+#include "debug.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -23,12 +22,12 @@
 #endif
 
 #if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
-#define DTLS_PSK_KEY DTLS_CONF_PSK_KEY
-#define DTLS_PSK_KEY_LENGTH DTLS_CONF_PSK_KEY_LENGTH
+#define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
+#define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
 #else
 #warning "DTLS: Using default secret key !"
-#define DTLS_PSK_KEY "secretPSK"
-#define DTLS_PSK_KEY_LENGTH 9
+#define DTLS_PSK_KEY_VALUE "secretPSK"
+#define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -42,40 +41,56 @@ read_from_peer(struct dtls_context_t *ctx,
                session_t *session, uint8 *data, size_t len);
 
 /*-----------------------------------------------------------------------------------*/
-#if DTLS_VERSION_0_4_0
+#ifdef DTLS_PSK
+/* This function is the "key store" for tinyDTLS. It is called to
+ * retrieve a key for the given identiy within this particular
+ * session. */
 static int
-get_key(struct dtls_context_t *ctx,
-        const session_t *session,
-        const unsigned char *id, size_t id_len,
-        const dtls_key_t **result) {
+get_psk_info(struct dtls_context_t *ctx, const session_t *session,
+         dtls_credentials_type_t type,
+         const unsigned char *id, size_t id_len,
+         unsigned char *result, size_t result_length) {
 
-  static const dtls_key_t psk = {
-    .type = DTLS_KEY_PSK,
-    .key.psk.id = (unsigned char *)DTLS_IDENTITY_HINT,
-    .key.psk.id_length = DTLS_IDENTITY_HINT_LENGTH,
-    .key.psk.key = (unsigned char *)DTLS_PSK_KEY,
-    .key.psk.key_length = DTLS_PSK_KEY_LENGTH
+  struct keymap_t {
+    unsigned char *id;
+    size_t id_length;
+    unsigned char *key;
+    size_t key_length;
+  } psk[1] = {
+    { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
+  if (type ==  DTLS_PSK_IDENTITY) {
+    if (id_len) {
+      dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
+    }
 
-  *result = &psk;
-  return 0;
-}
-#else
-static int
-get_psk_key(struct dtls_context_t *ctx,
-            const session_t *session,
-            const unsigned char *id, size_t id_len,
-            const dtls_psk_key_t **result) {
+    if (result_length < psk[0].id_length) {
+      dtls_warn("cannot set psk_identity -- buffer too small\n");
+      return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
+    }
 
-  static const dtls_psk_key_t psk = {
-    .id = (unsigned char *)DTLS_IDENTITY_HINT,
-    .id_length = DTLS_IDENTITY_HINT_LENGTH,
-    .key = (unsigned char *)DTLS_PSK_KEY,
-    .key_length = DTLS_PSK_KEY_LENGTH
-  };
+    memcpy(result, psk[0].id, psk[0].id_length);
+    return psk[0].id_length;
+  } else if (type == DTLS_PSK_KEY) {
+    if (id) {
+      int i;
+      for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
+        if (id_len == psk[i].id_length && memcmp(id, psk[i].id, id_len) == 0) {
+          if (result_length < psk[i].key_length) {
+            dtls_warn("buffer too small for PSK");
+            return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
+          }
 
-  *result = &psk;
-  return 0;
+          memcpy(result, psk[i].key, psk[i].key_length);
+          return psk[i].key_length;
+        }
+      }
+    }
+  } else {
+    return 0;
+  }
+
+  return dtls_alert_fatal_create(DTLS_ALERT_DECRYPT_ERROR);
 }
 #endif
 /*-----------------------------------------------------------------------------------*/
@@ -86,19 +101,19 @@ coap_init_communication_layer(uint16_t port)
     .write = send_to_peer,
     .read  = read_from_peer,
     .event = NULL,
-#if DTLS_VERSION_0_4_0
-    .get_key = get_key
-#else
-    .get_psk_key = get_psk_key,
+#ifdef DTLS_PSK
+    .get_psk_info = get_psk_info,
+#endif
+#ifdef DTLS_ECC
     .get_ecdsa_key = NULL,
-    .verify_ecdsa_key = NULL
+    .verify_ecdsa_key = NULL,
 #endif
   };
 
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
 
-  dtls_set_log_level(LOG_DEBUG);
+  dtls_set_log_level(DTLS_LOG_DEBUG);
 
   coap_default_context = dtls_new_context(server_conn);
   if (coap_default_context)
