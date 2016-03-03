@@ -43,7 +43,7 @@
 #include "block-transfer.h"
 #include "rd-client.h"
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
 #endif
 

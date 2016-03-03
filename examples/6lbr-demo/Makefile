@@ -152,8 +152,8 @@ endif
 endif
 
 ifeq ($(TARGET),sky)
-WITH_NVM?=0
-ifeq ($(WITH_NVM),1)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += f1611-nvm.c
 endif
 endif
@@ -161,15 +161,15 @@ endif
 ifeq ($(TARGET),cc2538dk)
 PROJECTDIRS += $(PROJECTDIR)/dev/sht21
 PROJECT_SOURCEFILES += sht21.c
-WITH_NVM?=0
-ifeq ($(WITH_NVM),1)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += cc2538dk-nvm.c
 endif
 endif
 
-ifeq ($(WITH_NVM),1)
+ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECTDIRS += $(PROJECTDIR)/apps/nvm
-CFLAGS+=-DWITH_NVM=1
+CFLAGS+=-DWITH_CETIC_6LN_NVM=1
 PROJECT_SOURCEFILES += nvm-config.c
 endif
 

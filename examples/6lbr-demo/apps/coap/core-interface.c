@@ -43,7 +43,7 @@
 #include "coap-data-format.h"
 #include "coap-push.h"
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
 #endif
 

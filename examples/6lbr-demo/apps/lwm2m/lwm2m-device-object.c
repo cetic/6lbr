@@ -39,7 +39,7 @@
 #include "device-info-resource.h"
 #include "lwm2m-device-object.h"
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
 #endif
 

@@ -38,7 +38,7 @@
 #include "device-resource.h"
 #include "device-info-resource.h"
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
 #endif
 
@@ -121,7 +121,7 @@
 #endif
 
 #if REST_RES_DEVICE_NAME
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #define DEVICE_NAME_VALUE nvm_data.device_name
 #else
 static char device_name_value[REST_MAX_DEVICE_NAME_LENGTH];
@@ -132,7 +132,7 @@ static char device_name_value[REST_MAX_DEVICE_NAME_LENGTH];
 inline int device_name_set(uint8_t const* name, int len) {
   if (len < REST_MAX_DEVICE_NAME_LENGTH) {
     strcpy(DEVICE_NAME_VALUE, (char const *)name);
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
     store_nvm_config();
 #endif
     return 1;

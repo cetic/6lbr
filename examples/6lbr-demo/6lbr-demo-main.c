@@ -28,7 +28,7 @@
 #include "dtls-echo.h"
 #endif
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
 #endif
 
@@ -106,7 +106,7 @@ PROCESS_THREAD(demo_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
 
-#if WITH_NVM
+#if WITH_CETIC_6LN_NVM
   load_nvm_config();
 #endif
 
