@@ -167,6 +167,22 @@ PROJECT_SOURCEFILES += cc2538dk-nvm.c
 endif
 endif
 
+ifeq ($(TARGET),srf06-cc26xx)
+ifeq ($(BOARD),sensortag)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
+PROJECT_SOURCEFILES += sensortag-nvm.c
+endif
+endif
+endif
+
+ifeq ($(TARGET),cooja)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
+PROJECT_SOURCEFILES += cooja-nvm.c
+endif
+endif
+
 ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECTDIRS += $(PROJECTDIR)/apps/nvm
 CFLAGS+=-DWITH_CETIC_6LN_NVM=1
