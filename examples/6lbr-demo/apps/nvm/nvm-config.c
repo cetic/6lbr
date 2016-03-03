@@ -54,6 +54,10 @@
 
 nvm_data_t nvm_data;
 
+#ifdef USER_CONF_NVM_DATA_RESET
+extern void USER_CONF_NVM_DATA_RESET(nvm_data_t * nvm_data);
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 static void
@@ -63,8 +67,11 @@ nvm_reset_version_0(nvm_data_t * nvm_data)
   nvm_data->version = CETIC_6LBR_NVM_VERSION_0;
   nvm_data->size = sizeof(nvm_data_t);
 
-  REST_RES_DEVICE_NVM_INIT(nvm_data);
-  CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
+  //REST_RES_DEVICE_NVM_INIT(nvm_data);
+  //CORE_INTERFACE_BINDING_TABLE_NVM_INIT(nvm_data);
+#ifdef USER_CONF_NVM_DATA_RESET
+  USER_CONF_NVM_DATA_RESET(nvm_data);
+#endif
 }
 
 void
