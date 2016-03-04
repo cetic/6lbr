@@ -431,6 +431,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   static int addr_number;
   PROCESS_BEGIN();
 
+  //Turn off radio until 6LBR is properly configured
+  NETSTACK_MAC.off(0);
+
   cetic_6lbr_restart_event = process_alloc_event();
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
@@ -466,6 +469,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   while(!ethernet_ready) {
     PROCESS_PAUSE();
   }
+
+  //Turn on radio and keep it always on
+  NETSTACK_MAC.off(1);
+
 #if CETIC_6LBR_LLSEC_WRAPPER
   llsec_wrapper_init();
 #endif
@@ -539,9 +546,14 @@ dtls_init();
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
+
   etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
-#if CONTIKI_TARGET_NATIVE
+
+  //Turn off radio
+  NETSTACK_MAC.off(0);
+
+  #if CONTIKI_TARGET_NATIVE
   switch (cetic_6lbr_restart_type) {
     case CETIC_6LBR_RESTART:
       LOG6LBR_INFO("Exiting...\n");
