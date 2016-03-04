@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,44 +29,29 @@
 
 /**
  * \file
- *         Header file for the Slip configuration
+ *         6LBR configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SLIP_CONFIG_H_
-#define SLIP_CONFIG_H_
+#ifndef NATIVE_CONFIG_H_
+#define NATIVE_CONFIG_H_
 
-#include <stdint.h>
-#include <termios.h>
+typedef int (* config_callback)(void* user, const char* section, const char* name,
+    const char* value);
 
-extern int contiki_argc;
-extern char **contiki_argv;
+typedef struct native_config_callback {
+  struct native_config_callback *next;
+  char const *section;
+  config_callback callback;
+  void * user;
+} native_config_callback_t;
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+void native_config_add_callback(native_config_callback_t *cb_info,
+    char const * section, config_callback c, void *user);
 
-extern int slip_config_flowcontrol;
-extern int slip_config_timestamp;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern char const *default_nvm_file;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
-extern speed_t slip_config_b_rate;
-extern char const *slip_config_ifup_script;
-extern char const *slip_config_ifdown_script;
-extern char const *slip_config_www_root;
-extern char const *slip_config_plugins;
-extern int watchdog_interval;
-extern char const * watchdog_file_name;
-extern char const * ip_config_file_name;
-extern char const *  config_file_name;
-extern char const *  node_config_file_name;
-extern int slip_config_dtr_rts_set;
+void native_config_init(void);
 
-#endif
+void native_config_load(void);
+
+#endif /* NATIVE_CONFIG_H_ */

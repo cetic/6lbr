@@ -15,6 +15,10 @@ if [ "$NVM" = "" ]; then
 	NVM=$ETC_6LBR/nvm.dat
 fi
 
+if [ "$CONFIG" = "" ]; then
+	CONFIG=$ETC_6LBR/nvm.conf
+fi
+
 if [ "$MODE" = "" ]; then
 	MODE="ROUTER"
 fi

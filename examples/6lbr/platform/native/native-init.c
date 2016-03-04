@@ -39,6 +39,8 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "native-rdc.h"
+#include "native-config.h"
+
 #include "signal.h"
 
 static void
@@ -55,6 +57,9 @@ platform_init(void)
   action.sa_flags = SA_RESTART;
   action.sa_handler = reload_trigger;
   sigaction(SIGUSR1, &action, NULL);
+
+  native_config_init();
+  native_config_load();
 }
 
 void

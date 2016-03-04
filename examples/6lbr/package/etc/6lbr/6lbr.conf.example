@@ -85,11 +85,16 @@
 #SCAN_DEVICE=/usr/lib/6lbr/bb-scan-usb.sh
 
 ################################################################################
-#NVM File
-# The NVM file contains the user configuration, like the network prefixes, the
-# autofconfiguration flags, ...
+#Configuration Files
+# The NVM binary file contains the user configuration, like the network
+# prefixes, the autofconfiguration flags, ...
 
 #NVM=/etc/6lbr/nvm.dat
+
+# The NVM INI file is a user modifiable configuration file that allows others
+# configuration parameters to be configured
+
+#CONFIG=/etc/6lbr/nvm.conf
 
 ################################################################################
 #6LBR installation paths
