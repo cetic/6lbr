@@ -94,7 +94,7 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
       ipaddr_add(&node_info_table[i].ipaddr);
 #if CETIC_NODE_CONFIG_HAS_NAME
       if ( node_config_loaded ) {
-        add("\">%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
+        add("\">%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
         add(")</a></td>");
       } else
@@ -165,7 +165,7 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
         add("<td>");
 #if CETIC_NODE_CONFIG_HAS_NAME
         if (node_config_loaded) {
-          add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
+          add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
           ipaddr_add(&node_info_table[i].ip_parent);
           add(")");
         } else {
@@ -251,7 +251,7 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
     ("<center>"
      "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
 #if CETIC_NODE_CONFIG_HAS_NAME
-  node_config_t *  my_config = node_config_find(&uip_lladdr);
+  node_config_t *  my_config = node_config_find_by_lladdr(&uip_lladdr);
   if (my_config) {
     add("%%22%s%%22;", node_config_get_name(my_config));
   } else {
@@ -266,8 +266,8 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
     if(node_info_table[i].isused) {
       if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
 #if CETIC_NODE_CONFIG_HAS_NAME
-        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
-        node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
+        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+        node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
         if ( node_config ) {
           if ( parent_node_config ) {
             add("%%22%s%%22->%%22%s%%22;",
@@ -324,7 +324,7 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
       float prr_down = 100.0 * (node_info_table[i].replies_sent - node_info_table[i].down_messages_lost)/node_info_table[i].replies_sent;
 #if CETIC_NODE_CONFIG_HAS_NAME
       if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
         add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif
@@ -361,7 +361,7 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
     if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
 #if CETIC_NODE_CONFIG_HAS_NAME
       if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
         add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif
@@ -398,7 +398,7 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
     if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
 #if CETIC_NODE_CONFIG_HAS_NAME
       if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
+        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
         add("[\"%s\",", node_config_get_name(node_config));
       } else
 #endif

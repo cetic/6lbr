@@ -351,7 +351,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
       add("<tr><td>");
 #if CETIC_NODE_CONFIG
       if ( node_config_loaded ) {
-        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ipaddr)));
+        add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
         add(")</a></td>");
       } else {
@@ -423,7 +423,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
         add("<td>%d</td><td>", node_info_table[i].sequence);
 #if CETIC_NODE_CONFIG
         if (node_config_loaded) {
-          add("%s (", node_config_get_name(node_config_find_from_ip(&node_info_table[i].ip_parent)));
+          add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
           ipaddr_add(&node_info_table[i].ip_parent);
           add(")");
         } else {
@@ -451,7 +451,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
     ("<center>"
      "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
 #if CETIC_NODE_CONFIG
-  node_config_t *  my_config = node_config_find(&uip_lladdr);
+  node_config_t *  my_config = node_config_find_by_lladdr(&uip_lladdr);
   if (my_config) {
     add("%s;", node_config_get_name(my_config));
   } else {
@@ -466,8 +466,8 @@ PT_THREAD(generate_index(struct httpd_state *s))
     if(node_info_table[i].isused) {
       if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
 #if CETIC_NODE_CONFIG
-        node_config_t * node_config = node_config_find_from_ip(&node_info_table[i].ipaddr);
-        node_config_t * parent_node_config = node_config_find_from_ip(&node_info_table[i].ip_parent);
+        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+        node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
         if ( node_config ) {
           if ( parent_node_config ) {
             add("%s->%s;",

@@ -89,7 +89,7 @@ node_config_route_notification_cb(int event,
 {
   node_config_t *node_config = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node_config = node_config_find_from_ip(route);
+    node_config = node_config_find_by_ip(route);
     if(node_config == NULL) {
       LOG6LBR_6ADDR(DEBUG, route, "Adding node config for ");
       uip_lladdr_t ll_addr;

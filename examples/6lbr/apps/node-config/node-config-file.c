@@ -54,6 +54,7 @@
 #define INOTIFY 1
 #endif
 
+#include "ini.h"
 
 #if INOTIFY
 #define INNAMEMAX 12
@@ -78,6 +79,7 @@ void node_config_add_br(void) {
   list_add(node_config_list, node_config);
 }
 
+#if NODE_CONFIG_OLD_FORMAT
 void node_config_load(void) {
   FILE * node_config_file;
   int result;
@@ -120,6 +122,65 @@ void node_config_load(void) {
   }
   node_config_add_br();
 }
+#else
+int node_config_handler(void* user, const char* section, const char* name,
+    const char* value) {
+  node_config_t *  node_config;
+  uip_lladdr_t mac_address;
+  int result = sscanf(section, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+      &mac_address.addr[0], &mac_address.addr[1], &mac_address.addr[2], &mac_address.addr[3],
+      &mac_address.addr[4], &mac_address.addr[5], &mac_address.addr[6], &mac_address.addr[7]);
+  if ( result != 8 ) {
+    LOG6LBR_WARN("Invalid MAC address : %s\n", section);
+    return 0;
+  }
+
+  node_config = node_config_find_by_lladdr(&mac_address);
+  if(!node_config) {
+    node_config = (node_config_t *)malloc(sizeof(node_config_t));
+    memset(node_config, 0, sizeof(node_config_t));
+    node_config->mac_address = mac_address;
+    node_config->coap_port = node_config_coap_port++;
+    node_config->http_port = node_config_http_port++;
+    LOG6LBR_LLADDR(DEBUG, &node_config->mac_address, "Adding node config for ");
+    list_add(node_config_list, node_config);
+  }
+  if(strcmp(name, "name") == 0) {
+    node_config->name = strdup(value);
+  } else if (strcmp(name, "http") == 0) {
+    node_config->http_port = atoi(value);
+  } else if (strcmp(name, "coap") == 0) {
+    node_config->coap_port = atoi(value);
+  } else {
+    LOG6LBR_WARN("Invalid parameter : %s\n", name);
+  }
+  return 1;
+}
+
+void node_config_load(void) {
+  int result;
+
+  list_init(node_config_list);
+  node_config_coap_port = node_config_first_coap_port;
+  node_config_http_port = node_config_first_http_port;
+
+  if (node_config_file_name) {
+    LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
+    result = ini_parse(node_config_file_name, node_config_handler, NULL);
+    if (result < 0) {
+      LOG6LBR_ERROR("Can not open %s : %s\n", node_config_file_name, strerror(errno));
+    }
+    else if (result) {
+      LOG6LBR_WARN("Syntax error in node_config.conf : %d\n", result);
+    } else {
+      node_config_loaded = 1;
+    }
+  } else {
+    LOG6LBR_INFO("No node_config.conf file specified\n");
+  }
+  node_config_add_br();
+}
+#endif
 
 void node_config_purge(void) {
   node_config_t *  node_config;

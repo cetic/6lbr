@@ -62,7 +62,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("<h2>Info</h2>");
 #if CETIC_NODE_CONFIG_HAS_NAME
       if ( node_config_loaded ) {
-        add("Name: %s<br />", node_config_get_name(node_config_find_from_ip(&ipaddr)));
+        add("Name: %s<br />", node_config_get_name(node_config_find_by_ip(&ipaddr)));
       }
 #endif
       add("IP: ");
@@ -72,7 +72,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("Parent: ");
 #if CETIC_NODE_CONFIG_HAS_NAME
       if (node_config_loaded) {
-        add("%s (", node_config_get_name(node_config_find_from_ip(&node_info->ip_parent)));
+        add("%s (", node_config_get_name(node_config_find_by_ip(&node_info->ip_parent)));
         ipaddr_add(&node_info->ip_parent);
         add(")</a>");
       } else

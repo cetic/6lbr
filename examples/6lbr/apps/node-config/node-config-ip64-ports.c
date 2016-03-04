@@ -50,7 +50,7 @@ ip64_special_ports_translate_incoming(uint16_t incoming_port,
 				      uip_ip6addr_t *newaddr,
 				      uint16_t *newport)
 {
-  node_config_t * node_config = node_config_find_from_port(incoming_port);
+  node_config_t * node_config = node_config_find_by_port(incoming_port);
   if(node_config) {
     uip_ipaddr_copy(newaddr, &wsn_net_prefix);
     uip_ds6_set_addr_iid(newaddr, &node_config->mac_address);
@@ -82,7 +82,7 @@ ip64_special_ports_translate_outgoing(uint16_t incoming_port,
 				      uint16_t *newport)
 {
   if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
-    node_config_t * node_config = node_config_find_from_ip(ip6addr);
+    node_config_t * node_config = node_config_find_by_ip(ip6addr);
     if(node_config != NULL) {
       if(incoming_port == COAP_DEFAULT_PORT) {
         *newport = node_config->coap_port;
@@ -111,7 +111,7 @@ ip64_special_ports_incoming_is_special(uint16_t port)
 {
   if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
     LOG6LBR_PACKET("Looking for incoming %d\n", port);
-    node_config_t * node_config = node_config_find_from_port(port);
+    node_config_t * node_config = node_config_find_by_port(port);
     if(node_config != NULL) {
       LOG6LBR_PACKET("Incoming port %d found\n", port);
       return 1;

@@ -53,18 +53,18 @@ uint8_t node_config_loaded = 0;
 static char const * unknown_name = "(Unknown)";
 #endif
 
-node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr) {
+node_config_t * node_config_find_by_ip(uip_ipaddr_t const * ipaddr) {
   if(ipaddr != NULL) {
     uip_lladdr_t ll_addr;
     memcpy(&ll_addr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
     ll_addr.addr[0] ^= 0x02;
-    return node_config_find(&ll_addr);
+    return node_config_find_by_lladdr(&ll_addr);
   } else {
     return NULL;
   }
 }
 
-node_config_t * node_config_find_from_port(uint16_t port) {
+node_config_t * node_config_find_by_port(uint16_t port) {
   node_config_t *  node_config;
   for(node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
     if(port == node_config->coap_port || port == node_config->http_port) {
@@ -74,7 +74,7 @@ node_config_t * node_config_find_from_port(uint16_t port) {
   return NULL;
 }
 
-node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
+node_config_t * node_config_find_by_lladdr(uip_lladdr_t const * node_addr) {
   if(node_addr != NULL) {
     node_config_t *  node_config;
     for (node_config = node_config_list_head(); node_config != NULL; node_config = list_item_next(node_config)) {
@@ -88,7 +88,7 @@ node_config_t * node_config_find(uip_lladdr_t const * node_addr) {
 
 #if CETIC_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const *  node_config) {
-  return node_config ? node_config->name : unknown_name;
+  return node_config && node_config->name ? node_config->name : unknown_name;
 }
 #endif
 

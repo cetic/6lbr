@@ -63,10 +63,10 @@ extern uint8_t node_config_loaded;
 void node_config_init(void);
 node_config_t* node_config_list_head(void);
 
-node_config_t * node_config_find_from_ip(uip_ipaddr_t const * ipaddr);
-node_config_t * node_config_find(uip_lladdr_t const * node_addr);
+node_config_t * node_config_find_by_ip(uip_ipaddr_t const * ipaddr);
+node_config_t * node_config_find_by_lladdr(uip_lladdr_t const * node_addr);
 
-node_config_t * node_config_find_from_port(uint16_t port);
+node_config_t * node_config_find_by_port(uint16_t port);
 #if CETIC_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const * node_config);
 #endif
