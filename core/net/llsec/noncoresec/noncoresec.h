@@ -57,6 +57,11 @@
 
 extern const struct llsec_driver noncoresec_driver;
 
+extern uint32_t noncoresec_invalid_level;
+extern uint32_t noncoresec_nonauthentic;
+extern uint32_t noncoresec_reboot;
+extern uint32_t noncoresec_replayed;
+
 #endif /* NONCORESEC_H_ */
 
 /** @} */

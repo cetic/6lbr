@@ -58,6 +58,11 @@
 #define LLSEC_REBOOT_WORKAROUND_ENABLED 1
 #endif
 
+uint32_t noncoresec_invalid_level;
+uint32_t noncoresec_nonauthentic;
+uint32_t noncoresec_reboot;
+uint32_t noncoresec_replayed;
+
 #define WITH_ENCRYPTION (LLSEC802154_SECURITY_LEVEL & (1 << 2))
 
 #ifdef NONCORESEC_CONF_KEY
@@ -142,6 +147,7 @@ input(void)
   uint8_t data_len = packetbuf_datalen();
   
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) != LLSEC802154_SECURITY_LEVEL) {
+    noncoresec_invalid_level++;
     PRINTF("noncoresec: received frame with wrong security level\n");
     return;
   }
@@ -163,6 +169,7 @@ input(void)
   if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
     PRINTF("noncoresec: received nonauthentic frame %"PRIu32"\n",
         anti_replay_get_counter());
+    noncoresec_nonauthentic++;
     return;
   }
   
@@ -202,11 +209,13 @@ input(void)
       /* Replay counter for the node has been reset, assume it is a reboot */
       PRINTF("Reboot detected, Reseting replay counter\n");
       anti_replay_init_info(info);
+      noncoresec_reboot++;
     } else
 #endif
     if(anti_replay_was_replayed(info)) {
        PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
            anti_replay_get_counter());
+       noncoresec_replayed++;
        return;
     }
   }
