@@ -55,6 +55,10 @@
 #include "csma.h"
 #endif
 
+#if CETIC_6LBR_LLSEC_STATS
+#include "net/llsec/noncoresec/noncoresec.h"
+#endif
+
 #if CONTIKI_TARGET_NATIVE
 extern uint32_t slip_sent;
 extern uint32_t slip_received;
@@ -168,10 +172,6 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
   add("Packet overflow : %d<br />", packet_overflow);
   add("Neighbor overflow : %d<br />", neighbor_overflow);
-#if CONTIKI_TARGET_NATIVE
-  add("Callback count : %d<br />", callback_count);
-  add("Ack timeout : %d<br />", native_rdc_ack_timeout);
-#endif
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -186,13 +186,33 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+#if CETIC_6LBR_LLSEC_STATS
+  if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
+    add("<h2>LLSEC</h2>");
+    add("Invalid level : %d<br />", noncoresec_invalid_level);
+    add("Non authentic frames : %d<br />", noncoresec_nonauthentic);
+    add("Reboot detected : %d<br />", noncoresec_reboot);
+    add("Replayed frames : %d<br />", noncoresec_replayed);
+    add("<br />");
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
+  }
+#endif
+  add("<h2>RDC</h2>");
+#if CONTIKI_TARGET_NATIVE
+  add("Callback count : %d<br />", callback_count);
+  add("Ack timeout : %d<br />", native_rdc_ack_timeout);
+  add("Parse error : %d<br />", native_rdc_parse_error);
+#endif
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");
   add("Messages sent : %d<br />", slip_message_sent);
   add("Messages received : %d<br />", slip_message_received);
   add("Bytes sent : %d<br />", slip_sent);
   add("Bytes received : %d<br />", slip_received);
-  add("Parse error : %d<br />", native_rdc_parse_error);
   add("<br />");
 #endif
   SEND_STRING(&s->sout, buf);
