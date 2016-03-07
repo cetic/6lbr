@@ -44,7 +44,7 @@
 #if CETIC_6LBR_IP64
 #include "ip64.h"
 #endif
-#if CETIC_6LBR_MACC_WRAPPER
+#if CETIC_6LBR_MAC_WRAPPER
 #include "mac-wrapper.h"
 #endif
 #if CETIC_6LBR_LLSEC_WRAPPER
