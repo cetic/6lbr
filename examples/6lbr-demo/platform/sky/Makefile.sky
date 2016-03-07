@@ -1,5 +1,5 @@
 ifneq ($(WITH_COAPSERVER),0)
-RESOURCES=photo solar
+RESOURCES+=photo solar
 PROJECT_SOURCEFILES+=sky-resources.c
 sky-resources.c: dynamic-resources
 endif

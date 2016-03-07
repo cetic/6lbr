@@ -82,14 +82,19 @@ APPS += er-coap rest-engine coap
 ifeq ($(WITH_COAP_PROFILE),)
 WITH_COAP_PROFILE=IPSO_APP_FW
 endif
+
 ifeq ($(WITH_COAP_PROFILE),IPSO_APP_FW)
 APPS += ipso-app-fw
+RESOURCES_TEMPLATE=$(PROJECTDIR)/tools/coap/ipso-app-fw-resource-template.h
 VALID_COAP_PROFILE=1
 endif
+
 ifeq ($(WITH_COAP_PROFILE),LWM2M)
 APPS += lwm2m
+RESOURCES_TEMPLATE=$(PROJECTDIR)/tools/coap/ipso-so-resource-template.h
 VALID_COAP_PROFILE=1
 endif
+
 ifneq ($(VALID_COAP_PROFILE),1)
 $(error Invalid CoAP Profile)
 endif
@@ -217,6 +222,23 @@ PROJECT_SOURCEFILES += 6lbr-demo-main.c
 ifneq ($(USER_MODULES),)
 USER_MODULES_DEFINE=${addprefix INIT_USER_MOD(,${addsuffix );,${strip $(USER_MODULES)}}}
 CFLAGS+=-DUSER_MODULES="$(USER_MODULES_DEFINE)"
+endif
+
+ifneq ($(WITH_COAPSERVER),0)
+RESOURCE_FILES=$(addsuffix -resource.h,$(RESOURCES))
+
+RESOURCES_TEMPLATE?=$(PROJECTDIR)/tools/coap/resource-template.h
+
+dynamic-resources:
+	mkdir -p $(PROJECTDIR)/dyn_resources
+	$(PROJECTDIR)/tools/coap/mk_resource.sh $(RESOURCES_TEMPLATE) $(RESOURCES)
+	mv -f $(RESOURCE_FILES) $(PROJECTDIR)/dyn_resources/
+
+PROJECTDIRS+=$(PROJECTDIR)/dyn_resources
+
+CLEAN+=$(PROJECTDIR)/dyn_resources/*
+
+.PHONY: dynamic-resources
 endif
 
 all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
