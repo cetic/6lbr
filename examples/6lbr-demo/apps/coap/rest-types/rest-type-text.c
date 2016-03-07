@@ -50,7 +50,7 @@ format_type(unsigned int type)
 }
 
 static int
-format_value(char *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data)
+format_value(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data)
 {
   (void)accepted_type;
   (void)resource_name;
@@ -88,7 +88,7 @@ format_value(char *buffer, int buffer_size, int offset, unsigned int accepted_ty
 }
 
 static int
-start_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
+start_batch(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type)
 {
   (void)buffer;
   (void)buffer_size;
@@ -97,7 +97,7 @@ start_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_typ
 }
 
 static int
-batch_separator(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
+batch_separator(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type)
 {
   (void)accepted_type;
   if(buffer_size > 0) {
@@ -107,7 +107,7 @@ batch_separator(char *buffer, int buffer_size, int offset, unsigned int accepted
 }
 
 static int
-end_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
+end_batch(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type)
 {
   (void)buffer;
   (void)buffer_size;
@@ -116,7 +116,7 @@ end_batch(char *buffer, int buffer_size, int offset, unsigned int accepted_type)
 }
 
 static int
-parse_value(char const *buffer, char const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data)
+parse_value(uint8_t const *buffer, uint8_t const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data)
 {
   (void)accepted_type;
   (void)resource_name;
@@ -124,19 +124,19 @@ parse_value(char const *buffer, char const * max, unsigned int data_type, int re
   case COAP_RESOURCE_TYPE_BOOLEAN:
   case COAP_RESOURCE_TYPE_SIGNED_INT:
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-    return coap_strtoul(buffer, max, data);
+    return coap_strtoul((char *)buffer, (char *)max, data);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_ONE:
-    return coap_strtofix(buffer, max, data, 1);
+    return coap_strtofix((char *)buffer, (char *)max, data, 1);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_TWO:
-    return coap_strtofix(buffer, max, data, 2);
+    return coap_strtofix((char *)buffer, (char *)max, data, 2);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
-    return coap_strtofix(buffer, max, data, 3);
+    return coap_strtofix((char *)buffer, (char *)max, data, 3);
     break;
   case COAP_RESOURCE_TYPE_STRING:
-    *data = buffer;
+    *data = (uint32_t)(char *)buffer;
     return 1;
   default:
     break;

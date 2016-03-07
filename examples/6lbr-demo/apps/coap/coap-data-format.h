@@ -43,13 +43,13 @@ struct coap_data_format_s {
   int (*format_type)(unsigned int type);
 
   /* Write data */
-  int (*format_value)(char *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data);
-  int (*start_batch)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
-  int (*batch_separator)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
-  int (*end_batch)(char *buffer, int buffer_size, int offset, unsigned int accepted_type);
+  int (*format_value)(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data);
+  int (*start_batch)(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type);
+  int (*batch_separator)(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type);
+  int (*end_batch)(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type);
 
   /* Parse data */
-  int (*parse_value)(char const *buffer, char const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data);
+  int (*parse_value)(uint8_t const *buffer, uint8_t const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data);
 };
 
 typedef struct coap_data_format_s coap_data_format_t;

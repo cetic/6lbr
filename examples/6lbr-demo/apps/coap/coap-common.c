@@ -208,10 +208,10 @@ simple_resource_get_handler(int resource_type, char const *resource_name, uint32
   if (COAP_DATA_FORMAT.accepted_type(accept))
   {
     PRINTF("In Offset : %d, pref: %d\n", *offset, preferred_size);
-    int buffer_size = COAP_DATA_FORMAT.format_value((char *)buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
+    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
     REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
+      REST.set_response_payload(response, buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
         *offset = -1;
       } else {
@@ -219,7 +219,7 @@ simple_resource_get_handler(int resource_type, char const *resource_name, uint32
       }
       PRINTF("Out Offset : %d, buf: %d\n", *offset, buffer_size);
     } else {
-      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
+      REST.set_response_payload(response, buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
     }
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
@@ -238,7 +238,7 @@ simple_resource_set_handler(int resource_type, char const * resource_name, int(*
     const uint8_t * payload;
     size_t len = REST.get_request_payload(request, &payload);
     uint32_t value;
-    if (COAP_DATA_FORMAT.parse_value((char *)payload, (char *)(payload + len), accept, resource_type, resource_name, &value)) {
+    if (COAP_DATA_FORMAT.parse_value(payload, payload + len, accept, resource_type, resource_name, &value)) {
       if(resource_set(value, len)) {
         REST.set_response_status(response, REST.status.CHANGED);
       } else {
@@ -261,10 +261,10 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   }
   if (COAP_DATA_FORMAT.accepted_type(accept))
   {
-    int buffer_size = COAP_DATA_FORMAT.format_value((char *)buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
+    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
     REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer, buffer_size);
+      REST.set_response_payload(response, buffer, buffer_size);
       if(*offset + preferred_size >= buffer_size) {
         *offset = -1;
       } else {
@@ -272,7 +272,7 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
       }
       PRINTF("Offset : %d\n", *offset);
     } else {
-      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
+      REST.set_response_payload(response, buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
     }
   } else if (accept == APPLICATION_LINK_FORMAT) {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);
@@ -281,7 +281,7 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
     pos += full_resource_config_attr_handler(resource_info, (char *)buffer + pos, preferred_size - pos);
     int buffer_size = pos;
     if(offset) {
-      REST.set_response_payload(response, (uint8_t *)buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
+      REST.set_response_payload(response, buffer + *offset, *offset + preferred_size > buffer_size ? buffer_size - *offset : preferred_size);
       if(*offset + preferred_size >= buffer_size) {
         *offset = -1;
       } else {
@@ -289,7 +289,7 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
       }
       PRINTF("Offset : %d\n", *offset);
     } else {
-      REST.set_response_payload(response, (uint8_t *)buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
+      REST.set_response_payload(response, buffer, preferred_size > buffer_size ? buffer_size : preferred_size);
     }
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
