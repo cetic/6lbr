@@ -90,7 +90,6 @@
 #include "coap-server.h"
 #endif
 
-
 #if WITH_TINYDTLS
 #include "dtls.h"
 #endif
@@ -104,12 +103,8 @@
 #endif
 
 #if CONTIKI_TARGET_NATIVE
-#include "plugin.h"
-#include "6lbr-watchdog.h"
-#include "slip-config.h"
-#include <arpa/inet.h>
+extern void cetic_6lbr_save_ip(void);
 #endif
-#include "watchdog.h"
 
 //Initialisation flags
 int ethernet_ready = 0;
@@ -157,25 +152,6 @@ PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 AUTOSTART_PROCESSES(&cetic_6lbr_process);
 
 /*---------------------------------------------------------------------------*/
-
-#if CONTIKI_TARGET_NATIVE
-static void
-cetic_6lbr_save_ip(void)
-{
-  if (ip_config_file_name) {
-    char str[INET6_ADDRSTRLEN];
-#if CETIC_6LBR_SMARTBRIDGE
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
-#else
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
-#endif
-    FILE *ip_config_file = fopen(ip_config_file_name, "w");
-    fprintf(ip_config_file, "%s\n", str);
-    fclose(ip_config_file);
-  }
-}
-#endif
-
 void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
@@ -438,18 +414,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
-#if CONTIKI_TARGET_NATIVE
-  slip_config_handle_arguments(contiki_argc, contiki_argv);
-  if (watchdog_interval) {
-    process_start(&native_6lbr_watchdog, NULL);
-  } else {
-    LOG6LBR_WARN("6LBR Watchdog disabled\n");
-  }
-#endif
-
   LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
-
-  load_nvm_config();
 
   platform_init();
 
@@ -505,7 +470,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   }
   if(uip_ds6_get_addr_number(-1) != addr_number) {
     LOG6LBR_FATAL("Addresses duplication failed");
-    watchdog_reboot();
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    platform_restart();
   }
   cetic_6lbr_init_finalize();
 
@@ -539,9 +505,7 @@ dtls_init();
   nvm_proxy_init();
 #endif
 
-#if CONTIKI_TARGET_NATIVE
-  plugins_load();
-#endif
+  platform_finalize();
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
@@ -552,31 +516,7 @@ dtls_init();
 
   //Turn off radio
   NETSTACK_MAC.off(0);
-
-  #if CONTIKI_TARGET_NATIVE
-  switch (cetic_6lbr_restart_type) {
-    case CETIC_6LBR_RESTART:
-      LOG6LBR_INFO("Exiting...\n");
-      exit(0);
-      break;
-    case CETIC_6LBR_REBOOT:
-      LOG6LBR_INFO("Rebooting...\n");
-      system("reboot");
-      break;
-    case CETIC_6LBR_HALT:
-      LOG6LBR_INFO("Halting...\n");
-      system("halt");
-      break;
-    default:
-      //We should never end up here...
-      exit(1);
-  }
-  //We should never end up here...
-  exit(1);
-#else
-  LOG6LBR_INFO("Rebooting...\n");
-  watchdog_reboot();
-#endif
+  platform_restart();
 
   PROCESS_END();
 }

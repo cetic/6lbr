@@ -32,15 +32,24 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "6LBR"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+
+#include "log-6lbr.h"
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "native-rdc.h"
 #include "native-config.h"
+#include "plugin.h"
+#include "6lbr-watchdog.h"
+#include "slip-config.h"
 
+#include <arpa/inet.h>
+#include <stdlib.h>
 #include "signal.h"
 
 static void
@@ -52,14 +61,29 @@ reload_trigger(int signal)
 void
 platform_init(void)
 {
+  slip_config_handle_arguments(contiki_argc, contiki_argv);
+  if (watchdog_interval) {
+    process_start(&native_6lbr_watchdog, NULL);
+  } else {
+    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  }
+  load_nvm_config();
+  native_config_init();
+
+  plugins_load();
+  native_config_load();
+
   struct sigaction action;
   /* Trap SIGUSR1. */
   action.sa_flags = SA_RESTART;
   action.sa_handler = reload_trigger;
   sigaction(SIGUSR1, &action, NULL);
+}
 
-  native_config_init();
-  native_config_load();
+void
+platform_finalize(void)
+{
+  plugins_init();
 }
 
 void
@@ -73,4 +97,44 @@ platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
   linkaddr_set_node_addr(mac_addr);
   slip_set_mac(mac_addr);
+}
+
+void
+cetic_6lbr_save_ip(void)
+{
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+#if CETIC_6LBR_SMARTBRIDGE
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
+#else
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+#endif
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+  }
+}
+
+void
+platform_restart(void)
+{
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      LOG6LBR_INFO("Exiting...\n");
+      exit(0);
+      break;
+    case CETIC_6LBR_REBOOT:
+      LOG6LBR_INFO("Rebooting...\n");
+      system("reboot");
+      break;
+    case CETIC_6LBR_HALT:
+      LOG6LBR_INFO("Halting...\n");
+      system("halt");
+      break;
+    default:
+      //We should never end up here...
+      exit(1);
+  }
+  //We should never end up here...
+  exit(1);
 }

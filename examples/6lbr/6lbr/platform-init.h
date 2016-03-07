@@ -39,9 +39,15 @@ void
 platform_init(void);
 
 void
+platform_finalize(void);
+
+void
 platform_radio_init(void);
 
 void
 platform_set_wsn_mac(linkaddr_t * mac_addr);
+
+void
+platform_restart(void);
 
 #endif

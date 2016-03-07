@@ -37,6 +37,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#include "watchdog.h"
 
 #include "cetic-6lbr.h"
 #include "sicslow-ethernet.h"
@@ -46,6 +47,12 @@
 
 void
 platform_init(void)
+{
+  load_nvm_config();
+}
+
+void
+platform_finalize(void)
 {
 }
 
@@ -62,4 +69,11 @@ void
 platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
   linkaddr_set_node_addr(mac_addr);
+}
+
+void
+platform_restart(void)
+{
+  LOG6LBR_INFO("Rebooting...\n");
+  watchdog_reboot();
 }

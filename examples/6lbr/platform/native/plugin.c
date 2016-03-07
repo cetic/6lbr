@@ -81,10 +81,13 @@ plugin_load(char const * plugin_file) {
     return;
   }
   plugin_info->status = 0;
-  LOG6LBR_INFO("Initialising %s\n", plugin_descriptor->id);
-  int result = plugin_descriptor->init();
+  int result = 0;
+  if (plugin_descriptor->load != NULL) {
+    LOG6LBR_INFO("Initialising %s\n", plugin_descriptor->id);
+    result = plugin_descriptor->load();
+  }
   if (result != 0) {
-    LOG6LBR_ERROR("Initialisation failed, error code is %d\n", result);
+    LOG6LBR_ERROR("Load code of %s failed, error code is %d\n", plugin_descriptor->id, result);
   }
   plugin_info->init_status = result;
 }
@@ -120,6 +123,24 @@ void plugins_load() {
     LOG6LBR_ERROR("error reading directory: %s", strerror(errno));
   }
   closedir(dirp);
+}
+
+void
+plugins_init(void)
+{
+  sixlbr_plugin_info_t *info = plugins_list_head();
+  while(info != NULL) {
+    int result = 0;
+    if (info->init_status == 0 && info->plugin->init != NULL)
+      LOG6LBR_INFO("Initialising %s\n", info->plugin->id);{
+      result = info->plugin->init();
+    }
+    if (result != 0) {
+      LOG6LBR_ERROR("Initialisation failed, error code is %d\n", result);
+      info->init_status = result;
+    }
+    info = info->next;
+  }
 }
 
 sixlbr_plugin_info_t *

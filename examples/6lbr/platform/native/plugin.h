@@ -43,6 +43,7 @@ struct _sixlbr_plugin {
   int32_t api_version;
   char const *  id;
   char const * description;
+  int (*load)(void);
   int (*init)(void);
   char const * (*status)(void);
   char const * (*version)(void);
@@ -58,9 +59,11 @@ struct _sixlbr_plugin_info {
 };
 typedef struct _sixlbr_plugin_info sixlbr_plugin_info_t;
 
-#define SIXLBR_PLUGIN_API_VERSION 2
+#define SIXLBR_PLUGIN_API_VERSION 3
 
 void plugins_load();
+
+void plugins_init(void);
 
 sixlbr_plugin_info_t *
 plugins_list_head(void);

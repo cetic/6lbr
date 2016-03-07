@@ -82,6 +82,7 @@ sixlbr_plugin_t sixlbr_plugin_info = {
   .api_version = SIXLBR_PLUGIN_API_VERSION,
   .id = "lwm2m-client",
   .description = "LWM2M Client demo",
+  .load = NULL,
   .init = init,
   .version = version,
   .status = status,
