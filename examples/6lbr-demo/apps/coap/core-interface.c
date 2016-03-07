@@ -55,13 +55,13 @@
 int core_itf_linked_batch_resource = 0;
 
 /*---------------------------------------------------------------------------*/
-#define ADD_CHAR_IF_POSSIBLE(char) \
+#define ADD_CHAR_IF_POSSIBLE_HDLR(char) \
   if(strpos >= *offset && bufpos < preferred_size) { \
     buffer[bufpos++] = char; \
   } \
   ++strpos
 
-#define ADD_STRING_IF_POSSIBLE(string, op) \
+#define ADD_STRING_IF_POSSIBLE_HDLR(string, op) \
   tmplen = strlen(string); \
   if(strpos + tmplen > *offset) { \
     bufpos += snprintf((char *)buffer + bufpos, \
@@ -141,32 +141,32 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
       return;
     }
     if((flags & LIST_INCLUDE_SELF) != 0) do {
-      ADD_CHAR_IF_POSSIBLE('<');
-      ADD_CHAR_IF_POSSIBLE('/');
-      ADD_STRING_IF_POSSIBLE(linked_list_resource->url, >=);
-      ADD_CHAR_IF_POSSIBLE('>');
+      ADD_CHAR_IF_POSSIBLE_HDLR('<');
+      ADD_CHAR_IF_POSSIBLE_HDLR('/');
+      ADD_STRING_IF_POSSIBLE_HDLR(linked_list_resource->url, >=);
+      ADD_CHAR_IF_POSSIBLE_HDLR('>');
     } while(0);
     for (i = 0; i < linked_resource_list_size; ++i) {
       if(strpos > 0) {
-        ADD_CHAR_IF_POSSIBLE(',');
+        ADD_CHAR_IF_POSSIBLE_HDLR(',');
       }
-      ADD_CHAR_IF_POSSIBLE('<');
-      ADD_CHAR_IF_POSSIBLE('/');
-      ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->url, >=);
-      ADD_CHAR_IF_POSSIBLE('>');
+      ADD_CHAR_IF_POSSIBLE_HDLR('<');
+      ADD_CHAR_IF_POSSIBLE_HDLR('/');
+      ADD_STRING_IF_POSSIBLE_HDLR(linked_resource_list[i]->url, >=);
+      ADD_CHAR_IF_POSSIBLE_HDLR('>');
 
       if((flags & LIST_INCLUDE_ATTR) != 0) {
         if(linked_resource_list[i]->attributes[0]) {
           if(linked_resource_list[i]->attributes[0] != ';') {
-            ADD_CHAR_IF_POSSIBLE(';');
+            ADD_CHAR_IF_POSSIBLE_HDLR(';');
           }
-          ADD_STRING_IF_POSSIBLE(linked_resource_list[i]->attributes, >);
+          ADD_STRING_IF_POSSIBLE_HDLR(linked_resource_list[i]->attributes, >);
         }
 #if REST_HAS_ATTR_METHOD
         if(linked_resource_list[i]->attr_handler) {
           char attr[64];
           linked_resource_list[i]->attr_handler(attr, 64);
-          ADD_STRING_IF_POSSIBLE(attr, >);
+          ADD_STRING_IF_POSSIBLE_HDLR(attr, >);
         }
 #endif
       }
