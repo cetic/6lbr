@@ -130,6 +130,10 @@ endif
 
 # Platform specific configuration
 
+ifeq ($(TARGET),)
+TARGET=native
+endif
+
 MSP430_20BITS=1
 
 SMALL=1
@@ -177,9 +181,17 @@ endif
 endif
 
 ifeq ($(TARGET),cooja)
+PROJECTDIRS += $(PROJECTDIR)/platform/native
 WITH_CETIC_6LN_NVM?=0
 ifeq ($(WITH_CETIC_6LN_NVM),1)
-PROJECT_SOURCEFILES += cooja-nvm.c
+PROJECT_SOURCEFILES += native-nvm.c
+endif
+endif
+
+ifeq ($(TARGET),native)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
+PROJECT_SOURCEFILES += native-nvm.c
 endif
 endif
 
