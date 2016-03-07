@@ -71,6 +71,7 @@
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include "net/rime/rime.h"
+#include "sys/node-id.h"
 
 #ifdef SELECT_CONF_MAX
 #define SELECT_MAX SELECT_CONF_MAX
@@ -84,7 +85,7 @@ static int select_max = 0;
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
 static uint8_t serial_id[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-static uint16_t node_id = 0x0102;
+uint16_t node_id = 0x0102;
 /*---------------------------------------------------------------------------*/
 int
 select_set_callback(int fd, const struct select_callback *callback)
