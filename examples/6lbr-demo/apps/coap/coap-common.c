@@ -176,10 +176,10 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
 {
   int pos = 0;
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0) {
-    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", resource_info->trigger.pmin);
+    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%u\"", (unsigned int)resource_info->trigger.pmin);
   }
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0) {
-    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", resource_info->trigger.pmax);
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%u\"", (unsigned int)resource_info->trigger.pmax);
   }
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_ST_VALID) != 0) {
     pos += snprintf(buffer + pos, size - pos, ";st=\"");

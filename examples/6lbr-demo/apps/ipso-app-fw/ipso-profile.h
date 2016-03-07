@@ -184,9 +184,16 @@
 #define LIGHT_SENSOR_RT "ucum:lx"
 #define TEMPERATURE_SENSOR_RT "ucum:Cel"
 #define RELATIVE_HUMIDITY_SENSOR_RT "ucum:%RH"
+#define PRESSURE_SENSOR_RT "ucum:Pa"
 #define DBM_RT "ucum:dBm"
 #define PERCENT_RT "ucum:%"
 #define RAW_RT "raw"
+
+#define TEMPERATURE_SENSOR_RES_ID "temp"
+#define HUMIDITY_SENSOR_RES_ID "humidity"
+#define ILLUMINANCE_SENSOR_RES_ID "light"
+#define PRESSURE_SENSOR_RES_ID "pressure"
+#define VOLTAGE_SENSOR_RES_ID "v"
 
 // Interface Description
 

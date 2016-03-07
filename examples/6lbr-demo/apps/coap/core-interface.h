@@ -71,10 +71,10 @@ extern int core_itf_linked_batch_resource;
 // Resource handlers
 
 extern void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t const * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 extern void
-resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t const * linked_resource_list[], int linked_resource_list_size, uint16_t flags,
+resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t * linked_resource_list[], int linked_resource_list_size, uint16_t flags,
     void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset);
 
@@ -82,7 +82,7 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
 // Handler definition macros
 
 #define REST_RESOURCES_LIST(resource_name, ...) \
-  const resource_t *resource_##resource_name##_batch_list[] = {__VA_ARGS__};
+  resource_t *resource_##resource_name##_batch_list[] = {__VA_ARGS__};
 
 #define REST_RESOURCES_LIST_SIZE(resource_name) (sizeof(resource_##resource_name##_batch_list) / sizeof(resource_t *))
 

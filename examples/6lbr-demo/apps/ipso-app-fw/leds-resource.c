@@ -55,11 +55,11 @@
 #endif
 
 #if REST_RES_LED_R
-inline int led_r_value(void) {
+int led_r_value(void) {
   return ((leds_get() & LEDS_RED) != 0);
 }
 
-inline int led_r_set(int value) {
+int led_r_set(uint32_t value, uint32_t len) {
   if (value) {
     leds_on(LEDS_RED);
   } else {
@@ -70,11 +70,11 @@ inline int led_r_set(int value) {
 #endif
 
 #if REST_RES_LED_G
-inline int led_g_value(void) {
+int led_g_value(void) {
   return ((leds_get() & LEDS_GREEN) != 0);
 }
 
-inline int led_g_set(int value) {
+int led_g_set(uint32_t value, uint32_t len) {
   if (value) {
     leds_on(LEDS_GREEN);
   } else {
@@ -85,11 +85,11 @@ inline int led_g_set(int value) {
 #endif
 
 #if REST_RES_LED_B
-inline int led_b_value(void) {
+int led_b_value(void) {
   return ((leds_get() & LEDS_BLUE) != 0);
 }
 
-inline int led_b_set(int value) {
+int led_b_set(uint32_t value, uint32_t len) {
   if (value) {
     leds_on(LEDS_BLUE);
   } else {

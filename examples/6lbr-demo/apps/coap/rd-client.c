@@ -86,9 +86,9 @@ void
 client_registration_request_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   /* Check the offset for boundaries of the resource data. */
-  PRINTF("Requesting %u bytes at %d\n", preferred_size, *offset);
+  PRINTF("Requesting %u bytes at %d\n", preferred_size, (int)*offset);
   if(*offset >= resources_list_size) {
-    PRINTF("Invalid offset %u\n", *offset);
+    PRINTF("Invalid offset %d\n", (int)*offset);
     *offset = -1;
     return;
   }

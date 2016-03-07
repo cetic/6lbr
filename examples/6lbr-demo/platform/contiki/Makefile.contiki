@@ -1,5 +1,5 @@
 ifneq ($(WITH_COAPSERVER),0)
-RESOURCES=temp humidity
+RESOURCES+=sht-temp sht-humidity
 PROJECT_SOURCEFILES+=contiki-resources.c
 contiki-resources.c: dynamic-resources
 endif

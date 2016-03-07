@@ -61,15 +61,15 @@ struct coap_binding_cond_s {
     uint32_t pmin;
     uint32_t pmax;
     uint32_t step;
-    uint32_t less_than;
-    uint32_t greater_than;
+    int32_t less_than;
+    int32_t greater_than;
 };
 
 typedef struct coap_binding_cond_s coap_binding_cond_t;
 
 struct coap_resource_data_s {
-  uint32_t last_value;
-  uint32_t last_sent_value;
+  int32_t last_value;
+  int32_t last_sent_value;
   uint32_t last_sent_time;
 };
 typedef struct coap_resource_data_s coap_resource_data_t;

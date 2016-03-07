@@ -96,7 +96,7 @@ resource_linked_batch_parse(char *buffer, resource_t *linked_batch_table[], int 
   }
   status = *p == '\0';
   if (*p != '\0') {
-    PRINTF("Parsing failed at %ld ('%s')\n", p - buffer, p);
+    PRINTF("Parsing failed at %d ('%s')\n", p - buffer, p);
   }
   return status;
 }
@@ -199,15 +199,13 @@ resource_linked_batch_table_get_handler(void* request, void* response, uint8_t *
   if (request == NULL || !REST.get_header_accept(request, &accept) || accept==REST_TYPE)
   {
     REST.set_header_content_type(response, REST_TYPE);
-    resource_batch_get_handler(batch_buffer, &batch_buffer_size, linked_batch_table, linked_batch_table_size, request, response, buffer, preferred_size, offset);
+    resource_batch_get_handler(batch_buffer, &batch_buffer_size, &resource_linked_batch_table, linked_batch_table, linked_batch_table_size, 0, request, response, buffer, preferred_size, offset);
   } else if (accept==APPLICATION_LINK_FORMAT)
   {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);
-    resource_linked_list_get_handler(linked_batch_table, linked_batch_table_size, request, response, buffer, preferred_size, offset);
+    resource_linked_list_get_handler(&resource_linked_batch_table, linked_batch_table, linked_batch_table_size, 0, request, response, buffer, preferred_size, offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
-    const char *msg = REST_TYPE_ERROR;
-    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 /*---------------------------------------------------------------------------*/

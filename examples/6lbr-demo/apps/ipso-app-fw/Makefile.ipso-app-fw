@@ -1,4 +1,7 @@
 CFLAGS+=-DWITH_IPSO_APP_FW=1
+
+RESOURCES_TEMPLATE=$(PROJECTDIR)/apps/ipso-app-fw/ipso-app-fw-resource-template.h
+
 ipso-app-fw_src += ipso-app-fw.c button-resource.c leds-resource.c \
 	battery-sensor-resource.c device-resource.c \
 	radio-sensor-resource.c config-stack-resource.c linked-batch-resource.c \

@@ -78,7 +78,7 @@ int core_itf_linked_batch_resource = 0;
   strpos += tmplen
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffer, int *batch_buffer_size, resource_t * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int i;
   int32_t tmp = 0;
@@ -121,7 +121,7 @@ resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffe
 }
 /*---------------------------------------------------------------------------*/
 void
-resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t const * linked_resource_list[], int linked_resource_list_size,
+resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t * linked_resource_list[], int linked_resource_list_size,
     uint16_t flags, void *request, void *response, uint8_t *buffer,
     uint16_t preferred_size, int32_t *offset)
 {
@@ -203,7 +203,7 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
 }
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t const * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {

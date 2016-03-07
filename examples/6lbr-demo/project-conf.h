@@ -61,12 +61,12 @@
 #endif
 
 /* Platform related configuration */
-#ifdef CETIC_6LN_PLATFORM_CONF
-#include CETIC_6LN_PLATFORM_CONF
-#endif
-
 #if !IGNORE_CETIC_CONTIKI_PLATFORM
 #include "platform/contiki/6ln-conf-contiki.h"
+#endif
+
+#ifdef CETIC_6LN_PLATFORM_CONF
+#include CETIC_6LN_PLATFORM_CONF
 #endif
 
 /*---------------------------------------------------------------------------*/

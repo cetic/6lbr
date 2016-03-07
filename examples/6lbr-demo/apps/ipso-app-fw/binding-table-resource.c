@@ -78,19 +78,19 @@ resource_binding_format(char *buffer, int size, coap_binding_t const* binding)
   pos += snprintf(buffer + pos, size - pos, "/%s>;rel=\"boundto\";anchor=\"/%s\";bind=\"push\"", binding->uri, binding->resource->url);
   PRINTF("flags : %#x\n", binding->flags);
   if((binding->cond.flags & COAP_BINDING_FLAGS_PMIN_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%d\"", binding->cond.pmin);
+    pos += snprintf(buffer + pos, size - pos, ";pmin=\"%u\"", (unsigned int)binding->cond.pmin);
 
   if((binding->cond.flags & COAP_BINDING_FLAGS_PMAX_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%d\"", binding->cond.pmax);
+    pos += snprintf(buffer + pos, size - pos, ";pmax=\"%u\"", (unsigned int)binding->cond.pmax);
 
   if((binding->cond.flags & COAP_BINDING_FLAGS_ST_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";st=\"%d\"", binding->cond.step);
+    pos += snprintf(buffer + pos, size - pos, ";st=\"%u\"", (unsigned int)binding->cond.step);
 
   if((binding->cond.flags & COAP_BINDING_FLAGS_LT_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", binding->cond.less_than);
+    pos += snprintf(buffer + pos, size - pos, ";lt=\"%d\"", (int)binding->cond.less_than);
 
   if((binding->cond.flags & COAP_BINDING_FLAGS_GT_VALID) != 0)
-    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", binding->cond.greater_than);
+    pos += snprintf(buffer + pos, size - pos, ";gt=\"%d\"", (int)binding->cond.greater_than);
 
   return pos;
 }
@@ -161,7 +161,8 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
       } else if (strcmp(p, "bind") == 0 && strcmp(data, "push") == 0) {
         method = 1;
       } else {
-        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1, NULL);
+        //TODO: Resource type is hardcoded !
+        filters = coap_binding_parse_filter_tag(p, &binding->cond, data, sep - 1, COAP_RESOURCE_TYPE_UNSIGNED_INT);
       }
       p = sep;
     }
