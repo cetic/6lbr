@@ -42,8 +42,6 @@
 #include "ipso-app-fw.h"
 #include "ipso-profile.h"
 
-#include "battery-sensor-resource.h"
-#include "radio-sensor-resource.h"
 #include "button-resource.h"
 #include "leds-resource.h"
 #include "device-resource.h"
@@ -57,27 +55,21 @@
 #include "uip-debug.h"
 
 //Define all resources
-REST_RES_BATTERY_DEFINE();
 REST_RES_BUTTON_DEFINE();
 REST_RES_LED_R_DEFINE();
 REST_RES_LED_G_DEFINE();
 REST_RES_LED_B_DEFINE();
 REST_RES_DEVICE_DEFINE();
-REST_RES_RADIO_LQI_DEFINE();
-REST_RES_RADIO_RSSI_DEFINE();
 
 void
 ipso_app_fw_init(void)
 {
   //Init all resources
-  REST_RES_BATTERY_INIT();
   REST_RES_BUTTON_INIT();
   REST_RES_LED_R_INIT();
   REST_RES_LED_G_INIT();
   REST_RES_LED_B_INIT();
   REST_RES_DEVICE_INIT();
-  REST_RES_RADIO_LQI_INIT();
-  REST_RES_RADIO_RSSI_INIT();
   REST_RES_CONFIG_STACK_INIT();
 
   /* Linked batch and binding tables must be initialized after all the resources */

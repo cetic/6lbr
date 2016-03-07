@@ -194,6 +194,8 @@
 #define ILLUMINANCE_SENSOR_RES_ID "light"
 #define PRESSURE_SENSOR_RES_ID "pressure"
 #define VOLTAGE_SENSOR_RES_ID "v"
+#define LQI_SENSOR_RES_ID "lqi"
+#define RSSI_SENSOR_RES_ID "rssi"
 
 // Interface Description
 

@@ -36,6 +36,9 @@
 
 #include "contiki.h"
 
+#include "coap-common.h"
+#include "core-interface.h"
+
 #if WITH_IPSO_APP_FW
 #include "ipso-app-fw.h"
 #include "sensors-batch-resource.h"
@@ -46,8 +49,20 @@
 #include "ipso-so.h"
 #endif
 
+#include "sht-temp-resource.h"
+#include "sht-humidity-resource.h"
+#include "battery-resource.h"
+#include "radio-lqi-resource.h"
+#include "radio-rssi-resource.h"
+
 #include "photo-resource.h"
 #include "solar-resource.h"
+
+REST_RES_SHT_TEMP_DECLARE();
+REST_RES_SHT_HUMIDITY_DECLARE();
+REST_RES_BATTERY_DECLARE();
+REST_RES_RADIO_LQI_DECLARE();
+REST_RES_RADIO_RSSI_DECLARE();
 
 REST_RES_PHOTO_DECLARE();
 REST_RES_SOLAR_DECLARE();
@@ -66,24 +81,27 @@ REST_RES_SOLAR_DECLARE();
 #define LIGHT_PHOTOSYNTHETIC_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) * 2289 / 1000)
 #endif
 
-REST_RES_PHOTO_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT);
-REST_RES_SOLAR_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT);
+REST_RES_PHOTO_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT, LIGHT_PHOTOSYNTHETIC_SENSOR_RES);
+REST_RES_SOLAR_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT, LIGHT_SOLAR_SENSOR_RES);
+
+#if WITH_IPSO_APP_FW
+REST_RES_SENSORS_BATCH_RESOURCE(
+    REST_RES_SOLAR_REF
+    REST_RES_PHOTO_REF
+    REST_RES_SHT_TEMP_REF
+    REST_RES_SHT_HUMIDITY_REF
+    REST_RES_BATTERY_REF
+    REST_RES_RADIO_LQI_REF
+    REST_RES_RADIO_RSSI_REF
+  );
+#endif
 
 void
 platform_resources_init(void)
 {
-  REST_RES_PHOTO_INIT(LIGHT_PHOTOSYNTHETIC_SENSOR_RES);
-  REST_RES_SOLAR_INIT(LIGHT_SOLAR_SENSOR_RES);
-
+  REST_RES_PHOTO_INIT();
+  REST_RES_SOLAR_INIT();
 #if WITH_IPSO_APP_FW
-  REST_RES_SENSORS_BATCH_RESOURCE(
-      REST_RES_SOLAR_REF
-      REST_RES_PHOTO_REF
-      REST_RES_TEMP_REF
-      REST_RES_HUMIDITY_REF
-      REST_RES_BATTERY_REF
-      REST_RES_RADIO_LQI_REF
-      REST_RES_RADIO_RSSI_REF
-    );
+  REST_RES_SENSORS_BATCH_INIT();
 #endif
 }
