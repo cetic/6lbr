@@ -51,11 +51,17 @@
 #endif
 
 #if !IGNORE_CETIC_CONTIKI_PLATFORM
+#include "contiki-resources.h"
+
 #include "sht-temp-resource.h"
 #include "sht-humidity-resource.h"
 #include "battery-resource.h"
 #include "radio-lqi-resource.h"
 #include "radio-rssi-resource.h"
+#include "button-resource.h"
+#include "led-red-resource.h"
+#include "led-green-resource.h"
+#include "led-blue-resource.h"
 
 #if PLATFORM_HAS_SHT11
 #include "sht11-sensor.h"
@@ -151,17 +157,101 @@ extern int udp_client_rssi;
 
 #endif
 
+#if PLATFORM_HAS_BUTTON
+#include "dev/button-sensor.h"
+#define SENSOR_INIT_BUTTON() SENSORS_ACTIVATE(button_sensor);
+
+#define REST_REST_BUTTON_VALUE button_sensor.value(0)
+
+#define REST_CONF_RES_RESOURCEID_EVENT_HANDLER(ev, data) \
+    if (ev == sensors_event && data == &button_sensor) { \
+      resource_button.trigger(); \
+      coap_push_update_binding(&resource_button, button_sensor.value(1)); \
+    }
+
+#endif
+
+#if PLATFORM_HAS_LEDS
+#include "dev/leds.h"
+
+#if REST_RES_LED_RED
+inline int led_r_value(void) {
+  return ((leds_get() & LEDS_RED) != 0);
+}
+
+static int led_r_set(uint32_t value, uint32_t len) {
+  if (value) {
+    leds_on(LEDS_RED);
+  } else {
+    leds_off(LEDS_RED);
+  }
+  return 1;
+}
+
+#define SENSOR_INIT_LED_RED()
+#define REST_REST_LED_RED_VALUE led_r_value()
+#define REST_REST_LED_RED_ACTUATOR led_r_set
+#endif
+
+#if REST_RES_LED_GREEN
+inline int led_g_value(void) {
+  return ((leds_get() & LEDS_GREEN) != 0);
+}
+
+static int led_g_set(uint32_t value, uint32_t len) {
+  if (value) {
+    leds_on(LEDS_GREEN);
+  } else {
+    leds_off(LEDS_GREEN);
+  }
+  return 1;
+}
+
+#define SENSOR_INIT_LED_GREEN()
+#define REST_REST_LED_GREEN_VALUE led_g_value()
+#define REST_REST_LED_GREEN_ACTUATOR led_g_set
+#endif
+
+#if REST_RES_LED_BLUE
+inline int led_b_value(void) {
+  return ((leds_get() & LEDS_BLUE) != 0);
+}
+
+static int led_b_set(uint32_t value, uint32_t len) {
+  if (value) {
+    leds_on(LEDS_BLUE);
+  } else {
+    leds_off(LEDS_BLUE);
+  }
+  return 1;
+}
+
+#define SENSOR_INIT_LED_BLUE()
+#define REST_REST_LED_BLUE_VALUE led_b_value()
+#define REST_REST_LED_BLUE_ACTUATOR led_b_set
+#endif
+
+#endif
+
 REST_RES_SHT_TEMP_DECLARE();
 REST_RES_SHT_HUMIDITY_DECLARE();
 REST_RES_BATTERY_DECLARE();
 REST_RES_RADIO_LQI_DECLARE();
 REST_RES_RADIO_RSSI_DECLARE();
+REST_RES_BUTTON_DECLARE();
+REST_RES_LED_RED_DECLARE();
+REST_RES_LED_GREEN_DECLARE();
+REST_RES_LED_BLUE_DECLARE();
 
 REST_RES_SHT_TEMP_DEFINE(IF_SENSOR, TEMPERATURE_SENSOR_RT, TEMPERATURE_SENSOR_RES_ID);
 REST_RES_SHT_HUMIDITY_DEFINE(IF_SENSOR, RELATIVE_HUMIDITY_SENSOR_RT, HUMIDITY_SENSOR_RES_ID);
 REST_RES_BATTERY_DEFINE(IF_SENSOR, DEVICE_POWER_SUPPLY_VOLTAGE_RT, VOLTAGE_SENSOR_RES_ID);
 REST_RES_RADIO_LQI_DEFINE(IF_SENSOR, PERCENT_RT, LQI_SENSOR_RES_ID);
 REST_RES_RADIO_RSSI_DEFINE(IF_SENSOR, DBM_RT, RSSI_SENSOR_RES_ID);
+REST_RES_BUTTON_DEFINE(IF_SENSOR, GPIO_BUTTON_RT, STATE_SENSOR_RES_ID);
+REST_RES_LED_RED_DEFINE(IF_ACTUATOR, LIGHT_CONTROL_RT, STATE_SENSOR_RES_ID);
+REST_RES_LED_GREEN_DEFINE(IF_ACTUATOR, LIGHT_CONTROL_RT, STATE_SENSOR_RES_ID);
+REST_RES_LED_BLUE_DEFINE(IF_ACTUATOR, LIGHT_CONTROL_RT, STATE_SENSOR_RES_ID);
 
 #if WITH_LWM2M
 REST_RES_SHT_TEMP_SO_INSTANCE_DEFINE("ucum:Celcius", "Temperature");
@@ -183,6 +273,10 @@ contiki_platform_resources_init(void)
   REST_RES_BATTERY_INIT();
   REST_RES_RADIO_LQI_INIT();
   REST_RES_RADIO_RSSI_INIT();
+  REST_RES_BUTTON_INIT();
+  REST_RES_LED_RED_INIT();
+  REST_RES_LED_GREEN_INIT();
+  REST_RES_LED_BLUE_INIT();
 
 #if WITH_LWM2M
   REST_RES_SHT_TEMP_SO_INSTANCE_INIT();

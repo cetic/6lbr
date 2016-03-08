@@ -50,6 +50,7 @@
 #include "sensors-batch-resource.h"
 #endif
 
+#include "sensortag-resources.h"
 #include "ambient-temp-resource.h"
 #include "object-temp-resource.h"
 #include "humidity-resource.h"

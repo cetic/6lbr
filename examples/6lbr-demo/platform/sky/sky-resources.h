@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,91 +29,20 @@
 
 /**
  * \file
- *         Simple CoAP Library
+ *         6LBR-Demo Project Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#include "coap-common.h"
-#include "leds-resource.h"
 
-#if REST_RES_LED_R
-#define REST_RES_LED_R_RESOURCE REST_ACTUATOR
-#else
-#define REST_RES_LED_R_RESOURCE(...)
-#endif
+#ifndef SKY_RESOURCES_H
+#define SKY_RESOURCES_H
 
-#if REST_RES_LED_G
-#define REST_RES_LED_G_RESOURCE REST_ACTUATOR
-#else
-#define REST_RES_LED_G_RESOURCE(...)
-#endif
+#define REST_CONF_PLATFORM_HAS_SOLAR 1
+#define REST_CONF_RES_SOLAR_FORMAT COAP_RESOURCE_TYPE_UNSIGNED_INT
+#define REST_CONF_RES_SOLAR_IPSO_APP_FW_ID LIGHT_SOLAR_SENSOR_RES
 
-#if REST_RES_LED_B
-#define REST_RES_LED_B_RESOURCE REST_ACTUATOR
-#else
-#define REST_RES_LED_B_RESOURCE(...)
-#endif
+#define REST_CONF_PLATFORM_HAS_PHOTO 1
+#define REST_CONF_RES_PHOTO_FORMAT COAP_RESOURCE_TYPE_UNSIGNED_INT
+#define REST_CONF_RES_PHOTO_IPSO_APP_FW_ID LIGHT_PHOTOSYNTHETIC_SENSOR_RES
 
-#if REST_RES_LED_R
-int led_r_value(void) {
-  return ((leds_get() & LEDS_RED) != 0);
-}
-
-int led_r_set(uint32_t value, uint32_t len) {
-  if (value) {
-    leds_on(LEDS_RED);
-  } else {
-    leds_off(LEDS_RED);
-  }
-  return 1;
-}
-#endif
-
-#if REST_RES_LED_G
-int led_g_value(void) {
-  return ((leds_get() & LEDS_GREEN) != 0);
-}
-
-int led_g_set(uint32_t value, uint32_t len) {
-  if (value) {
-    leds_on(LEDS_GREEN);
-  } else {
-    leds_off(LEDS_GREEN);
-  }
-  return 1;
-}
-#endif
-
-#if REST_RES_LED_B
-int led_b_value(void) {
-  return ((leds_get() & LEDS_BLUE) != 0);
-}
-
-int led_b_set(uint32_t value, uint32_t len) {
-  if (value) {
-    leds_on(LEDS_BLUE);
-  } else {
-    leds_off(LEDS_BLUE);
-  }
-  return 1;
-}
-#endif
-
-REST_RES_LED_R_RESOURCE(led_r,
-    ,
-    IF_ACTUATOR,
-    LIGHT_CONTROL_RT,
-    COAP_RESOURCE_TYPE_SIGNED_INT, "r", led_r_value(), led_r_set)
-
-REST_RES_LED_G_RESOURCE(led_g,
-    ,
-    IF_ACTUATOR,
-    LIGHT_CONTROL_RT,
-    COAP_RESOURCE_TYPE_SIGNED_INT, "g", led_g_value(), led_g_set)
-
-REST_RES_LED_B_RESOURCE(led_b,
-    ,
-    IF_ACTUATOR,
-    LIGHT_CONTROL_RT,
-    COAP_RESOURCE_TYPE_SIGNED_INT, "b", led_b_value(), led_b_set)
-
+#endif /* SKY_RESOURCES_H */

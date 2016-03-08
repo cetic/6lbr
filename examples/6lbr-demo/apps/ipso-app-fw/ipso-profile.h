@@ -196,6 +196,8 @@
 #define VOLTAGE_SENSOR_RES_ID "v"
 #define LQI_SENSOR_RES_ID "lqi"
 #define RSSI_SENSOR_RES_ID "rssi"
+#define COUNTER_SENSOR_RES_ID "count"
+#define STATE_SENSOR_RES_ID "state"
 
 // Interface Description
 

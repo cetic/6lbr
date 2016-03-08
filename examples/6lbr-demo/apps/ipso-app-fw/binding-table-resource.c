@@ -189,7 +189,7 @@ resource_binding_parse(char *buffer, char * max, coap_binding_t *binding)
   return status;
 }
 /*---------------------------------------------------------------------------*/
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
 static void
 resource_binding_store_nvm_bindings(void)
 {
@@ -252,7 +252,7 @@ resource_binding_table_post_handler(void* request, void* response, uint8_t *buff
       if (success) {
         PRINTF("Binding added\n");
         coap_push_add_binding(binding);
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
         resource_binding_store_nvm_bindings();
         store_nvm_config();
 #endif
@@ -278,7 +278,7 @@ resource_binding_table_delete_handler(void* request, void* response, uint8_t *bu
     }
   }
   list_init(coap_push_get_bindings());
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
   resource_binding_clear_nvm_bindings();
   store_nvm_config();
 #endif
@@ -330,7 +330,7 @@ binding_table_init(void)
 {
   memb_init(&binding_memb);
   rest_activate_resource(&resource_binding_table, BINDING_TABLE_RES);
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
   resource_binding_load_nvm_bindings();
 #endif
 }

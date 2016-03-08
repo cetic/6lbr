@@ -49,6 +49,9 @@
 #include "ipso-so.h"
 #endif
 
+#include "dev/light-sensor.h"
+
+#include "sky-resources.h"
 #include "sht-temp-resource.h"
 #include "sht-humidity-resource.h"
 #include "battery-resource.h"
@@ -67,18 +70,20 @@ REST_RES_RADIO_RSSI_DECLARE();
 REST_RES_PHOTO_DECLARE();
 REST_RES_SOLAR_DECLARE();
 
-#if REST_RES_LIGHT_SOLAR_RAW
-#define LIGHT_SOLAR_VALUE light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR)
+#define SENSOR_INIT_SOLAR() SENSORS_ACTIVATE(light_sensor);
+#if REST_RES_SOLAR_RAW
+#define REST_REST_SOLAR_VALUE light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR)
 #else
 //S1087-1 on 100kOhm with Vref=1.5V
-#define LIGHT_SOLAR_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR) * 282 / 1000)
+#define REST_REST_SOLAR_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR) * 282 / 1000)
 #endif
 
-#if REST_RES_LIGHT_PHOTO_RAW
-#define LIGHT_PHOTOSYNTHETIC_VALUE light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC))
+#define SENSOR_INIT_PHOTO() SENSORS_ACTIVATE(light_sensor);
+#if REST_RES_PHOTO_RAW
+#define REST_REST_PHOTO_VALUE light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC))
 #else
 //S1087 on 100kOhm with Vref=1.5V
-#define LIGHT_PHOTOSYNTHETIC_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) * 2289 / 1000)
+#define REST_REST_PHOTO_VALUE ((uint32_t)light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) * 2289 / 1000)
 #endif
 
 REST_RES_PHOTO_DEFINE(IF_SENSOR, LIGHT_SENSOR_RT, LIGHT_PHOTOSYNTHETIC_SENSOR_RES);

@@ -33,7 +33,6 @@
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#define LOG6LBR_MODULE "NVM"
 #include "contiki.h"
 
 #include "er-coap-engine.h"
@@ -101,7 +100,7 @@ resource_linked_batch_parse(char *buffer, resource_t *linked_batch_table[], int 
   return status;
 }
 /*---------------------------------------------------------------------------*/
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
 static void
 linked_batch_table_store_nvm_links(void) {
   int i;
@@ -160,7 +159,7 @@ resource_linked_batch_table_post_handler(void* request, void* response, uint8_t 
           linked_batch_table[linked_batch_table_size] = tmp_linked_batch_table[i];
           linked_batch_table_size++;
         }
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
         linked_batch_table_store_nvm_links();
         store_nvm_config();
 #endif
@@ -183,7 +182,7 @@ resource_linked_batch_table_delete_handler(void* request, void* response, uint8_
     linked_batch_table[i] = NULL;
     linked_batch_table_size = 0;
   }
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
   linked_batch_table_clear_nvm_links();
   store_nvm_config();
 #endif
@@ -213,7 +212,7 @@ void
 linked_batch_table_init(void)
 {
   rest_activate_resource(&resource_linked_batch_table, LINKED_BATCH_TABLE_RES);
-#if WITH_CETIC_6LN_NVM
+#if 0 && WITH_CETIC_6LN_NVM
   linked_batch_table_load_nvm_links();
 #endif
 }
