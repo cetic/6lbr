@@ -43,58 +43,6 @@
 
 #define REST_FORMAT_BASETIME(buffer, size, pos)
 
-#define REST_FORMAT_ONE_INT(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d\" />", (resource_value))
-
-#define REST_FORMAT_ONE_UINT(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%u\"/>", (resource_value))
-
-#define REST_FORMAT_ONE_LONG(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%ld\" />", (resource_value))
-
-#define REST_FORMAT_ONE_ULONG(resource_name, resource_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%lu\" />", (resource_value))
-
-#define REST_FORMAT_ONE_DECIMAL(resource_name, resource_value) \
-{ \
-		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%u\" />", (int)(value / 10), (unsigned int)(value % 10)); \
-}
-
-#define REST_FORMAT_TWO_DECIMAL(resource_name, resource_value) \
-{ \
-		int value = (resource_value); \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%02u\" />", (int)(value / 100), (unsigned int)(value % 100)); \
-}
-
-#define REST_FORMAT_THREE_DECIMAL(resource_name, resource_value) \
-{ \
-                int value = (resource_value); \
-                snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%d.%03u\" />", (int)(value / 1000), (unsigned int)(value % 1000)); \
-}
-
-#define REST_FORMAT_ONE_STR(resource_name, sensor_value) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"resource_name" v=\"%s\" />", (sensor_value))
-
-#define REST_FORMAT_TWO_INT(resource_name, sensor_a_name, sensor_a, sensor_b_name, sensor_b) \
-		snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<"#resource_name" "sensor_a_name"=\"%d\" "sensor_b_name"=\"%d\" />", (sensor_a), (sensor_b))
-
-#define REST_FORMAT_BATCH_START(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "<batch>"); \
-		if (pos > size) pos = size; \
-	}
-
-#define REST_FORMAT_SEPARATOR(buffer, size, pos)
-
-#define REST_FORMAT_BATCH_END(buffer, size, pos) \
-	if (pos < size) { \
-		pos += snprintf((char *)buffer + pos, size - pos, "</batch>"); \
-		if (pos > size) pos = size; \
-	}
-
-#define REST_TYPE_ERROR "Supporting content-type: application/xml"
-
 #endif
 
 #endif
