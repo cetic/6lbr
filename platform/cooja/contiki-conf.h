@@ -261,6 +261,9 @@ typedef unsigned long rtimer_clock_t;
 #define IEEE802154_CONF_PANID          0xABCD
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN 125
 
+#define PLATFORM_HAS_BUTTON            1
+#define PLATFORM_HAS_LEDS              1
+
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
 #ifdef PROJECT_CONF_H
