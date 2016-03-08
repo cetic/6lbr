@@ -207,8 +207,9 @@ simple_resource_get_handler(int resource_type, char const *resource_name, uint32
   }
   if (COAP_DATA_FORMAT.accepted_type(accept))
   {
-    PRINTF("In Offset : %d, pref: %d\n", *offset, preferred_size);
-    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, *offset, accept, resource_type, resource_name, resource_value);
+    int real_offset = offset ? *offset : 0;
+    PRINTF("In Offset : %d, pref: %d\n", real_offset, preferred_size);
+    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, real_offset, accept, resource_type, resource_name, resource_value);
     REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, buffer, buffer_size);
@@ -261,7 +262,8 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   }
   if (COAP_DATA_FORMAT.accepted_type(accept))
   {
-    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, *offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
+    int real_offset = offset ? *offset : 0;
+    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, real_offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
     REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, buffer, buffer_size);
