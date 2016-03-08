@@ -37,12 +37,8 @@
 #ifndef REST_TYPE_XML_H
 #define REST_TYPE_XML_H
 
-#ifdef REST_TYPE_APPLICATION_XML
+extern coap_data_format_t coap_data_format_xml;
 
-#define REST_TYPE 41 //REST.type.APPLICATION_XML
-
-#define REST_FORMAT_BASETIME(buffer, size, pos)
-
-#endif
+#define coap_data_format_xml_REST_TYPE 41
 
 #endif

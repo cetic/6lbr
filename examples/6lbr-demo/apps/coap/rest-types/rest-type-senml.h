@@ -37,7 +37,17 @@
 #ifndef REST_TYPE_SENML_H
 #define REST_TYPE_SENML_H
 
-#ifdef REST_TYPE_APPLICATION_SENML_PLUS_JSON
+#define REST_TYPE_SENML_TYPE_ID_JSON 50
+#define REST_TYPE_SENML_TYPE_ID_LWM2M 1543
+
+#ifndef REST_TYPE_SENML_TYPE_ID
+#define REST_TYPE_SENML_TYPE_ID REST_TYPE_SENML_TYPE_ID_JSON
+#endif
+
+extern coap_data_format_t coap_data_format_senml;
+
+#define coap_data_format_senml_REST_TYPE REST_TYPE_SENML_TYPE_ID_JSON
+
 
 #define REST_FORMAT_BASETIME(buffer, size, pos) \
 if (pos < size) { \
@@ -58,5 +68,4 @@ if (pos < size) { \
 		REST_FORMAT_BASETIME(buffer, size, pos) \
 	REST_FORMAT_SENML_CUR_BRACKET_END(buffer, size, pos)
 
-#endif
 #endif /* REST_TYPE_SENML_H */

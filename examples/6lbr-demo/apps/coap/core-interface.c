@@ -209,12 +209,11 @@ resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resour
   if (request != NULL) {
     REST.get_header_accept(request, &accept);
   }
-  if (accept == -1 || accept == REST_TYPE)
-  {
-    REST.set_header_content_type(response, REST_TYPE);
-    resource_batch_get_data_handler(accept, batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
-  } else if (accept == APPLICATION_LINK_FORMAT) {
+  if (accept == APPLICATION_LINK_FORMAT) {
     resource_linked_list_get_handler(batch_resource, batch_resource_list, batch_resource_list_size, flags, request, response, buffer, preferred_size, offset);
+  } else if (COAP_DATA_FORMAT.accepted_type(accept))
+  {
+    resource_batch_get_data_handler(accept, batch_buffer, batch_buffer_size, batch_resource_list, batch_resource_list_size, request, response, buffer, preferred_size, offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
   }

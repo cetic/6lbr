@@ -123,7 +123,9 @@
 //#define WITH_WELL_KNOWN_CORE            0
 
 /* COAP content type definition */
-
+#ifndef COAP_CONF_DATA_FORMAT
+#define COAP_CONF_DATA_FORMAT coap_data_format_text
+#endif
 #define REST_MAX_CHUNK_SIZE     64
 
 /*---------------------------------------------------------------------------*/

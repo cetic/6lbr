@@ -37,12 +37,8 @@
 #ifndef REST_TYPE_JSON_H
 #define REST_TYPE_JSON_H
 
-#ifdef REST_TYPE_APPLICATION_JSON
+extern coap_data_format_t coap_data_format_json;
 
-#define REST_TYPE 50 //REST.type.APPLICATION_JSON
-
-#define REST_FORMAT_BASETIME(buffer, size, pos)
-
-#endif
+#define coap_data_format_json_REST_TYPE 50
 
 #endif

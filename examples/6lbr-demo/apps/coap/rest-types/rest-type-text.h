@@ -37,12 +37,9 @@
 #ifndef REST_TYPE_TEXT_H
 #define REST_TYPE_TEXT_H
 
-#ifdef REST_TYPE_TEXT_PLAIN
+extern coap_data_format_t coap_data_format_text;
 
-#define REST_TYPE 0 //REST.type.TEXT_PLAIN
-
-#define REST_FORMAT_BASETIME(buffer, size, pos)
+#define coap_data_format_text_REST_TYPE 0
 
 #endif
 
-#endif

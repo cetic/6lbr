@@ -64,7 +64,7 @@ resource_linked_batch_table_post_handler(void* request, void* response, uint8_t 
 static void
 resource_linked_batch_table_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-RESOURCE(resource_linked_batch_table,  "" IF_MACRO(IF_LINKED_BATCH) CT_MACRO(TO_STRING(40) " " TO_STRING(REST_TYPE)), resource_linked_batch_table_get_handler, resource_linked_batch_table_post_handler, NULL, resource_linked_batch_table_delete_handler);
+RESOURCE(resource_linked_batch_table,  "" IF_MACRO(IF_LINKED_BATCH) CT_MACRO(TO_STRING(40) " " CT_EVAL(COAP_DATA_FORMAT)), resource_linked_batch_table_get_handler, resource_linked_batch_table_post_handler, NULL, resource_linked_batch_table_delete_handler);
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -195,14 +195,14 @@ resource_linked_batch_table_get_handler(void* request, void* response, uint8_t *
   static uint8_t batch_buffer[CORE_ITF_MAX_BATCH_BUFFER_SIZE+1];
   static int batch_buffer_size = 0;
   unsigned int accept = -1;
-  if (request == NULL || !REST.get_header_accept(request, &accept) || accept==REST_TYPE)
-  {
-    REST.set_header_content_type(response, REST_TYPE);
-    resource_batch_get_handler(batch_buffer, &batch_buffer_size, &resource_linked_batch_table, linked_batch_table, linked_batch_table_size, 0, request, response, buffer, preferred_size, offset);
-  } else if (accept==APPLICATION_LINK_FORMAT)
-  {
+  if (request != NULL) {
+    REST.get_header_accept(request, &accept);
+  }
+  if (accept==APPLICATION_LINK_FORMAT) {
     REST.set_header_content_type(response, APPLICATION_LINK_FORMAT);
     resource_linked_list_get_handler(&resource_linked_batch_table, linked_batch_table, linked_batch_table_size, 0, request, response, buffer, preferred_size, offset);
+  } else if (COAP_DATA_FORMAT.accepted_type(accept)) {
+    resource_batch_get_handler(batch_buffer, &batch_buffer_size, &resource_linked_batch_table, linked_batch_table, linked_batch_table_size, 0, request, response, buffer, preferred_size, offset);
   } else {
     REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
   }

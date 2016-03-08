@@ -37,19 +37,16 @@
 #include "coap-common.h"
 #include "coap-data-format.h"
 
-//TODO: Move to .h file
-extern int core_itf_linked_batch_resource;
-
 static int
 accepted_type(unsigned int type)
 {
-  return type == -1 || type == 1543; //REST.type.APPLICATION_JSON;
+  return type == -1 || type == REST_TYPE_SENML_TYPE_ID;
 }
 
 static int
 format_type(unsigned int type)
 {
-  return 1543; //REST.type.APPLICATION_JSON;
+  return REST_TYPE_SENML_TYPE_ID;
 }
 
 static int

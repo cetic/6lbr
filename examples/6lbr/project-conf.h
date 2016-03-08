@@ -40,11 +40,10 @@
 #include "conf-mapping.h"
 
 /* COAP content type definition */
+#ifndef COAP_CONF_DATA_FORMAT
+#define COAP_CONF_DATA_FORMAT coap_data_format_text
+#endif
 
-#define REST_TYPE_TEXT_PLAIN
-//#define REST_TYPE_APPLICATION_XML
-//#define REST_TYPE_APPLICATION_JSON
-//#define REST_TYPE_APPLICATION_SENML_PLUS_JSON
 #define REST_TYPE_SENML_CONF_TIMESTAMP 1
 
 /*------------------------------------------------------------------*/
