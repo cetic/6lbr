@@ -125,11 +125,15 @@ platform_restart(void)
       break;
     case CETIC_6LBR_REBOOT:
       LOG6LBR_INFO("Rebooting...\n");
-      system("reboot");
+      if(system("reboot") != 0) {
+        LOG6LBR_WARN("Reboot command failed\n");
+      }
       break;
     case CETIC_6LBR_HALT:
       LOG6LBR_INFO("Halting...\n");
-      system("halt");
+      if(system("halt") != 0) {
+        LOG6LBR_WARN("Halt command failed\n");
+      }
       break;
     default:
       //We should never end up here...
