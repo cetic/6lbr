@@ -128,8 +128,10 @@ clear_log(struct httpd_state *s)
 {
   char *  log_file = getenv("LOG_6LBR_OUT");
   if ( log_file && strcmp(log_file, "-") != 0 ) {
-    fclose(stdin);
-    freopen(log_file, "w", stdin);
+    fclose(stdout);
+    if(freopen(log_file, "w", stdout) == NULL) {
+      fprintf(stderr, "Could not reopen stdout");
+    }
   }
   webserver_result_title = "Logs";
   webserver_result_text = "Logs cleared";
