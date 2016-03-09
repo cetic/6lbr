@@ -58,6 +58,7 @@ typedef struct {
   uint16_t rpl_min_hoprankinc;
   uint16_t rpl_lifetime_unit;
 
+  //Version 2 configuration data
   //Security Layer
   uint8_t security_layer;
   uint8_t security_level;
@@ -86,6 +87,9 @@ typedef struct {
 
   //MAC Layer
   uint8_t mac_layer;
+
+  //LSEC Configuration
+  uint16_t noncoresec_flags;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -136,6 +140,9 @@ typedef struct {
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_32            5
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_64            6
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CCM_128           7
+
+#define CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY     0x0001
+#define CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND  0x0002
 
 //RPL Configuration
 
@@ -213,6 +220,7 @@ typedef struct {
     0x04 , 0x05 , 0x06 , 0x07 , \
     0x08 , 0x09 , 0x0A , 0x0B , \
     0x0C , 0x0D , 0x0E , 0x0F }
+#define CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS 0
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS (CETIC_6LBR_DNS_DNS_SD)
 #define CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME "6lbr"

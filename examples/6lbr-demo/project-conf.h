@@ -104,6 +104,7 @@
 #undef AES_128_CONF
 #define AES_128_CONF aes_128_driver
 
+#define LLSEC_ANTIREPLAY_ENABLED 1
 #define LLSEC_REBOOT_WORKAROUND_ENABLED 1
 
 #else

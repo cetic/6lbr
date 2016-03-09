@@ -54,8 +54,11 @@
 #include "lib/ccm-star.h"
 #include <string.h>
 
+#ifndef LLSEC_ANTIREPLAY_ENABLED
+#define LLSEC_ANTIREPLAY_ENABLED 1
+#endif
 #ifndef LLSEC_REBOOT_WORKAROUND_ENABLED
-#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
+#define LLSEC_REBOOT_WORKAROUND_ENABLED 0
 #endif
 
 uint32_t noncoresec_invalid_level;
@@ -172,7 +175,7 @@ input(void)
     noncoresec_nonauthentic++;
     return;
   }
-  
+  if(LLSEC_ANTIREPLAY_ENABLED) {
   info = nbr_table_get_from_lladdr(anti_replay_table, sender);
   if(!info) {
     info = nbr_table_add_lladdr(anti_replay_table, sender);
@@ -200,18 +203,12 @@ input(void)
     
     anti_replay_init_info(info);
   } else {
-#if LLSEC_REBOOT_WORKAROUND_ENABLED
-    /* Temporary workaround for node reboot until proper reboot protocol is added */
-#if !CONTIKI_TARGET_ECONOTAG
-#warning LLSEC reboot workaround enabled
-#endif
-    if(anti_replay_get_counter() == 1) {
+    if(LLSEC_REBOOT_WORKAROUND_ENABLED && anti_replay_get_counter() == 1) {
       /* Replay counter for the node has been reset, assume it is a reboot */
       PRINTF("Reboot detected, Reseting replay counter\n");
       anti_replay_init_info(info);
       noncoresec_reboot++;
     } else
-#endif
     if(anti_replay_was_replayed(info)) {
        PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
            anti_replay_get_counter());
@@ -219,7 +216,7 @@ input(void)
        return;
     }
   }
-  
+  } //LLSEC_ANTIREPLAY_ENABLED
   NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/

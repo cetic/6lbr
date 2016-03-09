@@ -163,9 +163,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
+  INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, "Disable anti-replay");
+  INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#endif
   add("<br /><h3>MAC</h3>");
   add("MAC Layer : <select name=\"mac\">");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
@@ -173,6 +174,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 
   add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
@@ -414,6 +416,8 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)
+    UPDATE_FLAG( "sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, 1)
+    UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
