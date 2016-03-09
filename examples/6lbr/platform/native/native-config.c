@@ -85,7 +85,7 @@ void native_config_load(void)
     LOG6LBR_INFO("Loading configuration : %s\n",config_file_name);
     result = ini_parse(config_file_name, native_config_handler, NULL);
     if (result < 0) {
-      LOG6LBR_FATAL("Can not open %s : %s\n", config_file_name, strerror(errno));
+      LOG6LBR_WARN("Can not open %s : %s\n", config_file_name, strerror(errno));
       exit(1);
     }
     else if (result) {
