@@ -65,6 +65,16 @@
 #define LWM2M_DEVICE_TIMEZONE_RESOURCE_ID "15"
 #define LWM2M_DEVICE_BINDING_RESOURCE_ID "16"
 
+#define LWM2M_DEVICE_POWER_RESOURCE_DC_POWER "0"
+#define LWM2M_DEVICE_POWER_RESOURCE_INT_BATTERY "1"
+#define LWM2M_DEVICE_POWER_RESOURCE_EXT_BATTERY "2"
+#define LWM2M_DEVICE_POWER_RESOURCE_POE "4"
+#define LWM2M_DEVICE_POWER_RESOURCE_USB "5"
+#define LWM2M_DEVICE_POWER_RESOURCE_AC_POWER "6"
+#define LWM2M_DEVICE_POWER_RESOURCE_SOLAR "7"
+
+#define LWM2M_DEVICE_POWER_VOLTAGE_RESOURCE_RES_ID LWM2M_DEVICE_POWER_VOLTAGE_RESOURCE_ID "/" "0"
+
 #define LWM2M_DEVICE_RT ""
 #define LWM2M_DEVICE_MANUFACTURER_RT ""
 #define LWM2M_DEVICE_MODEL_NUMBER_RT ""
@@ -73,8 +83,10 @@
 #define LWM2M_DEVICE_REBOOT_RT ""
 #define LWM2M_DEVICE_TIME_RT ""
 
-#define LWM2M_INSTANCE_PATH(object_id, instance_id) object_id "/" instance_id
-#define LWM2M_RESOURCE_PATH(object_id, instance_id, resource_id) object_id "/" instance_id "/" resource_id
+#define LWM2M_CONCAT(x, y) x "/" y
+#define LWM2M_INSTANCE_PATH(object_id, instance_id) LWM2M_CONCAT(object_id, instance_id)
+#define LWM2M_RESOURCE_PATH(object_id, instance_id, resource_id) LWM2M_CONCAT(LWM2M_INSTANCE_PATH(object_id, instance_id), resource_id)
+#define LWM2M_RESOURCE_INSTANCE_PATH(object_id, instance_id, resource_id, resource_instance_id) LWM2M_CONCAT(LWM2M_RESOURCE_PATH(object_id, instance_id, resource_id), resource_instance_id)
 
 #define LWM2M_SIMPLE_PATH(object_id, resource_id) LWM2M_RESOURCE_PATH(object_id, LWM2M_DEFAULT_INSTANCE_ID, resource_id)
 

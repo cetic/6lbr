@@ -37,4 +37,7 @@
 #ifndef SIXLN_CONF_CONTIKI_H
 #define SIXLN_CONF_CONTIKI_H
 
+#undef LWM2M_HAS_POWER_INFO
+#define LWM2M_HAS_POWER_INFO "contiki-power-info.h"
+
 #endif

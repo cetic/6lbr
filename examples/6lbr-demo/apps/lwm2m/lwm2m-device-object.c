@@ -38,6 +38,9 @@
 #include "coap-binding.h"
 #include "device-info-resource.h"
 #include "lwm2m-device-object.h"
+#ifdef LWM2M_HAS_POWER_INFO
+#include LWM2M_HAS_POWER_INFO
+#endif
 
 #if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
@@ -89,6 +92,15 @@
 #define LWM2M_DEVICE_REBOOT_RESOURCE(...)
 #endif
 
+//Power configuration is defined in platform specific code
+#ifndef LWM2M_DEVICE_POWER_VOLTAGE_DECLARE
+#define LWM2M_DEVICE_POWER_VOLTAGE_DECLARE()
+#endif
+
+#ifndef LWM2M_DEVICE_POWER_VOLTAGE_REF
+#define LWM2M_DEVICE_POWER_VOLTAGE_REF
+#endif
+
 #if LWM2M_DEVICE_TIME
 #define LWM2M_DEVICE_TIME_RESOURCE REST_FULL_RESOURCE
 #define LWM2M_DEVICE_TIME_REF &resource_device_time,
@@ -126,6 +138,8 @@ LWM2M_DEVICE_FIRMWARE_RESOURCE(device_firmware,
     LWM2M_DEVICE_FIRMWARE_RT,
     COAP_RESOURCE_TYPE_STRING, LWM2M_DEVICE_FIRMWARE_RESOURCE_ID, RES_DEVICE_MODEL_SW_VALUE)
 
+LWM2M_DEVICE_POWER_VOLTAGE_DECLARE();
+
 LWM2M_DEVICE_REBOOT_RESOURCE(device_reboot,
     0,
     IF_RO_PARAMETER,
@@ -151,7 +165,8 @@ LWM2M_DEVICE_BATCH_RESOURCE(device, LIST_INCLUDE_SELF | LIST_INCLUDE_ATTR, IF_BA
     LWM2M_DEVICE_MODEL_NUMBER_REF
     LWM2M_DEVICE_SERIAL_NUMBER_REF
     LWM2M_DEVICE_FIRMWARE_REF
+    LWM2M_DEVICE_POWER_VOLTAGE_REF
     LWM2M_DEVICE_TIME_REF
-    &resource_device_counter,
+    //&resource_device_counter,
     )
 /*---------------------------------------------------------------------------*/

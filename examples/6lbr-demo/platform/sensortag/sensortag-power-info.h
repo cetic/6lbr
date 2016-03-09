@@ -34,10 +34,27 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SIXLN_CONF_SENSORTAG_H
-#define SIXLN_CONF_SENSORTAG_H
+#ifndef SENSORTAG_POWER_INFO_H
+#define SENSORTAG_POWER_INFO_H
 
-#undef LWM2M_HAS_POWER_INFO
-#define LWM2M_HAS_POWER_INFO "sensortag-power-info.h"
+#include "contiki.h"
+
+#include "coap-common.h"
+#include "core-interface.h"
+
+#if WITH_LWM2M
+#include "lwm2m.h"
+#include "ipso-so.h"
+#endif
+
+#if WITH_IPSO_APP_FW
+#include "ipso-app-fw.h"
+#endif
+
+#include "sensortag-resources.h"
+#include "batmon-resource.h"
+
+#define LWM2M_DEVICE_POWER_VOLTAGE_DECLARE REST_RES_BATMON_DECLARE
+#define LWM2M_DEVICE_POWER_VOLTAGE_REF REST_RES_BATMON_REF
 
 #endif
