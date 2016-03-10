@@ -115,6 +115,7 @@ typedef struct {
 #define CETIC_GLOBAL_DISABLE_CONFIG     0x0001
 #define CETIC_GLOBAL_IP64               0x0002
 #define CETIC_GLOBAL_MDNS               0x0004
+#define CETIC_GLOBAL_FILTER_NODES       0x0008
 
 //RA Mode flags
 

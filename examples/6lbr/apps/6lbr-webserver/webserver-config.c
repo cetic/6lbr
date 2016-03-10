@@ -45,6 +45,10 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
+#if CETIC_NODE_CONFIG
+#include "node-config.h"
+#endif
+
 #include <stdlib.h>
 
 HTTPD_CGI_CALL_NAME(webserver_config)
@@ -197,6 +201,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
+#if CETIC_NODE_CONFIG
+  INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
+#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -444,7 +451,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, 1)
 #endif
 #endif
-
+#if CETIC_NODE_CONFIG
+    UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
+#endif
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)

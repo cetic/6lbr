@@ -106,6 +106,7 @@ webserver_init(void)
   httpd_group_add(&admin_group);
 
   httpd_group_add_page(&main_group, &webserver_main);
+  httpd_group_add_page(&config_group, &webserver_config);
 #if CETIC_NODE_INFO
   httpd_group_add_page(&sensors_group, &webserver_sensors_info);
   httpd_cgi_add(&webserver_sensor);
@@ -124,7 +125,6 @@ webserver_init(void)
 #if UIP_CONF_IPV6_RPL
   httpd_group_add_page(&status_group, &webserver_rpl);
 #endif
-  httpd_group_add_page(&config_group, &webserver_config);
   httpd_group_add_page(&statistics_group, &webserver_statistics);
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
 #if UIP_CONF_IPV6_RPL

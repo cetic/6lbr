@@ -44,7 +44,9 @@
 #else
 #include "node-config-memb.h"
 #endif
-
+#include "nvm-data.h"
+#include "net/rpl/rpl.h"
+#include "6lbr-hooks.h"
 #include "cetic-6lbr.h"
 
 uint8_t node_config_loaded = 0;
@@ -92,7 +94,29 @@ char const *  node_config_get_name(node_config_t const *  node_config) {
 }
 #endif
 
+int node_config_allowed_node_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
+{
+  /* Test if MAC of incoming node is allowed. */
+  if(dag != NULL) {
+    if(node_config_find_by_ip(prefix) == NULL) {
+      LOG6LBR_6ADDR(INFO, prefix, "Node has been rejected : ");
+      return 0;
+    }
+    LOG6LBR_6ADDR(DEBUG, prefix, "Node has been accepted : ");
+    return 1;
+  } else {
+    if(uip_is_addr_mcast(prefix) || uip_is_addr_linklocal(prefix) || uip_ds6_is_my_addr(prefix) || uip_ds6_is_my_aaddr(prefix) ||
+      node_config_find_by_ip(prefix)) {
+      return 1;
+    }
+    return 0;
+  }
+}
+
 void node_config_init(void) {
   LOG6LBR_INFO("Node Config init\n");
   node_config_impl_init();
+  if((nvm_data.global_flags & CETIC_GLOBAL_FILTER_NODES) != 0) {
+    cetic_6lbr_allowed_node_hook = node_config_allowed_node_hook;
+  }
 }
