@@ -120,4 +120,9 @@
 #error "I don't know what architecture this is!"
 #endif
 
+/* include the plugin config if needed */
+#ifdef PLUGIN_PROJECT_CONF_H
+#include PLUGIN_PROJECT_CONF_H
+#endif
+
 #endif /* SIXLBR_CONF_NATIVE_H */

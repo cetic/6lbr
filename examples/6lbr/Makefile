@@ -30,7 +30,7 @@ $(CONTIKI_PROJECT):
 endif
 
 -include $(6LBR)/platform/$(TARGET)/Makefile.$(TARGET)
-ifneq ("$(wildcard platform/$(TARGET)/6lbr-conf-$(TARGET).h)","")
+ifneq ("$(wildcard $(6LBR)/platform/$(TARGET)/6lbr-conf-$(TARGET).h)","")
 CFLAGS+=-DCETIC_6LBR_PLATFORM_CONF=\"6lbr-conf-$(TARGET).h\"
 endif
 
