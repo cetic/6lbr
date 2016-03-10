@@ -40,6 +40,7 @@
 
 #include "log-6lbr.h"
 #include "plugin.h"
+#include "native-config.h"
 #include "lwm2m.h"
 #include "lwm2m-device-object.h"
 #include "rd-client.h"
@@ -47,6 +48,29 @@
 char const * lwm2m_objects_link = ""
     LWM2M_DEVICE_OBJECT_LINK
 ;
+
+static native_config_callback_t lwm2m_device_config_cb;
+char *lwm2m_device_manufacturer = "CETIC";
+char *lwm2m_device_model = "6LBR";
+
+/*---------------------------------------------------------------------------*/
+static int native_config_lwm2m_device_handler(void* user, const char* section, const char* name,
+    const char* value) {
+  if(strcmp(name, "manufacturer") == 0) {
+    lwm2m_device_manufacturer = strdup(value);
+    return 1;
+  }
+  if(strcmp(name, "model") == 0) {
+    lwm2m_device_model = strdup(value);
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int load(void) {
+  native_config_add_callback(&lwm2m_device_config_cb, "lwm2m.device", native_config_lwm2m_device_handler, NULL);
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
 static int init(void) {
   LOG6LBR_INFO("LWM2M Client init\n");
@@ -82,7 +106,7 @@ sixlbr_plugin_t sixlbr_plugin_info = {
   .api_version = SIXLBR_PLUGIN_API_VERSION,
   .id = "lwm2m-client",
   .description = "LWM2M Client demo",
-  .load = NULL,
+  .load = load,
   .init = init,
   .version = version,
   .status = status,
