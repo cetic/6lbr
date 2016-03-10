@@ -456,6 +456,8 @@ migrate_nvm(uint8_t print_info)
     nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
 
     nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
+
+    nvm_data->noncoresec_flags = CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS;
   }
 }
 
@@ -634,6 +636,8 @@ print_nvm(void)
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
   PRINT_KEY("Security key", noncoresec_key, 16);
+  PRINT_BOOL("Noncoresec anti-replay disabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY);
+  PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
   printf("\n");
 
   //IP64
@@ -722,6 +726,8 @@ print_nvm(void)
 #define security_layer_option 12000
 #define security_level_option 12001
 #define noncoresec_key_option 12002
+#define noncoresec_dis_ar_option 12003
+#define noncoresec_ar_wa_option 12004
 
 // NAT64
 #define nat64_enable_option 13000
@@ -792,6 +798,8 @@ static struct option long_options[] = {
   {"security-layer", required_argument, 0, security_layer_option},
   {"security-level", required_argument, 0, security_level_option},
   {"security-key", required_argument, 0, noncoresec_key_option},
+  {"noncoresec-dis-ar", required_argument, 0, noncoresec_dis_ar_option},
+  {"noncoresec-ar-wa", required_argument, 0, noncoresec_ar_wa_option},
 
   //MAC
   {"mac-layer", required_argument, 0, mac_layer_option},
@@ -906,6 +914,8 @@ help(char const *name)
   printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: 802.15.4 PSK security)\n");
   printf("\t--security-level <0..7>\t\t Security level\n");
   printf("\t--security-key <16 bytes key>\t Security key\n");
+  printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay\n");
+  printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround\n");
 
 // NAT64
   printf("\nNAT64 :\n");
@@ -922,7 +932,7 @@ help(char const *name)
   printf("\n");
   //Global flags
   printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
-  printf("\t--webserver-port <port> \t\t Configure Webserver port\n");
+  printf("\t--webserver-port <port> \t Configure Webserver port\n");
   printf("\n");
 
   printf
@@ -1036,6 +1046,8 @@ main(int argc, char *argv[])
   char *security_layer = NULL;
   char *security_level = NULL;
   char *noncoresec_key = NULL;
+  char *noncoresec_dis_ar = NULL;
+  char *noncoresec_ar_wa = NULL;
 
   // NAT64
   char *nat64_enable = NULL;
@@ -1070,7 +1082,7 @@ main(int argc, char *argv[])
       break;
 
     CASE_OPTION(channel)
-      CASE_OPTION(pan_id)
+    CASE_OPTION(pan_id)
 
     CASE_OPTION(wsn_net_prefix)
     CASE_OPTION(wsn_net_prefix_len)
@@ -1126,6 +1138,8 @@ main(int argc, char *argv[])
     CASE_OPTION(security_layer)
     CASE_OPTION(security_level)
     CASE_OPTION(noncoresec_key)
+    CASE_OPTION(noncoresec_dis_ar)
+    CASE_OPTION(noncoresec_ar_wa)
 
     // NAT64
     CASE_OPTION(nat64_enable)
@@ -1240,6 +1254,8 @@ main(int argc, char *argv[])
     UPDATE_INT("security-layer", security_layer)
     UPDATE_INT("security-level", security_level)
     UPDATE_KEY("security-key", noncoresec_key)
+    UPDATE_FLAG("noncoresec-dis-ar", noncoresec_dis_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY)
+    UPDATE_FLAG("noncoresec-ar-wa", noncoresec_ar_wa, noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND)
 
     // NAT64
     UPDATE_FLAG("nat64-enable", nat64_enable, global_flags, CETIC_GLOBAL_IP64)
