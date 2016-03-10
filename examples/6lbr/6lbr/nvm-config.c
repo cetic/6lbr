@@ -162,6 +162,7 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
 
+    nvm_data->noncoresec_flags = CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS;
     flash = 1;
   }
 
