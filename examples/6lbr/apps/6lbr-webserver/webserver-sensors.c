@@ -433,7 +433,7 @@ webserver_sensors_reset_stats_all(struct httpd_state *s)
 }
 HTTPD_CGI_CALL(webserver_sensors_info, "sensors.html", "Sensors", generate_sensors_info, 0);
 #if CETIC_NODE_CONFIG
-HTTPD_CGI_CALL(webserver_sensors_config, "sensors_config.html", "Config", generate_sensors_config, 0);
+HTTPD_CGI_CALL(webserver_sensors_config, "sensors_config.html", "Sensors", generate_sensors_config, 0);
 #endif
 HTTPD_CGI_CALL(webserver_sensors_tree, "sensors_tree.html", "Node tree", generate_sensors_tree, 0);
 HTTPD_CGI_CALL(webserver_sensors_prr, "sensors_prr.html", "PRR", generate_sensors_prr, 0);

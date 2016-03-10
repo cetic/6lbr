@@ -118,7 +118,7 @@ webserver_init(void)
   httpd_cgi_command_add(&webserver_sensor_delete_node_cmd);
 #endif
 #if CETIC_NODE_CONFIG
-  httpd_group_add_page(&sensors_group, &webserver_sensors_config);
+  httpd_group_add_page(&config_group, &webserver_sensors_config);
 #endif
   httpd_group_add_page(&status_group, &webserver_network);
 #if UIP_CONF_IPV6_RPL

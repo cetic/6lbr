@@ -514,6 +514,6 @@ webserver_config_reset(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-HTTPD_CGI_CALL(webserver_config, "config.html", "Config", generate_config, 0);
+HTTPD_CGI_CALL(webserver_config, "config.html", "Global", generate_config, 0);
 HTTPD_CGI_CMD(webserver_config_set_cmd, "config", webserver_config_set, 0);
 HTTPD_CGI_CMD(webserver_config_reset_cmd, "reset-config", webserver_config_reset, 0);
