@@ -103,6 +103,10 @@
 #include "nvm-proxy.h"
 #endif
 
+#if WITH_DNS_PROXY
+#include "dns-proxy.h"
+#endif
+
 #if CONTIKI_TARGET_NATIVE
 extern void cetic_6lbr_save_ip(void);
 #endif
@@ -525,6 +529,10 @@ dtls_init();
 
 #if WITH_NVM_PROXY
   nvm_proxy_init();
+#endif
+
+#if WITH_DNS_PROXY
+  dns_proxy_init();
 #endif
 
   platform_finalize();

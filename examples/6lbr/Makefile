@@ -84,6 +84,10 @@ ifneq ($(WITH_NVM_PROXY),0)
 APPS+=nvm-proxy
 endif
 
+ifneq ($(WITH_DNS_PROXY),0)
+APPS+=dns-proxy
+endif
+
 ifneq ($(WITH_COAPSERVER),0)
 APPS += er-coap rest-engine coap
 endif

@@ -1,0 +1,2 @@
+CFLAGS += -DWITH_DNS_PROXY=1
+udp-server_src = dns-proxy.c 
