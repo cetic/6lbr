@@ -638,6 +638,7 @@ print_nvm(void)
   PRINT_KEY("Security key", noncoresec_key, 16);
   PRINT_BOOL("Noncoresec anti-replay disabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY);
   PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
+  PRINT_BOOL("Filter unknown nodes", global_flags, CETIC_GLOBAL_FILTER_NODES);
   printf("\n");
 
   //IP64
@@ -729,6 +730,7 @@ print_nvm(void)
 #define noncoresec_key_option 12002
 #define noncoresec_dis_ar_option 12003
 #define noncoresec_ar_wa_option 12004
+#define security_filter_nodes_option 12005
 
 // NAT64
 #define nat64_enable_option 13000
@@ -802,6 +804,7 @@ static struct option long_options[] = {
   {"security-key", required_argument, 0, noncoresec_key_option},
   {"noncoresec-dis-ar", required_argument, 0, noncoresec_dis_ar_option},
   {"noncoresec-ar-wa", required_argument, 0, noncoresec_ar_wa_option},
+  {"filter-nodes", required_argument, 0, security_filter_nodes_option},
 
   //MAC
   {"mac-layer", required_argument, 0, mac_layer_option},
@@ -915,11 +918,12 @@ help(char const *name)
 
   //Security
   printf("\nSecurity :\n");
-  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: 802.15.4 PSK security)\n");
+  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: Noncoresec security)\n");
   printf("\t--security-level <0..7>\t\t Security level\n");
   printf("\t--security-key <16 bytes key>\t Security key\n");
   printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay\n");
   printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround\n");
+  printf("\t--filter-nodes <0|1>\t\t Filter unknown nodes\n");
   printf("\n");
 
 // NAT64
@@ -1055,6 +1059,7 @@ main(int argc, char *argv[])
   char *noncoresec_key = NULL;
   char *noncoresec_dis_ar = NULL;
   char *noncoresec_ar_wa = NULL;
+  char *security_filter_nodes = NULL;
 
   // NAT64
   char *nat64_enable = NULL;
@@ -1148,6 +1153,7 @@ main(int argc, char *argv[])
     CASE_OPTION(noncoresec_key)
     CASE_OPTION(noncoresec_dis_ar)
     CASE_OPTION(noncoresec_ar_wa)
+    CASE_OPTION(security_filter_nodes)
 
     // NAT64
     CASE_OPTION(nat64_enable)
@@ -1265,6 +1271,7 @@ main(int argc, char *argv[])
     UPDATE_KEY("security-key", noncoresec_key)
     UPDATE_FLAG("noncoresec-dis-ar", noncoresec_dis_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY)
     UPDATE_FLAG("noncoresec-ar-wa", noncoresec_ar_wa, noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND)
+    UPDATE_FLAG("filter-nodes", security_filter_nodes, global_flags, CETIC_GLOBAL_FILTER_NODES)
 
     // NAT64
     UPDATE_FLAG("nat64-enable", nat64_enable, global_flags, CETIC_GLOBAL_IP64)
