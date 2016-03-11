@@ -90,6 +90,10 @@ typedef struct {
 
   //LSEC Configuration
   uint16_t noncoresec_flags;
+
+  //6LoWPAN prefix context
+  uint8_t wsn_6lowpan_context_0[8];
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -99,7 +103,7 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
-#define CETIC_6LBR_NVM_VERSION_2        3
+#define CETIC_6LBR_NVM_VERSION_2    4
 
 #define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
 
@@ -231,6 +235,10 @@ typedef struct {
 
 //MAC
 #define CETIC_6LBR_NVM_DEFAULT_MAC_LAYER CETIC_6LBR_MAC_LAYER_NONE
+
+#define CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0 \
+  { 0xAA, 0xAA, 0x00, 0x00, \
+    0x00, 0x00, 0x00, 0x00 }
 
 /*---------------------------------------------------------------------------*/
 

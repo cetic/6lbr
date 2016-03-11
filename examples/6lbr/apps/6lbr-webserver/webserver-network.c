@@ -285,11 +285,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("<pre><h2>6LoWPAN Prefix contexts</h2><pre>");
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if(addr_contexts[i].used == 1) {
-      add("%d : %02x%02x:%02x%02x:%02x%02x:%02x%02x\n", addr_contexts[i].number,
-          addr_contexts[i].prefix[1], addr_contexts[i].prefix[0],
-          addr_contexts[i].prefix[3], addr_contexts[i].prefix[2],
-          addr_contexts[i].prefix[5], addr_contexts[i].prefix[4],
-          addr_contexts[i].prefix[7], addr_contexts[i].prefix[6]);
+      add("%d : ", addr_contexts[i].number);
+      ipaddr_add_u8_len(addr_contexts[i].prefix, 8);
+      add("\n");
     }
   }
   add("</pre><br />");

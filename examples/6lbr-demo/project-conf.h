@@ -115,6 +115,12 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
+/* 6LoWPAN                                                                   */
+/*---------------------------------------------------------------------------*/
+
+#define CETIC_6LBR_6LOWPAN_CONTEXT_0  { 0xAA, 0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+
+/*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
 /*---------------------------------------------------------------------------*/
 
@@ -288,5 +294,9 @@
 
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA 0
+
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 \
+    uint8_t context_0[8] = CETIC_6LBR_6LOWPAN_CONTEXT_0; \
+  memcpy(addr_contexts[0].prefix, context_0, sizeof(addr_contexts[0].prefix));
 
 #endif /* CETIC_6LBR_DEMO_PROJECT_CONF_H */

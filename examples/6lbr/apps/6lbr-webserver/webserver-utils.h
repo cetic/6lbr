@@ -31,6 +31,9 @@ ip4addr_add_u8(const uint8_t * u8);
 #define ip4addr_add(addr) ip4addr_add_u8(((addr)->u8))
 
 void
+ipaddr_add_u8_len(const uint8_t * addr, uint8_t len);
+
+void
 ipaddr_add_u8(const uint8_t * addr);
 
 #define ipaddr_add(addr) ipaddr_add_u8(((addr)->u8))

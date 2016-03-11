@@ -107,13 +107,13 @@ ip4addr_add_u8(const uint8_t * u8)
 }
 /*---------------------------------------------------------------------------*/
 void
-ipaddr_add_u8(const uint8_t * addr)
+ipaddr_add_u8_len(const uint8_t * addr, uint8_t len)
 {
   if(addr != NULL) {
     uint16_t a;
     int i, f;
 
-    for(i = 0, f = 0; i < 16; i += 2) {
+    for(i = 0, f = 0; i < len; i += 2) {
       a = (addr[i] << 8) + addr[i + 1];
       if(a == 0 && f >= 0) {
         if(f++ == 0)
@@ -130,6 +130,12 @@ ipaddr_add_u8(const uint8_t * addr)
   } else {
     add("(null)");
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+ipaddr_add_u8(const uint8_t * addr)
+{
+  ipaddr_add_u8_len(addr, 16);
 }
 /*---------------------------------------------------------------------------*/
 void

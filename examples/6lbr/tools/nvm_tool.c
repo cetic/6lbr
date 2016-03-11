@@ -138,7 +138,7 @@ store_nvm_file(char const *nvm_file, uint8_t fit)
   } while(0)
 
 int
-uiplib_ipaddrconv(const char *addrstr, uint8_t * ipaddr)
+uiplib_ipaddrconv(const char *addrstr, uint8_t max, uint8_t * ipaddr)
 {
   uint16_t value;
   int tmp, zero;
@@ -150,7 +150,7 @@ uiplib_ipaddrconv(const char *addrstr, uint8_t * ipaddr)
   if(*addrstr == '[')
     addrstr++;
 
-  for(len = 0; len < 16 - 1; addrstr++) {
+  for(len = 0; len < max - 1; addrstr++) {
     c = *addrstr;
     if(c == ':' || c == '\0' || c == ']' || c == '/') {
       ipaddr[len] = (value >> 8) & 0xff;
@@ -185,12 +185,12 @@ uiplib_ipaddrconv(const char *addrstr, uint8_t * ipaddr)
   if(c != '\0' && c != ']' && c != '/') {
     return 0;
   }
-  if(len < 16) {
+  if(len < max) {
     if(zero < 0) {
       return 0;
     }
-    memmove(&ipaddr[zero + 16 - len], &ipaddr[zero], len - zero);
-    memset(&ipaddr[zero], 0, 16 - len);
+    memmove(&ipaddr[zero + max - len], &ipaddr[zero], len - zero);
+    memset(&ipaddr[zero], 0, max - len);
   }
 
   return 1;
@@ -275,7 +275,18 @@ lib_euiconv(const char *addrstr, uint8_t max, uint8_t * eui)
 void
 ipaddrconv(const char *parameter, const char *addrstr, uint8_t * ipaddr)
 {
-  int result = uiplib_ipaddrconv(addrstr, ipaddr);
+  int result = uiplib_ipaddrconv(addrstr, 16, ipaddr);
+
+  if(result == 0) {
+    fprintf(stderr, "Error: %s: invalid argument\n", parameter);
+    exit(1);
+  }
+}
+
+void
+contextconv(const char *parameter, const char *addrstr, uint8_t * ipaddr)
+{
+  int result = uiplib_ipaddrconv(addrstr, 8, ipaddr);
 
   if(result == 0) {
     fprintf(stderr, "Error: %s: invalid argument\n", parameter);
@@ -458,6 +469,9 @@ migrate_nvm(uint8_t print_info)
     nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
 
     nvm_data->noncoresec_flags = CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS;
+
+    uint8_t context[8] = CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0;
+    memcpy(nvm_data->wsn_6lowpan_context_0, context, sizeof(context));
   }
 }
 
@@ -485,13 +499,13 @@ print_eui64addr(const uint8_t addr[8])
 }
 
 void
-print_ipaddr(const uint8_t addr[16])
+print_ipaddr_len(const uint8_t *addr, uint8_t len)
 {
   uint16_t a;
   unsigned int i;
   int f;
 
-  for(i = 0, f = 0; i < 16; i += 2) {
+  for(i = 0, f = 0; i < len; i += 2) {
     a = (addr[i] << 8) + addr[i + 1];
     if(a == 0 && f >= 0) {
       if(f++ == 0) {
@@ -506,6 +520,12 @@ print_ipaddr(const uint8_t addr[16])
       printf("%x", a);
     }
   }
+}
+
+void
+print_ipaddr(const uint8_t *addr)
+{
+  print_ipaddr_len(addr, 16);
 }
 
 void
@@ -568,6 +588,12 @@ print_bool(uint16_t value, uint16_t mask)
   print_ip4addr(nvm_data->option); \
   printf("\n");
 
+#define PRINT_CONTEXT(text, option) \
+  printf(text " : "); \
+  print_ipaddr_len(nvm_data->option, 8); \
+  printf("\n");
+
+
 #define PRINT_KEY(text, option, size) \
   printf(text " : "); \
   print_key(nvm_data->option, size); \
@@ -589,6 +615,7 @@ print_nvm(void)
   PRINT_IP("WSN IP address", wsn_ip_addr);
   PRINT_BOOL("WSN accept RA", mode, CETIC_MODE_WAIT_RA_MASK);
   PRINT_BOOL("WSN IP address autoconf", mode, CETIC_MODE_WSN_AUTOCONF);
+  PRINT_CONTEXT("WSN 6LoWPAN context 0", wsn_6lowpan_context_0);
   printf("\n");
   PRINT_IP("Eth network prefix", eth_net_prefix);
   PRINT_INT("Eth network prefix length", eth_net_prefix_len);
@@ -674,6 +701,7 @@ print_nvm(void)
 #define wsn_ip_addr_option 2104
 #define wsn_accept_ra_option 2105
 #define wsn_addr_autoconf_option 2106
+#define wsn_6lowpan_context_0_option 2107
 
 #define eth_mac_option 3000
 #define eth_net_prefix_option 3001
@@ -758,6 +786,7 @@ static struct option long_options[] = {
   {"wsn-ip", required_argument, 0, wsn_ip_addr_option},
   {"wsn-accept-ra", required_argument, 0, wsn_accept_ra_option},
   {"wsn-ip-autoconf", required_argument, 0, wsn_addr_autoconf_option},
+  {"wsn-context-0", required_argument, 0, wsn_6lowpan_context_0_option},
 
   {"eth-mac", required_argument, 0, eth_mac_option},
   {"eth-prefix", required_argument, 0, eth_net_prefix_option},
@@ -861,6 +890,8 @@ help(char const *name)
   printf("\t--wsn-accept-ra <0|1>\t\t Use RA to configure WSN network\n");
   printf
     ("\t--wsn-ip-autoconf <0|1>\t\t Use EUI-64 address to create global address\n");
+  printf
+    ("\t--wsn-context-0 <IPv6 prefix>\t IPv6 prefix of 6LoWPAN context 0\n");
   printf("\n");
 
   printf("\nEthernet :\n");
@@ -984,6 +1015,11 @@ help(char const *name)
           ip4addrconv(arg_name, option, nvm_data->option); \
         }
 
+#define UPDATE_CONTEXT(arg_name, option) \
+    if(option) { \
+      contextconv(arg_name, option, nvm_data->option); \
+    }
+
 #define UPDATE_KEY(arg_name, option) \
         if(option) { \
           euiconv(arg_name, option, 16, nvm_data->option); \
@@ -1009,6 +1045,7 @@ main(int argc, char *argv[])
   char *wsn_ip_addr = NULL;
   char *wsn_accept_ra = NULL;
   char *wsn_addr_autoconf = NULL;
+  char *wsn_6lowpan_context_0 = NULL;
 
   char *eth_net_prefix = NULL;
   char *eth_net_prefix_len = NULL;
@@ -1102,6 +1139,7 @@ main(int argc, char *argv[])
     CASE_OPTION(wsn_ip_addr)
     CASE_OPTION(wsn_accept_ra)
     CASE_OPTION(wsn_addr_autoconf)
+    CASE_OPTION(wsn_6lowpan_context_0)
 
     CASE_OPTION(eth_net_prefix)
     CASE_OPTION(eth_net_prefix_len)
@@ -1221,6 +1259,7 @@ main(int argc, char *argv[])
     UPDATE_IP("wsn-ip", wsn_ip_addr)
     UPDATE_FLAG("wsn-accept-ra", wsn_accept_ra, mode, CETIC_MODE_WAIT_RA_MASK)
     UPDATE_FLAG("wsn-ip-autoconf", wsn_addr_autoconf, mode, CETIC_MODE_WSN_AUTOCONF)
+    UPDATE_CONTEXT("wsn-context-0", wsn_6lowpan_context_0)
 
     UPDATE_IP("eth-prefix", eth_net_prefix)
     UPDATE_INT("eth-prefix-len", eth_net_prefix_len)

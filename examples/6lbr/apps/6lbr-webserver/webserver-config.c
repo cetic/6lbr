@@ -99,6 +99,17 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add("<br />"); \
   }
 
+#define INPUT_CONTEXT(name, nvm_name, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+    add(text " : <input type=\"text\" name=\""name"\" value=\""); \
+      ipaddr_add_u8_len(nvm_data.nvm_name, 8); \
+    add("\" /><br />"); \
+  } else { \
+    add(text " : "); \
+    ipaddr_add_u8(nvm_data.nvm_name); \
+    add("<br />"); \
+  }
+
 #define INPUT_INT(name, nvm_name, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
     add(text " : <input type=\"text\" name=\""name"\" value=\"%d\" /><br />", nvm_data.nvm_name); \
@@ -197,6 +208,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
 #endif
+  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
@@ -428,6 +440,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
+    UPDATE_IPADDR("wsn_context_0", wsn_6lowpan_context_0, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
     UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)
     UPDATE_IPADDR("eth_pre", eth_net_prefix, 1)

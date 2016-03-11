@@ -163,6 +163,10 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
 
     nvm_data->noncoresec_flags = CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS;
+
+    uint8_t context[8] = CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0;
+    memcpy(nvm_data->wsn_6lowpan_context_0, context, sizeof(context));
+
     flash = 1;
   }
 

@@ -40,6 +40,7 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/ip/uip.h"
+#include "net/ipv6/sicslowpan.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
@@ -471,6 +472,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   while(!security_ready) {
     PROCESS_PAUSE();
   }
+
+  //6LoWPAN init
+  memcpy(addr_contexts[0].prefix, nvm_data.wsn_6lowpan_context_0, sizeof(addr_contexts[0].prefix));
 
   //clean up any early packet
   uip_len = 0;
