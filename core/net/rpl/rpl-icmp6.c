@@ -779,7 +779,7 @@ dao_input(void)
 
 #if CETIC_6LBR
   if(!cetic_6lbr_allowed_node_hook(dag, &prefix, prefixlen)) {
-    return;
+    goto discard;
   }
 #endif
 
