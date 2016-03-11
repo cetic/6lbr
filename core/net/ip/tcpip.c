@@ -53,6 +53,7 @@
 #endif
 #if CETIC_6LBR_IP64
 #include "ip64.h"
+#include "net/ip/ip64-addr.h"
 #endif
 
 #include <string.h>
@@ -636,7 +637,7 @@ tcpip_ipv6_output(void)
         } else
 #endif
 #if CETIC_6LBR_IP64
-        if(uip_is_addr_ip64(&UIP_IP_BUF->destipaddr)) {
+        if(ip64_addr_is_ip64(&UIP_IP_BUF->destipaddr)) {
 #if UIP_CONF_IPV6_RPL
           rpl_remove_header();
 #endif

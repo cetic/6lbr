@@ -359,6 +359,10 @@ cetic_6lbr_init_finalize(void)
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
     ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_RFC6052_PREFIX) != 0) {
+      uip_ip6addr_t ip64_prefix = {{ 0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+      ip64_addr_set_prefix(&ip64_prefix, 96);
+    }
     ip64_init();
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0) {
       memcpy(&eth_ip64_addr, nvm_data.eth_ip64_addr, sizeof(nvm_data.eth_ip64_addr));

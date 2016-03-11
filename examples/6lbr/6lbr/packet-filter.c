@@ -46,6 +46,9 @@
 #include "string.h"
 #include "sicslow-ethernet.h"
 #include "rpl-private.h"
+#if CETIC_6LBR_IP64
+#include "net/ip/ip64-addr.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
@@ -109,7 +112,7 @@ wireless_input(void)
   int forwardFrame = 0;
 
 #if CETIC_6LBR_IP64
-  if(uip_is_addr_ip64(&UIP_IP_BUF->srcipaddr)) {
+  if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
     send_to_uip();
     return;
   }

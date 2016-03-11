@@ -644,6 +644,7 @@ print_nvm(void)
   PRINT_BOOL("NAT 64 Enabled", global_flags, CETIC_GLOBAL_IP64);
   PRINT_BOOL("NAT 64 DHCP Enabled", eth_ip64_flags, CETIC_6LBR_IP64_DHCP);
   PRINT_BOOL("NAT 64 static port mapping Enabled", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS);
+  PRINT_BOOL("NAT 64 RFC-6052 prefix", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX);
 
   PRINT_IP4("NAT 64 address", eth_ip64_addr);
   PRINT_IP4("NAT 64 netmask", eth_ip64_netmask);
@@ -736,6 +737,7 @@ print_nvm(void)
 #define eth_ip64_addr_option 13003
 #define eth_ip64_netmask_option 13004
 #define eth_ip64_gateway_option 13005
+#define nat64_rfc_6052_option 13006
 
 //MAC
 #define mac_layer_option 14000
@@ -811,6 +813,7 @@ static struct option long_options[] = {
   {"nat64-addr", required_argument, 0, eth_ip64_addr_option},
   {"nat64-netmask", required_argument, 0, eth_ip64_netmask_option},
   {"nat64-gateway", required_argument, 0, eth_ip64_gateway_option},
+  {"nat64-rfc-6052", required_argument, 0, nat64_rfc_6052_option},
 
   //Global flags
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
@@ -908,6 +911,7 @@ help(char const *name)
   //MAC
   printf("\nMAC :\n");
   printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA)\n");
+  printf("\n");
 
   //Security
   printf("\nSecurity :\n");
@@ -916,15 +920,18 @@ help(char const *name)
   printf("\t--security-key <16 bytes key>\t Security key\n");
   printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay\n");
   printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround\n");
+  printf("\n");
 
 // NAT64
   printf("\nNAT64 :\n");
   printf("\t--nat64-enable <0|1>\t\t Enable NAT64\n");
   printf("\t--nat64-dhcp-enable <0|1>\t Enable NAT64 configuration via DHCP\n");
   printf("\t--nat64-static-ports-enable <0|1>\t Enable NAT64 static ports mapping\n");
+  printf("\t--nat64-rfc-6052 <0|1>\t\t Enable RFC-6052 prefix\n");
   printf("\t--nat64-addr <ipv4 address>\t NAT64 ip address\n");
   printf("\t--nat64-netmask <ipv4 netmask>\t NAT64 netmask\n");
   printf("\t--nat64-gateway <ipv4 address>\t NAT64 gateway\n");
+  printf("\n");
 
   printf("\nMisc :\n");
   printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
@@ -1053,6 +1060,7 @@ main(int argc, char *argv[])
   char *nat64_enable = NULL;
   char *nat64_dhcp_enable = NULL;
   char *nat64_static_ports_enable = NULL;
+  char *nat64_rfc_6052 = NULL;
   char *eth_ip64_addr = NULL;
   char *eth_ip64_netmask = NULL;
   char *eth_ip64_gateway = NULL;
@@ -1145,6 +1153,7 @@ main(int argc, char *argv[])
     CASE_OPTION(nat64_enable)
     CASE_OPTION(nat64_dhcp_enable)
     CASE_OPTION(nat64_static_ports_enable)
+    CASE_OPTION(nat64_rfc_6052)
     CASE_OPTION(eth_ip64_addr)
     CASE_OPTION(eth_ip64_netmask)
     CASE_OPTION(eth_ip64_gateway)
@@ -1261,6 +1270,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("nat64-enable", nat64_enable, global_flags, CETIC_GLOBAL_IP64)
     UPDATE_FLAG("nat64-dhcp-enable", nat64_dhcp_enable, eth_ip64_flags, CETIC_6LBR_IP64_DHCP)
     UPDATE_FLAG("nat64-static-ports-enable", nat64_static_ports_enable, eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS)
+    UPDATE_FLAG("nat64-rfc-6052", nat64_rfc_6052, eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX)
     UPDATE_IP4("nat64-ip-addr", eth_ip64_addr)
     UPDATE_IP4("nat64-ip-netmask", eth_ip64_netmask)
     UPDATE_IP4("nat64-ip-gateway", eth_ip64_gateway)
