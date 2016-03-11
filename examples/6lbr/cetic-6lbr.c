@@ -64,6 +64,7 @@
 #include "ip64.h"
 #include "ip64-ipv4-dhcp.h"
 #include "ip64-eth.h"
+#include "ip64-addr.h"
 #endif
 
 #if CETIC_6LBR_MAC_WRAPPER
