@@ -1234,8 +1234,12 @@ main(int argc, char *argv[])
     }
   } else if(update_nvm_file) {
     if(file_nb == 1) {
-      source_nvm_file = argv[optind];
-      dest_nvm_file = argv[optind];
+      if(access(argv[optind], R_OK) != 0) {
+        dest_nvm_file = argv[optind];
+      } else {
+        source_nvm_file = argv[optind];
+        dest_nvm_file = argv[optind];
+      }
     } else if(file_nb == 2) {
       source_nvm_file = argv[optind];
       dest_nvm_file = argv[optind + 1];
@@ -1260,7 +1264,7 @@ main(int argc, char *argv[])
     migrate_nvm(0);
   }
 
-  if(update_nvm_file || new_nvm_file) {
+  if(dest_nvm_file) {
     UPDATE_INT("channel", channel);
     UPDATE_HEX("pan-id", pan_id);
 
@@ -1335,15 +1339,11 @@ main(int argc, char *argv[])
     //Global flags
     UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)
     UPDATE_INT("webserver-port", webserver_port)
-
-  } else if(print_nvm_file) {
-    print_nvm();
-  } else {
-    usage(argv[0]);
   }
 
+  print_nvm();
+
   if(dest_nvm_file) {
-    print_nvm();
     store_nvm_file(dest_nvm_file, fit);
   }
 
