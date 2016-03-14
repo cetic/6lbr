@@ -167,6 +167,9 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     uint8_t context[8] = CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0;
     memcpy(nvm_data->wsn_6lowpan_context_0, context, sizeof(context));
 
+    CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
+    memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
+
     flash = 1;
   }
 

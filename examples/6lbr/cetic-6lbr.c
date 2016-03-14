@@ -231,6 +231,10 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
+    uip_ipaddr_t dns;
+    memcpy(dns.u8, &nvm_data.dns_server,
+           sizeof(nvm_data.dns_server));
+    uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
   } else {                            //End manual configuration
     uip_create_unspecified(&wsn_net_prefix);
     wsn_net_prefix_len = 0;
@@ -254,6 +258,10 @@ cetic_6lbr_init(void)
     uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
   }
   LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address (WSN) ");
+  uip_ipaddr_t dns;
+  memcpy(dns.u8, &nvm_data.dns_server,
+         sizeof(nvm_data.dns_server));
+  uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
 
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,

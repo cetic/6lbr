@@ -255,6 +255,16 @@ PT_THREAD(generate_network(struct httpd_state *s))
   reset_buf();
 #endif
 
+  add("</pre><h2>DNS server</h2><pre>");
+  //Note: Currently we assume only one DNS server
+  uip_ipaddr_t * dns = uip_nameserver_get(0);
+  if(!uip_is_addr_unspecified(dns)) {
+    ipaddr_add(dns);
+    add(" %u s\n", uip_nameserver_next_expiration());
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");

@@ -213,6 +213,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
+  INPUT_IPADDR("dns", dns_server, "DNS server");
 #if CETIC_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
@@ -443,6 +444,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IPADDR("wsn_context_0", wsn_6lowpan_context_0, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
     UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)
+    UPDATE_IPADDR("dns", dns_server, 1)
     UPDATE_IPADDR("eth_pre", eth_net_prefix, 1)
     UPDATE_INT("eth_pre_len", eth_net_prefix_len, 1)
     UPDATE_FLAG("eth_auto", mode, CETIC_MODE_ETH_AUTOCONF, 1)

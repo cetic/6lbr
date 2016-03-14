@@ -94,6 +94,8 @@ typedef struct {
   //6LoWPAN prefix context
   uint8_t wsn_6lowpan_context_0[8];
 
+  //DNS Server
+  uint8_t dns_server[16];
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -239,6 +241,8 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0 \
   { 0xAA, 0xAA, 0x00, 0x00, \
     0x00, 0x00, 0x00, 0x00 }
+
+#define CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(a)    uip_create_unspecified(a)
 
 /*---------------------------------------------------------------------------*/
 

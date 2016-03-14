@@ -472,6 +472,9 @@ migrate_nvm(uint8_t print_info)
 
     uint8_t context[8] = CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0;
     memcpy(nvm_data->wsn_6lowpan_context_0, context, sizeof(context));
+
+    CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
+    memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
   }
 }
 
@@ -616,6 +619,7 @@ print_nvm(void)
   PRINT_BOOL("WSN accept RA", mode, CETIC_MODE_WAIT_RA_MASK);
   PRINT_BOOL("WSN IP address autoconf", mode, CETIC_MODE_WSN_AUTOCONF);
   PRINT_CONTEXT("WSN 6LoWPAN context 0", wsn_6lowpan_context_0);
+  PRINT_IP("DNS server", dns_server);
   printf("\n");
   PRINT_IP("Eth network prefix", eth_net_prefix);
   PRINT_INT("Eth network prefix length", eth_net_prefix_len);
@@ -702,6 +706,7 @@ print_nvm(void)
 #define wsn_accept_ra_option 2105
 #define wsn_addr_autoconf_option 2106
 #define wsn_6lowpan_context_0_option 2107
+#define dns_server_option 2108
 
 #define eth_mac_option 3000
 #define eth_net_prefix_option 3001
@@ -787,6 +792,7 @@ static struct option long_options[] = {
   {"wsn-accept-ra", required_argument, 0, wsn_accept_ra_option},
   {"wsn-ip-autoconf", required_argument, 0, wsn_addr_autoconf_option},
   {"wsn-context-0", required_argument, 0, wsn_6lowpan_context_0_option},
+  {"dns-server", required_argument, 0, dns_server_option},
 
   {"eth-mac", required_argument, 0, eth_mac_option},
   {"eth-prefix", required_argument, 0, eth_net_prefix_option},
@@ -892,6 +898,8 @@ help(char const *name)
     ("\t--wsn-ip-autoconf <0|1>\t\t Use EUI-64 address to create global address\n");
   printf
     ("\t--wsn-context-0 <IPv6 prefix>\t IPv6 prefix of 6LoWPAN context 0\n");
+  printf
+    ("\t--dns-server <IPv6 address>\t IPv6 address of DNS server\n");
   printf("\n");
 
   printf("\nEthernet :\n");
@@ -1046,6 +1054,7 @@ main(int argc, char *argv[])
   char *wsn_accept_ra = NULL;
   char *wsn_addr_autoconf = NULL;
   char *wsn_6lowpan_context_0 = NULL;
+  char *dns_server = NULL;
 
   char *eth_net_prefix = NULL;
   char *eth_net_prefix_len = NULL;
@@ -1140,6 +1149,7 @@ main(int argc, char *argv[])
     CASE_OPTION(wsn_accept_ra)
     CASE_OPTION(wsn_addr_autoconf)
     CASE_OPTION(wsn_6lowpan_context_0)
+    CASE_OPTION(dns_server)
 
     CASE_OPTION(eth_net_prefix)
     CASE_OPTION(eth_net_prefix_len)
@@ -1260,6 +1270,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("wsn-accept-ra", wsn_accept_ra, mode, CETIC_MODE_WAIT_RA_MASK)
     UPDATE_FLAG("wsn-ip-autoconf", wsn_addr_autoconf, mode, CETIC_MODE_WSN_AUTOCONF)
     UPDATE_CONTEXT("wsn-context-0", wsn_6lowpan_context_0)
+    UPDATE_IP("dns-server", dns_server)
 
     UPDATE_IP("eth-prefix", eth_net_prefix)
     UPDATE_INT("eth-prefix-len", eth_net_prefix_len)

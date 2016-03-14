@@ -113,6 +113,10 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
+#define UIP_CONF_ND6_RA_RDNSS 1
+
+#define CETIC_6LBR_IP64      1
+
 /* Do not change lines below */
 
 #undef UIP_CONF_ROUTER
@@ -123,8 +127,6 @@
 #define CETIC_6LBR_ETH_FILTER_RPL	1
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
-
-#define CETIC_6LBR_IP64      1
 
 /*------------------------------------------------------------------*/
 #endif
@@ -138,6 +140,8 @@
 #define UIP_CONF_DS6_ADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
+
+#define UIP_CONF_ND6_RA_RDNSS 0
 
 /* Do not change lines below */
 
@@ -177,10 +181,14 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
+#define UIP_CONF_ND6_RA_RDNSS 1
+
 #if !UIP_CONF_IPV6_RPL
 //Support static routes only in non-rpl mode now
 #define UIP_CONF_DS6_STATIC_ROUTES 1
 #endif
+
+#define CETIC_6LBR_IP64      1
 
 /* Do not change lines below */
 
@@ -201,8 +209,6 @@
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
-#define CETIC_6LBR_IP64      1
-
 /*------------------------------------------------------------------*/
 #endif
 
@@ -217,7 +223,11 @@
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 5
 
-#define UIP_CONF_DS6_ROUTE_INFORMATION	0
+#define UIP_CONF_DS6_ROUTE_INFORMATION	1
+
+#define UIP_CONF_ND6_RA_RDNSS 1
+
+#define CETIC_6LBR_IP64      0
 
 /* Do not change lines below */
 
@@ -232,8 +242,6 @@
 #define CETIC_6LBR_ETH_FILTER_RPL	0
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
-
-#define CETIC_6LBR_IP64      0
 
 #endif
 
