@@ -275,7 +275,7 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
   RESOURCE_DECL(resource_name); \
   REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   REST_RESOURCE_PUT_HANDLER(resource_name, resource_format_type, resource_id, resource_actuator) \
-  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(TCT_EVAL(COAP_DATA_FORMAT)), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
+  RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(CT_EVAL(COAP_DATA_FORMAT)), resource_##resource_name##_get_handler, NULL, resource_##resource_name##_put_handler, NULL);
 
 #define REST_EXEC(resource_name, ignore, resource_if, resource_type, parser, actuator) \
   RESOURCE_DECL(resource_name); \
