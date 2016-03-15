@@ -86,7 +86,6 @@ void native_config_load(void)
     result = ini_parse(config_file_name, native_config_handler, NULL);
     if (result < 0) {
       LOG6LBR_WARN("Can not open %s : %s\n", config_file_name, strerror(errno));
-      exit(1);
     }
     else if (result) {
       LOG6LBR_FATAL("Syntax error in %s at line %d\n", config_file_name, result);
