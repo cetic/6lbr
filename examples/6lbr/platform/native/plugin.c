@@ -76,7 +76,7 @@ plugin_load(char const * plugin_file) {
   list_add(sixlbr_plugins, plugin_info);
 
   if (plugin_descriptor->api_version < SIXLBR_PLUGIN_API_VERSION) {
-    LOG6LBR_ERROR("Plugin %s use an obsolete api\n", plugin_file);
+    LOG6LBR_ERROR("Plugin %s uses an obsolete api\n", plugin_file);
     plugin_info->status = -1;
     return;
   }
@@ -130,14 +130,12 @@ plugins_init(void)
 {
   sixlbr_plugin_info_t *info = plugins_list_head();
   while(info != NULL) {
-    int result = 0;
-    if (info->init_status == 0 && info->plugin->init != NULL)
-      LOG6LBR_INFO("Initialising %s\n", info->plugin->id);{
-      result = info->plugin->init();
-    }
-    if (result != 0) {
-      LOG6LBR_ERROR("Initialisation failed, error code is %d\n", result);
-      info->init_status = result;
+    if (info->status == 0 && info->init_status == 0 && info->plugin->init != NULL) {
+      LOG6LBR_INFO("Initialising %s\n", info->plugin->id);
+      info->init_status = info->plugin->init();
+      if (info->init_status != 0) {
+        LOG6LBR_ERROR("Initialisation failed, error code is %d\n", info->init_status);
+      }
     }
     info = info->next;
   }
