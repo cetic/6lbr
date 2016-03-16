@@ -123,8 +123,9 @@ PT_THREAD(coap_blocking_push(struct request_state_t *state, process_event_t ev,
 
   do {
     request->mid = coap_get_mid();
-    if ((state->transaction = coap_new_transaction(request->mid, ctx, remote_ipaddr, remote_port)))
+    if ((state->transaction = coap_new_transaction(request->mid, remote_ipaddr, remote_port)))
     {
+      coap_set_transaction_context(state->transaction, ctx);
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
       request->mid = state->transaction->mid;
