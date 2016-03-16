@@ -9,13 +9,14 @@
 #include "uip-debug.h"
 
 /*-----------------------------------------------------------------------------------*/
-void
+context_t *
 coap_init_communication_layer(uint16_t port)
 {
   /* new connection with remote host */
-  coap_default_context = udp_new(NULL, 0, NULL);
-  udp_bind(coap_default_context, port);
-  PRINTF("Listening on port %u\n", uip_ntohs(coap_default_context->lport));
+  context_t * ctx = udp_new(NULL, 0, NULL);
+  udp_bind(ctx, port);
+  PRINTF("Listening on port %u\n", uip_ntohs(ctx->lport));
+  return ctx;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -30,11 +31,11 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 
   /* Restore server connection to allow data from any node */
   memset(&ctx->ripaddr, 0, sizeof(ctx->ripaddr));
-  coap_default_context->rport = 0;
+  ctx->rport = 0;
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_handle_receive()
+coap_handle_receive(context_t * ctx)
 {
-  coap_receive(coap_default_context);
+  coap_receive(ctx);
 }

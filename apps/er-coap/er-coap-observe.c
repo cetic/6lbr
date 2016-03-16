@@ -196,7 +196,8 @@ coap_notify_observers(resource_t *resource)
 
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
 
-      if((transaction = coap_new_transaction(coap_get_mid(), obs->ctx, &obs->addr, obs->port))) {
+      if((transaction = coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
+        coap_set_transaction_context(transaction, obs->ctx);
         if(obs->obs_counter % COAP_OBSERVE_REFRESH_INTERVAL == 0) {
           PRINTF("           Force Confirmable for\n");
           notification->type = COAP_TYPE_CON;

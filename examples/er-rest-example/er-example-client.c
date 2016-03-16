@@ -125,7 +125,7 @@ PROCESS_THREAD(er_example_client, ev, data)
       PRINT6ADDR(&server_ipaddr);
       PRINTF(" : %u\n", UIP_HTONS(REMOTE_PORT));
 
-      COAP_BLOCKING_REQUEST(coap_default_context, &server_ipaddr, REMOTE_PORT, request,
+      COAP_BLOCKING_REQUEST(&server_ipaddr, REMOTE_PORT, request,
                             client_chunk_handler);
 
       printf("\n--Done--\n");
@@ -145,7 +145,7 @@ PROCESS_THREAD(er_example_client, ev, data)
       PRINT6ADDR(&server_ipaddr);
       PRINTF(" : %u\n", UIP_HTONS(REMOTE_PORT));
 
-      COAP_BLOCKING_REQUEST(coap_default_context, &server_ipaddr, REMOTE_PORT, request,
+      COAP_BLOCKING_REQUEST(&server_ipaddr, REMOTE_PORT, request,
                             client_chunk_handler);
 
       printf("\n--Done--\n");

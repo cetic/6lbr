@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "er-coap-transactions.h"
+#include "er-coap-engine.h"
 #include "er-coap-observe.h"
 
 #define DEBUG 0
@@ -68,7 +69,7 @@ coap_register_as_transaction_handler()
   transaction_handler_process = PROCESS_CURRENT();
 }
 coap_transaction_t *
-coap_new_transaction(uint16_t mid, context_t *ctx, uip_ipaddr_t *addr, uint16_t port)
+coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 {
   coap_transaction_t *t = memb_alloc(&transactions_memb);
 
@@ -76,7 +77,7 @@ coap_new_transaction(uint16_t mid, context_t *ctx, uip_ipaddr_t *addr, uint16_t 
     t->mid = mid;
     t->retrans_counter = 0;
 
-    t->ctx = ctx;
+    t->ctx = coap_default_context;
     /* save client address */
     uip_ipaddr_copy(&t->addr, addr);
     t->port = port;
@@ -85,6 +86,12 @@ coap_new_transaction(uint16_t mid, context_t *ctx, uip_ipaddr_t *addr, uint16_t 
   }
 
   return t;
+}
+/*---------------------------------------------------------------------------*/
+void
+coap_set_transaction_context(coap_transaction_t *t, context_t *ctx)
+{
+  t->ctx = ctx;
 }
 /*---------------------------------------------------------------------------*/
 void

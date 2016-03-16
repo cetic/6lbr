@@ -102,12 +102,13 @@ coap_receive(context_t * ctx)
 
         /* use transaction buffer for response to confirmable request */
         if((transaction =
-              coap_new_transaction(message->mid, ctx, &UIP_IP_BUF->srcipaddr,
+              coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr,
                                    UIP_UDP_BUF->srcport))) {
           uint32_t block_num = 0;
           uint16_t block_size = COAP_MAX_BLOCK_SIZE;
           uint32_t block_offset = 0;
           int32_t new_offset = 0;
+          coap_set_transaction_context(transaction, ctx);
 
           /* prepare response */
           if(message->type == COAP_TYPE_CON) {
@@ -263,7 +264,7 @@ coap_receive(context_t * ctx)
         if((message->type == COAP_TYPE_CON || message->type == COAP_TYPE_NON)
               && IS_OPTION(message, COAP_OPTION_OBSERVE)) {
           PRINTF("Observe [%u]\n", message->observe);
-          coap_handle_notification(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+          coap_handle_notification(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
               message);
         }
 #endif /* COAP_OBSERVE_CLIENT */
@@ -351,7 +352,7 @@ PROCESS_THREAD(coap_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_handle_receive();
+      coap_handle_receive(coap_default_context);
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();
@@ -394,8 +395,9 @@ PT_THREAD(coap_blocking_request
 
   do {
     request->mid = coap_get_mid();
-    if((state->transaction = coap_new_transaction(request->mid, ctx, remote_ipaddr,
+    if((state->transaction = coap_new_transaction(request->mid, remote_ipaddr,
                                                   remote_port))) {
+      coap_set_transaction_context(state->transaction, ctx);
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
 

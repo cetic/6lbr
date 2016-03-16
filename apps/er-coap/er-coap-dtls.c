@@ -94,7 +94,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
 }
 #endif
 /*-----------------------------------------------------------------------------------*/
-void
+context_t *
 coap_init_communication_layer(uint16_t port)
 {
   static dtls_handler_t cb = {
@@ -109,23 +109,26 @@ coap_init_communication_layer(uint16_t port)
     .verify_ecdsa_key = NULL,
 #endif
   };
+  context_t * ctx;
 
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
 
   dtls_set_log_level(DTLS_LOG_DEBUG);
 
-  coap_default_context = dtls_new_context(server_conn);
-  if (coap_default_context)
-    dtls_set_handler(coap_default_context, &cb);
-
+  ctx = dtls_new_context(server_conn);
+  if(ctx) {
+    dtls_set_handler(ctx, &cb);
+  }
   /* new connection with remote host */
   printf("COAP-DTLS listening on port %u\n", uip_ntohs(server_conn->lport));
+  return ctx;
 }
 /*-----------------------------------------------------------------------------------*/
 static int
 send_to_peer(struct dtls_context_t *ctx,
-             session_t *session, uint8 *data, size_t len) {
+             session_t *session, uint8 *data, size_t len)
+{
 
   struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
 
@@ -155,7 +158,8 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 /*-----------------------------------------------------------------------------------*/
 static int
 read_from_peer(struct dtls_context_t *ctx,
-               session_t *session, uint8 *data, size_t len) {
+               session_t *session, uint8 *data, size_t len)
+{
   uip_len = len;
   memmove(uip_appdata, data, len);
   coap_receive(ctx);
@@ -163,7 +167,7 @@ read_from_peer(struct dtls_context_t *ctx,
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_handle_receive()
+coap_handle_receive(context_t *ctx)
 {
   session_t session;
 
@@ -172,6 +176,6 @@ coap_handle_receive()
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
 
-    dtls_handle_message(coap_default_context, &session, uip_appdata, uip_datalen());
+    dtls_handle_message(ctx, &session, uip_appdata, uip_datalen());
   }
 }
