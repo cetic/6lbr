@@ -66,27 +66,16 @@ typedef struct coap_data_format_s coap_data_format_t;
     bufpos += snprintf((char *)buffer + bufpos, \
                        buffer_size - bufpos + 1, \
                        "%s", \
-                       string \
-                       + (offset - (int32_t)strpos > 0 ? \
-                          offset - (int32_t)strpos : 0)); \
+                       &((char *)(string))[ \
+                       (offset - (int32_t)strpos > 0 ? \
+                        offset - (int32_t)strpos : 0)]); \
     if(bufpos > buffer_size) { \
       break; \
     } \
   } \
   strpos += tmplen
 
-#define ADD_STATIC_IF_POSSIBLE(string) \
-  if(strpos + sizeof(string) - 1 > offset) { \
-    bufpos += snprintf((char *)buffer + bufpos, \
-                       buffer_size - bufpos + 1, \
-                       (const char *)string \
-                       + (offset - (int32_t)strpos > 0 ? \
-                          offset - (int32_t)strpos : 0)); \
-    if(bufpos > buffer_size) { \
-      break; \
-    } \
-  } \
-  strpos += sizeof(string) - 1
+#define ADD_STATIC_IF_POSSIBLE(string) ADD_STRING_IF_POSSIBLE(string)
 
 #define ADD_FORMATTED_STRING_IF_POSSIBLE(fmt, ...) \
   snprintf(tmpbuf, 16, fmt, __VA_ARGS__); \
