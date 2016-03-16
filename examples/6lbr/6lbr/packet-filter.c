@@ -501,7 +501,7 @@ bridge_output(const uip_lladdr_t * dest)
   } else if(IS_EUI64_ADDR(dest)) {
     wireless_output(NULL, dest);
   } else {
-    if (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 || UIP_ICMP_BUF->type != ICMP6_NA) {
+    if (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 || (UIP_ICMP_BUF->type != ICMP6_NS && UIP_ICMP_BUF->type != ICMP6_NA)) {
       wireless_output(NULL, dest);
     }
     eth_output(NULL, dest);
