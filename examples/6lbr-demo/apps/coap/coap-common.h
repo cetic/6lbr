@@ -96,6 +96,15 @@ extern coap_data_format_t COAP_DATA_FORMAT;
 #define COAP_RESOURCE_TYPE_STRING 6
 #define COAP_RESOURCE_TYPE_OPAQUE 7
 
+#define COAP_RESOURCE_TYPE_0_TYPE uint32_t
+#define COAP_RESOURCE_TYPE_1_TYPE int32_t
+#define COAP_RESOURCE_TYPE_2_TYPE uint32_t
+#define COAP_RESOURCE_TYPE_3_TYPE uint32_t
+#define COAP_RESOURCE_TYPE_4_TYPE uint32_t
+#define COAP_RESOURCE_TYPE_5_TYPE uint32_t
+#define COAP_RESOURCE_TYPE_6_TYPE char *
+#define COAP_RESOURCE_TYPE_7_TYPE void *
+
 /*---------------------------------------------------------------------------*/
 
 int
@@ -105,10 +114,10 @@ int
 coap_strtofix(char const *data, char const *max, uint32_t *value, int precision);
 
 int
-coap_format_binding_value(int resource_type, char *buffer, int size, uint32_t data);
+coap_format_binding_value(int resource_type, char *buffer, int size, void *data);
 
 int
-coap_parse_binding_value(int resource_type, char const *buffer, char const * max, uint32_t *data);
+coap_parse_binding_value(int resource_type, char const *buffer, char const * max, void *data);
 
 /*---------------------------------------------------------------------------*/
 
@@ -157,7 +166,7 @@ resource_t*
 rest_find_resource_by_url(const char *url);
 
 void
-simple_resource_get_handler(int resource_type, char const * resource_name, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+simple_resource_get_handler(int resource_type, char const * resource_name, void *resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 void
 simple_resource_set_handler(int resource_type, char const * resource_name, int(*resource_set)(uint32_t value, uint32_t len), void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -191,7 +200,8 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
 #define REST_CONF_OBS ";obs"
 #endif
 
-
+#define TYPE_EVAL(x) TYPE_CONCAT(x)
+#define TYPE_CONCAT(x) COAP_RESOURCE_TYPE_ ## x ## _TYPE
 /*---------------------------------------------------------------------------*/
 
 #define RESOURCE_DECL(resource_name) extern resource_t resource_##resource_name
@@ -200,7 +210,8 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
     void \
     resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
     { \
-      simple_resource_get_handler(resource_format_type, resource_id, resource_value, request, response, buffer, preferred_size, offset); \
+      TYPE_EVAL(resource_format_type) value = resource_value; \
+      simple_resource_get_handler(resource_format_type, resource_id, (void *)&value, request, response, buffer, preferred_size, offset); \
     }
 
 #define REST_FULL_RESOURCE_GET_HANDLER(resource_name) \
@@ -268,7 +279,7 @@ resource_t name = { NULL, NULL, IS_OBSERVABLE, attributes, get_handler, post_han
 
 #define REST_RESOURCE(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value) \
   RESOURCE_DECL(resource_name); \
-  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, (uint32_t)resource_value) \
+  REST_RESOURCE_GET_HANDLER(resource_name, resource_format_type, resource_id, resource_value) \
   RESOURCE(resource_##resource_name, "" IF_MACRO(resource_if) RT_MACRO(resource_type) CT_MACRO(CT_EVAL(COAP_DATA_FORMAT)), resource_##resource_name##_get_handler, NULL, NULL, NULL);
 
 #define REST_ACTUATOR(resource_name, ignore, resource_if, resource_type, resource_format_type, resource_id, resource_value, resource_actuator) \

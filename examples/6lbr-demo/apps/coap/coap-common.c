@@ -79,23 +79,23 @@ coap_strtofix(char const *data, char const *max, uint32_t *value, int precision)
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_format_binding_value(int resource_type, char *buffer, int size, uint32_t data)
+coap_format_binding_value(int resource_type, char *buffer, int size, void *data)
 {
   switch(resource_type) {
   case COAP_RESOURCE_TYPE_SIGNED_INT:
-    return snprintf(buffer, size, "%ld", (signed long int)data);
+    return snprintf(buffer, size, "%ld", (signed long int)(*(int32_t*)data));
     break;
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-    return snprintf(buffer, size, "%ld", (unsigned long int)data);
+    return snprintf(buffer, size, "%ld", (unsigned long int)(*(uint32_t*)data));
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_ONE:
-    return snprintf(buffer, size, "%d.%u", (int)(data / 10), (unsigned int)(data % 10));
+    return snprintf(buffer, size, "%d.%u", (int)(*(uint32_t*)data / 10), (unsigned int)(*(uint32_t*)data % 10));
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_TWO:
-    return snprintf(buffer, size, "%d.%02u", (int)(data / 100), (unsigned int)(data % 100));
+    return snprintf(buffer, size, "%d.%02u", (int)(*(uint32_t*)data / 100), (unsigned int)(*(uint32_t*)data % 100));
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
-    return snprintf(buffer, size, "%d.%03u", (int)(data / 1000), (unsigned int)(data % 1000));
+    return snprintf(buffer, size, "%d.%03u", (int)(*(uint32_t*)data / 1000), (unsigned int)(*(uint32_t*)data % 1000));
     break;
   default:
     break;
@@ -104,23 +104,23 @@ coap_format_binding_value(int resource_type, char *buffer, int size, uint32_t da
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_parse_binding_value(int resource_type, char const *buffer, char const * max, uint32_t *data)
+coap_parse_binding_value(int resource_type, char const *buffer, char const * max, void *data)
 {
   switch(resource_type) {
   case COAP_RESOURCE_TYPE_SIGNED_INT:
-    return coap_strtoul(buffer, max, data);
+    return coap_strtoul(buffer, max, (uint32_t*)data);
     break;
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-    return coap_strtoul(buffer, max, data);
+    return coap_strtoul(buffer, max, (uint32_t*)data);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_ONE:
-    return coap_strtofix(buffer, max, data, 1);
+    return coap_strtofix(buffer, max, (uint32_t*)data, 1);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_TWO:
-    return coap_strtofix(buffer, max, data, 2);
+    return coap_strtofix(buffer, max, (uint32_t*)data, 2);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
-    return coap_strtofix(buffer, max, data, 3);
+    return coap_strtofix(buffer, max, (uint32_t*)data, 3);
     break;
   default:
     break;
@@ -183,23 +183,23 @@ full_resource_config_attr_handler(coap_full_resource_t *resource_info, char *buf
   }
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_ST_VALID) != 0) {
     pos += snprintf(buffer + pos, size - pos, ";st=\"");
-    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.step);
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, &resource_info->trigger.step);
     pos += snprintf(buffer + pos, size - pos, "\"");
   }
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_LT_VALID) != 0) {
     pos += snprintf(buffer + pos, size - pos, ";lt=\"");
-    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.less_than);
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, &resource_info->trigger.less_than);
     pos += snprintf(buffer + pos, size - pos, "\"");
   }
   if((resource_info->trigger.flags & COAP_BINDING_FLAGS_GT_VALID) != 0) {
     pos += snprintf(buffer + pos, size - pos, ";gt=\"");
-    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, resource_info->trigger.greater_than);
+    pos += coap_format_binding_value(resource_info->flags, buffer + pos, size - pos, &resource_info->trigger.greater_than);
     pos += snprintf(buffer + pos, size - pos, "\"");
   }
   return pos;
 }/*---------------------------------------------------------------------------*/
 void
-simple_resource_get_handler(int resource_type, char const *resource_name, uint32_t resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+simple_resource_get_handler(int resource_type, char const *resource_name, void *resource_value, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
@@ -263,7 +263,7 @@ full_resource_get_handler(coap_full_resource_t *resource_info, void* request, vo
   if (COAP_DATA_FORMAT.accepted_type(accept))
   {
     int real_offset = offset ? *offset : 0;
-    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, real_offset, accept, resource_info->flags, resource_info->name, resource_info->data.last_value);
+    int buffer_size = COAP_DATA_FORMAT.format_value(buffer, preferred_size, real_offset, accept, resource_info->flags, resource_info->name, &resource_info->data.last_value);
     REST.set_header_content_type(response, COAP_DATA_FORMAT.format_type(accept));
     if(offset) {
       REST.set_response_payload(response, buffer, buffer_size);

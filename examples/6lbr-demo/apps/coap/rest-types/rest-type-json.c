@@ -50,7 +50,7 @@ format_type(unsigned int type)
 }
 
 static int
-format_value(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, uint32_t data)
+format_value(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_type, int resource_type, char const * resource_name, void *data)
 {
   (void)accepted_type;
   int strpos = 0;
@@ -64,26 +64,26 @@ format_value(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted
     ADD_STATIC_IF_POSSIBLE("\":");
     switch(resource_type) {
     case COAP_RESOURCE_TYPE_BOOLEAN:
-      ADD_STRING_IF_POSSIBLE(data ? "true" : "false");
+      ADD_STRING_IF_POSSIBLE(*(uint32_t*)data ? "true" : "false");
       break;
     case COAP_RESOURCE_TYPE_SIGNED_INT:
-      ADD_FORMATTED_STRING_IF_POSSIBLE("%ld", (long int)data);
+      ADD_FORMATTED_STRING_IF_POSSIBLE("%ld", (long int)*(int32_t*)data);
       break;
     case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-      ADD_FORMATTED_STRING_IF_POSSIBLE("%lu", (unsigned long int)data);
+      ADD_FORMATTED_STRING_IF_POSSIBLE("%lu", (unsigned long int)*(uint32_t*)data);
       break;
     case COAP_RESOURCE_TYPE_DECIMAL_ONE:
-      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%u", (int)(data / 10), (unsigned int)(data % 10));
+      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%u", (int)(*(int32_t*)data / 10), (unsigned int)(*(uint32_t*)data % 10));
       break;
     case COAP_RESOURCE_TYPE_DECIMAL_TWO:
-      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%02u", (int)(data / 100), (unsigned int)(data % 100));
+      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%02u", (int)(*(int32_t*)data / 100), (unsigned int)(*(uint32_t*)data % 100));
       break;
     case COAP_RESOURCE_TYPE_DECIMAL_THREE:
-      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%03u", (int)(data / 1000), (unsigned int)(data % 1000));
+      ADD_FORMATTED_STRING_IF_POSSIBLE("%d.%03u", (int)(*(int32_t*)data / 1000), (unsigned int)(*(uint32_t*)data % 1000));
       break;
     case COAP_RESOURCE_TYPE_STRING:
       ADD_CHAR_IF_POSSIBLE('"');
-      ADD_STRING_IF_POSSIBLE((char *)data);
+      ADD_STRING_IF_POSSIBLE(*(char **)data);
       ADD_CHAR_IF_POSSIBLE('"');
       break;
     default:
@@ -120,7 +120,7 @@ end_batch(uint8_t *buffer, int buffer_size, int offset, unsigned int accepted_ty
 }
 
 static int
-parse_value(uint8_t const *buffer, uint8_t const * max, unsigned int data_type, int resource_type, char const * resource_name, uint32_t *data)
+parse_value(uint8_t const *buffer, uint8_t const * max, unsigned int data_type, int resource_type, char const * resource_name, void *data)
 {
   (void)accepted_type;
   (void)resource_name;
@@ -128,19 +128,19 @@ parse_value(uint8_t const *buffer, uint8_t const * max, unsigned int data_type, 
   case COAP_RESOURCE_TYPE_BOOLEAN:
   case COAP_RESOURCE_TYPE_SIGNED_INT:
   case COAP_RESOURCE_TYPE_UNSIGNED_INT:
-    return coap_strtoul((char *)buffer, (char *)max, data);
+    return coap_strtoul((char *)buffer, (char *)max, (uint32_t*)data);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_ONE:
-    return coap_strtofix((char *)buffer, (char *)max, data, 1);
+    return coap_strtofix((char *)buffer, (char *)max, (uint32_t*)data, 1);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_TWO:
-    return coap_strtofix((char *)buffer, (char *)max, data, 2);
+    return coap_strtofix((char *)buffer, (char *)max, (uint32_t*)data, 2);
     break;
   case COAP_RESOURCE_TYPE_DECIMAL_THREE:
-    return coap_strtofix((char *)buffer, (char *)max, data, 3);
+    return coap_strtofix((char *)buffer, (char *)max, (uint32_t*)data, 3);
     break;
   case COAP_RESOURCE_TYPE_STRING:
-    *data = (uint32_t)(char *)buffer;
+    *(char **)data = (char *)buffer;
     return 1;
   default:
     break;
