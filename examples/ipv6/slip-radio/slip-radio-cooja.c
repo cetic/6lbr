@@ -47,6 +47,8 @@ cmd_handler_cooja(const uint8_t *data, int len)
     if(data[1] == 'C' && len == 3) {
       printf("cooja_cmd: setting channel: %d\n", data[2]);
       radio_set_channel(data[2]);
+      //Enable radio
+      NETSTACK_RDC.off(1);
       return 1;
     } else if(data[1] == 'M' && len == 10) {
         if(!linkaddr_cmp((linkaddr_t *)(data+2), &linkaddr_null)) {
@@ -62,6 +64,8 @@ cmd_handler_cooja(const uint8_t *data, int len)
             memcpy(uip_lladdr.addr, &default_link_addr, sizeof(uip_lladdr.addr));
             linkaddr_set_node_addr(&default_link_addr);
           }
+          //Stop radio
+          NETSTACK_RDC.off(0);
         }
         return 1;
       }
