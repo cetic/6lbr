@@ -198,6 +198,7 @@
 #define RSSI_SENSOR_RES_ID "rssi"
 #define COUNTER_SENSOR_RES_ID "count"
 #define STATE_SENSOR_RES_ID "state"
+#define DEVICE_POWER_VOLTAGE_RES_ID "v"
 
 // Interface Description
 
