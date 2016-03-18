@@ -115,6 +115,8 @@
 /* Disable core interface linked batch table */
 #define REST_CONF_RES_LINKED_BATCH_TABLE 0
 
+#define LWM2M_CONF_DEVICE_OBJECT 0
+
 #else /* UIP_CONF_IPV6_RPL */
 
 /* Disable config stack */
