@@ -41,6 +41,7 @@ ifeq ($(TARGET),econotag)
 endif
 ifeq ($(TARGET),cooja)
   PROJECT_SOURCEFILES += slip-radio-cooja.c
+  MODULES+=core/net/mac/contikimac
 endif
 endif
 
