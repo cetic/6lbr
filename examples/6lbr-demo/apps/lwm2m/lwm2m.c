@@ -46,7 +46,7 @@ void
 lwm2m_init(void)
 {
   LWM2M_DEVICE_OBJECT_INIT();
-  INIT_FULL_RESOURCE(device_counter, LWM2M_DEVICE_PATH("99"));
+  //INIT_FULL_RESOURCE(device_counter, LWM2M_DEVICE_PATH("99"));
 }
 
 void

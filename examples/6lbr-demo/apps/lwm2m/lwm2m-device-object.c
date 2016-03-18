@@ -109,7 +109,7 @@ static int reboot() {
 #endif
 
 #if LWM2M_DEVICE_TIME
-#define LWM2M_DEVICE_TIME_RESOURCE REST_FULL_RESOURCE
+#define LWM2M_DEVICE_TIME_RESOURCE REST_RESOURCE
 #define LWM2M_DEVICE_TIME_REF &resource_device_time,
 #else
 #define LWM2M_DEVICE_TIME_RESOURCE(...)
@@ -153,14 +153,14 @@ LWM2M_DEVICE_TIME_RESOURCE(device_time,
     IF_RO_PARAMETER,
     LWM2M_DEVICE_TIME_RT,
     COAP_RESOURCE_TYPE_UNSIGNED_INT, LWM2M_DEVICE_CURRENT_TIME_RESOURCE_ID, (uint32_t)RES_DEVICE_TIME_VALUE)
-
+/*
     uint32_t counter_count = 0;
 LWM2M_DEVICE_TIME_RESOURCE(device_counter,
         REST_DEFAULT_PERIOD,
         IF_RO_PARAMETER,
         LWM2M_DEVICE_TIME_RT,
         COAP_RESOURCE_TYPE_DECIMAL_ONE, "99", (uint32_t)(++counter_count))
-
+*/
 /*---------------------------------------------------------------------------*/
 LWM2M_DEVICE_BATCH_RESOURCE(device, LIST_INCLUDE_SELF | LIST_INCLUDE_ATTR, IF_BATCH, LWM2M_DEVICE_RT,
     LWM2M_DEVICE_MANUFACTURER_REF
