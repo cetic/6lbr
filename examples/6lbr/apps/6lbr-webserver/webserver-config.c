@@ -182,6 +182,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CETIC_6LBR_MAC_WRAPPER
   add("<br /><h3>MAC</h3>");
   add("MAC Layer : <select name=\"mac\">");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
@@ -189,6 +190,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 #endif
 
   add("<br /><h3>IP configuration</h3>");
@@ -433,7 +435,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, 1)
     UPDATE_INT("channel", channel, 1)
     UPDATE_HEX("panid", pan_id, 1)
+#if CETIC_6LBR_MAC_WRAPPER
     UPDATE_INT("mac", mac_layer, 1)
+#endif
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)
