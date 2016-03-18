@@ -87,6 +87,13 @@
 #endif
 
 #if LWM2M_DEVICE_REBOOT
+static int reboot() {
+  printf("reboot\n");
+  //TODO: Must be done asynchronously or the device will reboot after each
+  //retransmission
+  //watchdog_reboot();
+  return 1;
+}
 #define LWM2M_DEVICE_REBOOT_RESOURCE REST_EXEC
 #else
 #define LWM2M_DEVICE_REBOOT_RESOURCE(...)
@@ -108,11 +115,6 @@
 #define LWM2M_DEVICE_TIME_RESOURCE(...)
 #define LWM2M_DEVICE_TIME_REF
 #endif
-
-static int toto() {
-  printf("TOTO\n");
-  return 1;
-}
 /*---------------------------------------------------------------------------*/
 LWM2M_DEVICE_MANUFACTURER_RESOURCE(device_manufacturer,
     0,
@@ -144,7 +146,7 @@ LWM2M_DEVICE_REBOOT_RESOURCE(device_reboot,
     0,
     IF_RO_PARAMETER,
     LWM2M_DEVICE_REBOOT_RT,
-    REST_PARSE_EMPTY, toto)
+    REST_PARSE_EMPTY, reboot)
 
 LWM2M_DEVICE_TIME_RESOURCE(device_time,
     REST_DEFAULT_PERIOD,
