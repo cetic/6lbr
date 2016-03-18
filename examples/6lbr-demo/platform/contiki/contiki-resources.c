@@ -112,7 +112,7 @@
 #if REST_RES_BATTERY_RAW
 #define REST_REST_BATTERY_VALUE battery_sensor.value(0)
 #else
-#define REST_REST_BATTERY_VALUE (battery_sensor.value(0) * 8190)
+#define REST_REST_BATTERY_VALUE ((battery_sensor.value(0) * 5 * 1000L) / 4096)
 #endif
 #endif
 
@@ -145,15 +145,7 @@ extern int udp_client_rssi;
 #endif
 #endif
 
-#if REST_RES_RADIO_RSSI_RAW
 #define REST_REST_RADIO_RSSI_VALUE RADIO_RSSI_VALUE_SOURCE
-#else
-#ifdef CONTIKI_TARGET_CC2538DK
-#define REST_REST_RADIO_RSSI_VALUE RADIO_RSSI_VALUE_SOURCE
-#else
-#define REST_REST_RADIO_RSSI_VALUE ((RADIO_RSSI_VALUE_SOURCE - 45))
-#endif
-#endif
 
 #endif
 
