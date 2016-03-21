@@ -90,6 +90,7 @@ void node_config_load(void) {
   list_init(node_config_list);
   node_config_coap_port = node_config_first_coap_port;
   node_config_http_port = node_config_first_http_port;
+  node_config_add_br();
 
   if (node_config_file_name) {
     LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
@@ -120,7 +121,6 @@ void node_config_load(void) {
   } else {
     LOG6LBR_INFO("No node_config.conf file specified\n");
   }
-  node_config_add_br();
 }
 #else
 int node_config_handler(void* user, const char* section, const char* name,
@@ -163,6 +163,7 @@ void node_config_load(void) {
   list_init(node_config_list);
   node_config_coap_port = node_config_first_coap_port;
   node_config_http_port = node_config_first_http_port;
+  node_config_add_br();
 
   if (node_config_file_name) {
     LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
@@ -178,7 +179,6 @@ void node_config_load(void) {
   } else {
     LOG6LBR_INFO("No node_config.conf file specified\n");
   }
-  node_config_add_br();
 }
 #endif
 
