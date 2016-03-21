@@ -44,6 +44,8 @@
 #include "contiki.h"
 #include "netstack.h"
 #include "net/packetbuf.h"
+#include "dev/serial-line.h"
+#include "dev/uart1.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -173,7 +175,8 @@ PROCESS_THREAD(sniffer_process, ev, data)
   
   PRINTF("Sniffer started\n");
   NETSTACK_RADIO.off();
-
+  uart1_set_input(serial_line_input_byte);
+  serial_line_init();
   while(1) {    
     PROCESS_WAIT_EVENT();
     in = data;
