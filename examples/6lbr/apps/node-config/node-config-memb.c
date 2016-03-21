@@ -43,6 +43,8 @@
 #include "node-config-memb.h"
 #include "cetic-6lbr.h"
 
+#define COAP_DEFAULT_PORT                    5683
+
 LIST(node_config_list);
 MEMB(node_config_memb, node_config_t, UIP_DS6_ROUTE_NB);
 
@@ -100,6 +102,20 @@ node_config_route_notification_cb(int event,
   }
 }
 
+void node_config_add_br(void) {
+  node_config_t *  node_config = node_config_new();
+  if(node_config == NULL) {
+    return;
+  }
+#if CETIC_NODE_CONFIG_HAS_NAME
+  node_config->name = "BR";
+#endif
+  node_config->mac_address = wsn_mac_addr;
+  node_config->coap_port = COAP_DEFAULT_PORT;
+  node_config->http_port = 80;
+  list_add(node_config_list, node_config);
+}
+
 void node_config_impl_init(void) {
   memb_init(&node_config_memb);
   list_init(node_config_list);
@@ -108,6 +124,7 @@ void node_config_impl_init(void) {
   uip_ds6_notification_add(&node_config_route_notification,
       node_config_route_notification_cb);
   node_config_loaded = 1;
+  node_config_add_br();
 }
 
 node_config_t* node_config_list_head(void)
