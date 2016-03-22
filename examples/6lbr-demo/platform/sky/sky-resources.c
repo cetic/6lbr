@@ -52,6 +52,7 @@
 
 #include "dev/light-sensor.h"
 
+#include "contiki-resources.h"
 #include "sky-resources.h"
 #include "sht-temp-resource.h"
 #include "sht-humidity-resource.h"
@@ -109,7 +110,7 @@ char const * lwm2m_objects_link = ""
   REST_RES_SOLAR_SO_INSTANCE_LINK
   REST_RES_PHOTO_SO_INSTANCE_LINK
   REST_RES_RADIO_LQI_SO_INSTANCE_LINK
-REST_RES_RADIO_RSSI_SO_INSTANCE_LINK
+  REST_RES_RADIO_RSSI_SO_INSTANCE_LINK
   ;
 #endif
 
