@@ -45,7 +45,11 @@
 #define RD_CLIENT_ENABLED 1
 #endif
 
+#ifdef RD_CLIENT_CONF_LIFETIME
+#define RD_CLIENT_LIFETIME RD_CLIENT_CONF_LIFETIME
+#else
 #define RD_CLIENT_LIFETIME 60
+#endif
 
 enum rd_client_status_t
 {

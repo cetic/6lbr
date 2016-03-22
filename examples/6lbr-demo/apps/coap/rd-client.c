@@ -179,7 +179,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
       COAP_BLOCKING_REQUEST_BLOCK_RESPONSE(&rd_server_ipaddr, UIP_HTONS(rd_server_port), request, client_registration_request_handler, client_registration_response_handler);
     }
     status = RD_CLIENT_REGISTERED;
-    etimer_set(&et, RD_CLIENT_LIFETIME * CLOCK_SECOND / 10 * 9);
+    etimer_set(&et, (RD_CLIENT_LIFETIME * CLOCK_SECOND) / 10 * 9);
     PROCESS_YIELD_UNTIL(etimer_expired(&et) || new_address);
     registered = 0;
 
