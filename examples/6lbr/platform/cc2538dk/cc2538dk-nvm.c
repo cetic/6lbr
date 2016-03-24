@@ -49,13 +49,13 @@
 #define CETIC_6LBR_NVM_SIZE 2048
 // We use the penultimate flash page as our nvm
 //TODO/ this must be updated for non 512K CC2538
-#define CETIC_6LBR_NVM_ADDRESS (0x00280000 - (2*CETIC_6LBR_NVM_SIZE))
+#define CETIC_6LBR_NVM_ADDRESS (0x00280000 - (2 * CETIC_6LBR_NVM_SIZE))
 
 void
 nvm_data_read(void)
 {
   LOG6LBR_INFO("Reading 6LBR NVM\n");
-  rom_util_memcpy( (void *)&nvm_data,
+  rom_util_memcpy((void *)&nvm_data,
    (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
 }
 
@@ -64,24 +64,24 @@ nvm_data_write(void)
 {
   long err;
   int retry = 4;
-  while (retry > 0 ) {
+  while (retry > 0) {
     LOG6LBR_INFO("Flashing 6LBR NVM\n");
     err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
-    if ( err != 0 ) {
-      LOG6LBR_ERROR("erase error : %ld\n", err);
+    if (err != 0) {
+      LOG6LBR_ERROR("erase error: %ld\n", err);
     }
-    rom_util_program_flash( (uint32_t*)&nvm_data,
-     CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
-    if ( err != 0 ) {
-      LOG6LBR_ERROR("write error : %ld\n", err);
+    err = rom_util_program_flash((uint32_t*)&nvm_data,
+     CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t) / 4 + 1) * 4);
+    if (err != 0) {
+      LOG6LBR_ERROR("write error: %ld\n", err);
     }
-    if(rom_util_memcmp( (void *)&nvm_data, (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t)) == 0) {
+    if (rom_util_memcmp((void *)&nvm_data, (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t)) == 0) {
       break;
     }
     LOG6LBR_ERROR("verify NVM failed, retry\n");
     retry--;
   }
-  if(retry == 0) {
-    LOG6LBR_FATAL("Could not program 6LBR NVM !\n");
+  if (retry == 0) {
+    LOG6LBR_FATAL("Could not program 6LBR NVM!\n");
   }
 }
