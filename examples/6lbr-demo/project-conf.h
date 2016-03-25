@@ -183,7 +183,11 @@
 #endif
 
 #ifndef UIP_CONF_BUFFER_SIZE
+#if CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1
 #define UIP_CONF_BUFFER_SIZE    260
+#else
+#define UIP_CONF_BUFFER_SIZE    600
+#endif
 #endif
 
 #ifndef UIP_CONF_RECEIVE_WINDOW
