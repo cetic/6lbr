@@ -112,6 +112,35 @@ cetic_6lbr_save_ip(void)
     FILE *ip_config_file = fopen(ip_config_file_name, "w");
     fprintf(ip_config_file, "%s\n", str);
     fclose(ip_config_file);
+    char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
+    strcpy(ip4_file_name, ip_config_file_name);
+    strcat(ip4_file_name, "4");
+    FILE *ip4_config_file = fopen(ip4_file_name, "w");
+    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+      inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
+      fprintf(ip4_config_file, "%s\n", str);
+    } else {
+      fprintf(ip4_config_file, "0.0.0.0\n");
+    }
+    fclose(ip4_config_file);
+  }
+}
+
+void
+cetic_6lbr_clear_ip(void)
+{
+  if (ip_config_file_name) {
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "::\n");
+    fclose(ip_config_file);
+    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+      char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
+      strcpy(ip4_file_name, ip_config_file_name);
+      strcat(ip4_file_name, "4");
+      FILE *ip4_config_file = fopen(ip4_file_name, "w");
+      fprintf(ip4_config_file, "0.0.0.0\n");
+      fclose(ip4_config_file);
+    }
   }
 }
 

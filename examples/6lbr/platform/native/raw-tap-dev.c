@@ -88,6 +88,8 @@ extern int slipfd;
 extern void slip_flushbuf(int fd);
 //End of temporary
 
+extern void cetic_6lbr_clear_ip(void);
+
 #ifndef __CYGWIN__
 static int tunfd;
 
@@ -134,6 +136,7 @@ cleanup(void)
   } else {
     LOG6LBR_INFO("No 6lbr-ifdown script specified\n");
   }
+  cetic_6lbr_clear_ip();
 #if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&linkaddr_null);
   slip_flushbuf(slipfd);
