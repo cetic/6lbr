@@ -37,6 +37,10 @@
 #include "ip64-eth.h"
 #include "ip64-addr.h"
 
+#if CETIC_6LBR
+#include "cetic-6lbr.h"
+#endif
+
 #include <stdio.h>
 
 #define DEBUG DEBUG_NONE
@@ -97,6 +101,9 @@ ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
       uip_nameserver_update(&ip6dnsaddr, uip_ntohs(s->lease_time[0])*65536ul + uip_ntohs(s->lease_time[1]));
     }
   }
+#if CETIC_6LBR
+  cetic_6lbr_ip64_dhcpc_configured(s);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void

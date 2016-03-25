@@ -38,6 +38,7 @@
 #define CETIC_6LBR_H_
 
 #include "net/rpl/rpl.h"
+#include "net/ip64/ip64-dhcpc.h"
 
 PROCESS_NAME(cetic_6lbr_process);
 
@@ -46,6 +47,8 @@ extern process_event_t cetic_6lbr_reload_event;
 
 extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                                   uip_ipaddr_t * ipaddr);
+
+extern void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
 
 typedef uint8_t ethaddr_t[6];
 

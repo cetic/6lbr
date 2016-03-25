@@ -193,12 +193,17 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
   }
 #endif
 }
-
+/*---------------------------------------------------------------------------*/
+void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
+{
+  LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
+}
+/*---------------------------------------------------------------------------*/
 int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
 {
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 void
 cetic_6lbr_init(void)
 {
@@ -384,6 +389,7 @@ cetic_6lbr_init_finalize(void)
       memcpy(&eth_ip64_gateway, nvm_data.eth_ip64_gateway, sizeof(nvm_data.eth_ip64_gateway));
       ip64_set_ipv4_address(&eth_ip64_addr, &eth_ip64_netmask);
       ip64_set_draddr(&eth_ip64_gateway);
+      LOG6LBR_4ADDR(INFO, &eth_ip64_addr, "IPv4 address : ");
     } else {
       ip64_ipv4_dhcp_init();
     }
