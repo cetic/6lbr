@@ -55,6 +55,7 @@ extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
 extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
 
 #define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }
+#define _PRINTF_4ADDR(addr, ...) { printf(__VA_ARGS__); printf("%u.%u.%u.%u\n", (addr)->u8[0], (addr)->u8[1], (addr)->u8[2], (addr)->u8[3]); }
 #define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
 #define _PRINTF_ETHADDR(addr, ...) { printf(__VA_ARGS__); log6lbr_ethaddr_print(addr); printf("\n"); }
 
@@ -280,6 +281,7 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_WRITE(level, service, buffer, size) _LOG6LBR_LEVEL_F(level, service, fwrite, buffer, size, 1, stdout)
 
 #define LOG6LBR_6ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_6ADDR, addr, __VA_ARGS__)
+#define LOG6LBR_4ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_4ADDR, addr, __VA_ARGS__)
 #define LOG6LBR_LLADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_LLADDR, addr, __VA_ARGS__)
 #define LOG6LBR_ETHADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_ETHADDR, addr, __VA_ARGS__)
 #define LOG6LBR_DUMP_PACKET(service, data, len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet, data, len)
