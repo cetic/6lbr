@@ -455,9 +455,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
-  LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
 
   platform_init();
+
+  LOG6LBR_NOTICE("Log level: %d (services: %x)\n", Log6lbr_level, Log6lbr_services);
 
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();

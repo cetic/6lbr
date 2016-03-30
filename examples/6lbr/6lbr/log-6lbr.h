@@ -63,6 +63,7 @@ extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
 /* Log level compatible with log4cxx */
 enum Log6lbr_Level {
   Log6lbr_Level_FATAL = 0,
+  Log6lbr_Level_NOTICE = 0,
   Log6lbr_Level_ERROR = 10,
   Log6lbr_Level_WARN = 20,
   Log6lbr_Level_INFO = 30,
@@ -131,6 +132,7 @@ extern void log6lbr_timestamp();
 #else
 
 #define LOG6LBR_LEVEL_FATAL 0
+#define LOG6LBR_LEVEL_NOTICE 0
 #define LOG6LBR_LEVEL_ERROR 10
 #define LOG6LBR_LEVEL_WARN 20
 #define LOG6LBR_LEVEL_INFO 30
@@ -193,6 +195,11 @@ extern void log6lbr_timestamp();
 #define _LEVEL_FILTER_FATAL(a) a
 #else
 #define _LEVEL_FILTER_FATAL(...)
+#endif
+#if LOG6LBR_LEVEL_NOTICE <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_NOTICE(a) a
+#else
+#define _LEVEL_FILTER_NOTICE(...)
 #endif
 #if LOG6LBR_LEVEL_ERROR <= LOG6LBR_LEVEL
 #define _LEVEL_FILTER_ERROR(a) a
@@ -288,6 +295,7 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_DUMP_PACKET_WITH_HEADER(service, header, header_len, data, data_len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet_with_header, header, header_len, data, data_len)
 
 #define LOG6LBR_FATAL(...) LOG6LBR_PRINTF(FATAL, GLOBAL, __VA_ARGS__)
+#define LOG6LBR_NOTICE(...) LOG6LBR_PRINTF(NOTICE, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_ERROR(...) LOG6LBR_PRINTF(ERROR, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_WARN(...) LOG6LBR_PRINTF(WARN, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_INFO(...) LOG6LBR_PRINTF(INFO, GLOBAL, __VA_ARGS__)
