@@ -464,8 +464,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     Log6lbr_level = nvm_data.log_level;
     Log6lbr_services = nvm_data.log_services;
   }
-#endif
   LOG6LBR_NOTICE("Log level: %d (services: %x)\n", Log6lbr_level, Log6lbr_services);
+#else
+  LOG6LBR_NOTICE("Log level: %d (services: %x)\n", LOG6LBR_LEVEL, LOG6LBR_SERVICE_DEFAULT);
+#endif
 
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
