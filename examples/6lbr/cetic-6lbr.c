@@ -459,6 +459,12 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   platform_init();
 
+#if !LOG6LBR_STATIC
+  if(nvm_data.log_level != 0xFF) {
+    Log6lbr_level = nvm_data.log_level;
+    Log6lbr_services = nvm_data.log_services;
+  }
+#endif
   LOG6LBR_NOTICE("Log level: %d (services: %x)\n", Log6lbr_level, Log6lbr_services);
 
 #if CETIC_6LBR_MAC_WRAPPER

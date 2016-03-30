@@ -392,8 +392,6 @@ slip_config_handle_arguments(int argc, char **argv)
     nvm_file = default_nvm_file;
   }
 
-  printf("Log level : %d\n", Log6lbr_level);
-  printf("Log services : %x\n", Log6lbr_services);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

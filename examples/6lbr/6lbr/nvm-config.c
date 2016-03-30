@@ -170,6 +170,9 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
     memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
 
+    nvm_data->log_level = CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL;
+    nvm_data->log_services = CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES;
+
     flash = 1;
   }
 

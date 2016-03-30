@@ -96,6 +96,10 @@ typedef struct {
 
   //DNS Server
   uint8_t dns_server[16];
+
+  //Log
+  uint8_t log_level;
+  uint32_t log_services;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -243,6 +247,10 @@ typedef struct {
     0x00, 0x00, 0x00, 0x00 }
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(a)    uip_create_unspecified(a)
+
+#define CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL 0xFF
+
+#define CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES 0xFFFFFFFF
 
 /*---------------------------------------------------------------------------*/
 

@@ -87,10 +87,13 @@ HTTPD_CGI_CMD_NAME(webserver_admin_reset_slip_radio_cmd);
 #endif
 HTTPD_CGI_CMD_NAME(webserver_admin_reboot_cmd)
 HTTPD_CGI_CMD_NAME(webserver_admin_halt_cmd)
+HTTPD_CGI_CALL_NAME(webserver_plugins)
+#endif
+HTTPD_CGI_CALL_NAME(webserver_logs)
+#if CONTIKI_TARGET_NATIVE
 HTTPD_CGI_CALL_NAME(webserver_log_send_log)
 HTTPD_CGI_CALL_NAME(webserver_log_send_err)
 HTTPD_CGI_CMD_NAME(webserver_log_clear_log_cmd)
-HTTPD_CGI_CALL_NAME(webserver_plugins)
 #endif
 
 void
@@ -145,10 +148,13 @@ webserver_init(void)
 #endif
     httpd_cgi_command_add(&webserver_admin_reboot_cmd);
     httpd_cgi_command_add(&webserver_admin_halt_cmd);
+    httpd_group_add_page(&admin_group, &webserver_plugins);
+#endif
+    httpd_group_add_page(&admin_group, &webserver_logs);
+#if CONTIKI_TARGET_NATIVE
     httpd_cgi_add(&webserver_log_send_log);
     httpd_cgi_add(&webserver_log_send_err);
     httpd_cgi_command_add(&webserver_log_clear_log_cmd);
-    httpd_group_add_page(&admin_group, &webserver_plugins);
 #endif
   }
 }

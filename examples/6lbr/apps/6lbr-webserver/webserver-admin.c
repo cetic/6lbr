@@ -55,17 +55,6 @@ PT_THREAD(generate_admin(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   add("<h2>Administration</h2>");
-#if CONTIKI_TARGET_NATIVE
-  add("<h3>Logs</h3>");
-  add("<form action=\"log\" method=\"get\">");
-  add("<input type=\"submit\" value=\"Show log file\"/></form><br />");
-  add("<form action=\"err\" method=\"get\">");
-  add("<input type=\"submit\" value=\"Show error log file\"/></form><br />");
-  add("<form action=\"clear-log\" method=\"get\">");
-  add("<input type=\"submit\" value=\"Clear log file\"/></form><br />");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-#endif
   add("<h3>Restart</h3>");
 #if CONTIKI_TARGET_NATIVE
   add("<form action=\"reset-sr\" method=\"get\">");

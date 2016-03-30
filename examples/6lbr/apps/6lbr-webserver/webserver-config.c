@@ -195,26 +195,25 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-#if CETIC_6LBR_SMARTBRIDGE
-  INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
-#endif
   INPUT_FLAG_CB("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network autoconfiguration");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
+  INPUT_IPADDR("eth_dft", eth_dft_router, "Default router");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  INPUT_IPADDR("eth_dft", eth_dft_router, "Default router");
 #elif CETIC_6LBR_ROUTER
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
 #endif
-  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
+  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context 0");
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<h3>Extra configuration</h3>");
+#if CETIC_6LBR_SMARTBRIDGE
+  INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
+#endif
   INPUT_IPADDR("dns", dns_server, "DNS server");
 #if CETIC_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
@@ -350,7 +349,7 @@ else if(strcmp(param, name) == 0) { \
 
 #define UPDATE_HEX(name, nvm_name, reboot) \
   else if(strcmp(param, name) == 0) { \
-    nvm_data.nvm_name = strtol(value, NULL, 16); \
+    nvm_data.nvm_name = strtoul(value, NULL, 16); \
     *reboot_needed |= (reboot); \
   }
 
@@ -428,7 +427,7 @@ update_config(const char *name, uint8_t *reboot_needed)
       ptr += strlen(ptr);
     }
 
-    LOG6LBR_INFO("Got param: '%s' = '%s'\n", param, value);
+    LOG6LBR_DEBUG("Got param: '%s' = '%s'\n", param, value);
     if (0) {
     }
     UPDATE_FLAG("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, 1)
@@ -502,6 +501,10 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_max_rankinc", rpl_max_rankinc, 1)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
+#if !LOG6LBR_STATIC
+    UPDATE_INT( "log_level", log_level, 0)
+    UPDATE_HEX( "log_services", log_services, 0)
+#endif
     else {
       LOG6LBR_WARN("Unknown parameter '%s'\n", param);
       do_update=0;
@@ -509,6 +512,12 @@ update_config(const char *name, uint8_t *reboot_needed)
   }
   if(do_update) {
     store_nvm_config();
+#if !LOG6LBR_STATIC
+    if(nvm_data.log_level != 0xFF) {
+      Log6lbr_level = nvm_data.log_level;
+      Log6lbr_services = nvm_data.log_services;
+    }
+#endif
   }
   return do_update;
 }
