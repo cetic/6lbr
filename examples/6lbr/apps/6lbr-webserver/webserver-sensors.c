@@ -40,6 +40,10 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#include "net/ip/ip64-addr.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "node-info.h"
@@ -48,6 +52,8 @@
 #if CETIC_NODE_CONFIG
 #include "node-config.h"
 #endif
+
+#define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 static const char * graph_top =
     "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>"
@@ -155,12 +161,29 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
       }
       SEND_STRING(&s->sout, buf);
       reset_buf();
-      add("<td><a href=\"http://[");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("]/\">web</a></td>");
-      add("<td><a href=\"coap://[");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("]:5683/\">coap</a></td>");
+#if CETIC_6LBR_IP64 && CETIC_NODE_CONFIG
+      if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
+        node_config_t * config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+        if(config && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+          add("<td><a href=\"http://");
+          ip4addr_add(ip64_get_hostaddr());
+          add(":%d/\">web</a></td>", config->http_port);
+          add("<td><a href=\"coap://");
+          ip4addr_add(ip64_get_hostaddr());
+          add(":%d/\">coap</a></td>", config->coap_port);
+        } else {
+          add("<td></td><td></td>");
+        }
+      } else
+#endif
+      {
+        add("<td><a href=\"http://[");
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("]/\">web</a></td>");
+        add("<td><a href=\"coap://[");
+        ipaddr_add(&node_info_table[i].ipaddr);
+        add("]:5683/\">coap</a></td>");
+      }
       if(node_info_table[i].messages_received > 0) {
         add("<td>");
 #if CETIC_NODE_CONFIG_HAS_NAME
