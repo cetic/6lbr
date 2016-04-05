@@ -18,4 +18,4 @@
 	url = https://github.com/g-oikonomou/cc26xxware.git
 [submodule "examples/6lbr/lib/inih"]
 	path = examples/6lbr/lib/inih
-	url = https://github.com/benhoyt/inih.git
+	url = https://github.com/cetic/inih.git

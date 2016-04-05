@@ -60,6 +60,10 @@ static int native_config_lwm2m_device_handler(config_level_t level, void* user, 
     //Parse config only when in application init phase
     return 1;
   }
+  if(!name) {
+    //ignore end of section
+    return 1;
+  }
   if(strcmp(name, "manufacturer") == 0) {
     lwm2m_device_manufacturer = strdup(value);
     return 1;

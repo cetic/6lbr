@@ -56,6 +56,10 @@ static native_config_callback_t global_config_cb;
 /*---------------------------------------------------------------------------*/
 static int native_config_global_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
+  if(!name) {
+    //ignore end of section
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
