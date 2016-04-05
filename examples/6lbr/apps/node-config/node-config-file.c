@@ -127,6 +127,10 @@ int node_config_handler(void* user, const char* section, const char* name,
     const char* value) {
   node_config_t *  node_config;
   uip_lladdr_t mac_address;
+  if(name == NULL) {
+    //Ignore end of section
+    return 1;
+  }
   int result = sscanf(section, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
       &mac_address.addr[0], &mac_address.addr[1], &mac_address.addr[2], &mac_address.addr[3],
       &mac_address.addr[4], &mac_address.addr[5], &mac_address.addr[6], &mac_address.addr[7]);

@@ -74,9 +74,9 @@ static int native_config_handler(void* user, const char* section, const char* na
     }
   }
   if(cb) {
-    return cb->callback(cb->user, cb->section, name, value);
+    return cb->callback(*(config_level_t *)user, cb->user, cb->section, name, value);
   } else {
-    LOG6LBR_WARN("Invalid section : %s\n", name);
+    LOG6LBR_WARN("Invalid section : %s\n", section);
   }
   return 1;
 }
@@ -114,5 +114,5 @@ void native_config_add_callback(native_config_callback_t *cb_info,
 void native_config_init(void)
 {
   list_init(callbacks);
-  native_config_add_callback(&global_config_cb, "global", native_config_global_handler, NULL);
+  native_config_add_callback(&global_config_cb, "", native_config_global_handler, NULL);
 }
