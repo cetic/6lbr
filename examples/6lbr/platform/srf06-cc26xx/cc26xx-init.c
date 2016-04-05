@@ -39,6 +39,7 @@
 #include "contiki-net.h"
 #include "dev/watchdog.h"
 
+#include "platform-init.h"
 #include "cetic-6lbr.h"
 #include "sicslow-ethernet.h"
 #include "nvm-config.h"
@@ -47,7 +48,6 @@
 void
 platform_init(void)
 {
-  load_nvm_config();
 }
 
 void
@@ -55,6 +55,17 @@ platform_finalize(void)
 {
 }
 
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    break;
+  default:
+    break;
+  }
+}
 void
 platform_radio_init(void)
 {

@@ -458,6 +458,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
 
   platform_init();
+  platform_load_config(CONFIG_LEVEL_LOAD);
 
 #if !LOG6LBR_STATIC
   if(nvm_data.log_level != 0xFF) {
@@ -528,6 +529,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     platform_restart();
   }
   cetic_6lbr_init_finalize();
+  platform_load_config(CONFIG_LEVEL_NETWORK);
 
 #if CETIC_NODE_CONFIG
   node_config_init();
@@ -564,6 +566,7 @@ dtls_init();
 #endif
 
   platform_finalize();
+  platform_load_config(CONFIG_LEVEL_APP);
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 

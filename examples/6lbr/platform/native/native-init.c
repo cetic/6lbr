@@ -67,11 +67,8 @@ platform_init(void)
   } else {
     LOG6LBR_WARN("6LBR Watchdog disabled\n");
   }
-  load_nvm_config();
   native_config_init();
-
   plugins_load();
-  native_config_load();
 
   struct sigaction action;
   /* Trap SIGUSR1. */
@@ -84,6 +81,20 @@ void
 platform_finalize(void)
 {
   plugins_init();
+}
+
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    native_config_load(level);
+    break;
+  default:
+    native_config_load(level);
+    break;
+  }
 }
 
 void

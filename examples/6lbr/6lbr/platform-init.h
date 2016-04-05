@@ -35,11 +35,22 @@
 #ifndef PLATFORM_INIT_H_
 #define PLATFORM_INIT_H_
 
+#include "net/linkaddr.h"
+
+typedef enum {
+  CONFIG_LEVEL_LOAD,
+  CONFIG_LEVEL_NETWORK,
+  CONFIG_LEVEL_APP
+} config_level_t;
+
 void
 platform_init(void);
 
 void
 platform_finalize(void);
+
+void
+platform_load_config(config_level_t level);
 
 void
 platform_radio_init(void);

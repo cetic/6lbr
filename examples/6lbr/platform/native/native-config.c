@@ -54,7 +54,7 @@ LIST(callbacks);
 static native_config_callback_t global_config_cb;
 
 /*---------------------------------------------------------------------------*/
-static int native_config_global_handler(void* user, const char* section, const char* name,
+static int native_config_global_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
   return 0;
 }
@@ -77,13 +77,13 @@ static int native_config_handler(void* user, const char* section, const char* na
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-void native_config_load(void)
+void native_config_load(config_level_t config_level)
 {
   int result;
 
   if (config_file_name) {
     LOG6LBR_INFO("Loading configuration : %s\n",config_file_name);
-    result = ini_parse(config_file_name, native_config_handler, NULL);
+    result = ini_parse(config_file_name, native_config_handler, &config_level);
     if (result < 0) {
       LOG6LBR_WARN("Can not open %s : %s\n", config_file_name, strerror(errno));
     }

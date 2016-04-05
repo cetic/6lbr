@@ -54,8 +54,12 @@ char *lwm2m_device_manufacturer = "CETIC";
 char *lwm2m_device_model = "6LBR";
 
 /*---------------------------------------------------------------------------*/
-static int native_config_lwm2m_device_handler(void* user, const char* section, const char* name,
+static int native_config_lwm2m_device_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
+  if(level != CONFIG_LEVEL_APP) {
+    //Parse config only when in application init phase
+    return 1;
+  }
   if(strcmp(name, "manufacturer") == 0) {
     lwm2m_device_manufacturer = strdup(value);
     return 1;
