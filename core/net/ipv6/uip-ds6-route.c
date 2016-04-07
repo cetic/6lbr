@@ -39,6 +39,7 @@
  *    Routing table manipulation
  */
 #include "net/ipv6/uip-ds6.h"
+#include "net/rpl/rpl-private.h"
 #include "net/ip/uip.h"
 
 #include "lib/list.h"
@@ -423,7 +424,7 @@ uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
       /* no need to update route - already correct! */
       return r;
     }
-    PRINTF("uip_ds6_route_add: old route for ");
+    PRINTF("uip_ds6_route_add_static: old route for ");
     PRINT6ADDR(ipaddr);
     PRINTF(" found, deleting it\n");
 
@@ -436,7 +437,7 @@ uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
     if(r == NULL) {
       /* This should not happen, as we explicitly deallocated one
          route table entry above. */
-      PRINTF("uip_ds6_route_add: could not allocate route\n");
+      PRINTF("uip_ds6_route_add_static: could not allocate route\n");
       return NULL;
     }
 
@@ -447,7 +448,7 @@ uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
     r->neighbor_routes = NULL;
     num_routes++;
 
-    PRINTF("uip_ds6_route_add num %d\n", num_routes);
+    PRINTF("uip_ds6_route_add_static num %d\n", num_routes);
   }
 
   uip_ipaddr_copy(&(r->ipaddr), ipaddr);
@@ -456,18 +457,14 @@ uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
 
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+  r->state.lifetime = RPL_ROUTE_INFINITE_LIFETIME;
 #endif
 
-  PRINTF("uip_ds6_route_add: adding route: ");
+  PRINTF("uip_ds6_route_add_static: adding route: ");
   PRINT6ADDR(ipaddr);
   PRINTF(" via ");
   PRINT6ADDR(nexthop);
   PRINTF("\n");
-  ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-
-#if UIP_DS6_NOTIFICATIONS
-  call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_ADD, ipaddr, nexthop);
-#endif
 
 #if DEBUG != DEBUG_NONE
   assert_nbr_routes_list_sane();
