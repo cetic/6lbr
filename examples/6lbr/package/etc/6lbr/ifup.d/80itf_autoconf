@@ -22,11 +22,11 @@ fi
 case $OS in
 	Linux)
 		if [ "$BRIDGE" = "1" ]; then
-			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra=2
-			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra_rt_info_max_plen=64
+			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra=2 > /dev/null || true
+			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra_rt_info_max_plen=64 > /dev/null || true
 		else
-			sysctl -w net.ipv6.conf.$DEV.accept_ra=2
-			sysctl -w net.ipv6.conf.$DEV.accept_ra_rt_info_max_plen=64
+			sysctl -w net.ipv6.conf.$DEV.accept_ra=2 > /dev/null || true
+			sysctl -w net.ipv6.conf.$DEV.accept_ra_rt_info_max_plen=64 > /dev/null || true
 		fi
 		;;
 
