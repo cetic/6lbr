@@ -52,7 +52,9 @@
 LIST(callbacks);
 
 static native_config_callback_t global_config_cb;
-
+#if UIP_DS6_STATIC_ROUTES
+static native_config_callback_t network_route_config_cb;
+#endif
 /*---------------------------------------------------------------------------*/
 static int native_config_global_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
@@ -62,6 +64,50 @@ static int native_config_global_handler(config_level_t level, void* user, const 
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
+#if UIP_DS6_STATIC_ROUTES
+static int native_config_network_route_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  static uip_ipaddr_t ipaddr;
+  static uint8_t length = 0;
+  static uip_ipaddr_t next_hop;
+
+  if(level != CONFIG_LEVEL_NETWORK) {
+    return 1;
+  }
+
+  if(!name) {
+    if(!uip_is_addr_unspecified(&ipaddr) && length > 0 && !uip_is_addr_unspecified(&next_hop)) {
+      uip_ds6_route_add_static(&ipaddr, length, &next_hop);
+    } else {
+      LOG6LBR_ERROR("Missing parameters for route creation\n");
+      return 0;
+    }
+    //Reset parameters
+    uip_create_unspecified(&ipaddr);
+    uip_create_unspecified(&next_hop);
+    length = 0;
+    return 1;
+  }
+
+  if(strcmp(name, "dest") == 0) {
+    if(uiplib_ipaddrconv(value, &ipaddr) == 0) {
+      LOG6LBR_ERROR("Invalid ip address : %s\n", value);
+      return 0;
+    }
+    length = 128;
+  } else if (strcmp(name, "via") == 0) {
+    if(uiplib_ipaddrconv(value, &next_hop) == 0) {
+      LOG6LBR_ERROR("Invalid ip address : %s\n", value);
+      return 0;
+    }
+  } else {
+    LOG6LBR_ERROR("Invalid parameter : %s\n", name);
+    return 0;
+  }
+  return 1;
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static int native_config_handler(void* user, const char* section, const char* name,
     const char* value) {
@@ -115,4 +161,7 @@ void native_config_init(void)
 {
   list_init(callbacks);
   native_config_add_callback(&global_config_cb, "", native_config_global_handler, NULL);
+#if UIP_DS6_STATIC_ROUTES
+  native_config_add_callback(&network_route_config_cb, "network.route", native_config_network_route_handler, NULL);
+#endif
 }

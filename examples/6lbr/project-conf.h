@@ -115,6 +115,8 @@
 
 #define UIP_CONF_ND6_RA_RDNSS 1
 
+#define UIP_CONF_DS6_STATIC_ROUTES 1
+
 #define CETIC_6LBR_IP64      1
 
 /* Do not change lines below */
@@ -183,10 +185,7 @@
 
 #define UIP_CONF_ND6_RA_RDNSS 1
 
-#if !UIP_CONF_IPV6_RPL
-//Support static routes only in non-rpl mode now
 #define UIP_CONF_DS6_STATIC_ROUTES 1
-#endif
 
 #define CETIC_6LBR_IP64      1
 
