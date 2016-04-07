@@ -9,7 +9,7 @@ MODE_6LBR=$2
 DEV=$3
 OS=`uname`
 
-if [ "$BRIDGE" = "1" ]; then
+if [ $MODE_6LBR = "tap" && "$BRIDGE" = "1" ]; then
 	ifconfig $DEV_BRIDGE
 fi
 
