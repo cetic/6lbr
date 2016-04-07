@@ -69,6 +69,10 @@ if [ "$BRIDGE_DISABLE_SNOOPING" = "" ]; then
 	BRIDGE_DISABLE_SNOOPING="1"
 fi
 
+if [ "$ITF_AUTOCONF" = "" ]; then
+	ITF_AUTOCONF="1"
+fi
+
 # Radio configuration
 
 # No default values as platform are too different
