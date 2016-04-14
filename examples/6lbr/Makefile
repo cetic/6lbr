@@ -130,6 +130,9 @@ all_red-io:
 all_cc2538dk:
 	@echo "Target is deprecated, use 'make TARGET=cc2538dk all' instead"
 
+all_zoul-eth-gw:
+	@echo "Target is deprecated, use 'make TARGET=zoul-eth-gw all' instead"
+
 include $(CONTIKI)/Makefile.include
 
 .PHONY: all tools 6lbr-demo

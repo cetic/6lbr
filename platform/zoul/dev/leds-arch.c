@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,6 +11,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -26,79 +28,46 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
+/**
+ * \addtogroup zoul
+ * @{
+ *
+ * \defgroup zoul-leds Zoul LED driver
+ *
+ * LED driver implementation for the Zoul-based platforms
+ * @{
+ *
+ * \file
+ * LED driver implementation for the Zoul-based platforms
+ */
 #include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
-
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
-#include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
+#include "reg.h"
+#include "dev/leds.h"
+#include "dev/gpio.h"
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
+#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+/*---------------------------------------------------------------------------*/
+void
+leds_arch_init(void)
 {
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
+  GPIO_SET_OUTPUT(GPIO_D_BASE, LEDS_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
+unsigned char
+leds_arch_get(void)
 {
-  enc28j60_send(packet, len);
-  return len;
+  return GPIO_READ_PIN(GPIO_D_BASE, LEDS_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
+void
+leds_arch_set(unsigned char leds)
 {
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
-
-  PROCESS_END();
+  GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_GPIO_PIN_MASK, leds);
 }
 /*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
-/*---------------------------------------------------------------------------*/
+
+/**
+ * @}
+ * @}
+ */
