@@ -101,7 +101,9 @@ typedef uint32_t rtimer_clock_t;
  *
  * @{
  */
+#ifndef COFFEE_CONF_SIZE
 #define COFFEE_CONF_SIZE            (4 * COFFEE_SECTOR_SIZE)
+#endif
 
 #ifndef FLASH_CONF_ORIGIN
 #define FLASH_CONF_ORIGIN  0x00200000

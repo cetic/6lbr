@@ -34,24 +34,24 @@
 
 #undef SPI_CLK_PORT
 #ifndef CC2538_ENC28J60_CONF_CLK_PORT
-#define SPI_CLK_PORT   GPIO_A_BASE
+#define SPI_CLK_PORT   GPIO_C_BASE
 #else
 #define SPI_CLK_PORT   CC2538_ENC28J60_CONF_CLK_PORT
 #endif
 #ifndef CC2538_ENC28J60_CONF_CLK_PIN
-#define SPI_CLK_BIT    (1 << 2)
+#define SPI_CLK_BIT    (1 << 4)
 #else
 #define SPI_CLK_BIT    (1 << CC2538_ENC28J60_CONF_CLK_PIN)
 #endif
 
 #undef SPI_MOSI_PORT
 #ifndef CC2538_ENC28J60_CONF_MOSI_PORT
-#define SPI_MOSI_PORT   GPIO_A_BASE
+#define SPI_MOSI_PORT   GPIO_C_BASE
 #else
 #define SPI_MOSI_PORT   CC2538_ENC28J60_CONF_MOSI_PORT
 #endif
 #ifndef CC2538_ENC28J60_CONF_MOSI_PIN
-#define SPI_MOSI_BIT    (1 << 4)
+#define SPI_MOSI_BIT    (1 << 6)
 #else
 #define SPI_MOSI_BIT    (1 << CC2538_ENC28J60_CONF_MOSI_PIN)
 #endif
@@ -63,7 +63,7 @@
 #define SPI_MISO_PORT   CC2538_ENC28J60_CONF_MISO_PORT
 #endif
 #ifndef CC2538_ENC28J60_CONF_MISO_PIN
-#define SPI_MISO_BIT    (1 << 5)
+#define SPI_MISO_BIT    (1 << 7)
 #else
 #define SPI_MISO_BIT    (1 << CC2538_ENC28J60_CONF_MISO_PIN)
 #endif
