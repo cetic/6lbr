@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,6 +11,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -26,79 +28,45 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-#include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
-
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
-#include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
-}
+/**
+ * \addtogroup zoul
+ * @{
+ *
+ * \defgroup zoul-sensors Zoul Sensors
+ *
+ * Generic module controlling sensors on the Zoul platform
+ * @{
+ *
+ * \file
+ * Implementation of a generic module controlling Zoul sensors
+ */
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
-{
-  enc28j60_send(packet, len);
-  return len;
-}
+#ifndef ZOUL_SENSORS_H_
+#define ZOUL_SENSORS_H_
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
-{
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
-
-  PROCESS_END();
-}
+#include "lib/sensors.h"
+#include "dev/cc2538-sensors.h"
+#include "dev/button-sensor.h"
 /*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
+/**
+ * \name Zoul sensor constants
+ *
+ * These constants are used by various sensors on the Zoul. They can be used
+ * to configure ADC decimation rate (where applicable), enable interrupts, etc.
+ * @{
+ */
+#define HW_INT_OVER_THRS                              0x01
+#define HW_INT_BELOW_THRS                             0x02
+#define HW_INT_DISABLE                                0x03
+#define ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE   0x0100
+#define ZOUL_SENSORS_ERROR                            CC2538_SENSORS_ERROR
+/** @} */
 /*---------------------------------------------------------------------------*/
+#endif /* ZOUL_SENSORS_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

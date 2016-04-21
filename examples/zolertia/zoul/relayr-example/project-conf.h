@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,6 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -26,79 +27,45 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-#include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
-
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
-#include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
-}
+/**
+ * \addtogroup cc2538-mqtt-demo
+ * @{
+ *
+ * \file
+ * Project specific configuration defines for the MQTT demo
+ */
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
-{
-  enc28j60_send(packet, len);
-  return len;
-}
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
-{
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
+/* User configuration */
+#define MQTT_DEMO_STATUS_LED      LEDS_GREEN
+#define MQTT_DEMO_PUBLISH_TRIGGER &button_right_sensor
 
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
+#define MQTT_DEMO_BROKER_IP_ADDR  "test.mosquitto.org" /* "mqtt.relayr.io" */
+/*---------------------------------------------------------------------------*/
+/* Default configuration values */
+#define DEFAULT_EVENT_TYPE_ID       "2826729f-d677-4425-88d6-78a62ae7061f" /* DEVICE ID same as MQTT USER */
+#define DEFAULT_SUBSCRIBE_CMD_TYPE  "leds"
+#define DEFAULT_AUTH_USER           "TKCZyn9Z3RCWI1nimKucGHw" /* CLIENT ID */
+#define DEFAULT_AUTH_TOKEN          "Ei316V-YqznM" /* PASSWORD */
+#define DEFAULT_BROKER_PORT         1883
+#define DEFAULT_PUBLISH_INTERVAL    (45 * CLOCK_SECOND)
+#define DEFAULT_KEEP_ALIVE_TIMER    60
+/*---------------------------------------------------------------------------*/
+/* Use either the cc1200_driver for sub-1GHz, or cc2538_rf_driver (default)
+ * for 2.4GHz built-in radio interface
+ */
+#undef  NETSTACK_CONF_RADIO
+#define NETSTACK_CONF_RADIO              cc2538_rf_driver
 
-  PROCESS_END();
-}
+/* Alternate between ANTENNA_SW_SELECT_SUBGHZ or ANTENNA_SW_SELECT_2_4GHZ */
+#define ANTENNA_SW_SELECT_DEF_CONF       ANTENNA_SW_SELECT_2_4GHZ
+
+#define NETSTACK_CONF_RDC                nullrdc_driver
+
+#endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
-/*---------------------------------------------------------------------------*/
+/** @} */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,79 +26,34 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup firefly
+ * @{
+ *
+ * \file
+ *  Board-initialisation for the Zolertia's Firefly platform
  *
  */
-
-#include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
-
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
+/*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
+#include <stdint.h>
 #include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
 /*---------------------------------------------------------------------------*/
 static void
-init(void)
+configure_unused_pins(void)
 {
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
+  /* FIXME */
 }
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
+void
+board_init()
 {
-  enc28j60_send(packet, len);
-  return len;
+  configure_unused_pins();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
-{
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
+/**
+ * @}
+ */
 
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
-/*---------------------------------------------------------------------------*/

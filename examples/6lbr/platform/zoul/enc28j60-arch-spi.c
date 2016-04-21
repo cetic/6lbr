@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,76 +29,60 @@
  *
  */
 
-#include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
+#include "clock.h"
+#include "enc28j60-arch.h"
+#include "spi-arch.h"
+#include "spi.h"
 
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
-#include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
+#ifndef CC2538_ENC28J60_CONF_CS_PORT
+#define SPI_CS_PORT   GPIO_B_NUM
+#else
+#define SPI_CS_PORT   CC2538_ENC28J60_CONF_CS_PORT
+#endif
+#ifndef CC2538_ENC28J60_CONF_CS_PIN
+#define SPI_CS_PIN    5
+#else
+#define SPI_CS_PIN    CC2538_ENC28J60_CONF_CS_PIN
+#endif
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
+void
+enc28j60_arch_spi_init(void)
 {
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
+  spi_init();
+  spi_cs_init(SPI_CS_PORT, SPI_CS_PIN);
+  spi_set_mode(SSI_CR0_FRF_MOTOROLA, 0, 0, 8);
 }
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
+void
+enc28j60_arch_spi_select(void)
 {
-  enc28j60_send(packet, len);
-  return len;
+  SPI_CS_CLR(SPI_CS_PORT, SPI_CS_PIN);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
+void
+enc28j60_arch_spi_deselect(void)
 {
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
-
-  PROCESS_END();
+  SPI_CS_SET(SPI_CS_PORT, SPI_CS_PIN);
 }
 /*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
+void
+enc28j60_arch_spi_write(uint8_t output)
+{
+  SPI_WAITFORTxREADY();
+  SPI_RXBUF = output;
+  SPI_WAITFOREOTx();
+  SPI_WAITFOREORx();
+  uint32_t dummy = SPI_RXBUF;
+  (void) dummy;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+enc28j60_arch_spi_read(void)
+{
+  SPI_WAITFORTxREADY();
+  SPI_RXBUF = 0;
+  SPI_WAITFOREOTx();
+  SPI_WAITFOREORx();
+  return SPI_RXBUF;
+}
 /*---------------------------------------------------------------------------*/

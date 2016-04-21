@@ -28,6 +28,7 @@
 *.c64
 *.cc2538dk
 *.remote
+*.zoul
 *.srf06-cc26xx
 *.ev-aducrf101mkxz
 *.report

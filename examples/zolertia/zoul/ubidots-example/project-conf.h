@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2015, George Oikonomou - <george@contiki-os.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
@@ -26,79 +27,40 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-#include "contiki.h"
-#include "enc28j60.h"
-#include "enc28j60-ip64-driver.h"
-
-#include "ip64.h"
-#include "ip64-eth.h"
-#include "rime.h"
-
-#include <string.h>
-#include <stdio.h>
-
-PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
-
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  uint8_t eui64[8];
-  uint8_t macaddr[6];
-
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
-
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
-
-  /* In case the OUI happens to contain a broadcast bit, we mask that
-     out here. */
-  macaddr[0] = (macaddr[0] & 0xfe);
-
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
-  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
-
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
-         macaddr[0], macaddr[1], macaddr[2],
-         macaddr[3], macaddr[4], macaddr[5]);
-  enc28j60_init(macaddr);
-  process_start(&enc28j60_ip64_driver_process, NULL);
-}
+/**
+ * \file
+ *    Project specific configuration defines for the Ubidots demo
+ *
+ * \author
+ *    George Oikonomou - <george@contiki-os.org>,
+ */
 /*---------------------------------------------------------------------------*/
-static int
-output(uint8_t *packet, uint16_t len)
-{
-  enc28j60_send(packet, len);
-  return len;
-}
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
-{
-  static int len;
-  static struct etimer e;
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&e, 1);
-    PROCESS_WAIT_EVENT();
-    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-    if(len > 0) {
-      IP64_INPUT(ip64_packet_buffer, len);
-    }
-  }
-
-  PROCESS_END();
-}
+/* User configuration */
+#define POST_PERIOD                      (CLOCK_SECOND * 30)
+#define VARIABLE_BUF_LEN                 16
+#define UBIDOTS_CONF_AUTH_TOKEN          "oB6WLGfVlVFq6Vgig1kTuqNhQ5psXH"
+#define VARKEY_TEMPERATURE               "56fe8bc07625421d106f5d9f"
+#define VARKEY_HUMIDITY                  "570274ec76254271ba937188"
+#define VARKEY_ACCEL_X                   "56fe8bd57625421d302181da"
+#define VARKEY_ACCEL_Y                   "56fe8bec7625421d4e18f81a"
+#define VARKEY_ACCEL_Z                   "56fe8bf47625421e8694cb0e"
+#define UBIDOTS_CONF_IN_BUFFER_SIZE      64
 /*---------------------------------------------------------------------------*/
-const struct ip64_driver enc28j60_ip64_driver = {
-  init,
-  output
-};
+#define UBIDOTS_CONF_REMOTE_HOST         "2607:f0d0:2101:39::2"
+/*---------------------------------------------------------------------------*/
+#undef  NETSTACK_CONF_RADIO
+#define NETSTACK_CONF_RADIO              cc2538_rf_driver
+#define ANTENNA_SW_SELECT_DEF_CONF       ANTENNA_SW_SELECT_2_4GHZ
+#define NETSTACK_CONF_RDC                nullrdc_driver
+/*---------------------------------------------------------------------------*/
+#define RESOLV_CONF_SUPPORTS_MDNS        0
+#define UIP_CONF_MAX_ROUTES              3
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     3
+/*---------------------------------------------------------------------------*/
+#endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
