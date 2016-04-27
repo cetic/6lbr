@@ -331,15 +331,19 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
 #endif /* WITH_MANUAL_PADDING */
 
   /* Write a pointer to the last data byte. */
+#if UIP_LLH_LEN == 16
+  writereg(ETXNDL, (TXSTART_INIT + datalen - 2 + 0 + padding) & 0xff);
+  writereg(ETXNDH, (TXSTART_INIT + datalen - 2 + 0 + padding) >> 8);
+#else
   writereg(ETXNDL, (TXSTART_INIT + datalen + 0 + padding) & 0xff);
   writereg(ETXNDH, (TXSTART_INIT + datalen + 0 + padding) >> 8);
-
+#endif
 
 #if UIP_LLH_LEN == 16
   /* Write Ethernet header */
   writedata(data, 14);
   /* Write Ehternet payload */
-  writedata(data + 16, datalen - 14);
+  writedata(data + 16, datalen - 16);
 #else
   writedata(data, datalen);
 #endif
