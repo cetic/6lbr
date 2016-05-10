@@ -32,7 +32,7 @@
  *         Packet Filter for 6LBR.
  *         Enables dual-interfaces (IEEE802.15.4 and Ethernet) under the
  *         single-interface uIP stack.
- *         More information: 
+ *         More information:
  *           https://github.com/cetic/6lbr/wiki/Implementation-Details
  * \author
  *         6LBR Team <6lbr@cetic.be>
@@ -198,7 +198,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     LOG6LBR_ERROR("wireless_output: uip_len = 0\n");
     return 0;
   }
-  if(dest && linkaddr_cmp((linkaddr_t *) & dest,
+  if(dest && linkaddr_cmp((linkaddr_t *) dest,
       (linkaddr_t *) & wsn_mac_addr)) {
     LOG6LBR_ERROR("wireless_output: sending to self\n");
     return 0;
