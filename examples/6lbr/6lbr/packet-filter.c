@@ -382,7 +382,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     return 0;
   }
 
-  if(dest && linkaddr_cmp((linkaddr_t *) & dest,
+  if(dest && linkaddr_cmp((linkaddr_t *) dest,
       (linkaddr_t *) & eth_mac64_addr)) {
     LOG6LBR_ERROR("ethernet_output: sending to self\n");
     return 0;
