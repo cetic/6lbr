@@ -54,10 +54,11 @@ nvm_data_t nvm_data;
 /*---------------------------------------------------------------------------*/
 
 void
-check_nvm(volatile nvm_data_t * nvm_data, int reset)
+check_nvm(nvm_data_t * nvm_data, int reset)
 {
   uint8_t flash = 0;
   uip_ipaddr_t loc_fipaddr;
+  uip_ip4addr_t loc_fip4addr;
 
   if(reset || nvm_data->magic != CETIC_6LBR_NVM_MAGIC
      || nvm_data->version > CETIC_6LBR_NVM_CURRENT_VERSION) {
@@ -93,7 +94,7 @@ check_nvm(volatile nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
-  if ( nvm_data->version == CETIC_6LBR_NVM_VERSION_0)
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_1)
   {
     if (!reset) {
       LOG6LBR_WARN("Migrate NVM version 0 towards 1\n");
@@ -125,6 +126,52 @@ check_nvm(volatile nvm_data_t * nvm_data, int reset)
     nvm_data->rpl_default_lifetime = CETIC_6LBR_NVM_DEFAULT_RPL_DEFAULT_LIFETIME;
     nvm_data->rpl_min_hoprankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MIN_HOP_RANK_INC;
     nvm_data->rpl_lifetime_unit = CETIC_6LBR_NVM_DEFAULT_RPL_LIFETIME_UNIT;
+
+    flash = 1;
+  }
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_2)
+  {
+    if (!reset) {
+      LOG6LBR_WARN("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_2);
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_2;
+
+    nvm_data->security_layer = CETIC_6LBR_NVM_DEFAULT_SECURITY_LAYER;
+    nvm_data->security_level = CETIC_6LBR_NVM_DEFAULT_SECURITY_LEVEL;
+    uint8_t key[16] = CETIC_6LBR_NVM_DEFAULT_SECURITY_KEY;
+    memcpy(nvm_data->noncoresec_key, key, sizeof(key));
+
+    nvm_data->pan_id = CETIC_6LBR_NVM_DEFAULT_PANID;
+
+    nvm_data->rpl_config = CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG;
+    nvm_data->rpl_max_rankinc = CETIC_6LBR_NVM_DEFAULT_RPL_MAX_RANK_INC;
+    CETIC_6LBR_NVM_DEFAULT_RPL_DODAG_ID(&loc_fipaddr);
+    memcpy(&nvm_data->rpl_dodag_id, &loc_fipaddr.u8, 16);
+    nvm_data->eth_ip64_flags = CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS;
+    CETIC_6LBR_NVM_DEFAULT_IP64_ADDRESS(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_addr, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+    CETIC_6LBR_NVM_DEFAULT_IP64_NETMASK(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_netmask, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+    CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(&loc_fip4addr);
+    memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
+
+    nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
+    strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+
+    nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
+
+    nvm_data->mac_layer = CETIC_6LBR_NVM_DEFAULT_MAC_LAYER;
+
+    nvm_data->noncoresec_flags = CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS;
+
+    uint8_t context[8] = CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0;
+    memcpy(nvm_data->wsn_6lowpan_context_0, context, sizeof(context));
+
+    CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
+    memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
+
+    nvm_data->log_level = CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL;
+    nvm_data->log_services = CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES;
 
     flash = 1;
   }

@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+set -e
 
 . $CETIC_6LBR_CONF
 . $1/6lbr-functions
@@ -19,7 +21,7 @@ fi
 
 case $OS in
 	Linux)
-		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
+		if [ "$CREATE_BRIDGE" = "6LBR" -o "$CREATE_BRIDGE" = "1" ]; then
 			echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
 			ip link set $DEV_BRIDGE down
 			ip addr flush dev $DEV_BRIDGE
@@ -31,7 +33,7 @@ case $OS in
 		fi
 		;;
 	Darwin)
-		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" ]]; then
+		if [ "$CREATE_BRIDGE" = "6LBR" -o "$CREATE_BRIDGE" = "1" ]; then
 			echo "6lbr-ifdown: Delete bridge $DEV_BRIDGE"
 			ifconfig $DEV_BRIDGE destroy
 		else

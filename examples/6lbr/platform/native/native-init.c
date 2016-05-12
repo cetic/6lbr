@@ -32,21 +32,75 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "6LBR"
+
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
+#include "log-6lbr.h"
+
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
-#include "slip-cmds.h"
 #include "native-rdc.h"
-#include "node-config.h"
+#include "native-config.h"
+#include "plugin.h"
+#include "6lbr-watchdog.h"
+#include "slip-config.h"
+
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include "signal.h"
+
+static void
+reload_trigger(int signal)
+{
+  process_post(PROCESS_BROADCAST, cetic_6lbr_reload_event, NULL);
+}
 
 void
 platform_init(void)
 {
-  process_start(&border_router_cmd_process, NULL);
-  node_config_init();
+  slip_config_handle_arguments(contiki_argc, contiki_argv);
+  if (watchdog_interval) {
+    process_start(&native_6lbr_watchdog, NULL);
+  } else {
+    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  }
+  native_config_init();
+  plugins_load();
+
+  struct sigaction action;
+  /* Trap SIGUSR1. */
+  action.sa_flags = SA_RESTART;
+  action.sa_handler = reload_trigger;
+  sigaction(SIGUSR1, &action, NULL);
+}
+
+void
+platform_finalize(void)
+{
+  plugins_init();
+}
+
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    native_config_load(level);
+    break;
+  default:
+    native_config_load(level);
+    break;
+  }
+}
+
+void
+platform_radio_init(void)
+{
+  native_rdc_init();
 }
 
 void
@@ -54,4 +108,77 @@ platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
   linkaddr_set_node_addr(mac_addr);
   slip_set_mac(mac_addr);
+}
+
+void
+cetic_6lbr_save_ip(void)
+{
+  if (ip_config_file_name) {
+    char str[INET6_ADDRSTRLEN];
+#if CETIC_6LBR_SMARTBRIDGE
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
+#else
+    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
+#endif
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "%s\n", str);
+    fclose(ip_config_file);
+    char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
+    strcpy(ip4_file_name, ip_config_file_name);
+    strcat(ip4_file_name, "4");
+    FILE *ip4_config_file = fopen(ip4_file_name, "w");
+    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+      inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
+      fprintf(ip4_config_file, "%s\n", str);
+    } else {
+      fprintf(ip4_config_file, "0.0.0.0\n");
+    }
+    fclose(ip4_config_file);
+  }
+}
+
+void
+cetic_6lbr_clear_ip(void)
+{
+  if (ip_config_file_name) {
+    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+    fprintf(ip_config_file, "::\n");
+    fclose(ip_config_file);
+    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+      char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
+      strcpy(ip4_file_name, ip_config_file_name);
+      strcat(ip4_file_name, "4");
+      FILE *ip4_config_file = fopen(ip4_file_name, "w");
+      fprintf(ip4_config_file, "0.0.0.0\n");
+      fclose(ip4_config_file);
+    }
+  }
+}
+
+void
+platform_restart(void)
+{
+  switch (cetic_6lbr_restart_type) {
+    case CETIC_6LBR_RESTART:
+      LOG6LBR_INFO("Exiting...\n");
+      exit(0);
+      break;
+    case CETIC_6LBR_REBOOT:
+      LOG6LBR_INFO("Rebooting...\n");
+      if(system("reboot") != 0) {
+        LOG6LBR_WARN("Reboot command failed\n");
+      }
+      break;
+    case CETIC_6LBR_HALT:
+      LOG6LBR_INFO("Halting...\n");
+      if(system("halt") != 0) {
+        LOG6LBR_WARN("Halt command failed\n");
+      }
+      break;
+    default:
+      //We should never end up here...
+      exit(1);
+  }
+  //We should never end up here...
+  exit(1);
 }

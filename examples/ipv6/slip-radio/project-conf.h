@@ -31,16 +31,34 @@
 #define PROJECT_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          4
+#define QUEUEBUF_CONF_NUM          16
 
+#define SLIP_CONF_BUF_NB        16
+
+/* Support one 802.15.4 packet plus 20 packet attributes plus slip command overhead */
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
+#define UIP_CONF_BUFFER_SIZE    (127+20*3+3)
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
 
-#undef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               0
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     0
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   0
+
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 0
+
+#undef UIP_CONF_DS6_DEFRT_NBU
+#define UIP_CONF_DS6_DEFRT_NBU  0
+
+#undef UIP_CONF_DS6_PREFIX_NBU
+#define UIP_CONF_DS6_PREFIX_NBU 0
+
+#undef UIP_CONF_DS6_ADDR_NBU
+#define UIP_CONF_DS6_ADDR_NBU   0
 
 #define CMD_CONF_OUTPUT slip_radio_cmd_output
 
@@ -61,6 +79,8 @@
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_rf230
 #elif CONTIKI_TARGET_ECONOTAG
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_mc1322x
+#elif CONTIKI_TARGET_COOJA
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cooja
 #else
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler
 #endif
@@ -93,9 +113,10 @@
 #define UART1_CONF_RX_WITH_DMA           1
 
 #undef UART1_CONF_TX_WITH_INTERRUPT
-#define UART1_CONF_TX_WITH_INTERRUPT     1
+#define UART1_CONF_TX_WITH_INTERRUPT     0
 
-#define UART1_CONF_TXBUFSIZE             512
+// TX can not be bigger than 128 bytes ! (ringbuf limitation)
+#define UART1_CONF_TXBUFSIZE             128
 
 #define UART1_CONF_RXBUFSIZE             512
 
@@ -103,6 +124,11 @@
 
 /* A slip radio does not need to go in deep sleep */
 #define LPM_CONF_MAX_PM                  0
+
+#if CETIC_6LBR_TRANSPARENT_BRIDGE
+#define NULLRDC_CONF_ADDRESS_FILTER 0
+#define NULLRDC_CONF_SEND_802154_ACK 1
+#endif
 
 #define SLIP_CONF_TCPIP_INPUT()
 #endif /* PROJECT_CONF_H_ */

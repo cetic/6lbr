@@ -1,0 +1,2 @@
+CFLAGS += -DWITH_DNS_PROXY=1
+dns-proxy_src = dns-proxy.c

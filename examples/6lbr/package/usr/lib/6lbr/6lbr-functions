@@ -1,7 +1,7 @@
 ################################################################################
 # Validate parameters and set default values
 
-function config_default () {
+config_default () {
 
 # Configuration location
 
@@ -13,6 +13,10 @@ fi
 
 if [ "$NVM" = "" ]; then
 	NVM=$ETC_6LBR/nvm.dat
+fi
+
+if [ "$CONFIG" = "" ]; then
+	CONFIG=$ETC_6LBR/nvm.conf
 fi
 
 if [ "$MODE" = "" ]; then
@@ -53,7 +57,7 @@ if [ "$BRIDGE" = "" ]; then
 	BRIDGE="1"
 fi
 
-if [[ "$CREATE_BRIDGE" != "0" && "$CREATE_BRIDGE" != "LAZY" && "$CREATE_BRIDGE" != "MANUAL" && "$CREATE_BRIDGE" != "6LBR" ]]; then
+if [ "$CREATE_BRIDGE" != "0" -a "$CREATE_BRIDGE" != "LAZY" -a "$CREATE_BRIDGE" != "MANUAL" -a "$CREATE_BRIDGE" != "6LBR" ]; then
 	CREATE_BRIDGE="1"
 fi
 
@@ -65,18 +69,26 @@ if [ "$BRIDGE_DISABLE_SNOOPING" = "" ]; then
 	BRIDGE_DISABLE_SNOOPING="1"
 fi
 
+if [ "$ITF_AUTOCONF" = "" ]; then
+	ITF_AUTOCONF="1"
+fi
+
 # Radio configuration
 
 # No default values as platform are too different
 
-if [[ "$DEV_RADIO" != "" && "$SOCK_RADIO" != "" ]]; then
+if [ "$DEV_RADIO" != "" -a "$SOCK_RADIO" != "" ]; then
 	echo WARNING: $CFG declares both DEV_RADIO and SOCK_RADIO. Using SOCK_RADIO=$SOCK_RADIO
 fi
 
 # Global configuration and setup scripts
 
 if [ "$LIB_6LBR" = "" ]; then
-	LIB_6LBR=`dirname $BASH_SOURCE`
+	if [ "$BASH_SOURCE" != "" ]; then
+		LIB_6LBR=`dirname $BASH_SOURCE`
+	else
+		LIB_6LBR=/usr/lib/6lbr
+	fi
 fi
 
 

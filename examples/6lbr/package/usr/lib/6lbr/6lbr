@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ################################################################################
 # Initialization
@@ -13,35 +13,10 @@ PARAMS=""
 #Signals management
 
 #If this script is killed, kills child processes
-trap 'if (( PID_6LBR != 0 )); then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if ((PID_WATCHDOG != 0)); then kill $PID_WATCHDOG; fi' EXIT
+trap 'if [ $PID_6LBR != 0 ]; then kill $PID_6LBR; echo "6LBR killed" >> /dev/stderr; fi; if [ $PID_WATCHDOG != 0 ]; then kill $PID_WATCHDOG; fi; exit 1' INT TERM
 
 #Ignore sighup
 trap '' HUP
-
-################################################################################
-# Application Watchdog
-
-function application_watchdog () {
-	LAST_TIMESTAMP=""
-	WATCHDOG_LIMIT=$((WATCHDOG_INTERVAL * DEFAULT_WATCHDOG_SCALE))
-	while ((1)); do
-		sleep 1
-		if [ `uname` = "Linux" ]; then
-			TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
-		else
-			TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
-		fi
-		TIME=`date +%s`
-		if (( TIME - TIMESTAMP > WATCHDOG_LIMIT )); then
-			echo "6LBR watchdog failure, restarting..."
-			echo "6LBR watchdog failure, restarting..." >> /dev/stderr
-			if ((PID_6LBR != 0)); then
-				kill $PID_6LBR
-				break
-			fi
-		fi
-	done
-}
 
 ################################################################################
 # Read config file
@@ -80,12 +55,17 @@ config_default
 ################################################################################
 # Configure logs
 
-if [ "$LOG_6LBR_OUT" != "-" ]; then
-	exec >> $LOG_6LBR_OUT
-fi
-
-if [ "$LOG_6LBR_ERR" != "-" ]; then
-	exec 2>> $LOG_6LBR_ERR
+if [ "$GDB" = '1' ]; then
+LOG_6LBR_OUT='-'
+LOG_6LBR_ERR='-'
+else
+	if [ "$LOG_6LBR_OUT" != "-" ]; then
+		exec >> $LOG_6LBR_OUT
+	fi
+	
+	if [ "$LOG_6LBR_ERR" != "-" ]; then
+		exec 2>> $LOG_6LBR_ERR
+	fi
 fi
 
 export LOG_6LBR_OUT
@@ -97,14 +77,16 @@ export LOG_6LBR_ERR
 # Ethernet
 
 if [ "$RAW_ETH" = "1" ]; then
-	PARAM_ETH="-r"
-	ETH_IF=$DEV_ETH
-	if [ "$RAW_ETH_FCS" == "1" ]; then
+	PARAM_ETH="-r -t $DEV_ETH"
+	if [ "$RAW_ETH_FCS" = "1" ]; then
 		PARAM_ETH="$PARAM_ETH -f"
 	fi
 else
-	PARAM_ETH="-R"
-	ETH_IF=$DEV_TAP
+	if [ "$DEV_TAP" = "-" ]; then
+		PARAM_ETH="-R"
+	else
+		PARAM_ETH="-R -t $DEV_TAP"
+	fi
 fi
 
 # Radio configuration
@@ -124,6 +106,17 @@ if [ "$BAUDRATE" != "" ]; then
 	BAUDRATE="-B $BAUDRATE"
 fi
 
+SERIAL_CONFIG=""
+if [ "$DTR_RTS_STATE" = "1" ]; then
+	SERIAL_CONFIG="$SERIAL_CONFIG -Y"
+elif [ "$DTR_RTS_STATE" = "0" ]; then
+	SERIAL_CONFIG="$SERIAL_CONFIG -y"
+fi
+
+if [ "$CTS_RTS_HW_CONTROL" = "1" ]; then
+	SERIAL_CONFIG="$SERIAL_CONFIG -H"
+fi
+
 if [ "$NODE_CONFIG" != "" ]; then
 	NODE_CONFIG="-n $NODE_CONFIG"
 fi
@@ -138,6 +131,10 @@ if [ "$IP_CONFIG_FILE" != "" ]; then
 	IP_CONFIG_FILE="-C $IP_CONFIG_FILE"
 fi
 
+if [ "$CONFIG" != "" ]; then
+	CONFIG="-o $CONFIG"
+fi
+
 if [ "$LOG_LEVEL" != "" ]; then
 	LOG_LEVEL="-L $LOG_LEVEL"
 fi
@@ -150,7 +147,7 @@ if [ "$PLUGINS_6LBR" != "" ]; then
 	PLUGINS_6LBR="-m $PLUGINS_6LBR"
 fi
 
-PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES -W $WATCHDOG_FILE -P $WATCHDOG_INTERVAL $IP_CONFIG_FILE $NODE_CONFIG $PLUGINS_6LBR $EXTRA_PARAMS $*"
+PARAMS="-c $NVM $CONFIG $RADIO $PARAM_ETH $BAUDRATE $IFUP $IFDOWN -w $WWW_6LBR $LOG_LEVEL $LOG_SERVICES -W $WATCHDOG_FILE -P $WATCHDOG_INTERVAL $IP_CONFIG_FILE $NODE_CONFIG $PLUGINS_6LBR $SERIAL_CONFIG $EXTRA_PARAMS $*"
 
 if [ "$MODE" = 'ROUTER' ]; then
 	BIN=$BIN_6LBR/cetic_6lbr_router
@@ -171,10 +168,14 @@ else
 	BIN=$BIN_6LBR/cetic_6lbr_router
 fi
 
+if [ "$GDB" = '1' ]; then
+	gdb -args $BIN $PARAMS
+else
+
 ################################################################################
 # Launch 6LBR in a loop
 
-while ((1)); do
+while true; do
 	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" ]; then
 		$SCAN_DEVICE
 		while [ ! -e "$DEV_RADIO" ]; do
@@ -194,7 +195,7 @@ while ((1)); do
 	PID_6LBR=$!
 	
 	if [ $WATCHDOG_INTERVAL != "0" ]; then
-		application_watchdog &
+		$LIB_6LBR/6lbr-watchdog $PID_6LBR $WATCHDOG_INTERVAL $DEFAULT_WATCHDOG_SCALE $WATCHDOG_FILE &
 		PID_WATCHDOG=$!
 	fi
 	
@@ -202,7 +203,7 @@ while ((1)); do
 	ECODE=$?
 	PID_6LBR=0
 	
-	if ((PID_WATCHDOG != 0)); then
+	if [ $PID_WATCHDOG != 0 ]; then
 		if kill -0 $PID_WATCHDOG 2> /dev/null; then
 			kill $PID_WATCHDOG
 			wait $PID_WATCHDOG
@@ -212,9 +213,11 @@ while ((1)); do
 	if [ $ECODE != 0 ]; then
         # 6LBR returned an error, do not start it again
         echo `date`" : $BIN failed, exit code: $ECODE" >> /dev/stderr
-        if [ "$STOP_AFTER_CRASH" == "1" ]; then
+        if [ "$STOP_AFTER_CRASH" = "1" ]; then
 			break
 		fi
 		sleep 1
 	fi
 done
+
+fi

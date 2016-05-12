@@ -48,25 +48,32 @@ h3 {font-size: 12px; font-weight: bold; color: #333333; line-height: 14px;}
 	margin-top: -5px;
 	padding: 0 50px 0 50px;
 }
-#barre_nav {
+.barre_nav {
 	padding-left: 0px;
 	position: relative;
 	height: 23px;
 	width: 880px;
 	background-color: #669934;
+	clear: left;
 }
 
 .menu-general {
-	padding: 0px 0px 4px; 
 	text-align: left;
 	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	font-size: 12px;
 	color: #fff; 
 	float:left ; 
-	margin-left: 34px;
 	height:23px;
-	width: 100px;
 }
+.menu-general span {
+	padding: 3px 10px 4px; 
+	height: 23px; 
+	line-height: 22px; 
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 12px; 
+	margin-right: 0px;
+	color: #FFFFFF; 
+	background-color: #333333;}
 .menu-general a {
 	padding: 3px 10px 4px; 
 	height: 23px; 
@@ -128,11 +135,18 @@ div#content {min-height:300px; height:expression(this.scrollHeight > 300 ? "auto
     border-collapse:collapse;
     border: 1px solid #333;
 }
-tr.row_first
+
+#left_home tr
+{
+    background: #FFFFFF;
+}
+
+#left_home tr.row_first
 {
     background: #FFC;
     font-weight: bold;
 }
+
 #left_home td
 {
     padding: 5px;

@@ -43,12 +43,23 @@ typedef struct node_info {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   clock_time_t last_seen;
+  int hop_count;
+  uint8_t has_route;
 
   //6lbr-demo udp info
-  uint32_t messages_count;
+  uint32_t messages_received;
+  uint32_t messages_sent;
+  uint32_t replies_sent;
   clock_time_t last_message;
-  uint16_t  sequence;
+  uint16_t  last_up_sequence;
+  uint16_t  last_down_sequence;
   uip_ipaddr_t ip_parent;
+
+  //Stats
+  clock_time_t stats_start;
+  uint32_t up_messages_lost;
+  uint32_t down_messages_lost;
+  uint16_t parent_switch;
 } node_info_t;
 
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
@@ -59,7 +70,10 @@ void
 node_info_t *node_info_add(uip_ipaddr_t * ipaddr);
 
 void
-  node_info_rm(uip_ipaddr_t * ipaddr);
+node_info_rm(node_info_t *node_info);
+
+void
+node_info_rm_by_addr(uip_ipaddr_t * ipaddr);
 
 node_info_t *node_info_lookup(uip_ipaddr_t * ipaddr);
 
@@ -67,6 +81,12 @@ node_info_t *
 node_info_update(uip_ipaddr_t * ipaddr, char * info);
 
 void
-node_info_node_seen(uip_ipaddr_t * ipaddr);
+node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count);
+
+void
+node_info_reset_statistics(node_info_t * node_info);
+
+void
+node_info_reset_statistics_all(void);
 
 #endif

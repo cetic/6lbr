@@ -37,6 +37,38 @@
 #ifndef CETIC_6LBR_DEMO_PROJECT_CONF_H
 #define CETIC_6LBR_DEMO_PROJECT_CONF_H
 
+/* Remove rf_channel forced by platform */
+#ifndef USER_RF_CHANNEL
+#undef RF_CHANNEL
+#endif
+
+/* Undefine hardcoded platform configuration */
+#undef QUEUEBUF_CONF_NUM
+#undef UIP_CONF_BUFFER_SIZE
+#undef UIP_CONF_RECEIVE_WINDOW
+#undef WEBSERVER_CONF_CFS_CONNS
+#undef WEBSERVER_CONF_CFS_PATHLEN
+#undef NETSTACK_CONF_MAC
+#undef NETSTACK_CONF_RDC
+#undef SKY_CONF_MAX_TX_POWER
+#undef RPL_CONF_INIT_LINK_METRIC
+#undef UIP_CONF_DS6_NBR_NBU
+#undef UIP_CONF_MAX_ROUTES
+
+/* include the project config */
+#ifdef USER_PROJECT_CONF_H
+#include USER_PROJECT_CONF_H
+#endif
+
+/* Platform related configuration */
+#if !IGNORE_CETIC_CONTIKI_PLATFORM
+#include "platform/contiki/6ln-conf-contiki.h"
+#endif
+
+#ifdef CETIC_6LN_PLATFORM_CONF
+#include CETIC_6LN_PLATFORM_CONF
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Radio                                                                     */
 /*---------------------------------------------------------------------------*/
@@ -50,6 +82,43 @@
 #endif
 
 #define CC2538_RF_CONF_CHANNEL RF_CHANNEL
+#define CC26XX_RF_CONF_CHANNEL RF_CHANNEL
+#undef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL RF_CHANNEL
+
+/*---------------------------------------------------------------------------*/
+/* Security                                                                  */
+/*---------------------------------------------------------------------------*/
+
+#if WITH_LLSEC
+
+#undef NETSTACK_LLSEC
+#define NETSTACK_LLSEC noncoresec_driver
+
+#undef LLSEC802154_CONF_SECURITY
+#define LLSEC802154_CONF_SECURITY 1
+#ifndef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL 6
+#endif
+
+#undef AES_128_CONF
+#define AES_128_CONF aes_128_driver
+
+#define LLSEC_ANTIREPLAY_ENABLED 1
+#define LLSEC_REBOOT_WORKAROUND_ENABLED 1
+
+#else
+
+#undef NETSTACK_LLSEC
+#define NETSTACK_LLSEC nullsec_driver
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+/* 6LoWPAN                                                                   */
+/*---------------------------------------------------------------------------*/
+
+#define CETIC_6LBR_6LOWPAN_CONTEXT_0  { 0xAA, 0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 
 /*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
@@ -57,73 +126,22 @@
 
 #define COAP_SERVER_PORT 5683
 
-/* Unless compiling in LARGE mode, only a few resources can be enabled at a time */
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
-
-#define REST_CONF_RES_BATTERY 1
-#define REST_CONF_RES_BATTERY_PERIODIC 0
-#define REST_CONF_RES_BUTTON 0
-#define REST_CONF_RES_BUTTON_EVENT 0
-#define REST_CONF_RES_DEVICE_MODEL_SW 1
-#define REST_CONF_RES_DEVICE_UPTIME 1
-#define REST_CONF_RES_HUMIDITY 0
-#define REST_CONF_RES_HUMIDITY_PERIODIC 0
-#define REST_CONF_RES_LED_R 1
-#define REST_CONF_RES_LED_G 0
-#define REST_CONF_RES_LED_B 0
-#define REST_CONF_RES_LIGHT_SOLAR 0
-#define REST_CONF_RES_LIGHT_SOLAR_PERIODIC 0
-#define REST_CONF_RES_LIGHT_PHOTO 0
-#define REST_CONF_RES_LIGHT_PHOTO_PERIODIC 0
-#define REST_CONF_RES_TEMP 0
-#define REST_CONF_RES_TEMP_PERIODIC 0
-#define REST_CONF_RES_RADIO_LQI 0
-#define REST_CONF_RES_RADIO_LQI_PERIODIC 0
-#define REST_CONF_RES_RADIO_RSSI 0
-#define REST_CONF_RES_RADIO_RSSI_PERIODIC 0
-
-/* Disable .well-known/core filtering to save code */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING      0
-
 /* Uncomment to remove /.well-known/core resource to save code */
 //#define WITH_WELL_KNOWN_CORE            0
 
-#else
-
-#define REST_CONF_RES_BATTERY 1
-#define REST_CONF_RES_BATTERY_PERIODIC 1
-#define REST_CONF_RES_BUTTON 1
-#define REST_CONF_RES_BUTTON_EVENT 1
-#define REST_CONF_RES_DEVICE_MODEL_SW 1
-#define REST_CONF_RES_DEVICE_UPTIME 1
-#define REST_CONF_RES_HUMIDITY 1
-#define REST_CONF_RES_HUMIDITY_PERIODIC 1
-#define REST_CONF_RES_LED_R 1
-#define REST_CONF_RES_LED_G 1
-#define REST_CONF_RES_LED_B 1
-#define REST_CONF_RES_LIGHT_SOLAR 1
-#define REST_CONF_RES_LIGHT_SOLAR_PERIODIC 1
-#define REST_CONF_RES_LIGHT_PHOTO 1
-#define REST_CONF_RES_LIGHT_PHOTO_PERIODIC 1
-#define REST_CONF_RES_TEMP 1
-#define REST_CONF_RES_TEMP_PERIODIC 1
-#define REST_CONF_RES_RADIO_LQI 1
-#define REST_CONF_RES_RADIO_LQI_PERIODIC 1
-#define REST_CONF_RES_RADIO_RSSI 1
-#define REST_CONF_RES_RADIO_RSSI_PERIODIC 1
-
-#endif
-
 /* COAP content type definition */
-
-#define REST_TYPE_TEXT_PLAIN
-//#define REST_TYPE_APPLICATION_XML
-//#define REST_TYPE_APPLICATION_JSON
-
-/* Chunk size == 128 is troublesome on Z1, maybe related to 6LoWPAN fragmentation */
-/* Not sure why, set it to 64 */
+#ifndef COAP_CONF_DATA_FORMAT
+#define COAP_CONF_DATA_FORMAT coap_data_format_text
+#endif
 #define REST_MAX_CHUNK_SIZE     64
+
+/*---------------------------------------------------------------------------*/
+/* DNS                                                                      */
+/*---------------------------------------------------------------------------*/
+
+#define RESOLV_CONF_SUPPORTS_DNS_SD   0
+
+#define RESOLV_CONF_SUPPORTS_MDNS     0
 
 /*---------------------------------------------------------------------------*/
 /* UDP-CLIENT                                                                */
@@ -160,38 +178,50 @@
 #define UIP_CONF_ROUTER            0
 #endif
 
-#undef QUEUEBUF_CONF_NUM
+#ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
+#endif
 
-#undef UIP_CONF_BUFFER_SIZE
+#ifndef UIP_CONF_BUFFER_SIZE
+#if CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1
 #define UIP_CONF_BUFFER_SIZE    260
+#else
+#define UIP_CONF_BUFFER_SIZE    600
+#endif
+#endif
 
-#undef UIP_CONF_RECEIVE_WINDOW
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  60
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* WEBSERVER                                                                 */
 /*---------------------------------------------------------------------------*/
 
-#undef WEBSERVER_CONF_CFS_CONNS
+#ifndef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
+#endif
 
 /* Reserve space for a file name (default is to not use file name) */
-#undef WEBSERVER_CONF_CFS_PATHLEN
+#ifndef WEBSERVER_CONF_CFS_PATHLEN
 #define WEBSERVER_CONF_CFS_PATHLEN 80
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* RADIO                                                                     */
 /*---------------------------------------------------------------------------*/
 
-#undef NETSTACK_CONF_MAC
+#ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     		csma_driver
+#endif
 
-#undef NETSTACK_CONF_RDC
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     		nullrdc_driver
+#endif
 
-#undef SKY_CONF_MAX_TX_POWER
+#ifndef SKY_CONF_MAX_TX_POWER
 #define SKY_CONF_MAX_TX_POWER 	31
+#endif
 
 #if CONTIKI_TARGET_ECONOTAG
 #undef NULLRDC_CONF_802154_AUTOACK
@@ -205,11 +235,15 @@
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
 
-#undef RPL_CONF_INIT_LINK_METRIC
-#define RPL_CONF_INIT_LINK_METRIC			3
+#ifndef RPL_CONF_INIT_LINK_METRIC
+#define RPL_CONF_INIT_LINK_METRIC			2
+#endif
 
 #define RPL_MAX_DAG_PER_INSTANCE	2
 #define RPL_MAX_INSTANCES		1
+
+// Always use infinite upward route
+#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
 /* Z1 platform has limited RAM */
 
@@ -218,30 +252,26 @@
 #define RPL_CONF_MAX_PARENTS_PER_DAG    12
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     12
 
-#undef UIP_CONF_DS6_NBR_NBU
+#ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     12
+#endif
 
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   12
-
-#undef UIP_CONF_MAX_ROUTES
+#ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   12
+#endif
 
 #else
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    24
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     24
 
-#undef UIP_CONF_DS6_NBR_NBU
+#ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     24
+#endif
 
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   24
-
-#undef UIP_CONF_MAX_ROUTES
+#ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
+#endif
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA   1
@@ -261,35 +291,16 @@
 
 /* Disable ENERGEST to save code */
 
+#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
 #undef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 0
+#endif
 
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA 0
 
-#ifdef CETIC_TESTBED
-
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 7
-
-#if defined CONTIKI_TARGET_SKY || (defined CONTIKI_TARGET_Z1 && ! MSP430_20BITS)
-
-#undef REST_CONF_RES_LED_R
-#define REST_CONF_RES_LED_R 0
-
-#undef REST_CONF_RES_BATTERY
-#define REST_CONF_RES_BATTERY 0
-
-#undef REST_CONF_RES_LIGHT_SOLAR
-#define REST_CONF_RES_LIGHT_SOLAR 0
-
-#undef REST_CONF_RES_RADIO_LQI
-#define REST_CONF_RES_RADIO_LQI 1
-
-#undef REST_CONF_RES_RADIO_RSSI
-#define REST_CONF_RES_RADIO_RSSI 1
-
-#endif
-
-#endif
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 \
+    uint8_t context_0[8] = CETIC_6LBR_6LOWPAN_CONTEXT_0; \
+  memcpy(addr_contexts[0].prefix, context_0, sizeof(addr_contexts[0].prefix));
 
 #endif /* CETIC_6LBR_DEMO_PROJECT_CONF_H */

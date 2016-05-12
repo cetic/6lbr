@@ -138,7 +138,7 @@ class LocalEconotagBR(BRProxy):
     def is_running(self):
         return self.process != None
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::', security_layer=0):
         if mode=='ROUTER':
             self.bin='%s/cetic_6lbr_router' % config.econotag_bin
         elif mode=='SMART-BRIDGE':
@@ -153,7 +153,7 @@ class LocalEconotagBR(BRProxy):
         self.nvm_file=os.path.join(self.cfg_path, "test.dat")
         if not os.path.exists(self.cfg_path):
             os.makedirs(self.cfg_path)
-        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100 --security-layer=%d" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix, config.security_layer)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
         test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
@@ -211,7 +211,7 @@ class LocalNativeBR(BRProxy):
     def is_running(self):
         return self.process != None
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::', security_layer=0):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -254,7 +254,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "LOG_6LBR_OUT=-"
         print >>conf, "LOG_6LBR_ERR=-"
         conf.close()
-        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100  --security-layer=%d" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix, config.security_layer)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
         test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
@@ -299,7 +299,7 @@ class RemoteNativeBR(BRProxy):
     def is_running(self):
         return self.running
 
-    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::'):
+    def set_mode(self, mode, channel, iid=None, ra_daemon=False, accept_ra=False, ra_router_lifetime=0, addr_rewrite=True, smart_multi_br=False, default_router='::', security_layer=0):
         self.mode=mode
         if iid:
             self.ip=self.backbone.create_address(iid)
@@ -323,7 +323,7 @@ class RemoteNativeBR(BRProxy):
         print >>conf, "LOG_LEVEL=3" #INFO and above only
         print >>conf, "LOG_SERVICES=ffffffff" #All services
         conf.close()
-        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix)
+        net_config = "--wsn-prefix %s:: --wsn-ip %s::100 --eth-prefix %s:: --eth-ip %s::100  --security-layer=%d" % (config.wsn_prefix, config.wsn_prefix, config.eth_prefix, config.eth_prefix, config.security_layer)
         rpl_config = "--rpl-dio-int-doubling %d" % (config.dio_int_doubling)
         test_config="--channel=%d --wsn-accept-ra=%d --ra-daemon-en=%d --ra-router-lifetime=%d --addr-rewrite=%d --smart-multi-br=%d --dft-router=%s" % (channel, accept_ra, ra_daemon, ra_router_lifetime, addr_rewrite, smart_multi_br, default_router)
         params="--new %s %s %s %s" % (net_config, rpl_config, test_config, self.nvm_file)
@@ -420,11 +420,11 @@ class CoojaWsn(Wsn):
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE, stderr=self.err)
         line = self.cooja.stdout.readline()
-        while 'Simulation main loop started' not in line: # Wait for simulation to start
+        while 'Opened pcap file' not in line: # Wait for simulation to start
             if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote(self)
-                newmote.setInfo(elems[-1].rstrip(), int(elems[-2]))
+                newmote.setId(elems[-1].rstrip(), int(elems[-2]))
                 self.motelist.append(newmote)
             line = self.cooja.stdout.readline()
         print >> sys.stderr, "Cooja simulation started"
@@ -441,18 +441,24 @@ class CoojaWsn(Wsn):
                 line = line.rstrip()
                 parts = line.split(';')
                 nodeid = parts[0]
+                mote=self.get_mote(nodeid)
                 if parts[1] == 'slipradio':
-                    self.add_slip_mote(nodeid)
+                    self.add_slip_mote(nodeid, parts[2])
                 if parts[1] == 'node_delay':
                     self.add_test_mote(nodeid)
-                if len(parts) > 2:
+                if mote is not None:
+                    mote.setTarget(parts[2])
+                if len(parts) > 3:
                     #The node has some mobility data attached, parse it
-                    for xy in parts[2:]:
+                    for xy in parts[3:]:
                         xy = xy.rstrip().split(',')
                         self.get_mote(nodeid).add_mobility_point(float(xy[0]), float(xy[1]))
                         print >> sys.stderr, "Adding mobility, point %f,%f to node %s" % (float(xy[0]), float(xy[1]), nodeid)
         except IOError:
             pass #TODO
+        if self.get_test_mote() == None:
+            print >> sys.stderr, "Can not find test mote"
+            raise Exception()
 
     def tearDown(self):
         if self.cooja:
@@ -472,9 +478,12 @@ class CoojaWsn(Wsn):
         self.err.close()
         self.motelist = []
 
-    def add_slip_mote(self, nodeid):
+    def add_slip_mote(self, nodeid, target):
         hex_mote_id = "%02x" % int(nodeid)
-        iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        if target == 'sky':
+            iid = '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id
+        else:
+            iid = '02' + hex_mote_id +':' + hex_mote_id + ':' + hex_mote_id + ':' + hex_mote_id
         self.slip_motes.append({'nodeid':nodeid, 'socket': 'localhost', 'port': 60000 + int(nodeid), 'iid': iid})
 
     def add_test_mote(self, nodeid):
@@ -843,17 +852,23 @@ class VirtualTelosMote(MoteProxy):
 	        parity = serial.PARITY_NONE,
 	        timeout = 1)
         self.serialport.close()
-        self.reset_mote()
+        #self.reset_mote()
     
     def tearDown(self):
         MoteProxy.tearDown(self)
         self.serialport=None
 
-    def setInfo(self, mote_dev, mote_id):
+    def setId(self, mote_dev, mote_id):
         self.mote_dev = mote_dev
         self.mote_id = mote_id
-        hex_mote_id = "%02x" % int(mote_id)
-        self.ip = self.wsn.create_address( '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id )
+
+    def setTarget(self, target):
+        self.target = target
+        hex_mote_id = "%02x" % int(self.mote_id)
+        if self.target == 'sky':
+            self.ip = self.wsn.create_address( '0212:74' + hex_mote_id + ':' + '00' + hex_mote_id + ':' + hex_mote_id + hex_mote_id )
+        else:
+            self.ip = self.wsn.create_address( '02' + hex_mote_id +':' + hex_mote_id + ':' + hex_mote_id + ':' + hex_mote_id )
 
     def wait_until(self, text, count):
         start_time = time.time()
@@ -884,8 +899,9 @@ class VirtualTelosMote(MoteProxy):
         return ret
 
     def stop_mote(self):
-        print >> sys.stderr, "Stopping mote %d..." % self.mote_id
-        return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
+        #print >> sys.stderr, "Stopping mote %d..." % self.mote_id
+        #return self.send_cmd("reboot", "Starting '6LBR Demo'\n", 5)
+        return True
 
     def ping(self, address, expect_reply=False, count=0):
         print "Ping %s..." % address

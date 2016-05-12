@@ -66,6 +66,8 @@ extern char const *slip_config_plugins;
 extern int watchdog_interval;
 extern char const * watchdog_file_name;
 extern char const * ip_config_file_name;
+extern char const *  config_file_name;
 extern char const *  node_config_file_name;
+extern int slip_config_dtr_rts_set;
 
 #endif

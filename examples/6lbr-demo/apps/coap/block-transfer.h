@@ -36,38 +36,47 @@
 #ifndef BLOCK_TRANSFER_H_
 #define BLOCK_TRANSFER_H_
 
-#if WITH_COAP == 3
-#include "er-coap-03-engine.h"
-#elif WITH_COAP == 6
-#include "er-coap-06-engine.h"
-#elif WITH_COAP == 7
-#include "er-coap-07-engine.h"
-#elif WITH_COAP == 12
-#include "er-coap-12-engine.h"
-#elif WITH_COAP == 13
-#include "er-coap-13-engine.h"
-#else
-#error "CoAP version defined by WITH_COAP not implemented"
-#endif
+#include "er-coap-engine.h"
 
 typedef void(*block_handler)(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 PT_THREAD(coap_blocking_request_block(struct request_state_t *state, process_event_t ev,
                                 context_t *ctx,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
-                                coap_packet_t *request, block_handler block_callback));
+                                coap_packet_t *request, block_handler request_callback,
+                                blocking_response_handler response_callback));
 
-#define COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, block_callback) \
+#define COAP_BLOCKING_REQUEST_BLOCK_RESPONSE(server_addr, server_port, request, request_callback, response_callback) \
+{ \
+  static struct request_state_t request_state; \
+  PT_SPAWN(process_pt, &request_state.pt, \
+           coap_blocking_request_block(&request_state, ev, \
+                                 coap_default_context, server_addr, server_port, \
+                                 request, request_callback, response_callback) \
+  ); \
+}
+
+#define COAP_BLOCKING_REQUEST_BLOCK_RESPONSE_CONTEXT(ctx, server_addr, server_port, request, request_callback, response_callback) \
+{ \
+  static struct request_state_t request_state; \
   PT_SPAWN(process_pt, &request_state.pt, \
            coap_blocking_request_block(&request_state, ev, \
                                  ctx, server_addr, server_port, \
-                                 request, block_callback) \
+                                 request, request_callback, response_callback) \
+  ); \
+}
+
+#define COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, request_callback) \
+  PT_SPAWN(process_pt, &request_state.pt, \
+           coap_blocking_request_block(&request_state, ev, \
+                                 ctx, server_addr, server_port, \
+                                 request, request_callback, NULL) \
   );
 
-#define COAP_BLOCKING_REQUEST_BLOCK(ctx, server_addr, server_port, request, block_callback) \
+#define COAP_BLOCKING_REQUEST_BLOCK(ctx, server_addr, server_port, request, request_callback) \
 { \
   static struct request_state_t request_state; \
-  COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, block_callback) \
+  COAP_BLOCKING_REQUEST_BLOCK_STATE(request_state, ctx, server_addr, server_port, request, request_callback, NULL) \
 }
 
 #endif

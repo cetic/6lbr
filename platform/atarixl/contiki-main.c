@@ -100,7 +100,7 @@ main(void)
     uip_setdraddr(&addr);
 
     uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
+    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
     ethernet_config = &config;
   }
@@ -108,7 +108,7 @@ main(void)
 
   procinit_init();
 
-  process_start((struct process *)&ethernet_process, (char *)ethernet_config);
+  process_start((struct process *)&ethernet_process, (void *)ethernet_config);
 
   autostart_start(autostart_processes);
 

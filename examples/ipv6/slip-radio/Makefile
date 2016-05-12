@@ -1,16 +1,14 @@
 CONTIKI_PROJECT=slip-radio
 all: $(CONTIKI_PROJECT)
-APPS = slip-cmd
+APPS+=slip-cmd
 
 ifeq ($(TARGET),)
   -include Makefile.target
 endif
 
-CONTIKI=../../..
+CONTIKI?=../../..
 
-UIP_CONF_IPV6=1
-UIP_CONF_RPL=0
-DEFINES=NETSTACK_CONF_RDC=nullrdc_driver
+DEFINES?=NETSTACK_CONF_RDC=nullrdc_driver
 
 #linker optimizations
 SMALL=1
@@ -41,5 +39,13 @@ endif
 ifeq ($(TARGET),econotag)
   PROJECT_SOURCEFILES += slip-radio-mc1322x.c
 endif
+ifeq ($(TARGET),cooja)
+  PROJECT_SOURCEFILES += slip-radio-cooja.c
+  MODULES+=core/net/mac/contikimac
 endif
+endif
+
+CONTIKI_WITH_RPL = 0
+CONTIKI_WITH_IPV6 = 1
+
 include $(CONTIKI)/Makefile.include

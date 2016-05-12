@@ -1,0 +1,30 @@
+#!/bin/sh
+
+################################################################################
+# Application Watchdog
+
+PID_6LBR=$1
+WATCHDOG_INTERVAL=$2
+DEFAULT_WATCHDOG_SCALE=$3
+WATCHDOG_FILE=$4
+
+LAST_TIMESTAMP=""
+WATCHDOG_LIMIT=`expr $WATCHDOG_INTERVAL \\* $DEFAULT_WATCHDOG_SCALE`
+while true; do
+	sleep 1
+	if [ `uname` = "Linux" ]; then
+		TIMESTAMP=`stat -c %Y $WATCHDOG_FILE`
+	else
+		TIMESTAMP=`stat -f %m $WATCHDOG_FILE`
+	fi
+	TIME=`date +%s`
+	DELTA=`expr $TIME - $TIMESTAMP`
+	if [ $DELTA -gt $WATCHDOG_LIMIT ]; then
+		echo "6LBR watchdog failure, restarting..."
+		echo "6LBR watchdog failure, restarting..." >> /dev/stderr
+		if [ $PID_6LBR != 0 ]; then
+			kill $PID_6LBR
+			break
+		fi
+	fi
+done

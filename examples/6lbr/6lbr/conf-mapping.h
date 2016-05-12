@@ -72,10 +72,22 @@
 #undef RPL_CONF_MIN_HOPRANKINC
 #define RPL_CONF_MIN_HOPRANKINC    (nvm_data.rpl_min_hoprankinc)
 
+#undef RPL_CONF_MAX_HOPRANKINC
+#define RPL_CONF_MAX_HOPRANKINC    (nvm_data.rpl_max_rankinc)
+
 #undef RPL_CONF_DEFAULT_LIFETIME_UNIT
 #define RPL_CONF_DEFAULT_LIFETIME_UNIT    (nvm_data.rpl_lifetime_unit)
 
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
+
+#undef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL     (nvm_data.security_level)
+
+#undef NONCORESEC_CONF_KEY_REF
+#define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)
+
+#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY) != 0)
+#define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
 
 #endif

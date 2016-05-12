@@ -1,16 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         IPv6 data structures handling functions.
- *         Comprises part of the Neighbor discovery (RFC 4861)
- *         and auto configuration (RFC 4862) state machines.
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
- */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +27,21 @@
  * SUCH DAMAGE.
  *
  */
+
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
+ * \file
+ *    IPv6 data structure manipulation.
+ *    Comprises part of the Neighbor discovery (RFC 4861)
+ *    and auto configuration (RFC 4862) state machines.
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -47,8 +49,10 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-packetqueue.h"
-
-#if UIP_CONF_IPV6
+#if CETIC_6LBR
+#define LOG6LBR_MODULE "DS6"
+#include "log-6lbr.h"
+#endif
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -186,12 +190,12 @@ uip_ds6_periodic(void)
 
   uip_ds6_neighbor_periodic();
 
-#if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
+#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
     uip_ds6_send_ra_periodic();
   }
-#endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
+#endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
   etimer_reset(&uip_ds6_timer_periodic);
   return;
 }
@@ -415,6 +419,25 @@ uip_ds6_get_global(int8_t state)
 }
 
 /*---------------------------------------------------------------------------*/
+/*
+ * get the number of configured address -
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+int
+uip_ds6_get_addr_number(int8_t state)
+{
+  int count = 0;
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if(locaddr->isused && (state == -1 || locaddr->state == state)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
 uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
 {
@@ -607,6 +630,9 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
 int
 uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 {
+#if CETIC_6LBR
+  LOG6LBR_6ADDR(ERROR, &addr->ipaddr, "Address is already used : ");
+#endif
   if(uip_is_addr_link_local(&addr->ipaddr)) {
     PRINTF("Contiki shutdown, DAD for link local address failed\n");
     return 0;
@@ -712,5 +738,5 @@ uip_ds6_compute_reachable_time(void)
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
-#endif /* UIP_CONF_IPV6 */
+
+/** @}*/

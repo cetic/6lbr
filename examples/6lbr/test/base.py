@@ -51,6 +51,7 @@ def init_config():
     config.second_mote_ip=getattr(config, 'second_mote_ip', '0212:7416:0016:1616')
     config.ping_repeat=getattr(config, 'ping_repeat', 100)
     config.dio_int_doubling=getattr(config, 'dio_int_doubling', 8)
+    config.security_layer=getattr(config, 'security_layer', 0)
 
     #Cooja configuration
     config.topology_file=getattr(config, 'topology_file', 'coojagen/output/LASTFILE')

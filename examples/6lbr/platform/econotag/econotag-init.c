@@ -37,7 +37,9 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#include "watchdog.h"
 
+#include "platform-init.h"
 #include "cetic-6lbr.h"
 #include "sicslow-ethernet.h"
 #include "nvm-config.h"
@@ -47,16 +49,43 @@
 void
 platform_init(void)
 {
-  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
-  eth_mac_addr_ready = 1;
+}
+
+void
+platform_finalize(void)
+{
+}
+
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    break;
+  default:
+    break;
+  }
+}
+
+void
+platform_radio_init(void)
+{
   LOG6LBR_INFO("Setting channel %d\n", nvm_data.channel);
   set_channel(nvm_data.channel - 11);
+  radio_ready = 1;
+  radio_mac_addr_ready = 1;
 }
 
 void
 platform_set_wsn_mac(linkaddr_t * mac_addr)
 {
   linkaddr_set_node_addr(mac_addr);
+}
+
+void
+platform_restart(void)
+{
+  LOG6LBR_INFO("Rebooting...\n");
+  watchdog_reboot();
 }

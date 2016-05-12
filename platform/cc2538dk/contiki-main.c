@@ -29,13 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup platform
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538 The cc2538 Development Kit platform
+ * \defgroup cc2538dk The cc2538 Development Kit platform
  *
- * The cc2538DK is the new platform by Texas Instruments, based on the
- * cc2530 SoC with an ARM Cortex-M3 core.
+ * The cc2538DK is a platform by Texas Instruments, based on the
+ * cc2538 SoC with an ARM Cortex-M3 core.
  * @{
  *
  * \file
@@ -43,6 +43,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
@@ -103,9 +104,18 @@ fade(unsigned char l)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr()
+set_rf_params(void)
 {
-  ieee_addr_cpy_to(&linkaddr_node_addr.u8[0], LINKADDR_SIZE);
+  uint16_t short_addr;
+  uint8_t ext_addr[8];
+
+  ieee_addr_cpy_to(ext_addr, 8);
+
+  short_addr = ext_addr[7];
+  short_addr |= ext_addr[6] << 8;
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
 
 #if STARTUP_CONF_VERBOSE
   {
@@ -118,6 +128,10 @@ set_rime_addr()
   }
 #endif
 
+  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2538_RF_CHANNEL);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -190,17 +204,18 @@ main(void)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
-  set_rime_addr();
+  set_rf_params();
   netstack_init();
-  cc2538_rf_set_addr(IEEE802154_PANID);
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
 #if !SLIP_RADIO
   process_start(&tcpip_process, NULL);
 #endif
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  adc_init();
 
   process_start(&sensors_process, NULL);
 
@@ -209,9 +224,7 @@ main(void)
 
   autostart_start(autostart_processes);
 
-#if WATCHDOG_CONF_ENABLE
   watchdog_start();
-#endif
   fade(LEDS_ORANGE);
 
   while(1) {

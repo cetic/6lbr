@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+if [ $MODE_6LBR != "tap" ]; then
+	exit
+fi
+
+case $OS in
+	Linux)
+			if [ "$BRIDGE_DISABLE_SNOOPING" = "1" -a -e /sys/devices/virtual/net/$DEV_BRIDGE/bridge/multicast_snooping ]; then
+				echo 0 > /sys/devices/virtual/net/$DEV_BRIDGE/bridge/multicast_snooping
+			fi
+		;;
+
+	Darwin)
+		;;
+
+	*)
+		echo Unknown OS
+		;;
+esac

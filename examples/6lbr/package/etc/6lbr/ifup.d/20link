@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+set -e
 
 # Sometimes the generated mac address has the translate bit set to 1
 # this can conflict with packet filter and sicslow-ethernet

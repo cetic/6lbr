@@ -37,8 +37,6 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/ip/uip.h"
-#include "string.h"
 
 #include "log-6lbr.h"
 #include "cetic-6lbr.h"
@@ -48,116 +46,77 @@
 #include "slip-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
-//Temporary, should be removed
-#include "native-rdc.h"
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#endif
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
-#if UIP_CONF_LLH_LEN == 0
-uint8_t ll_header[ETHERNET_LLH_LEN];
+#if !CETIC_6LBR_IP64
+uip_buf_t ethernet_tmp_buf_aligned;
+uint8_t *ethernet_tmp_buf = ethernet_tmp_buf_aligned.u8;
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
 void
-eth_drv_send(void)
+eth_drv_send(uint8_t *packet, uint16_t len)
 {
-  //Should remove ll_header
-  memcpy(tmp_tap_buf, ll_header, ETHERNET_LLH_LEN);
-  memcpy(tmp_tap_buf + ETHERNET_LLH_LEN, uip_buf, uip_len);
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
+  LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
 
-  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_OUT)) {
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++)
-      printf(" %02x", tmp_tap_buf[i]);
-#else
-    printf("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      printf("%02x", tmp_tap_buf[i]);
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
-
-  tun_output(tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
+  tun_output(packet, len);
 }
-
+/*---------------------------------------------------------------------------*/
 void
-eth_drv_input(void)
+eth_drv_input(uint8_t *packet, uint16_t len)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + ETHERNET_LLH_LEN);
-  if (LOG6LBR_COND(DUMP, ETH_IN)) {
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < ETHERNET_LLH_LEN; i++)
-      printf(" %02x", ll_header[i]);
-    for(i = 0; i < uip_len; i++)
-      printf(" %02x", uip_buf[i]);
-#else
-    printf("         ");
-    for(i = 0; i < uip_len + ETHERNET_LLH_LEN; i++) {
-      if ( i < ETHERNET_LLH_LEN ) {
-        printf("%02x", ll_header[i]);
-      } else {
-        printf("%02x", uip_buf[i - ETHERNET_LLH_LEN]);
-      }
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
-  eth_input();
-}
+  LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", len);
+  LOG6LBR_DUMP_PACKET(ETH_IN, packet, len);
 
+#if CETIC_6LBR_IP64
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
+      (((struct uip_eth_hdr *)packet)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
+    IP64_INPUT(packet, len);
+  } else {
+#endif
+    uip_len = len - UIP_LLH_LEN;
+    memcpy(uip_buf, packet, len);
+    eth_input();
+#if CETIC_6LBR_IP64
+  }
+#endif
+}
+/*---------------------------------------------------------------------------*/
 void
 eth_drv_exit(void)
 {
 }
-
-void
-eth_drv_init()
-{
-  LOG6LBR_INFO("RAW/TAP init\n");
-
-  /* tun init is also responsible for setting up the SLIP connection */
-  tun_init();
-}
-
 /*---------------------------------------------------------------------------*/
-
+void
+eth_drv_init(void)
+{
+  if(use_raw_ethernet) {
+    LOG6LBR_INFO("RAW Ethernet interface init\n");
+  } else {
+    LOG6LBR_INFO("TAP Ethernet interface init\n");
+  }
+  tun_init();
+  process_start(&eth_drv_process, NULL);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  eth_drv_init();
 #if !CETIC_6LBR_ONE_ITF
-  static struct etimer et;
-  slip_reboot();
-  while(!mac_set) {
-    etimer_set(&et, CLOCK_SECOND);
-    slip_request_mac();
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-  }
-  //Set radio channel
-  slip_set_rf_channel(nvm_data.channel);
-
   if(!use_raw_ethernet) {
     //We must create our own Ethernet MAC address
+    while(!radio_mac_addr_ready) {
+      PROCESS_PAUSE();
+    }
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
     eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
-    LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
   }
 #else
@@ -166,11 +125,10 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
   linkaddr_set_node_addr((linkaddr_t *) &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
 #endif
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   ethernet_ready = 1;
 
   PROCESS_END();
 }
-
 /*---------------------------------------------------------------------------*/

@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+set -e
 
 . $CETIC_6LBR_CONF
 . $1/6lbr-functions
@@ -19,29 +21,27 @@ fi
 
 case $OS in
 	Linux)
-		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]] && [[ `brctl show | grep $DEV_BRIDGE | wc -l` -eq "0" ]]; then
+		if [ \( "$CREATE_BRIDGE" = "6LBR" -o "$CREATE_BRIDGE" = "1" -o "$CREATE_BRIDGE" = "LAZY" \) -a \( `brctl show | grep $DEV_BRIDGE | wc -l` = "0" \) ]; then
 			echo "6lbr-ifup: Create bridge $DEV_BRIDGE"
 			brctl addbr $DEV_BRIDGE
 			brctl setfd $DEV_BRIDGE 0
-			if [[ "$BRIDGE_DISABLE_SNOOPING" = "1" ]]; then
-				echo 0 > /sys/devices/virtual/net/$DEV_BRIDGE/bridge/multicast_snooping
-			fi
 			if [ "$ETH_JOIN_BRIDGE" = "1" ]; then
-				echo "6lbr-ifup: attach device $DEV_ETH"
+				echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
 				brctl addif $DEV_BRIDGE $DEV_ETH
 				ip addr flush dev $DEV_ETH
 			fi
 			ip link set $DEV_BRIDGE up
 		else
-			echo "6lbr-ifup: Attach device $DEV_ETH to bridge $DEV_BRIDGE"
+			:
 		fi
+		echo "6lbr-ifup: Attach device $DEV to bridge $DEV_BRIDGE"
 		ip addr flush dev $DEV
 		brctl addif $DEV_BRIDGE $DEV
 		;;
 
 	Darwin)
 		#TODO: add condition of brctl output as done on line 24 for Linux
-		if [[ "$CREATE_BRIDGE" = "6LBR" || "$CREATE_BRIDGE" = "1" || "$CREATE_BRIDGE" = "LAZY" ]]; then
+		if [ "$CREATE_BRIDGE" = "6LBR" -o "$CREATE_BRIDGE" = "1" -o "$CREATE_BRIDGE" = "LAZY" ]; then
 			echo "6lbr-ifup: Create bridge $DEV_BRIDGE and attach device $DEV_ETH"
 			ifconfig $DEV_BRIDGE create
 			ifconfig $DEV_BRIDGE up addm $DEV_ETH

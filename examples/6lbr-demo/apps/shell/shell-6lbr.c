@@ -1,7 +1,11 @@
 #include "contiki.h"
 #include "shell.h"
 #include "dev/watchdog.h"
+#if CONTIKI_TARGET_COOJA
+#include "cooja-radio.h"
+#else
 #include "cc2420.h"
+#endif
 #include "contiki-net.h"
 
 #ifdef CONTIKI_TARGET_Z1
@@ -45,7 +49,7 @@ SHELL_COMMAND(start6lbr_command,
 PROCESS(shell_rfchannel_process, "rfchannel");
 SHELL_COMMAND(rfchannel_command,
 	      "rfchannel",
-	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
+	      "rfchannel <channel>: change radio channel (11 - 26)",
 	      &shell_rfchannel_process);
 #if UDPCLIENT
 PROCESS(shell_udp_host_process, "udp-dest");
@@ -142,7 +146,11 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   channel = shell_strtolong(data, &newptr);
 
   if(newptr != data) {
+#if CONTIKI_TARGET_COOJA
+    radio_set_channel(channel);
+#else
     cc2420_set_channel(channel);
+#endif
   }
 
   PROCESS_END();

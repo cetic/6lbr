@@ -88,6 +88,8 @@ extern int slipfd;
 extern void slip_flushbuf(int fd);
 //End of temporary
 
+extern void cetic_6lbr_clear_ip(void);
+
 #ifndef __CYGWIN__
 static int tunfd;
 
@@ -122,8 +124,11 @@ cleanup(void)
   if(slip_config_ifdown_script != NULL) {
     if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", slip_config_ifdown_script);
-      ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
+      int status = ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+      if(status != 0) {
+        LOG6LBR_ERROR("6lbr-ifdown script returned an error\n");
+      }
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
               strerror(errno));
@@ -131,6 +136,7 @@ cleanup(void)
   } else {
     LOG6LBR_INFO("No 6lbr-ifdown script specified\n");
   }
+  cetic_6lbr_clear_ip();
 #if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&linkaddr_null);
   slip_flushbuf(slipfd);
@@ -152,8 +158,12 @@ ifconf(const char *tundev)
   if(slip_config_ifup_script != NULL) {
     if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", slip_config_ifup_script);
-      ssystem("%s %s %s 2>&1", slip_config_ifup_script,
+      int status = ssystem("%s %s %s 2>&1", slip_config_ifup_script,
               use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+      if(status != 0) {
+        LOG6LBR_FATAL("6lbr-ifup script returned an error, aborting...\n");
+        exit(1);
+      }
     } else {
       LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
               strerror(errno));
@@ -311,10 +321,6 @@ tun_init()
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
-#if !CETIC_6LBR_ONE_ITF
-  slip_init();
-#endif
-
   if(use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
   } else {
@@ -337,8 +343,8 @@ tun_init()
 #if !CETIC_6LBR_ONE_ITF
   if(use_raw_ethernet) {
 #endif
-	fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
-	LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
+    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+    LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
 #if !CETIC_6LBR_ONE_ITF
   }
@@ -381,8 +387,6 @@ set_fd(fd_set * rset, fd_set * wset)
 
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
-
 static void
 handle_fd(fd_set * rset, fd_set * wset)
 {
@@ -406,11 +410,8 @@ handle_fd(fd_set * rset, fd_set * wset)
     int size;
 
     if(FD_ISSET(tunfd, rset)) {
-      size = tun_input(tmp_tap_buf, sizeof(tmp_tap_buf));
-      uip_len = size - ETHERNET_LLH_LEN;
-      memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
-      memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
-      eth_drv_input();
+      size = tun_input(ethernet_tmp_buf, ETHERNET_TMP_BUF_SIZE);
+      eth_drv_input(ethernet_tmp_buf, size);
 
       if(slip_config_basedelay) {
         struct timeval tv;

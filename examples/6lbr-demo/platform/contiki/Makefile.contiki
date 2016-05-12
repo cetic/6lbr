@@ -1,0 +1,5 @@
+ifneq ($(WITH_COAPSERVER),0)
+RESOURCES+=sht-temp sht-humidity battery radio-lqi radio-rssi button led-red led-green led-blue
+PROJECT_SOURCEFILES+=contiki-resources.c
+contiki-resources.c: dynamic-resources
+endif

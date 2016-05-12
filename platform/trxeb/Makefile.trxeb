@@ -3,3 +3,5 @@ include $(CONTIKI)/platform/exp5438/Makefile.exp5438
 vpath %.c $(CONTIKI)/platform/trxeb
 vpath %.c $(CONTIKI)/platform/exp5438
 CFLAGS += -I $(CONTIKI)/platform/exp5438
+
+CLEAN += *.trxeb

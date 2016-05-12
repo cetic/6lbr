@@ -1,0 +1,178 @@
+
+#Default configuration for native
+
+WITH_UDPSERVER?=1
+WITH_UDPCLIENT?=1
+WITH_NODE_INFO?=1
+WITH_NODE_CONFIG?=1
+WITH_WEBSERVER?=1
+WITH_WEBSERVER_LITE?=0
+WITH_COAPSERVER?=1
+WITH_NVM_PROXY?=0
+WITH_DNS_PROXY?=1
+
+PLUGINS=${shell test -e plugins && cd plugins && find * -type d -prune}
+PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
+
+ifneq ($(6LBR_PLUGIN),)
+CFLAGS+=-DCETIC_6LBR_PLUGIN
+endif
+
+PROJECTDIRS += $(6LBR)/platform/native
+
+APPS += slip-cmd
+
+PROJECT_SOURCEFILES += native-init.c native-nvm.c native-config.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c plugin.c lost-symbols.c
+
+CONF=WITH_UDPCLIENT=0
+CONF_6LR=WITH_UDPSERVER=0
+
+ifeq ($(6LBR_PLUGIN),)
+
+# 6LBR targets
+
+bin/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
+
+bin/cetic_6lbr_rpl_relay:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
+
+bin/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
+
+bin/cetic_6lbr_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_router
+
+bin/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
+
+bin/cetic_6lbr_6lr:
+	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(CONF_6LR)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_6lr
+
+bin/cetic_6lbr_rpl_root:
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_ONE_ITF=1 $(CONF)
+	mkdir -p bin
+	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
+
+all:
+	rm -rf bin
+	mkdir -p bin
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_router
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
+	$(MAKE) TARGET=native clean
+	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
+
+PKG_VERSION=0
+VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
+
+IPK=6lbr-$(VERSION)-$(PKG_VERSION)-ipk
+DESTDIR=
+
+install:
+	install -d $(DESTDIR)/etc/6lbr
+	cp -r package/etc/6lbr $(DESTDIR)/etc
+	install -d $(DESTDIR)/etc/init.d
+	install package/etc/init.d/* $(DESTDIR)/etc/init.d
+	install -d $(DESTDIR)/usr/bin
+	install package/usr/bin/* $(DESTDIR)/usr/bin
+	install -d $(DESTDIR)/usr/lib/6lbr
+	cp -r package/usr/lib/6lbr $(DESTDIR)/usr/lib
+	install -d $(DESTDIR)/usr/lib/6lbr/bin
+	install bin/* $(DESTDIR)/usr/lib/6lbr/bin
+	install tools/nvm_tool $(DESTDIR)/usr/lib/6lbr/bin
+
+ipk:
+	rm -rf $(IPK)
+	rm -f $(IPK).ipk
+	cp -R package $(IPK)
+	mkdir -p $(IPK)/usr/lib/6lbr/bin
+	cp bin/* $(IPK)/usr/lib/6lbr/bin
+	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
+	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
+	cd angstrom && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
+	echo 2.0 > $(IPK)/debian-binary
+	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)-$(PKG_VERSION)_armv7a.ipk debian-binary data.tar.gz control.tar.gz
+
+plugins: $(PLUGINS_DIRS)
+
+ifneq ($(PLUGINS_DIRS),)
+$(PLUGINS_DIRS):
+	$(MAKE) -C $@
+endif
+
+plugins-install:
+	for plugin in $(PLUGINS_DIRS); do $(MAKE) -C $$plugin install; done
+
+plugins-clean:
+	for plugin in $(PLUGINS_DIRS); do $(MAKE) -C $$plugin clean; done
+else
+
+# Plugin targets
+
+all: $(6LBR_PLUGIN)
+
+install:
+	install -d $(DESTDIR)/usr/lib/6lbr/plugins
+	install $(6LBR_PLUGIN) $(DESTDIR)/usr/lib/6lbr/plugins
+
+endif
+
+HOST_OS=$(shell uname)
+ifeq ($(HOST_OS),Darwin)
+PLUGIN_LDFLAGS+=-dynamiclib -Wl,-undefined,dynamic_lookup
+else
+PLUGIN_LDFLAGS+=-shared
+CFLAGS+=-fPIC
+TARGET_LIBFILES+=-ldl
+ifeq ($(6LBR_PLUGIN),)
+LDFLAGS+=-Wl,--whole-archive
+LDFLAGS_AFTER=-Wl,--no-whole-archive
+endif
+endif
+
+ifndef RELSTR
+RELSTR:=${shell git --git-dir ${CONTIKI}/.git describe --tags --always}
+endif
+ifneq ($(RELSTR),)
+CFLAGS += -DPLUGIN_VERSION_STRING=\"$(RELSTR)\"
+else
+CFLAGS += -DPLUGIN_VERSION_STRING=\"Unknown\"
+endif
+
+APPS+=$(PLUGIN_APPS)
+PLUGIN_SOURCEFILES+=${foreach APP, $(PLUGIN_APPS), $($(APP)_src)}
+oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
+PLUGIN_OBJS=${addprefix obj_$(TARGET)/,${call oname, $(PLUGIN_SOURCEFILES)}}
+ifneq  ($(PLUGIN_PROJECT_CONF),)
+CFLAGS += -DPLUGIN_PROJECT_CONF_H=\"$(PLUGIN_PROJECT_CONF)\"
+endif
+
+.SECONDEXPANSION:
+%.so: $$(PLUGIN_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(PLUGIN_LDFLAGS)
+
+CLEAN += *.so obj_$(TARGET)/*.so
+
+.PHONY: bin/* plugins ipk $(PLUGINS_DIRS)

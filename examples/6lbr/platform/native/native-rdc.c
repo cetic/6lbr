@@ -47,19 +47,22 @@
 #include "packetutils.h"
 #include "sys/ctimer.h"
 #include "native-slip.h"
+#include "slip-cmds.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #include <string.h>
 
+PROCESS(native_rdc_process, "Native RDC process");
+
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 0
-
-uint8_t mac_set;
 
 #define MAX_CALLBACKS 16
 static int callback_pos;
 int callback_count;
+int native_rdc_ack_timeout;
+int native_rdc_parse_error;
 
 #ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
 #define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
@@ -112,6 +115,7 @@ packet_timeout(void *ptr)
   if (callback->isused) {
     callback_count--;
     callback->isused = 0;
+    native_rdc_ack_timeout++;
     LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
     packetbuf_clear();
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
@@ -166,7 +170,7 @@ send_packet(mac_callback_t sent, void *ptr)
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-  if(NETSTACK_FRAMER.create() < 0) {
+  if(NETSTACK_FRAMER.create_and_secure() < 0) {
     /* Failed to allocate space for headers */
     LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
     mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
@@ -184,26 +188,7 @@ send_packet(mac_callback_t sent, void *ptr)
       sid = setup_callback(sent, ptr);
       if (sid != -1) {
         LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d, cb: %d)\n", packetbuf_datalen(), sid, callback_count);
-        if (LOG6LBR_COND(DUMP, RADIO_OUT)) {
-          uint8_t *data = packetbuf_dataptr();
-          int len = packetbuf_datalen();
-          int i;
-      #if WIRESHARK_IMPORT_FORMAT
-          printf("0000");
-          for(i = 0; i < len; i++)
-            printf(" %02x", data[i]);
-      #else
-          printf("         ");
-          for(i = 0; i < len; i++) {
-            printf("%02x", data[i]);
-            if((i & 3) == 3)
-              printf(" ");
-            if((i & 15) == 15)
-              printf("\n         ");
-          }
-      #endif
-          printf("\n");
-        }
+        LOG6LBR_DUMP_PACKET(RADIO_OUT, packetbuf_dataptr(), packetbuf_datalen());
 
         buf[0] = '!';
         buf[1] = 'S';
@@ -233,28 +218,11 @@ static void
 packet_input(void)
 {
   LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
-  if (LOG6LBR_COND(DUMP, RADIO_IN)) {
-    uint8_t *data = packetbuf_dataptr();
-    int len = packetbuf_datalen();
-    int i;
-#if WIRESHARK_IMPORT_FORMAT
-    printf("0000");
-    for(i = 0; i < len; i++)
-      printf(" %02x", data[i]);
-#else
-    printf("         ");
-    for(i = 0; i < len; i++) {
-      printf("%02x", data[i]);
-      if((i & 3) == 3)
-        printf(" ");
-      if((i & 15) == 15)
-        printf("\n         ");
-    }
-#endif
-    printf("\n");
-  }
+  LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
+
   if(NETSTACK_FRAMER.parse() < 0) {
     LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
+    native_rdc_parse_error++;
   } else {
     NETSTACK_MAC.input();
   }
@@ -296,7 +264,7 @@ void
 slip_request_mac(void)
 {
   LOG6LBR_INFO("Fetching MAC address\n");
-  mac_set = 0;
+  radio_mac_addr_ready = 0;
   write_to_slip((uint8_t *) "?M", 2);
 }
 
@@ -307,7 +275,7 @@ slip_got_mac(const uint8_t * data)
   linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
   linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
-  mac_set = 1;
+  radio_mac_addr_ready = 1;
 }
 
 void
@@ -334,6 +302,41 @@ slip_set_rf_channel(uint8_t channel)
   msg[1] = 'C';
   msg[2] = channel;
   write_to_slip(msg, 3);
+}
+/*---------------------------------------------------------------------------*/
+void
+native_rdc_init(void)
+{
+  slip_init();
+  process_start(&border_router_cmd_process, NULL);
+  process_start(&native_rdc_process, NULL);
+}
+/*---------------------------------------------------------------------------*/
+void
+native_rdc_reset_slip(void)
+{
+  process_poll(&native_rdc_process);
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(native_rdc_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  static struct etimer et;
+  do
+  {
+    slip_reboot();
+    while(!radio_mac_addr_ready) {
+      etimer_set(&et, CLOCK_SECOND);
+      slip_request_mac();
+      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    }
+    //Set radio channel
+    slip_set_rf_channel(nvm_data.channel);
+    radio_ready = 1;
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+  } while(1);
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver border_router_rdc_driver = {

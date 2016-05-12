@@ -1,10 +1,9 @@
 bin
+bin_*
 tools/nvm_tool
-bin_econotag
-bin_cc2538dk
-bin_red-io
 6lbr-*-ipk
 6lbr-*-deb
 *.ipk
 *.deb
 *.zip
+plugins/*/*.so

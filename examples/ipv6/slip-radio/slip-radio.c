@@ -69,9 +69,15 @@ int cmd_handler_rf230(const uint8_t *data, int len);
 int cmd_handler_mc1322x(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_CC2538DK
 int cmd_handler_cc2538(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_COOJA
+int cmd_handler_cooja(const uint8_t *data, int len);
 #else /* Leave CC2420 as default */
 int cmd_handler_cc2420(const uint8_t *data, int len);
 #endif /* CONTIKI_TARGET */
+
+#define SLIP_END     0300
+
+char slip_debug_frame = 0;
 
 /*---------------------------------------------------------------------------*/
 #ifdef CMD_CONF_HANDLERS
@@ -130,7 +136,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
 
       /* parse frame before sending to get addresses, etc. */
       no_framer.parse();
-      NETSTACK_MAC.send(packet_sent, &packet_ids[packet_pos]);
+      NETSTACK_LLSEC.send(packet_sent, &packet_ids[packet_pos]);
 
       packet_pos++;
       if(packet_pos >= sizeof(packet_ids)) {
@@ -164,6 +170,13 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
 void
 slip_radio_cmd_output(const uint8_t *data, int data_len)
 {
+#if !SLIP_RADIO_CONF_NO_PUTCHAR
+  if(slip_debug_frame) {
+    slip_arch_writeb(SLIP_END);
+    slip_debug_frame = 0;
+  }
+#endif
+
   slip_send_packet(data, data_len);
 }
 /*---------------------------------------------------------------------------*/
@@ -172,7 +185,7 @@ slip_input_callback(void)
 {
   PRINTF("SR-SIN: %u '%c%c'\n", uip_len, uip_buf[0], uip_buf[1]);
   cmd_input(uip_buf, uip_len);
-  uip_len = 0;
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -192,13 +205,10 @@ init(void)
 int
 putchar(int c)
 {
-#define SLIP_END     0300
-  static char debug_frame = 0;
-
-  if(!debug_frame) {            /* Start of debug output */
+  if(!slip_debug_frame) {            /* Start of debug output */
     slip_arch_writeb(SLIP_END);
     slip_arch_writeb('\r');     /* Type debug line == '\r' */
-    debug_frame = 1;
+    slip_debug_frame = 1;
   }
 
   /* Need to also print '\n' because for example COOJA will not show
@@ -211,7 +221,7 @@ putchar(int c)
    */
   if(c == '\n') {
     slip_arch_writeb(SLIP_END);
-    debug_frame = 0;
+    slip_debug_frame = 0;
   }
   return c;
 }

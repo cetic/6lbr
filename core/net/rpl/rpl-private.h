@@ -113,15 +113,26 @@
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
 
+/* Special value indicating infinite lifetime. */
+#define RPL_INFINITE_LIFETIME           0xFF
+
+#define RPL_ROUTE_INFINITE_LIFETIME           0xFFFFFFFF
+
 #define RPL_LIFETIME(instance, lifetime) \
-          ((unsigned long)(instance)->lifetime_unit * (lifetime))
+          (((lifetime) == RPL_INFINITE_LIFETIME) ? RPL_ROUTE_INFINITE_LIFETIME : (unsigned long)(instance)->lifetime_unit * (lifetime))
+
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
 #define RPL_MIN_HOPRANKINC          256
 #else
 #define RPL_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
 #endif
+
+#ifndef RPL_CONF_MAX_RANKINC
 #define RPL_MAX_RANKINC             (7 * RPL_MIN_HOPRANKINC)
+#else
+#define RPL_MAX_RANKINC             RPL_CONF_MAX_RANKINC
+#endif
 
 #define DAG_RANK(fixpt_rank, instance) \
   ((fixpt_rank) / (instance)->min_hoprankinc)
@@ -304,21 +315,23 @@ uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
 
-/* Lock a parent in the neighbor cache. */
-void rpl_lock_parent(rpl_parent_t *p);
-
 /* Objective function. */
 rpl_of_t *rpl_find_of(rpl_ocp_t);
 
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
 void rpl_schedule_dao_immediately(rpl_instance_t *);
+void rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance);
 void rpl_cancel_dao(rpl_instance_t *instance);
+void rpl_schedule_probing(rpl_instance_t *instance);
 
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */
 void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);
+
+
+rpl_instance_t *rpl_get_default_instance(void);
 
 #endif /* RPL_PRIVATE_H */

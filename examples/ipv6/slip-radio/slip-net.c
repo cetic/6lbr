@@ -41,6 +41,8 @@
 
 #define DEBUG 0
 
+extern char slip_debug_frame;
+
 /*---------------------------------------------------------------------------*/
 void
 slipnet_init(void)
@@ -52,6 +54,12 @@ slip_send_packet(const uint8_t *ptr, int len)
 {
   uint16_t i;
   uint8_t c;
+
+#if !SLIP_RADIO_CONF_NO_PUTCHAR
+  if(slip_debug_frame) {
+    slip_debug_frame = 0;
+  }
+#endif
 
   slip_arch_writeb(SLIP_END);
   for(i = 0; i < len; ++i) {

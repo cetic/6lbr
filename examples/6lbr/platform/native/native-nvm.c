@@ -47,22 +47,23 @@
 #include "nvm-config.h"
 #include "native-nvm.h"
 
-#define NVM_SIZE 0x100
+#define NVM_SIZE 0x800
 static uint8_t nvm_mem[NVM_SIZE];
 char const *nvm_file = NULL;
 
 void
 nvm_data_read(void)
 {
-  LOG6LBR_INFO("Opening nvm file '%s'\n", nvm_file);
+  LOG6LBR_DEBUG("Opening nvm file '%s'\n", nvm_file);
+  memset(nvm_mem, 0xff, NVM_SIZE);
   int s = open(nvm_file, O_RDONLY);
-
   if(s > 0) {
-    read(s, nvm_mem, NVM_SIZE);
+    if(read(s, nvm_mem, NVM_SIZE) < 0) {
+      LOG6LBR_ERROR("Failed to read NVM");
+    }
     close(s);
   } else {
-    LOG6LBR_ERROR("Could not read nvm file\n");
-    memset(nvm_mem, 0xff, NVM_SIZE);
+    LOG6LBR_ERROR("Could not open nvm file\n");
   }
   memcpy((uint8_t *) & nvm_data, nvm_mem, sizeof(nvm_data));
 }
@@ -71,13 +72,15 @@ void
 nvm_data_write(void)
 {
   memcpy(nvm_mem, (uint8_t *) & nvm_data, sizeof(nvm_data));
-  LOG6LBR_INFO("Opening nvm file '%s'\n", nvm_file);
+  LOG6LBR_DEBUG("Opening nvm file '%s'\n", nvm_file);
   int s = open(nvm_file, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
   if(s > 0) {
-    write(s, nvm_mem, NVM_SIZE);
+    if(write(s, nvm_mem, NVM_SIZE) != NVM_SIZE) {
+      LOG6LBR_ERROR("Failed to write to NVM");
+    }
     close(s);
   } else {
-    LOG6LBR_ERROR("Could not write nvm file\n");
+    LOG6LBR_ERROR("Could not open nvm file\n");
   }
 }

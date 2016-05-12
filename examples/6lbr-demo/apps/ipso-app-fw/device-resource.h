@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2014, CETIC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ *         Simple CoAP Library
+ * \author
+ *         6LBR Team <6lbr@cetic.be>
+ */
+#ifndef DEVICE_RESOURCE_H_
+#define DEVICE_RESOURCE_H_
+
+#include "contiki.h"
+#include "coap-common.h"
+#include "ipso-profile.h"
+
+#ifdef REST_CONF_MAX_DEVICE_NAME_LENGTH
+#define REST_MAX_DEVICE_NAME_LENGTH REST_CONF_MAX_DEVICE_NAME_LENGTH
+#else
+#define REST_MAX_DEVICE_NAME_LENGTH 40
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_BATCH
+#define REST_RES_DEVICE_BATCH REST_CONF_RES_DEVICE_BATCH
+#else
+#define REST_RES_DEVICE_BATCH 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_MANUFACTURER
+#define REST_RES_DEVICE_MANUFACTURER REST_CONF_RES_DEVICE_MANUFACTURER
+#else
+#define REST_RES_DEVICE_MANUFACTURER 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_MODEL
+#define REST_RES_DEVICE_MODEL REST_CONF_RES_DEVICE_MODEL
+#else
+#define REST_RES_DEVICE_MODEL 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_MODEL_HW
+#define REST_RES_DEVICE_MODEL_HW REST_CONF_RES_DEVICE_MODEL_HW
+#else
+#define REST_RES_DEVICE_MODEL_HW 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_MODEL_SW
+#define REST_RES_DEVICE_MODEL_SW REST_CONF_RES_DEVICE_MODEL_SW
+#else
+#define REST_RES_DEVICE_MODEL_SW 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_SERIAL
+#define REST_RES_DEVICE_SERIAL REST_CONF_RES_DEVICE_SERIAL
+#else
+#define REST_RES_DEVICE_SERIAL 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_NAME
+#define REST_RES_DEVICE_NAME REST_CONF_RES_DEVICE_NAME
+#else
+#define REST_RES_DEVICE_NAME 0
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_TIME
+#define REST_RES_DEVICE_TIME REST_CONF_RES_DEVICE_TIME
+#else
+#define REST_RES_DEVICE_TIME 1
+#endif
+
+#ifdef REST_CONF_RES_DEVICE_UPTIME
+#define REST_RES_DEVICE_UPTIME REST_CONF_RES_DEVICE_UPTIME
+#else
+#define REST_RES_DEVICE_UPTIME 1
+#endif
+
+#if REST_RES_DEVICE_BATCH
+#define REST_RES_DEVICE_BATCH_INIT() INIT_RESOURCE(device, DEVICE_RES);
+#else
+#define REST_RES_DEVICE_BATCH_INIT()
+#endif
+
+#if REST_RES_DEVICE_MANUFACTURER
+#define REST_RES_DEVICE_MANUFACTURER_INIT() INIT_RESOURCE(device_manufacturer, DEVICE_MANUFACTURER_RES);
+#else
+#define REST_RES_DEVICE_MANUFACTURER_INIT()
+#endif
+
+#if REST_RES_DEVICE_MODEL
+#define REST_RES_DEVICE_MODEL_INIT() INIT_RESOURCE(device_model, DEVICE_MODEL_RES);
+#else
+#define REST_RES_DEVICE_MODEL_INIT()
+#endif
+
+#if REST_RES_DEVICE_MODEL_HW
+#define REST_RES_DEVICE_MODEL_HW_INIT() INIT_RESOURCE(device_model_hw, DEVICE_MODEL_HW_RES);
+#else
+#define REST_RES_DEVICE_MODEL_HW_INIT()
+#endif
+
+#if REST_RES_DEVICE_MODEL_SW
+#define REST_RES_DEVICE_MODEL_SW_INIT() INIT_RESOURCE(device_model_sw, DEVICE_MODEL_SW_RES);
+#else
+#define REST_RES_DEVICE_MODEL_SW_INIT()
+#endif
+
+#if REST_RES_DEVICE_SERIAL
+#define REST_RES_DEVICE_SERIAL_INIT() INIT_RESOURCE(device_serial, DEVICE_SERIAL_RES);
+#else
+#define REST_RES_DEVICE_SERIAL_INIT()
+#endif
+
+#if REST_RES_DEVICE_NAME
+#define REST_RES_DEVICE_NAME_INIT() INIT_RESOURCE(device_name, DEVICE_NAME_RES);
+#define REST_RES_DEVICE_NAME_NVM char device_name[REST_MAX_DEVICE_NAME_LENGTH]
+#define REST_RES_DEVICE_NAME_NVM_INIT(nvm_data) (nvm_data)->device_name[0] = '\0';
+#else
+#define REST_RES_DEVICE_NAME_INIT()
+#define REST_RES_DEVICE_NAME_NVM
+#define REST_RES_DEVICE_NAME_NVM_INIT(nvm_data)
+#endif
+
+#if REST_RES_DEVICE_TIME
+#define REST_RES_DEVICE_TIME_INIT() INIT_RESOURCE(device_time, DEVICE_TIME_RES);
+#else
+#define REST_RES_DEVICE_TIME_INIT()
+#endif
+
+#if REST_RES_DEVICE_UPTIME
+#define REST_RES_DEVICE_UPTIME_INIT() INIT_RESOURCE(device_uptime, DEVICE_UPTIME_RES);
+#else
+#define REST_RES_DEVICE_UPTIME_INIT()
+#endif
+
+#define REST_RES_DEVICE_DEFINE()
+
+#define REST_RES_DEVICE_INIT() \
+  REST_RES_DEVICE_BATCH_INIT(); \
+  REST_RES_DEVICE_MANUFACTURER_INIT(); \
+  REST_RES_DEVICE_MODEL_INIT(); \
+  REST_RES_DEVICE_MODEL_HW_INIT(); \
+  REST_RES_DEVICE_MODEL_SW_INIT(); \
+  REST_RES_DEVICE_SERIAL_INIT(); \
+  REST_RES_DEVICE_NAME_INIT(); \
+  REST_RES_DEVICE_TIME_INIT(); \
+  REST_RES_DEVICE_UPTIME_INIT();
+
+#define REST_RES_DEVICE_NVM \
+  REST_RES_DEVICE_NAME_NVM;
+
+#define REST_RES_DEVICE_NVM_INIT(nvm_data) \
+    REST_RES_DEVICE_NAME_NVM_INIT(nvm_data)
+
+#endif /* DEVICE_RESOURCE_H_ */

@@ -40,6 +40,7 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/ip/uip.h"
+#include "net/ipv6/sicslowpan.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
@@ -58,25 +59,64 @@
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"
+#include "6lbr-hooks.h"
 
+#if CETIC_6LBR_IP64
+#include "ip64.h"
+#include "ip64-ipv4-dhcp.h"
+#include "ip64-eth.h"
+#include "ip64-addr.h"
+#endif
+
+#if CETIC_6LBR_MAC_WRAPPER
+#include "mac-wrapper.h"
+#endif
+
+#if CETIC_6LBR_LLSEC_WRAPPER
+#include "llsec-wrapper.h"
+#endif
+
+#if WEBSERVER
+#include "webserver.h"
+#endif
+
+#if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
+
+#if CETIC_NODE_CONFIG
+#include "node-config.h"
+#endif
+
+#if WITH_COAPSERVER
+#include "coap-server.h"
+#endif
+
+#if WITH_TINYDTLS
+#include "dtls.h"
+#endif
+
+#if WITH_DTLS_ECHO
+#include "dtls-echo.h"
+#endif
 
 #if WITH_NVM_PROXY
 #include "nvm-proxy.h"
 #endif
 
+#if WITH_DNS_PROXY
+#include "dns-proxy.h"
+#endif
+
 #if CONTIKI_TARGET_NATIVE
-#include "plugin.h"
-#include "6lbr-watchdog.h"
-#include "slip-config.h"
-#include <arpa/inet.h>
-#else
-#include "watchdog.h"
+extern void cetic_6lbr_save_ip(void);
 #endif
 
 //Initialisation flags
 int ethernet_ready = 0;
 int eth_mac_addr_ready = 0;
+int radio_ready = 0;
+int radio_mac_addr_ready = 0;
 
 //WSN
 uip_lladdr_t wsn_mac_addr;
@@ -93,73 +133,77 @@ uip_ipaddr_t eth_ip_addr;
 uip_ipaddr_t eth_net_prefix;
 uip_ipaddr_t eth_ip_local_addr;
 uip_ipaddr_t eth_dft_router;
+uip_ip4addr_t eth_ip64_addr;
+uip_ip4addr_t eth_ip64_netmask;
+uip_ip4addr_t eth_ip64_gateway;
 
 //Misc
 unsigned long cetic_6lbr_startup;
+static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
+//Hooks
+cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
+
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
-PROCESS_NAME(coap_server_process);
 
 process_event_t cetic_6lbr_restart_event;
+process_event_t cetic_6lbr_reload_event;
 
 PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
 AUTOSTART_PROCESSES(&cetic_6lbr_process);
 
 /*---------------------------------------------------------------------------*/
-
-#if CONTIKI_TARGET_NATIVE
-static void
-cetic_6lbr_save_ip(void)
-{
-  if (ip_config_file_name) {
-    char str[INET6_ADDRSTRLEN];
-#if CETIC_6LBR_SMARTBRIDGE
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
-#else
-    inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
-#endif
-    FILE *ip_config_file = fopen(ip_config_file_name, "w");
-    fprintf(ip_config_file, "%s\n", str);
-    fclose(ip_config_file);
-  }
-}
-#endif
-
 void
 cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                       uip_ipaddr_t * ipaddr)
 {
 #if CETIC_6LBR_SMARTBRIDGE
-  int new_prefix = cetic_dag != NULL && !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
+  int new_prefix = !uip_ipaddr_prefixcmp(&wsn_net_prefix, prefix, len);
+  int new_dag_prefix = cetic_dag == NULL || !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
-  LOG6LBR_INFO("CETIC_BRIDGE : set_prefix\n");
 
-  uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
-
-  if(cetic_dag != NULL) {
-    rpl_set_prefix(cetic_dag, prefix, len);
+  if(new_prefix) {
+    LOG6LBR_6ADDR(INFO, prefix, "Setting prefix : ");
+    uip_ipaddr_copy(&wsn_ip_addr, ipaddr);
     uip_ipaddr_copy(&wsn_net_prefix, prefix);
     wsn_net_prefix_len = len;
-    if(new_prefix) {
+    LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address : ");
+#if CONTIKI_TARGET_NATIVE
+  cetic_6lbr_save_ip();
+#endif
+  }
+  if(new_dag_prefix) {
+    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
+      rpl_set_prefix(cetic_dag, prefix, len);
+      LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+    } else {
+      rpl_set_prefix(cetic_dag, prefix, len);
       LOG6LBR_6ADDR(INFO, prefix, "Setting DAG prefix : ");
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
     }
   }
-#if CONTIKI_TARGET_NATIVE
-  cetic_6lbr_save_ip();
-#endif
 #endif
 }
-
+/*---------------------------------------------------------------------------*/
+void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
+{
+  LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
+}
+/*---------------------------------------------------------------------------*/
+int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 void
 cetic_6lbr_init(void)
 {
@@ -192,7 +236,15 @@ cetic_6lbr_init(void)
     if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
       uip_ds6_defrt_add(&eth_dft_router, 0);
     }
-  }                             //End manual configuration
+    uip_ipaddr_t dns;
+    memcpy(dns.u8, &nvm_data.dns_server,
+           sizeof(nvm_data.dns_server));
+    uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
+  } else {                            //End manual configuration
+    uip_create_unspecified(&wsn_net_prefix);
+    wsn_net_prefix_len = 0;
+    uip_create_unspecified(&wsn_ip_addr);
+  }
 #endif
 
 #if CETIC_6LBR_ROUTER
@@ -211,12 +263,17 @@ cetic_6lbr_init(void)
     uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_MANUAL);
   }
   LOG6LBR_6ADDR(INFO, &wsn_ip_addr, "Tentative global IPv6 address (WSN) ");
+  uip_ipaddr_t dns;
+  memcpy(dns.u8, &nvm_data.dns_server,
+         sizeof(nvm_data.dns_server));
+  uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
 
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
          sizeof(nvm_data.eth_net_prefix));
   memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router,
          sizeof(nvm_data.eth_dft_router));
+
   if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
     uip_ds6_defrt_add(&eth_dft_router, 0);
   }
@@ -277,10 +334,34 @@ cetic_6lbr_init(void)
     LOG6LBR_INFO("RA Daemon disabled\n");
   }
 #endif
+}
 
+void
+cetic_6lbr_init_finalize(void)
+{
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
-  //DODAGID = link-local address used !
-  cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+  if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
+    //Manual DODAG ID
+    cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.rpl_dodag_id);
+  } else {
+    //Automatic DODAG ID
+    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+#if CETIC_6LBR_SMARTBRIDGE
+      if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+#endif
+      //DODAGID = global address used !
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
+#if CETIC_6LBR_SMARTBRIDGE
+      } else {
+        //Not global IP yet configured
+        cetic_dag = NULL;
+      }
+#endif
+    } else {
+      //DODAGID = link-local address used !
+      cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_local_addr);
+    }
+  }
 #if CETIC_6LBR_SMARTBRIDGE
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
@@ -288,7 +369,44 @@ cetic_6lbr_init(void)
 #else
   rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
 #endif
-  LOG6LBR_INFO("Configured as DODAG Root\n");
+  if(cetic_dag) {
+    LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
+  }
+#endif
+
+#if CETIC_6LBR_IP64
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+    LOG6LBR_INFO("Starting IP64\n");
+    ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_RFC6052_PREFIX) != 0) {
+      uip_ip6addr_t ip64_prefix = {{ 0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+      ip64_addr_set_prefix(&ip64_prefix, 96);
+    }
+    ip64_init();
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0) {
+      memcpy(&eth_ip64_addr, nvm_data.eth_ip64_addr, sizeof(nvm_data.eth_ip64_addr));
+      memcpy(&eth_ip64_netmask, nvm_data.eth_ip64_netmask, sizeof(nvm_data.eth_ip64_netmask));
+      memcpy(&eth_ip64_gateway, nvm_data.eth_ip64_gateway, sizeof(nvm_data.eth_ip64_gateway));
+      ip64_set_ipv4_address(&eth_ip64_addr, &eth_ip64_netmask);
+      ip64_set_draddr(&eth_ip64_gateway);
+      LOG6LBR_4ADDR(INFO, &eth_ip64_addr, "IPv4 address : ");
+    } else {
+      ip64_ipv4_dhcp_init();
+    }
+  }
+#endif
+
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
+    LOG6LBR_INFO("Starting MDNS\n");
+    process_start(&resolv_process, NULL);
+    resolv_set_hostname((char *)nvm_data.dns_host_name);
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+    if((nvm_data.dns_flags & CETIC_6LBR_DNS_DNS_SD) != 0) {
+      resolv_add_service("_6lbr._tcp", "", nvm_data.webserver_port);
+    }
+#endif
+  }
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
@@ -317,36 +435,71 @@ cetic_6lbr_init(void)
 }
 
 /*---------------------------------------------------------------------------*/
-
-static struct etimer reboot_timer;
+static void llsec_bootstrap_cb(void)
+{
+  security_ready = 1;
+  LOG6LBR_INFO("Security layer initialized\n");
+}
+/*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
+  static struct etimer timer;
+  static int addr_number;
   PROCESS_BEGIN();
 
+  //Turn off radio until 6LBR is properly configured
+  NETSTACK_MAC.off(0);
+
   cetic_6lbr_restart_event = process_alloc_event();
+  cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
-#if CONTIKI_TARGET_NATIVE
-  slip_config_handle_arguments(contiki_argc, contiki_argv);
-  if (watchdog_interval) {
-    process_start(&native_6lbr_watchdog, NULL);
-  } else {
-    LOG6LBR_WARN("6LBR Watchdog disabled\n");
+  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+
+  platform_init();
+  platform_load_config(CONFIG_LEVEL_LOAD);
+
+#if !LOG6LBR_STATIC
+  if(nvm_data.log_level != 0xFF) {
+    Log6lbr_level = nvm_data.log_level;
+    Log6lbr_services = nvm_data.log_services;
+  }
+  LOG6LBR_NOTICE("Log level: %d (services: %x)\n", Log6lbr_level, Log6lbr_services);
+#else
+  LOG6LBR_NOTICE("Log level: %d (services: %x)\n", LOG6LBR_LEVEL, LOG6LBR_SERVICE_DEFAULT);
+#endif
+
+#if CETIC_6LBR_MAC_WRAPPER
+  mac_wrapper_init();
+#endif
+
+#if !CETIC_6LBR_ONE_ITF
+  platform_radio_init();
+  while(!radio_ready) {
+    PROCESS_PAUSE();
   }
 #endif
 
-  LOG6LBR_INFO("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
-
-  load_nvm_config();
-
-  platform_init();
-
-  process_start(&eth_drv_process, NULL);
+  eth_drv_init();
 
   while(!ethernet_ready) {
     PROCESS_PAUSE();
   }
+
+  //Turn on radio and keep it always on
+  NETSTACK_MAC.off(1);
+
+#if CETIC_6LBR_LLSEC_WRAPPER
+  llsec_wrapper_init();
+#endif
+  NETSTACK_LLSEC.bootstrap(llsec_bootstrap_cb);
+  while(!security_ready) {
+    PROCESS_PAUSE();
+  }
+
+  //6LoWPAN init
+  memcpy(addr_contexts[0].prefix, nvm_data.wsn_6lowpan_context_0, sizeof(addr_contexts[0].prefix));
 
   //clean up any early packet
   uip_len = 0;
@@ -359,10 +512,31 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   packet_filter_init();
+
   cetic_6lbr_init();
 
+  //Wait result of DAD on 6LBR addresses
+  LOG6LBR_INFO("Checking addresses duplication\n");
+  addr_number = uip_ds6_get_addr_number(-1);
+  etimer_set(&timer, CLOCK_SECOND);
+  while(uip_ds6_get_addr_number(ADDR_TENTATIVE) > 0) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+    etimer_set(&timer, CLOCK_SECOND);
+  }
+  if(uip_ds6_get_addr_number(-1) != addr_number) {
+    LOG6LBR_FATAL("Addresses duplication failed");
+    cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
+    platform_restart();
+  }
+  cetic_6lbr_init_finalize();
+  platform_load_config(CONFIG_LEVEL_NETWORK);
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
+#endif
+
 #if WEBSERVER
-  process_start(&webserver_nogui_process, NULL);
+  webserver_init();
 #endif
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
@@ -370,47 +544,40 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
 #endif
-#if WITH_COAP
-  process_start(&coap_server_process, NULL);
+
+#if WITH_TINYDTLS
+dtls_init();
+#endif
+
+#if WITH_COAPSERVER
+  coap_server_init();
+#endif
+
+#if WITH_DTLS_ECHO
+  process_start(&dtls_echo_server_process, NULL);
 #endif
 
 #if WITH_NVM_PROXY
   nvm_proxy_init();
 #endif
 
-#if CONTIKI_TARGET_NATIVE
-  plugins_load();
+#if WITH_DNS_PROXY
+  dns_proxy_init();
 #endif
+
+  platform_finalize();
+  platform_load_config(CONFIG_LEVEL_APP);
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
-  etimer_set(&reboot_timer, CLOCK_SECOND);
+
+  etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
-#if CONTIKI_TARGET_NATIVE
-  switch (cetic_6lbr_restart_type) {
-    case CETIC_6LBR_RESTART:
-      LOG6LBR_INFO("Exiting...\n");
-      exit(0);
-      break;
-    case CETIC_6LBR_REBOOT:
-      LOG6LBR_INFO("Rebooting...\n");
-      system("reboot");
-      break;
-    case CETIC_6LBR_HALT:
-      LOG6LBR_INFO("Halting...\n");
-      system("halt");
-      break;
-    default:
-      //We should never end up here...
-      exit(1);
-  }
-  //We should never end up here...
-  exit(1);
-#else
-  LOG6LBR_INFO("Rebooting...\n");
-  watchdog_reboot();
-#endif
+
+  //Turn off radio
+  NETSTACK_MAC.off(0);
+  platform_restart();
 
   PROCESS_END();
 }

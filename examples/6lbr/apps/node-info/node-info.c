@@ -32,12 +32,16 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "NODE"
+
 #include "contiki.h"
 #include "node-info.h"
 #include "uip-ds6.h"
 #include "uip-ds6-route.h"
 #include "string.h"
 #include "stdlib.h"
+
+#include "log-6lbr.h"
 
 node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
@@ -48,17 +52,21 @@ node_info_route_notification_cb(int event,
                                 uip_ipaddr_t * route,
                                 uip_ipaddr_t * nexthop, int num_routes)
 {
+  node_info_t *node = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node_info_t *node = NULL;
     node = node_info_lookup(route);
     if(node == NULL) {
       node = node_info_add(route);
     }
     if(node != NULL) {
+      node->has_route = 1;
       node->last_seen = clock_time();
     }
  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
-    node_info_rm(route);
+   node = node_info_lookup(route);
+   if(node != NULL) {
+     node->has_route = 0;
+   }
   }
 }
 
@@ -82,6 +90,10 @@ node_info_add(uip_ipaddr_t * ipaddr)
     memset(node, 0, sizeof(node_info_t));
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
+    node->stats_start = clock_time();
+    LOG6LBR_6ADDR(DEBUG, ipaddr, "New node created ");
+  } else {
+    LOG6LBR_6ADDR(ERROR, ipaddr, "Not enough memory to create node ");
   }
   return node;
 }
@@ -91,6 +103,8 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
 {
   node_info_t *node = NULL;
   char *  sep;
+  uip_ipaddr_t ip_parent;
+
   node = node_info_lookup(ipaddr);
   if (node == NULL) {
     node = node_info_add(ipaddr);
@@ -98,11 +112,14 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
   if ( node != NULL ) {
     node->last_seen = clock_time();
     node->last_message = clock_time();
-    node->messages_count++;
+    uint16_t up_sequence = 0;
+    uint16_t down_sequence = 0;
+
     sep = index(info, '|');
-    if (sep != NULL && sep - info > 0) {
+    if (sep != NULL) {
+      node->messages_received++;
+      up_sequence = atoi(info);
       *sep = 0;
-      node->sequence = atoi(info);
       info = sep + 1;
       if (*info == ' ') {
         info++;
@@ -111,11 +128,45 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (sep != NULL) {
         *sep = 0;
       }
-      if (uiplib_ipaddrconv(info, &node->ip_parent) == 0) {
-        uip_create_unspecified(&node->ip_parent);
+      if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
+        uip_create_unspecified(&ip_parent);
       }
+      if(!uip_ipaddr_cmp(&node->ip_parent, &ip_parent)) {
+        uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
+        if (node->messages_received > 1) {
+          node->parent_switch++;
+        }
+      }
+      if (sep != NULL) {
+        info = sep + 1;
+        down_sequence = atoi(info);
+      }
+      if (node->messages_received > 1) {
+        uint16_t up_delta = up_sequence - node->last_up_sequence;
+        if (up_delta < 100) {
+          node->messages_sent += up_delta;
+          node->up_messages_lost += up_delta - 1;
+          if(down_sequence != node->last_down_sequence + 1) {
+            node->down_messages_lost += 1;
+          }
+        } else {
+          //Reset statistics
+          node->messages_sent = 1;
+          node->replies_sent = 0;
+          node->up_messages_lost = 0;
+          node->down_messages_lost = 0;
+        }
+      } else {
+        node->messages_sent = 1;
+        node->replies_sent = 0;
+        node->up_messages_lost = 0;
+        node->down_messages_lost = 0;
+      }
+      node->last_up_sequence = up_sequence;
+      node->last_down_sequence = down_sequence;
     } else {
-      node->sequence = 0;
+      node->last_up_sequence = 0;
+      node->last_down_sequence = 0;
       uip_create_unspecified(&node->ip_parent);
     }
   }
@@ -123,17 +174,29 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
 }
 
 void
-node_info_node_seen(uip_ipaddr_t * ipaddr)
+node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
 {
   node_info_t *node = NULL;
   node = node_info_lookup(ipaddr);
   if ( node != NULL ) {
     node->last_seen = clock_time();
+    if(hop_count != -1) {
+      node->hop_count = hop_count;
+    }
   }
 }
 
 void
-node_info_rm(uip_ipaddr_t * ipaddr)
+node_info_rm(node_info_t *node_info)
+{
+  if(node_info != NULL) {
+    node_info->isused = 0;
+    LOG6LBR_6ADDR(DEBUG, &node_info->ipaddr, "Removing node ");
+  }
+}
+
+void
+node_info_rm_by_addr(uip_ipaddr_t * ipaddr)
 {
   node_info_t *node_info = node_info_lookup(ipaddr);
 
@@ -153,4 +216,27 @@ node_info_lookup(uip_ipaddr_t * ipaddr)
     return node;
   }
   return NULL;
+}
+
+void
+node_info_reset_statistics(node_info_t * node_info)
+{
+  node_info->stats_start = clock_time();
+  node_info->messages_received = 0;
+  node_info->messages_sent = 0;
+  node_info->replies_sent = 0;
+  node_info->up_messages_lost = 0;
+  node_info->down_messages_lost = 0;
+  node_info->parent_switch = 0;
+}
+
+void
+node_info_reset_statistics_all(void)
+{
+  int i;
+  for(i = 0; i < UIP_DS6_ROUTE_NB; ++i) {
+    if(node_info_table[i].isused) {
+      node_info_reset_statistics(&node_info_table[i]);
+    }
+  }
 }

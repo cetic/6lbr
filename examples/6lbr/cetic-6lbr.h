@@ -38,19 +38,25 @@
 #define CETIC_6LBR_H_
 
 #include "net/rpl/rpl.h"
+#include "net/ip64/ip64-dhcpc.h"
 
 PROCESS_NAME(cetic_6lbr_process);
 
 extern process_event_t cetic_6lbr_restart_event;
+extern process_event_t cetic_6lbr_reload_event;
 
 extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                                   uip_ipaddr_t * ipaddr);
+
+extern void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
 
 typedef uint8_t ethaddr_t[6];
 
 //Initialisation flags
 extern int ethernet_ready;
 extern int eth_mac_addr_ready;
+extern int radio_ready;
+extern int radio_mac_addr_ready;
 
 // WSN Side
 extern uip_lladdr_t wsn_mac_addr;
@@ -72,6 +78,10 @@ extern uip_ipaddr_t eth_ip_local_addr;  //Created from eth_mac_addr
 extern uip_ipaddr_t eth_net_prefix;
 
 extern uip_ipaddr_t eth_dft_router;
+
+extern uip_ip4addr_t eth_ip64_addr;
+extern uip_ip4addr_t eth_ip64_netmask;
+extern uip_ip4addr_t eth_ip64_gateway;
 
 // Misc
 extern unsigned long cetic_6lbr_startup;

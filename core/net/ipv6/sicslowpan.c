@@ -1,7 +1,3 @@
-/**
- * \addtogroup sicslowpan
- * @{
- */
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         6lowpan implementation (RFC4944 and draft-ietf-6lowpan-hc-06)
@@ -44,6 +41,11 @@
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Joakim Eriksson <joakime@sics.se>
  * \author Joel Hoglund <joel@sics.se>
+ */
+
+/**
+ * \addtogroup sicslowpan
+ * @{
  */
 
 /**
@@ -66,8 +68,6 @@
 #include "net/rime/rime.h"
 #include "net/ipv6/sicslowpan.h"
 #include "net/netstack.h"
-
-#if UIP_CONF_IPV6
 
 #include <stdio.h>
 
@@ -155,11 +155,13 @@ void uip_log(char *msg);
 /** @} */
 
 
-/** \brief Size of the 802.15.4 payload (127byte - 25 for MAC header) */
+/** \brief Maximum available size for frame headers,
+           link layer security-related overhead, as well as
+           6LoWPAN payload. */
 #ifdef SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
 #define MAC_MAX_PAYLOAD SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
 #else /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
-#define MAC_MAX_PAYLOAD 102
+#define MAC_MAX_PAYLOAD (127 - 2)
 #endif /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 
 
@@ -315,7 +317,7 @@ set_packet_attrs()
 
 /** Addresses contexts for IPHC. */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
-static struct sicslowpan_addr_context 
+struct sicslowpan_addr_context
 addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
 #endif
 
@@ -1334,14 +1336,9 @@ send_packet(linkaddr_t *dest)
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER,(void*)&uip_lladdr);
 #endif
 
-  /* Force acknowledge from sender (test hardware autoacks) */
-#if SICSLOWPAN_CONF_ACK_ALL
-    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
-#endif
-
   /* Provide a callback function to receive the result of
      a packet transmission. */
-  NETSTACK_MAC.send(&packet_sent, NULL);
+  NETSTACK_LLSEC.send(&packet_sent, NULL);
 
   /* If we are sending multiple packets in a row, we need to let the
      watchdog know that we are still alive. */
@@ -1361,6 +1358,7 @@ static uint8_t
 output(const uip_lladdr_t *localdest)
 {
   int framer_hdrlen;
+  int max_payload;
 
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
@@ -1385,6 +1383,7 @@ output(const uip_lladdr_t *localdest)
     set_packet_attrs();
   }
 
+#if PACKETBUF_WITH_PACKET_TYPE
 #define TCP_FIN 0x01
 #define TCP_ACK 0x10
 #define TCP_CTL 0x3f
@@ -1399,6 +1398,7 @@ output(const uip_lladdr_t *localdest)
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
                        PACKETBUF_ATTR_PACKET_TYPE_STREAM_END);
   }
+#endif
 
   /*
    * The destination address will be tagged to each outbound
@@ -1434,24 +1434,18 @@ output(const uip_lladdr_t *localdest)
    * needs to be fragmented or not. */
 #define USE_FRAMER_HDRLEN 1
 #if USE_FRAMER_HDRLEN
-  packetbuf_clear();
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
-  framer_hdrlen = NETSTACK_FRAMER.create();
+  framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
     framer_hdrlen = 21;
   }
-  packetbuf_clear();
-
-  /* We must set the max transmissions attribute again after clearing
-     the buffer. */
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
-                     SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen - NETSTACK_LLSEC.get_overhead();
 
-  if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)packetbuf_hdr_len) {
+  if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*
@@ -1461,11 +1455,11 @@ output(const uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
-    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD -  SICSLOWPAN_FRAGN_HDR_LEN) + 1;
-    int freeslots = queuebuf_freeslots() - 1;
-    PRINTFO("uip_len: %d, fragments: %d, free slots: %d\n", uip_len, estimated_fragments, freeslots);
-    if ( freeslots < estimated_fragments ) {
-      PRINTFO("Dropping packet, not enough free slots\n");
+    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD - framer_hdrlen - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
+    int freebuf = queuebuf_numfree() - 1;
+    PRINTFO("uip_len: %d, fragments: %d, free bufs: %d\n", uip_len, estimated_fragments, freebuf);
+    if(freebuf < estimated_fragments) {
+      PRINTFO("Dropping packet, not enough free bufs\n");
       return 0;
     }
 
@@ -1491,7 +1485,7 @@ output(const uip_lladdr_t *localdest)
 
     /* Copy payload and send */
     packetbuf_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     PRINTFO("(len %d, tag %d)\n", packetbuf_payload_len, my_tag);
     memcpy(packetbuf_ptr + packetbuf_hdr_len,
            (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, packetbuf_payload_len);
@@ -1527,7 +1521,7 @@ output(const uip_lladdr_t *localdest)
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(PACKETBUF_FRAG_PTR, PACKETBUF_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     while(processed_ip_out_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       PACKETBUF_FRAG_PTR[PACKETBUF_FRAG_OFFSET] = processed_ip_out_len >> 3;
@@ -1710,7 +1704,7 @@ input(void)
      * reassembly is off
      * start it if we received a fragment
      */
-    if((frag_size > 0) && (frag_size <= UIP_BUFSIZE)) {
+    if((frag_size > 0) && (frag_size <= UIP_BUFSIZE - UIP_LLH_LEN)) {
       /* We are currently not reassembling a packet, but have received a packet fragment
        * that is not the first one. */
       if(is_fragment && !first_fragment) {
@@ -1930,4 +1924,3 @@ const struct network_driver sicslowpan_driver = {
 };
 /*--------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

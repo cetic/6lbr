@@ -36,6 +36,9 @@
  *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
+
+#define LOG6LBR_MODULE "CONF"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -67,7 +70,48 @@ const char *slip_config_ifdown_script = NULL;
 char const *slip_config_www_root = "../www";
 char const *slip_config_plugins = NULL;
 char const *ip_config_file_name = NULL;
+char const *  config_file_name = NULL;
 char const *  node_config_file_name = NULL;
+int slip_config_dtr_rts_set = 1;
+
+#if __APPLE__
+#ifndef B460800
+#define B460800 460800
+#endif
+#ifndef B500000
+#define B500000 500000
+#endif
+#ifndef B576000
+#define B576000 576000
+#endif
+#ifndef B921600
+#define B921600 921600
+#endif
+#ifndef B1000000
+#define B1000000 1000000
+#endif
+#ifndef B1152000
+#define B1152000 1152000
+#endif
+#ifndef B1500000
+#define B1500000 1500000
+#endif
+#ifndef B2000000
+#define B2000000 2000000
+#endif
+#ifndef B2500000
+#define B2500000 2500000
+#endif
+#ifndef B3000000
+#define B3000000 3000000
+#endif
+#ifndef B3500000
+#define B3500000 3500000
+#endif
+#ifndef B4000000
+#define B4000000 4000000
+#endif
+#endif
 
 #if __APPLE__
 #ifndef B460800
@@ -122,10 +166,14 @@ slip_config_handle_arguments(int argc, char **argv)
   int baudrate = 115200;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:m:")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:o:m:yY")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
+      break;
+
+    case 'o':
+      config_file_name = optarg;
       break;
 
     case 'B':
@@ -229,11 +277,17 @@ slip_config_handle_arguments(int argc, char **argv)
       node_config_file_name = optarg;
       break;
 
+    case 'y':
+      slip_config_dtr_rts_set = 0;
+      break;
+
+    case 'Y':
+      slip_config_dtr_rts_set = 1;
+      break;
+
     case '?':
     case 'h':
     default:
-      fprintf(stderr, "usage:  %s [options] ipaddress\n", prog);
-      fprintf(stderr, "example: %s -L -v2 -s ttyUSB1\n", prog);
       fprintf(stderr, "Options are:\n");
       fprintf(stderr,
               " -B baudrate    Slip-radio baudrate (default 115200)\n");
@@ -245,7 +299,7 @@ slip_config_handle_arguments(int argc, char **argv)
               " -a host        Connect via TCP to server at <host>\n");
       fprintf(stderr,
               " -p port        Connect via TCP to server at <host>:<port>\n");
-      fprintf(stderr, " -t dev         Name of interface (default eth0)\n");
+      fprintf(stderr, " -t dev         Name of interface\n");
       fprintf(stderr, " -r	        Use Raw Ethernet interface\n");
       fprintf(stderr, " -R             Use Tap Ethernet interface\n");
       fprintf(stderr, " -f             Raw Ethernet frames contains FCS\n");
@@ -268,9 +322,10 @@ slip_config_handle_arguments(int argc, char **argv)
   argv += optind - 1;
 
   if(argc > 1) {
-    err(1,
+    LOG6LBR_FATAL(
         "usage: %s [-B baudrate] [-H] [-L log] [-S services] [-s siodev] [-t dev] [-d delay] [-a serveraddress] [-p serverport] [-c conf] [-U ifup] [-D ifdown]",
         prog);
+    exit(1);
   }
 
   switch (baudrate) {
@@ -367,20 +422,15 @@ slip_config_handle_arguments(int argc, char **argv)
       case 4000000: slip_config_b_rate = B4000000; break;
   #endif
   default:
-    err(1, "unknown baudrate %d", baudrate);
+    LOG6LBR_FATAL("unknown baudrate %d", baudrate);
+    exit(1);
     break;
   }
 
-  if(*slip_config_tundev == '\0') {
-    /* Use default. */
-    strcpy(slip_config_tundev, "eth0");
-  }
   if(nvm_file == NULL) {
     nvm_file = default_nvm_file;
   }
 
-  printf("Log level : %d\n", Log6lbr_level);
-  printf("Log services : %x\n", Log6lbr_services);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

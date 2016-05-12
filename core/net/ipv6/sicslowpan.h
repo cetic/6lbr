@@ -1,8 +1,3 @@
-/**
- * \addtogroup sicslowpan
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -34,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         Header file for the 6lowpan implementation
@@ -43,6 +39,11 @@
  * \author Niclas Finne <nfi@sics.se>
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
+ */
+
+/**
+ * \addtogroup sicslowpan
+ * @{
  */
 
 #ifndef SICSLOWPAN_H_
@@ -224,6 +225,11 @@ struct sicslowpan_addr_context {
   uint8_t prefix[8];
 };
 
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
+extern struct sicslowpan_addr_context
+addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
+#endif
+
 /**
  * \name Address compressibility test functions
  * @{
@@ -233,7 +239,7 @@ struct sicslowpan_addr_context {
  * \brief check whether we can compress the IID in
  * address 'a' to 16 bits.
  * This is used for unicast addresses only, and is true
- * if the address is on the format <PREFIX>::0000:00ff:fe00:XXXX
+ * if the address is on the format \<PREFIX\>::0000:00ff:fe00:XXXX
  * NOTE: we currently assume 64-bits prefixes
  */
 #define sicslowpan_is_iid_16_bit_compressable(a) \

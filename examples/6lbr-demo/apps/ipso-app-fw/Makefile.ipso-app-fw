@@ -1,0 +1,6 @@
+CFLAGS+=-DWITH_IPSO_APP_FW=1
+
+ipso-app-fw_src += ipso-app-fw.c \
+	device-resource.c \
+	config-stack-resource.c linked-batch-resource.c \
+	binding-table-resource.c

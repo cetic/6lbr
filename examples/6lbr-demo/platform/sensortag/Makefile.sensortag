@@ -1,0 +1,7 @@
+PROJECTDIRS+=$(PROJECTDIR)/platform/sensortag
+
+ifneq ($(WITH_COAPSERVER),0)
+RESOURCES+=ambient-temp object-temp humidity humidity-temp pressure pressure-temp illuminance batmon batmon-temp
+PROJECT_SOURCEFILES+=sensortag-resources.c
+sensortag-resources.c: dynamic-resources
+endif

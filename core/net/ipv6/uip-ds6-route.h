@@ -29,6 +29,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/**
+ * \addtogroup uip6
+ * @{
+ */
+/**
+ * \file
+ *    Header file for routing table manipulation
+ */
 #ifndef UIP_DS6_ROUTE_H
 #define UIP_DS6_ROUTE_H
 
@@ -80,6 +88,12 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #define UIP_DS6_ROUTE_NB UIP_CONF_MAX_ROUTES
 #endif /* UIP_CONF_MAX_ROUTES */
 
+#ifndef UIP_CONF_DS6_STATIC_ROUTES
+#define UIP_DS6_STATIC_ROUTES 0
+#else
+#define UIP_DS6_STATIC_ROUTES UIP_CONF_DS6_STATIC_ROUTES
+#endif
+
 /** \brief define some additional RPL related route state and
  *  neighbor callback for RPL - if not a DS6_ROUTE_STATE is already set */
 #ifndef UIP_DS6_ROUTE_STATE_TYPE
@@ -109,6 +123,9 @@ typedef struct uip_ds6_route {
      uses. */
   struct uip_ds6_route_neighbor_routes *neighbor_routes;
   uip_ipaddr_t ipaddr;
+#if UIP_DS6_STATIC_ROUTES
+  uip_ipaddr_t nexthop;
+#endif
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   UIP_DS6_ROUTE_STATE_TYPE state;
 #endif
@@ -150,6 +167,8 @@ uip_ds6_defrt_t *uip_ds6_defrt_list_head(void);
 uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
 uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                    uip_ipaddr_t *next_hop);
+uip_ds6_route_t *uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
+                                   uip_ipaddr_t *next_hop);
 void uip_ds6_route_rm(uip_ds6_route_t *route);
 void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 
@@ -161,3 +180,4 @@ uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
 /** @} */
 
 #endif /* UIP_DS6_ROUTE_H */
+/** @} */

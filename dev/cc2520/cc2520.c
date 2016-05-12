@@ -115,6 +115,70 @@ static int cc2520_cca(void);
 signed char cc2520_last_rssi;
 uint8_t cc2520_last_correlation;
 
+static uint8_t receive_on;
+static int channel;
+
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  if(!value) {
+    return RADIO_RESULT_INVALID_VALUE;
+  }
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    *value = receive_on ? RADIO_POWER_MODE_ON : RADIO_POWER_MODE_OFF;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    *value = cc2520_get_channel();
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MIN:
+    *value = 11;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MAX:
+    *value = 26;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    if(value == RADIO_POWER_MODE_ON) {
+      cc2520_on();
+      return RADIO_RESULT_OK;
+    }
+    if(value == RADIO_POWER_MODE_OFF) {
+      cc2520_off();
+      return RADIO_RESULT_OK;
+    }
+    return RADIO_RESULT_INVALID_VALUE;
+  case RADIO_PARAM_CHANNEL:
+    if(value < 11 || value > 26) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    cc2520_set_channel(value);
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+
 const struct radio_driver cc2520_driver =
   {
     cc2520_init,
@@ -129,11 +193,11 @@ const struct radio_driver cc2520_driver =
     pending_packet,
     cc2520_on,
     cc2520_off,
+    get_value,
+    set_value,
+    get_object,
+    set_object
   };
-
-static uint8_t receive_on;
-
-static int channel;
 
 /*---------------------------------------------------------------------------*/
 
@@ -374,11 +438,13 @@ cc2520_transmit(unsigned short payload_len)
       {
         rtimer_clock_t sfd_timestamp;
         sfd_timestamp = cc2520_sfd_start_time;
+#if PACKETBUF_WITH_PACKET_TYPE
         if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
            PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP) {
           /* Write timestamp to last two bytes of packet in TXFIFO. */
           CC2520_WRITE_RAM(&sfd_timestamp, CC2520RAM_TXFIFO + payload_len - 1, 2);
         }
+#endif
       }
 
       if(!(status() & BV(CC2520_TX_ACTIVE))) {

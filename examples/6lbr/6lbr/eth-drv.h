@@ -40,15 +40,20 @@
 
 #define UIP_8023_ADDR_LEN 6
 
-#if UIP_CONF_LLH_LEN == 0
-#define ETHERNET_LLH_LEN 14
-extern uint8_t ll_header[ETHERNET_LLH_LEN];
+//Initialisation flags
+extern int ethernet_ready;
+extern int eth_mac_addr_ready;
+
+#if CETIC_6LBR_IP64
+extern uint8_t *ip64_packet_buffer;
+#define ethernet_tmp_buf ip64_packet_buffer
+#else
+extern uint8_t *ethernet_tmp_buf;
 #endif
+#define ETHERNET_TMP_BUF_SIZE UIP_BUFSIZE
 
-PROCESS_NAME(eth_drv_process);
-
-void eth_drv_send(void);
-void eth_drv_input(void);
+void eth_drv_send(uint8_t *packet, uint16_t len);
+void eth_drv_input(uint8_t *packet, uint16_t len);
 void eth_drv_exit(void);
 void eth_drv_init(void);
 

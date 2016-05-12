@@ -1,0 +1,70 @@
+#Default configuration for CC2538DK
+
+WITH_UDPSERVER?=1
+WITH_UDPCLIENT?=1
+WITH_NODE_INFO?=1
+WITH_NODE_CONFIG?=1
+WITH_WEBSERVER?=1
+WITH_WEBSERVER_LITE?=0
+WITH_COAPSERVER?=0
+WITH_NVM_PROXY?=0
+WITH_DNS_PROXY?=1
+
+CC2538_ENC28J60_ARCH?=gpio
+
+CC2538DK_FW?=bin
+
+PROJECTDIRS += platform/cc2538dk dev/enc28j60
+
+PROJECT_SOURCEFILES += cc2538dk-init.c cc2538dk-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-$(CC2538_ENC28J60_ARCH).c
+
+CONF=WITH_UDPCLIENT=0
+CONF_6LR=WITH_UDPSERVER=0
+
+bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC2538DK_FW)
+
+bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC2538DK_FW)
+
+bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW)
+
+bin_$(TARGET)/cetic_6lbr_router.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_ROUTER=1 $(CONF)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_router.$(CC2538DK_FW)
+
+bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC2538DK_FW)
+
+bin_$(TARGET)/cetic_6lbr_6lr.$(CC2538DK_FW):
+	$(MAKE) CETIC_6LBR_6LR=1 $(CONF_6LR)
+	mkdir -p bin_$(TARGET)
+	mv cetic-6lbr.$(CC2538DK_FW) bin_$(TARGET)/cetic_6lbr_6lr.$(CC2538DK_FW)
+
+all:
+	rm -rf bin_$(TARGET)
+	mkdir -p bin_$(TARGET)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC2538DK_FW)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC2538DK_FW)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC2538DK_FW)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_router.$(CC2538DK_FW)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC2538DK_FW)
+	$(MAKE) clean
+	$(MAKE) bin_$(TARGET)/cetic_6lbr_6lr.$(CC2538DK_FW)
+
+.PHONY: bin_$(TARGET)/*

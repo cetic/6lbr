@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,12 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         ContikiRPL, an implementation of RPL: IPv6 Routing Protocol
  *         for Low-Power and Lossy Networks (IETF RFC 6550)
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/uip.h"
@@ -57,8 +59,6 @@
 extern void
 send_purge_na(uip_ipaddr_t *prefix);
 #endif
-
-#if UIP_CONF_IPV6
 
 #if RPL_CONF_STATS
 rpl_stats_t rpl_stats;
@@ -81,9 +81,9 @@ rpl_set_mode(enum rpl_mode m)
      switching to. */
   if(m == RPL_MODE_MESH) {
 
-    /* If we switcht to mesh mode, we should send out a DAO message to
+    /* If we switch to mesh mode, we should send out a DAO message to
        inform our parent that we now are reachable. Before we do this,
-       we must set the mode variable, since DAOs will not be send if
+       we must set the mode variable, since DAOs will not be sent if
        we are in feather mode. */
     PRINTF("RPL: switching to mesh mode\n");
     mode = m;
@@ -94,11 +94,17 @@ rpl_set_mode(enum rpl_mode m)
   } else if(m == RPL_MODE_FEATHER) {
 
     PRINTF("RPL: switching to feather mode\n");
-    mode = m;
     if(default_instance != NULL) {
+      PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
+      if(default_instance->current_dag != NULL) {
+        dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+      }
       rpl_cancel_dao(default_instance);
+    } else {
+      PRINTF("rpl_set_mode: no default instance\n");
     }
 
+    mode = m;
   } else {
     mode = m;
   }
@@ -120,7 +126,7 @@ rpl_purge_routes(void)
   r = uip_ds6_route_head();
 
   while(r != NULL) {
-    if(r->state.lifetime >= 1) {
+    if(r->state.lifetime >= 1 && r->state.lifetime != RPL_ROUTE_INFINITE_LIFETIME) {
       /*
        * If a route is at lifetime == 1, set it to 0, scheduling it for
        * immediate removal below. This achieves the same as the original code,
@@ -281,6 +287,7 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
         parent->flags |= RPL_PARENT_FLAG_UPDATED;
         if(instance->of->neighbor_link_callback != NULL) {
           instance->of->neighbor_link_callback(parent, status, numtx);
+          parent->last_tx_time = clock_time();
         }
       }
     }
@@ -294,9 +301,9 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   rpl_instance_t *instance;
   rpl_instance_t *end;
 
-  PRINTF("RPL: Removing neighbor ");
+  PRINTF("RPL: Neighbor state changed for ");
   PRINT6ADDR(&nbr->ipaddr);
-  PRINTF("\n");
+  PRINTF(", nscount=%u, state=%u\n", nbr->nscount, nbr->state);
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
@@ -324,6 +331,9 @@ rpl_purge_dags(void)
         if(instance->dag_table[i].used) {
           if(instance->dag_table[i].lifetime == 0) {
             if(!instance->dag_table[i].joined) {
+              PRINTF("Removing dag ");
+              PRINT6ADDR(&instance->dag_table[i].dag_id);
+              PRINTF("\n");
               rpl_free_dag(&instance->dag_table[i]);
             }
           } else {
@@ -357,4 +367,5 @@ rpl_init(void)
   RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
+
+/** @}*/

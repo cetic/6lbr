@@ -52,8 +52,10 @@
 extern void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
 extern void uip_debug_lladdr_print(const uip_lladdr_t *addr);
 extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
+extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
 
 #define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }
+#define _PRINTF_4ADDR(addr, ...) { printf(__VA_ARGS__); printf("%u.%u.%u.%u\n", (addr)->u8[0], (addr)->u8[1], (addr)->u8[2], (addr)->u8[3]); }
 #define _PRINTF_LLADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_lladdr_print(addr); printf("\n"); }
 #define _PRINTF_ETHADDR(addr, ...) { printf(__VA_ARGS__); log6lbr_ethaddr_print(addr); printf("\n"); }
 
@@ -61,6 +63,7 @@ extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
 /* Log level compatible with log4cxx */
 enum Log6lbr_Level {
   Log6lbr_Level_FATAL = 0,
+  Log6lbr_Level_NOTICE = 0,
   Log6lbr_Level_ERROR = 10,
   Log6lbr_Level_WARN = 20,
   Log6lbr_Level_INFO = 30,
@@ -129,6 +132,7 @@ extern void log6lbr_timestamp();
 #else
 
 #define LOG6LBR_LEVEL_FATAL 0
+#define LOG6LBR_LEVEL_NOTICE 0
 #define LOG6LBR_LEVEL_ERROR 10
 #define LOG6LBR_LEVEL_WARN 20
 #define LOG6LBR_LEVEL_INFO 30
@@ -191,6 +195,11 @@ extern void log6lbr_timestamp();
 #define _LEVEL_FILTER_FATAL(a) a
 #else
 #define _LEVEL_FILTER_FATAL(...)
+#endif
+#if LOG6LBR_LEVEL_NOTICE <= LOG6LBR_LEVEL
+#define _LEVEL_FILTER_NOTICE(a) a
+#else
+#define _LEVEL_FILTER_NOTICE(...)
 #endif
 #if LOG6LBR_LEVEL_ERROR <= LOG6LBR_LEVEL
 #define _LEVEL_FILTER_ERROR(a) a
@@ -279,10 +288,14 @@ extern void log6lbr_timestamp();
 #define LOG6LBR_WRITE(level, service, buffer, size) _LOG6LBR_LEVEL_F(level, service, fwrite, buffer, size, 1, stdout)
 
 #define LOG6LBR_6ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_6ADDR, addr, __VA_ARGS__)
+#define LOG6LBR_4ADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_4ADDR, addr, __VA_ARGS__)
 #define LOG6LBR_LLADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_LLADDR, addr, __VA_ARGS__)
 #define LOG6LBR_ETHADDR(level, addr, ...) _LOG6LBR_LEVEL_F(level, GLOBAL, _PRINTF_ETHADDR, addr, __VA_ARGS__)
+#define LOG6LBR_DUMP_PACKET(service, data, len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet, data, len)
+#define LOG6LBR_DUMP_PACKET_WITH_HEADER(service, header, header_len, data, data_len) _LOG6LBR_LEVEL_F(DUMP, service, log6lbr_dump_packet_with_header, header, header_len, data, data_len)
 
 #define LOG6LBR_FATAL(...) LOG6LBR_PRINTF(FATAL, GLOBAL, __VA_ARGS__)
+#define LOG6LBR_NOTICE(...) LOG6LBR_PRINTF(NOTICE, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_ERROR(...) LOG6LBR_PRINTF(ERROR, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_WARN(...) LOG6LBR_PRINTF(WARN, GLOBAL, __VA_ARGS__)
 #define LOG6LBR_INFO(...) LOG6LBR_PRINTF(INFO, GLOBAL, __VA_ARGS__)

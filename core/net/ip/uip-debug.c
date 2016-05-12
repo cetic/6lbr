@@ -43,14 +43,16 @@
 void
 uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
 {
-  if(addr == NULL || addr->u8 == NULL) {
-    printf("(NULL IP addr)");
-    return;
-  }
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint16_t a;
   unsigned int i;
   int f;
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+  if(addr == NULL) {
+    PRINTA("(NULL IP addr)");
+    return;
+  }
+#if NETSTACK_CONF_WITH_IPV6
   for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
     a = (addr->u8[i] << 8) + addr->u8[i + 1];
     if(a == 0 && f >= 0) {
@@ -66,15 +68,23 @@ uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
       PRINTA("%x", a);
     }
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 /*---------------------------------------------------------------------------*/
 void
 uip_debug_lladdr_print(const uip_lladdr_t *addr)
 {
+  if(addr == NULL) {
+    printf("(NULL LL addr)");
+    return;
+  }
   unsigned int i;
+  if(addr == NULL) {
+    PRINTA("(NULL LL addr)");
+    return;
+  }
   for(i = 0; i < sizeof(uip_lladdr_t); i++) {
     if(i > 0) {
       PRINTA(":");

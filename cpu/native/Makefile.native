@@ -25,14 +25,14 @@ LDFLAGS += -Wl,-flat_namespace
 CFLAGS += -DHAVE_SNPRINTF=1 -U__ASSERT_USE_STDERR
 else
 ifeq ($(HOST_OS),Linux)
-LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+LDFLAGS  += -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 endif
 endif
 
 ### Compilation rules
 
-%.so: $(OBJECTDIR)/%.o
-	$(LD) -shared -o $@ $^
+#%.so: $(OBJECTDIR)/%.o
+#	$(LD) -shared -o $@ $^
 
 ifdef CORE
 .PHONY: symbols.c symbols.h

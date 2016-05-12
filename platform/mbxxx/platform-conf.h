@@ -1,5 +1,8 @@
 /**
- * \defgroup mbxxx-platform The STM32W MBXXX platform.
+ * \addtogroup platform
+ * @{ */
+/**
+ * \defgroup mbxxx-platform The STM32W MBXXX platform
  *
  * The STM32W MBXXX platform.
  *
@@ -85,7 +88,7 @@ typedef unsigned long clock_time_t;
 
 typedef unsigned long rtimer_clock_t;
 
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
 
 #define LEDS_CONF_RED_PIN     boardDescription->io->leds[1].gpioPin
 #define LEDS_CONF_GREEN_PIN   boardDescription->io->leds[0].gpioPin
@@ -101,4 +104,5 @@ typedef unsigned long rtimer_clock_t;
 #define EEPROM_CONF_SIZE	8000
 
 #endif /* PLATFORM_CONF_H_ */
+/** @} */
 /** @} */

@@ -30,13 +30,15 @@
  */
 
 /**
+ * \addtogroup smrf-multicast
+ * @{
+ */
+/**
  * \file
- *         This file implements 'Stateless Multicast RPL Forwarding' (SMRF)
- *
- *         It will only work in RPL networks in MOP 3 "Storing with Multicast"
+ *    This file implements 'Stateless Multicast RPL Forwarding' (SMRF)
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
 #include "contiki.h"
@@ -52,7 +54,6 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* Macros */
 /*---------------------------------------------------------------------------*/
@@ -80,10 +81,7 @@ mcast_fwd(void *p)
   uip_len = mcast_len;
   UIP_IP_BUF->ttl--;
   tcpip_output(NULL);
-  uip_len = 0;
-#if NETSTACK_CONF_WITH_IPV6
-  uip_ext_len = 0;
-#endif /*NETSTACK_CONF_WITH_IPV6*/
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -203,6 +201,9 @@ out()
   return;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief The SMRF engine driver
+ */
 const struct uip_mcast6_driver smrf_driver = {
   "SMRF",
   init,
@@ -210,5 +211,4 @@ const struct uip_mcast6_driver smrf_driver = {
   in,
 };
 /*---------------------------------------------------------------------------*/
-
-#endif /* UIP_CONF_IPV6 */
+/** @} */

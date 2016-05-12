@@ -73,7 +73,7 @@
 #include "ieee-15-4-manager.h"
 #endif /*RF230BB */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #include "sicslowmac.h"
 #include "sicslowpan.h"
 #endif
@@ -153,9 +153,9 @@ init_lowlevel(void)
   memset(&addr, 0, sizeof(linkaddr_t));
   memcpy((void *)&addr.u8, &mac_address, 8);
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *) & addr.u8);
 
@@ -200,15 +200,15 @@ init_lowlevel(void)
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #else /*RF230BB */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* RF230BB */
 }
 

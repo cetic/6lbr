@@ -1,0 +1,69 @@
+#Default configuration for Econotag
+
+WITH_UDPSERVER?=1
+WITH_UDPCLIENT?=1
+WITH_NODE_INFO?=0
+WITH_NODE_CONFIG?=0
+WITH_WEBSERVER?=0
+WITH_WEBSERVER_LITE?=0
+WITH_COAPSERVER?=0
+WITH_NVM_PROXY?=1
+WITH_DNS_PROXY?=0
+WITH_IP64?=0
+
+PROJECTDIRS += platform/econotag dev/enc28j60
+
+PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-gpio.c
+
+override TARGET=econotag
+
+CONF=WITH_UDPCLIENT=0
+CONF_6LR=WITH_UDPSERVER=0
+
+bin_red-io/cetic_6lbr_smart_bridge:
+	$(MAKE) TARGET=red-io CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_smart_bridge 
+
+bin_red-io/cetic_6lbr_rpl_relay:
+	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_rpl_relay
+
+bin_red-io/cetic_6lbr_full_transparent_bridge:
+	$(MAKE) TARGET=red-io CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_full_transparent_bridge 
+
+bin_red-io/cetic_6lbr_router:
+	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 $(CONF)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_router 
+
+bin_red-io/cetic_6lbr_ndp_router:
+	$(MAKE) TARGET=red-io CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_ndp_router 
+
+bin_red-io/cetic_6lbr_6lr:
+	$(MAKE) TARGET=red-io CETIC_6LBR_6LR=1 $(CONF_6LR)
+	mkdir -p bin_red-io
+	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_6lr
+
+all:
+	rm -rf bin_red-io
+	mkdir -p bin_red-io
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_rpl_relay
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_full_transparent_bridge 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_router 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_ndp_router 
+	$(MAKE) TARGET=red-io clean
+	$(MAKE) TARGET=red-io bin_red-io/cetic_6lbr_6lr 
+
+.PHONY: bin_red-io/*

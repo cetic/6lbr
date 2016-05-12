@@ -1,16 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         The uIP TCP/IPv6 stack code.
- *
- * \author Adam Dunkels <adam@sics.se>
- * \author Julien Abeille <jabeille@cisco.com> (IPv6 related code)
- * \author Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
- */
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -44,6 +31,20 @@
  *
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
+ * \file
+ *    The uIP TCP/IPv6 stack code.
+ *
+ * \author Adam Dunkels <adam@sics.se>
+ * \author Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ * \author Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ */
+
 /*
  * uIP is a small implementation of the IP, UDP and TCP protocols (as
  * well as some basic ICMP stuff). The implementation couples the IP,
@@ -70,6 +71,7 @@
  * the packet back to the peer.
  */
 
+#include "sys/cc.h"
 #include "net/ip/uip.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
@@ -80,10 +82,10 @@
 #include <string.h>
 
 #if CETIC_NODE_INFO
+#include "packet-filter.h"
 #include "node-info.h"
 #endif
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* For Debug, logging, statistics                                            */
 /*---------------------------------------------------------------------------*/
@@ -109,7 +111,10 @@ struct uip_stats uip_stat;
  
 
 /*---------------------------------------------------------------------------*/
-/** @{ \name Layer 2 variables */
+/**
+ * \name Layer 2 variables
+ * @{
+ */
 /*---------------------------------------------------------------------------*/
 /** Host L2 address */
 #if UIP_CONF_LL_802154
@@ -120,7 +125,10 @@ uip_lladdr_t uip_lladdr = {{0x00,0x06,0x98,0x00,0x02,0x32}};
 /** @} */
 
 /*---------------------------------------------------------------------------*/
-/** @{ \name Layer 3 variables */
+/**
+ * \name Layer 3 variables
+ * @{
+ */
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Type of the next header in IPv6 header or extension headers
@@ -145,8 +153,9 @@ uint8_t uip_ext_opt_offset = 0;
 /*---------------------------------------------------------------------------*/
 /* Buffers                                                                   */
 /*---------------------------------------------------------------------------*/
-/** \name Buffer defines
- *  @{
+/**
+ * \name Buffer defines
+ * @{
  */
 #define FBUF                             ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
 #define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -165,8 +174,9 @@ uint8_t uip_ext_opt_offset = 0;
 #endif /* UIP_CONF_IPV6_RPL */
 #define UIP_ICMP6_ERROR_BUF            ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 /** @} */
-/** \name Buffer variables
- *  @{
+/**
+ * \name Buffer variables
+ * @{
  */
 /** Packet buffer for incoming and outgoing packets */
 #ifndef UIP_CONF_EXTERNAL_BUFFER
@@ -189,7 +199,10 @@ uint16_t uip_len, uip_slen;
 /** @} */
 
 /*---------------------------------------------------------------------------*/
-/** @{ \name General variables                                               */
+/**
+ * \name General variables
+ * @{
+ */
 /*---------------------------------------------------------------------------*/
 
 /* The uip_flags variable is used for communication between the TCP/IP stack
@@ -213,7 +226,8 @@ static uint16_t lastport;
 /*---------------------------------------------------------------------------*/
 /* TCP                                                                       */
 /*---------------------------------------------------------------------------*/
-/** \name TCP defines
+/**
+ * \name TCP defines
  *@{
  */
 /* Structures and definitions. */
@@ -231,7 +245,8 @@ static uint16_t lastport;
 
 #define TCP_OPT_MSS_LEN 4   /* Length of TCP MSS option. */
 /** @} */
-/** \name TCP variables
+/**
+ * \name TCP variables
  *@{
  */
 #if UIP_TCP
@@ -252,7 +267,10 @@ static uint16_t tmp16;
 /** @} */
 
 /*---------------------------------------------------------------------------*/
-/** @{ \name UDP variables                                                   */
+/**
+ * \name UDP variables
+ * @{
+ */
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 struct uip_udp_conn *uip_udp_conn;
@@ -261,7 +279,10 @@ struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 /** @} */
 
 /*---------------------------------------------------------------------------*/
-/** @{ \name ICMPv6 variables                                                */
+/**
+ * \name ICMPv6 variables
+ * @{
+ */
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_ICMP6
 /** single possible icmpv6 "connection" */
@@ -444,7 +465,7 @@ uip_init(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
 struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
+uip_connect(const uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
   
@@ -516,25 +537,27 @@ uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 void
 remove_ext_hdr(void)
 {
+  int last_uip_ext_len;
   /* Remove ext header before TCP/UDP processing. */
   if(uip_ext_len > 0) {
     PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
 	   uip_ext_len, uip_len);
     if(uip_len < UIP_IPH_LEN + uip_ext_len) {
       PRINTF("ERROR: uip_len too short compared to ext len\n");
-      uip_ext_len = 0;
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
-    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + uip_ext_len,
-	    uip_len - UIP_IPH_LEN - uip_ext_len);
+    last_uip_ext_len = uip_ext_len;
+    uip_ext_len = 0;
+    UIP_IP_BUF->proto = UIP_EXT_BUF->next;
+    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + last_uip_ext_len,
+	    uip_len - UIP_IPH_LEN - last_uip_ext_len);
 
-    uip_len -= uip_ext_len;
+    uip_len -= last_uip_ext_len;
 
     /* Update the IP length. */
     UIP_IP_BUF->len[0] = (uip_len - UIP_IPH_LEN) >> 8;
     UIP_IP_BUF->len[1] = (uip_len - UIP_IPH_LEN) & 0xff;
-    uip_ext_len = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -809,8 +832,7 @@ uip_reass_over(void)
      * any RFC, we decided not to include it as it reduces the size of
      * the packet.
      */
-    uip_len = 0;
-    uip_ext_len = 0;
+    uip_clear_buf();
     memcpy(UIP_IP_BUF, FBUF, UIP_IPH_LEN); /* copy the header for src
                                               and dest address*/
     uip_icmp6_error_output(ICMP6_TIME_EXCEEDED, ICMP6_TIME_EXCEED_REASSEMBLY, 0);
@@ -955,7 +977,7 @@ uip_process(uint8_t flag)
   } else if(flag == UIP_TIMER) {
     /* Reset the length variables. */
 #if UIP_TCP
-    uip_len = 0;
+    uip_clear_buf();
     uip_slen = 0;
     
     /* Increase the initial sequence number. */
@@ -1163,7 +1185,10 @@ uip_process(uint8_t flag)
   }
 
 #if CETIC_NODE_INFO
-  node_info_node_seen(&UIP_IP_BUF->destipaddr);
+  if(packet_filter_wsn_packet) {
+    /* Take only into account packets coming directly from the WSN interface */
+    node_info_node_seen(&UIP_IP_BUF->srcipaddr, UIP_TTL - (int)UIP_IP_BUF->ttl + 1);
+  }
 #endif
   /*
    * Process Packets with a routable multicast destination:
@@ -1220,7 +1245,7 @@ uip_process(uint8_t flag)
 
 #if UIP_CONF_IPV6_RPL
       if(rpl_update_header_empty()) {
-        //Packet can not be forwarded
+        /* Packet can not be forwarded */
         PRINTF("RPL Forward Option Error\n");
         goto drop;
       }
@@ -1449,7 +1474,7 @@ uip_process(uint8_t flag)
     UIP_STAT(++uip_stat.icmp.drop);
     UIP_STAT(++uip_stat.icmp.typeerr);
     UIP_LOG("icmp6: unknown ICMPv6 message.");
-    uip_len = 0;
+    uip_clear_buf();
   }
   
   if(uip_len > 0) {
@@ -1465,6 +1490,7 @@ uip_process(uint8_t flag)
  udp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_UDP;
 
   PRINTF("Receiving UDP packet\n");
  
@@ -1473,8 +1499,6 @@ uip_process(uint8_t flag)
      work. If the application sets uip_slen, it has a packet to
      send. */
 #if UIP_UDP_CHECKSUMS
-  uip_len = uip_len - UIP_IPUDPH_LEN;
-  uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   /* XXX hack: UDP/IPv6 receivers should drop packets with UDP
      checksum 0. Here, we explicitly receive UDP packets with checksum
      0. This is to be able to debug code that for one reason or
@@ -1487,8 +1511,6 @@ uip_process(uint8_t flag)
            uip_udpchksum());
     goto drop;
   }
-#else /* UIP_UDP_CHECKSUMS */
-  uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
   /* Make sure that the UDP destination port number is not zero. */
@@ -1520,17 +1542,15 @@ uip_process(uint8_t flag)
   PRINTF("udp: no matching connection found\n");
   UIP_STAT(++uip_stat.udp.drop);
 
-#if UIP_UDP_SEND_UNREACH_NOPORT
   uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
   goto send;
-#else
-  goto drop;
-#endif
 
  udp_found:
   PRINTF("In udp_found\n");
   UIP_STAT(++uip_stat.udp.recv);
- 
+
+  uip_len = uip_len - UIP_IPUDPH_LEN;
+  uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
   uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
@@ -1585,6 +1605,7 @@ uip_process(uint8_t flag)
  tcp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_TCP;
 
   UIP_STAT(++uip_stat.tcp.recv);
   PRINTF("Receiving TCP packet\n");
@@ -1971,7 +1992,7 @@ uip_process(uint8_t flag)
         uip_add_rcv_nxt(1);
         uip_flags = UIP_CONNECTED | UIP_NEWDATA;
         uip_connr->len = 0;
-        uip_len = 0;
+        uip_clear_buf();
         uip_slen = 0;
         UIP_APPCALL();
         goto appsend;
@@ -2252,8 +2273,6 @@ uip_process(uint8_t flag)
   UIP_TCP_BUF->seqno[2] = uip_connr->snd_nxt[2];
   UIP_TCP_BUF->seqno[3] = uip_connr->snd_nxt[3];
 
-  UIP_IP_BUF->proto = UIP_PROTO_TCP;
-
   UIP_TCP_BUF->srcport  = uip_connr->lport;
   UIP_TCP_BUF->destport = uip_connr->rport;
 
@@ -2275,6 +2294,8 @@ uip_process(uint8_t flag)
   }
 
  tcp_send_noconn:
+  UIP_IP_BUF->proto = UIP_PROTO_TCP;
+
   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
@@ -2303,8 +2324,7 @@ uip_process(uint8_t flag)
   return;
 
  drop:
-  uip_len = 0;
-  uip_ext_len = 0;
+  uip_clear_buf();
   uip_ext_bitmap = 0;
   uip_flags = 0;
   return;
@@ -2326,7 +2346,6 @@ void
 uip_send(const void *data, int len)
 {
   int copylen;
-#define MIN(a,b) ((a) < (b)? (a): (b))
 
   if(uip_sappdata != NULL) {
     copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
@@ -2349,4 +2368,3 @@ uip_send(const void *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

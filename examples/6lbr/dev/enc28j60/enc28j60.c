@@ -117,20 +117,9 @@ writedata(uint8_t *data, int datalen)
   enc28j60_arch_spi_select();
   /* The Write Buffer Memory (WBM) command is 0 1 1 1 1 0 1 0  */
   enc28j60_arch_spi_write(ENC28J60_WRITE_BUF_MEM);
-#if UIP_CONF_LLH_LEN == 0
-  for(i = 0; i < ETHERNET_LLH_LEN; i++) {
-    enc28j60_arch_spi_write(ll_header[i]);
-  }
-  for(i = 0; i < datalen - ETHERNET_LLH_LEN; i++) {
-    enc28j60_arch_spi_write(data[i]);
-  }
-#elif UIP_CONF_LLH_LEN == 14
   for(i = 0; i < datalen; i++) {
     enc28j60_arch_spi_write(data[i]);
   }
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
@@ -152,30 +141,12 @@ readdata(uint8_t *buf, int len)
   enc28j60_arch_spi_select();
   /* THe Read Buffer Memory (RBM) command is 0 0 1 1 1 0 1 0 */
   enc28j60_arch_spi_write(ENC28J60_READ_BUF_MEM);
-#if UIP_CONF_LLH_LEN == 0
-  int i = 0;
-  while(i < ETHERNET_LLH_LEN) {
-    len--;
-    /* read data */
-    ll_header[i] = enc28j60_arch_spi_read();
-    i++;
-  }
   while(len) {
     len--;
     /* read data */
     *buf = enc28j60_arch_spi_read();
     buf++;
   }
-#elif UIP_CONF_LLH_LEN == 14
-  while(len) {
-    len--;
-    /* read data */
-    *buf = enc28j60_arch_spi_read();
-    buff++;
-  }
-#else
-#error "UIP_CONF_LLH_LEN value neither 0 nor 14."
-#endif
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
@@ -343,7 +314,11 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
      configuration (the values in MACON3) will be used.  */
 #define WITH_MANUAL_PADDING 1
 #if WITH_MANUAL_PADDING
+#if UIP_LLH_LEN == 16
+#define PADDING_MIN_SIZE (60 + 2)
+#else
 #define PADDING_MIN_SIZE 60
+#endif
   writedatabyte(0x0B); /* POVERRIDE, PCRCEN, PHUGEEN. Not PPADEN */
   if(datalen < PADDING_MIN_SIZE) {
     padding = PADDING_MIN_SIZE - datalen;
@@ -356,10 +331,22 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
 #endif /* WITH_MANUAL_PADDING */
 
   /* Write a pointer to the last data byte. */
+#if UIP_LLH_LEN == 16
+  writereg(ETXNDL, (TXSTART_INIT + datalen - 2 + 0 + padding) & 0xff);
+  writereg(ETXNDH, (TXSTART_INIT + datalen - 2 + 0 + padding) >> 8);
+#else
   writereg(ETXNDL, (TXSTART_INIT + datalen + 0 + padding) & 0xff);
   writereg(ETXNDH, (TXSTART_INIT + datalen + 0 + padding) >> 8);
+#endif
 
+#if UIP_LLH_LEN == 16
+  /* Write Ethernet header */
+  writedata(data, 14);
+  /* Write Ehternet payload */
+  writedata(data + 16, datalen - 16);
+#else
   writedata(data, datalen);
+#endif
   if(padding > 0) {
     uint8_t padding_buf[60];
     memset(padding_buf, 0, padding);
@@ -427,7 +414,15 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
     len = 0;
   } else {
     /* copy the packet from the receive buffer */
+    len += 2;
+#if UIP_LLH_LEN == 16
+    /* Read Ethernet header */
+    readdata(buffer, 14);
+    /* Read Ethernet payload */
+    readdata(buffer + 16, len - 14);
+#else
     readdata(buffer, len);
+#endif
   }
 
   /* Move the RX read pointer to the start of the next received packet */
@@ -443,11 +438,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
 
   received_packets++;
   LOG6LBR_PACKET("received_packets %d\n", received_packets);
-#if UIP_CONF_LLH_LEN == 0
-  return (len - ETHERNET_LLH_LEN);
-#elif UIP_CONF_LLH_LEN == 14
   return (len);
-#endif
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(enc_watchdog_process, ev, data)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 . $CETIC_6LBR_CONF
 . $1/6lbr-functions
@@ -9,7 +9,7 @@ MODE_6LBR=$2
 DEV=$3
 OS=`uname`
 
-if [ "$BRIDGE" = "1" ]; then
+if [ $MODE_6LBR = "tap" -a "$BRIDGE" = "1" ]; then
 	ifconfig $DEV_BRIDGE
 fi
 

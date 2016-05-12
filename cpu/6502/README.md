@@ -37,8 +37,13 @@ high-level configuration macros may be set:
     - Purpose: Set the Maximum Transfer Unit size.
 
 - CONNECTIONS
-    - Default: 10
+    - Default: 2
     - Purpose: Set the maximum number of concurrent TCP connections.
+
+- ETHERNET
+    - Default: N/A
+    - Purpose: Link Ethernet driver statically instead of loading it dynamically
+      using the network configuration file.
 
 - WITH_LOGGING
     - Default: 0

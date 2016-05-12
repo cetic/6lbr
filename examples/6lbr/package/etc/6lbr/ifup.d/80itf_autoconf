@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+. $CETIC_6LBR_CONF
+. $1/6lbr-functions
+
+config_default
+
+MODE_6LBR=$2
+DEV=$3
+OS=`uname`
+
+if [ $MODE_6LBR != "tap" ]; then
+	exit
+fi
+
+if [ "$ITF_AUTOCONF" != "1" ]; then
+	exit
+fi
+
+case $OS in
+	Linux)
+		if [ "$BRIDGE" = "1" ]; then
+			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra=2 > /dev/null || true
+			sysctl -w net.ipv6.conf.$DEV_BRIDGE.accept_ra_rt_info_max_plen=64 > /dev/null || true
+		else
+			sysctl -w net.ipv6.conf.$DEV.accept_ra=2 > /dev/null || true
+			sysctl -w net.ipv6.conf.$DEV.accept_ra_rt_info_max_plen=64 > /dev/null || true
+		fi
+		;;
+
+	Darwin)
+		;;
+
+	*)
+		echo Unknown OS
+		;;
+esac

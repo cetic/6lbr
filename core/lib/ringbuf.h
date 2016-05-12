@@ -1,16 +1,3 @@
-/** \addtogroup lib
- * @{ */
-
-/**
- * \defgroup ringbuf Ring buffer library
- * @{
- *
- * The ring buffer library implements ring (circular) buffer where
- * bytes can be read and written independently. A ring buffer is
- * particularly useful in device drivers where data can come in
- * through interrupts.
- *
- */
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -50,6 +37,20 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/** \addtogroup lib
+ * @{ */
+
+/**
+ * \defgroup ringbuf Ring buffer library
+ * @{
+ *
+ * The ring buffer library implements ring (circular) buffer where
+ * bytes can be read and written independently. A ring buffer is
+ * particularly useful in device drivers where data can come in
+ * through interrupts.
+ *
+ */
+
 #ifndef RINGBUF_H_
 #define RINGBUF_H_
 
@@ -67,7 +68,7 @@
 struct ringbuf {
   uint8_t *data;
   uint8_t mask;
-  
+
   /* XXX these must be 8-bit quantities to avoid race conditions. */
   uint8_t put_ptr, get_ptr;
 };
@@ -129,3 +130,6 @@ int     ringbuf_size(struct ringbuf *r);
 int     ringbuf_elements(struct ringbuf *r);
 
 #endif /* RINGBUF_H_ */
+
+/** @}*/
+/** @}*/

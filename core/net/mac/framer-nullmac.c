@@ -57,6 +57,12 @@ struct nullmac_hdr {
 
 /*---------------------------------------------------------------------------*/
 static int
+hdr_length(void)
+{
+  return sizeof(struct nullmac_hdr);
+}
+/*---------------------------------------------------------------------------*/
+static int
 create(void)
 {
   struct nullmac_hdr *hdr;
@@ -91,5 +97,8 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_nullmac = {
-  create, parse
+  hdr_length,
+  create,
+  framer_canonical_create_and_secure,
+  parse
 };
