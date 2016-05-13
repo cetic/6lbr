@@ -13,9 +13,13 @@ export DH_VERBOSE=1
 	dh $@ 
 
 override_dh_auto_build:
-	make all_native
+	make TARGET=native all
 	make plugins
 	make tools
+
+# Add extra installation target for plugins
+override_dh_auto_install:
+	dh_auto_install -- plugins-install
 
 override_dh_installinit:
 	dh_installinit --onlyscripts --name 6lbr
