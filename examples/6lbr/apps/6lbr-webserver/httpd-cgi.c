@@ -47,18 +47,26 @@ static httpd_cgi_call_t *calls = NULL;
 static httpd_cgi_command_t *commands = NULL;
 /*---------------------------------------------------------------------------*/
 void
-httpd_instance_add(httpd_group_t *group)
+httpd_instances_add(void *dgroup, uint16_t nb)
 {
-  httpd_group_t *l;
+  httpd_group_t *group = (httpd_group_t *)malloc(nb * sizeof(httpd_group_t));
+  
 
-  LOG6LBR_DEBUG("Adding instance : %s\n", group->title);
-  group->next = NULL;
-  if(instances == NULL) {
-    instances = group;
-  } else {
-    for(l = instances; l->next != NULL; l = l->next);
-    l->next = group;
+  int i;
+  char * instance;
+  for(i=0;i<nb-1;i++){
+    instance = (char*)malloc(5*sizeof(char));
+    sprintf(instance,"%d",i);
+    group[i].title = instance;
+    LOG6LBR_INFO("Adding instance : %s\n", group[i].title);
+    group[i].next = &group[i+1];
   }
+  instance = (char*)malloc(5*sizeof(char));
+  sprintf(instance,"%d",i);
+  group[nb-1].title = instance;
+  group[nb-1].next = NULL;
+  
+  instances = &group[0];
 }
 /*---------------------------------------------------------------------------*/
 void
