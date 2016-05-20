@@ -41,9 +41,25 @@
 #include "httpd-cgi.h"
 #include "nvm-config.h"
 
+static httpd_group_t *instances = NULL;
 static httpd_group_t *groups = NULL;
 static httpd_cgi_call_t *calls = NULL;
 static httpd_cgi_command_t *commands = NULL;
+/*---------------------------------------------------------------------------*/
+void
+httpd_instance_add(httpd_group_t *group)
+{
+  httpd_group_t *l;
+
+  LOG6LBR_DEBUG("Adding instance : %s\n", group->title);
+  group->next = NULL;
+  if(instances == NULL) {
+    instances = group;
+  } else {
+    for(l = instances; l->next != NULL; l = l->next);
+    l->next = group;
+  }
+}
 /*---------------------------------------------------------------------------*/
 void
 httpd_group_add(httpd_group_t *group)
@@ -58,6 +74,11 @@ httpd_group_add(httpd_group_t *group)
     for(l = groups; l->next != NULL; l = l->next);
     l->next = group;
   }
+}
+/*---------------------------------------------------------------------------*/
+httpd_group_t* httpd_instance_head(void)
+{
+  return instances;
 }
 /*---------------------------------------------------------------------------*/
 httpd_group_t* httpd_group_head(void)

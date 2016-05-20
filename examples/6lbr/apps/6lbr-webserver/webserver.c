@@ -45,6 +45,7 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
+HTTPD_GROUP(instances_group, "Instances");
 HTTPD_GROUP(main_group, "System");
 HTTPD_GROUP(sensors_group, "Sensors");
 HTTPD_GROUP(status_group, "Status");
@@ -101,6 +102,7 @@ webserver_init(void)
 {
   httpd_init();
 
+  httpd_instance_add(&instances_group);
   httpd_group_add(&main_group);
   httpd_group_add(&sensors_group);
   httpd_group_add(&status_group);

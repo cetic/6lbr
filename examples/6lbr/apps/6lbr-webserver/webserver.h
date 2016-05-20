@@ -39,6 +39,7 @@
 
 #include "httpd-cgi.h"
 
+HTTPD_GROUP_NAME(instances_group);
 HTTPD_GROUP_NAME(main_group);
 HTTPD_GROUP_NAME(sensors_group);
 HTTPD_GROUP_NAME(status_group);
