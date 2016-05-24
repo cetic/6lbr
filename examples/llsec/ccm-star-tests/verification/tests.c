@@ -48,6 +48,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SEC_LVL 2
+#define MIC_LEN LLSEC802154_MIC_LEN(2)
+
 /*---------------------------------------------------------------------------*/
 /* Test vector C.1 from FIPS Pub 197 */
 static void
@@ -86,8 +89,8 @@ test_sec_lvl_2()
                       0xC4 , 0xC5 , 0xC6 , 0xC7 ,
                       0xC8 , 0xC9 , 0xCA , 0xCB ,
                       0xCC , 0xCD , 0xCE , 0xCF };
-  uint8_t extended_source_address[8] = { 0xAC , 0xDE , 0x48 , 0x00 ,
-                                         0x00 , 0x00 , 0x00 , 0x01 };
+  linkaddr_t source_address = {{ 0xAC , 0xDE , 0x48 , 0x00 ,
+                                 0x00 , 0x00 , 0x00 , 0x01 }};
   uint8_t data[26] = { 0x08 , 0xD0 , 0x84 , 0x21 , 0x43 ,
                        /* Source Address */
                        0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x48 , 0xDE , 0xAC ,
@@ -97,26 +100,33 @@ test_sec_lvl_2()
                        0x05 , 0x00 , 0x00 , 0x00 ,
                        /* Payload */
                        0x55 , 0xCF , 0x00 , 0x00 , 0x51 , 0x52 , 0x53 , 0x54 };
-  uint8_t oracle[LLSEC802154_MIC_LENGTH] = { 0x22 , 0x3B , 0xC1 , 0xEC ,
-                                             0x84 , 0x1A , 0xB5 , 0x53 };
+  uint8_t oracle[MIC_LEN] = { 0x22 , 0x3B , 0xC1 , 0xEC ,
+                              0x84 , 0x1A , 0xB5 , 0x53 };
   frame802154_frame_counter_t counter;
-  uint8_t mic[LLSEC802154_MIC_LENGTH];
+  uint8_t mic[MIC_LEN];
+  uint8_t nonce[13];
   
   printf("Testing verification ... ");
   
+  linkaddr_copy(&linkaddr_node_addr, &source_address);
   packetbuf_clear();
   packetbuf_set_datalen(26);
   memcpy(packetbuf_hdrptr(), data, 26);
   counter.u32 = 5;
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, counter.u16[1]);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
   packetbuf_hdrreduce(18);
   
   CCM_STAR.set_key(key);
-  ccm_star_mic_packetbuf(extended_source_address,mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_packetbuf_set_nonce(nonce, 1);
+  CCM_STAR.aead(nonce,
+      NULL, 0,
+      packetbuf_hdrptr(), packetbuf_totlen(),
+      ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), MIC_LEN,
+      1);
   
-  if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
+  if(memcmp(((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), oracle, MIC_LEN) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");

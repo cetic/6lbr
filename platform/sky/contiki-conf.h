@@ -37,6 +37,10 @@
 #define CC2420_CONF_AUTOACK              1
 #endif /* CC2420_CONF_AUTOACK */
 
+/* The TSCH default slot length of 10ms is a bit too short for this platform,
+ * use 15ms instead. */
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
+
 /* Specify whether the RDC layer should enable
    per-packet power profiling. */
 #define CONTIKIMAC_CONF_COMPOWER         1
@@ -175,9 +179,6 @@
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 #else /* NETSTACK_CONF_WITH_IPV6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108

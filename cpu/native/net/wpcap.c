@@ -192,7 +192,7 @@ uint8_t wfall_send(const uip_lladdr_t *lladdr);
 static uip_ipaddr_t last_sender;
 #endif
 
-static void
+static int
 output(void)
 {
 #if FALLBACK_HAS_ETHERNET_HEADERS&&0
@@ -203,8 +203,8 @@ output(void)
   }
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
 #endif
-    PRINTF("FUT: %u\n", uip_len);
-	wfall_send(0);
+  PRINTF("FUT: %u\n", uip_len);
+  return wfall_send(0);
 }
 
 const struct uip_fallback_interface rpl_interface = {
@@ -525,7 +525,7 @@ wpcap_init(void)
 //	  }
 #else
       addr.s_addr = inet_addr("10.10.10.10");   //prefer ipv4 default for legacy compatibility
-//    uiplib_ipaddrconv("aaaa::1",(uip_ipaddr_t*) &addr6.s6_addr);
+//    uiplib_ipaddrconv("fd00::1",(uip_ipaddr_t*) &addr6.s6_addr);
 #endif
 
 #ifdef UIP_FALLBACK_INTERFACE

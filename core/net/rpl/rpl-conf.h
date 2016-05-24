@@ -118,7 +118,7 @@
 #ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #else
-#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    0
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    1
 #endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
 
 /*
@@ -200,7 +200,7 @@
  * used in RPL lifetime values, in seconds.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#define RPL_DEFAULT_LIFETIME_UNIT       60
 #else
 #define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
 #endif
@@ -209,7 +209,7 @@
  * Default route lifetime as a multiple of the lifetime unit.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME
-#define RPL_DEFAULT_LIFETIME            0xff
+#define RPL_DEFAULT_LIFETIME            30
 #else
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
@@ -236,9 +236,42 @@
 #endif
 
 /*
+ * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.
+ * This will also enable retransmission of DAO when no ack is received.
+ * */
+#ifdef RPL_CONF_WITH_DAO_ACK
+#define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
+#else
+#define RPL_WITH_DAO_ACK 0
+#endif /* RPL_CONF_WITH_DAO_ACK */
+
+/*
+ * RPL REPAIR ON DAO NACK. When enabled, DAO NACK will trigger a local
+ * repair in order to quickly find a new parent to send DAO's to.
+ * NOTE: this is too agressive in some cases so use with care.
+ * */
+#ifdef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_REPAIR_ON_DAO_NACK RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#else
+#define RPL_REPAIR_ON_DAO_NACK 0
+#endif /* RPL_CONF_RPL_REPAIR_ON_DAO_NACK */
+
+/*
+ * Setting the DIO_REFRESH_DAO_ROUTES will make RPL always increase
+ * the DTSN (Destination Advertisement Trigger Sequence Number) when
+ * sending broadcast DIO. This is to get all children to re-register
+ * their DAO route.
+ * */
+#ifdef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_DIO_REFRESH_DAO_ROUTES RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#else
+#define RPL_DIO_REFRESH_DAO_ROUTES 0
+#endif /* RPL_CONF_DIO_REFRESH_DAO_ROUTES */
+
+/*
  * RPL probing. When enabled, probes will be sent periodically to keep
  * parent link estimates up to date.
- * */
+ */
 #ifdef RPL_CONF_WITH_PROBING
 #define RPL_WITH_PROBING RPL_CONF_WITH_PROBING
 #else
@@ -247,7 +280,7 @@
 
 /*
  * RPL probing interval.
- * */
+ */
 #ifdef RPL_CONF_PROBING_INTERVAL
 #define RPL_PROBING_INTERVAL RPL_CONF_PROBING_INTERVAL
 #else
@@ -256,7 +289,7 @@
 
 /*
  * RPL probing expiration time.
- * */
+ */
 #ifdef RPL_CONF_PROBING_EXPIRATION_TIME
 #define RPL_PROBING_EXPIRATION_TIME RPL_CONF_PROBING_EXPIRATION_TIME
 #else
@@ -265,7 +298,7 @@
 
 /*
  * Function used to select the next parent to be probed.
- * */
+ */
 #ifdef RPL_CONF_PROBING_SELECT_FUNC
 #define RPL_PROBING_SELECT_FUNC RPL_CONF_PROBING_SELECT_FUNC
 #else
@@ -279,7 +312,7 @@
  * To probe with DIS, use:
  * #define RPL_CONF_PROBING_SEND_FUNC(instance, addr) dis_output((addr))
  * Any other custom probing function is also acceptable.
- * */
+ */
 #ifdef RPL_CONF_PROBING_SEND_FUNC
 #define RPL_PROBING_SEND_FUNC RPL_CONF_PROBING_SEND_FUNC
 #else
@@ -288,12 +321,30 @@
 
 /*
  * Function used to calculate next RPL probing interval
- * */
+ */
 #ifdef RPL_CONF_PROBING_DELAY_FUNC
 #define RPL_PROBING_DELAY_FUNC RPL_CONF_PROBING_DELAY_FUNC
 #else
 #define RPL_PROBING_DELAY_FUNC() ((RPL_PROBING_INTERVAL / 2) \
     + random_rand() % (RPL_PROBING_INTERVAL))
+#endif
+
+/*
+ * Interval of DIS transmission
+ */
+#ifdef  RPL_CONF_DIS_INTERVAL
+#define RPL_DIS_INTERVAL                RPL_CONF_DIS_INTERVAL
+#else
+#define RPL_DIS_INTERVAL                60
+#endif
+
+/*
+ * Added delay of first DIS transmission after boot
+ */
+#ifdef  RPL_CONF_DIS_START_DELAY
+#define RPL_DIS_START_DELAY             RPL_CONF_DIS_START_DELAY
+#else
+#define RPL_DIS_START_DELAY             5
 #endif
 
 #endif /* RPL_CONF_H */

@@ -108,7 +108,6 @@ struct rpl_dag;
 #define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
 
 struct rpl_parent {
-  struct rpl_parent *next;
   struct rpl_dag *dag;
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
   rpl_metric_container_t mc;
@@ -180,12 +179,21 @@ typedef struct rpl_instance rpl_instance_t;
  * update_metric_container(dag)
  *
  *  Updates the metric container for outgoing DIOs in a certain DAG.
- *  If the objective function of the DAG does not use metric containers, 
+ *  If the objective function of the DAG does not use metric containers,
  *  the function should set the object type to RPL_DAG_MC_NONE.
+ *
+ * dao_ack_callback(parent, status)
+ *
+ * A callback on the result of the DAO ACK. Similar to the neighbor link
+ * callback. A failed DAO_ACK (NACK) can be used for switching to another
+ * parent via changed link metric or other mechanisms.
  */
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
   void (*neighbor_link_callback)(rpl_parent_t *, int, int);
+#if RPL_WITH_DAO_ACK
+  void (*dao_ack_callback)(rpl_parent_t *, int status);
+#endif
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
@@ -217,6 +225,11 @@ struct rpl_instance {
   uint8_t dio_intcurrent;
   uint8_t dio_send; /* for keeping track of which mode the timer is in */
   uint8_t dio_counter;
+  /* my last registered DAO that I might be waiting for ACK on */
+  uint8_t my_dao_seqno;
+  uint8_t my_dao_transmissions;
+  /* this is intended to keep track if this instance have a route downward */
+  uint8_t has_downward_route;
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
@@ -234,6 +247,9 @@ struct rpl_instance {
   struct ctimer dao_lifetime_timer;
   struct ctimer unicast_dio_timer;
   rpl_parent_t *unicast_dio_target;
+#if RPL_WITH_DAO_ACK
+  struct ctimer dao_retransmit_timer;
+#endif /* RPL_WITH_DAO_ACK */
 };
 
 /*---------------------------------------------------------------------------*/
@@ -258,7 +274,7 @@ rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
 uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
-void rpl_print_neighbor_list();
+void rpl_print_neighbor_list(void);
 
 /* Per-parent RPL information */
 NBR_TABLE_DECLARE(rpl_parents);
@@ -293,6 +309,14 @@ enum rpl_mode rpl_set_mode(enum rpl_mode mode);
  * \retval The RPL mode
  */
 enum rpl_mode rpl_get_mode(void);
+
+
+/**
+ * Get the RPL's best guess on if we have downward route or not.
+ *
+ * \retval 1 if we have a downward route from RPL Root, 0 if not.
+ */
+int rpl_has_downward_route(void);
 
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

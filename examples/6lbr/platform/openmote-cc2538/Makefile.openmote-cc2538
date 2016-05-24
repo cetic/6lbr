@@ -1,0 +1,4 @@
+CC2538_ENC28J60_ARCH=gpio
+PROJECTDIRS += platform/openmote-cc2538
+
+include platform/cc2538dk/Makefile.cc2538dk

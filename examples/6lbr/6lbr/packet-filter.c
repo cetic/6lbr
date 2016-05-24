@@ -402,7 +402,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 #if CETIC_6LBR_ROUTER
   //Modify source address
   if((nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0
-     && uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)
+     && uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)
      && uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &wsn_ip_local_addr)) {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "eth_output: Update src address\n");
     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &eth_ip_local_addr);

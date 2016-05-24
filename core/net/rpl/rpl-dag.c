@@ -60,6 +60,11 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
+/* A configurable function called after every RPL parent switch */
+#ifdef RPL_CALLBACK_PARENT_SWITCH
+void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
+#endif /* RPL_CALLBACK_PARENT_SWITCH */
+
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -83,7 +88,7 @@ rpl_instance_t *default_instance;
 
 /*---------------------------------------------------------------------------*/
 void
-rpl_print_neighbor_list()
+rpl_print_neighbor_list(void)
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
       default_instance->of != NULL && default_instance->of->calculate_rank != NULL) {
@@ -155,7 +160,7 @@ rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
   uip_ds6_nbr_t *nbr;
   nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
-  
+
   if(nbr != NULL) {
     return nbr->link_metric;
   } else {
@@ -187,6 +192,10 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
       PRINTF("NULL");
     }
     PRINTF("\n");
+
+#ifdef RPL_CALLBACK_PARENT_SWITCH
+    RPL_CALLBACK_PARENT_SWITCH(dag->preferred_parent, p);
+#endif /* RPL_CALLBACK_PARENT_SWITCH */
 
     /* Always keep the preferred parent locked, so it remains in the
      * neighbor table. */
@@ -642,8 +651,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   PRINT6ADDR(addr);
   PRINTF("\n");
   if(lladdr != NULL) {
-    /* Add parent in rpl_parents */
-    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr);
+    /* Add parent in rpl_parents - again this is due to DIO */
+    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr,
+                             NBR_TABLE_REASON_RPL_DIO, dio);
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
@@ -653,7 +663,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
-      
+
       /* Check whether we have a neighbor that has not gotten a link metric yet */
       if(nbr != NULL && nbr->link_metric == 0) {
 	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
@@ -909,6 +919,18 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   parent->dag = dag_dst;
 }
 /*---------------------------------------------------------------------------*/
+int
+rpl_has_downward_route(void)
+{
+  int i;
+  for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
+    if(instance_table[i].used && instance_table[i].has_downward_route) {
+      return 1;
+    }
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_get_any_dag(void)
 {
@@ -967,6 +989,15 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_parent_t *p;
   rpl_of_t *of;
 
+  /* Determine the objective function by using the
+     objective code point of the DIO. */
+  of = rpl_find_of(dio->ocp);
+  if(of == NULL) {
+    PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF: %u\n",
+           dio->instance_id, dio->ocp);
+    return;
+  }
+
   dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
@@ -986,17 +1017,6 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   p->dtsn = dio->dtsn;
   PRINTF("succeeded\n");
-
-  /* Determine the objective function by using the
-     objective code point of the DIO. */
-  of = rpl_find_of(dio->ocp);
-  if(of == NULL) {
-    PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF\n",
-        dio->instance_id);
-    rpl_remove_parent(p);
-    instance->used = 0;
-    return;
-  }
 
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
@@ -1132,6 +1152,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("\n");
 
   ANNOTATE("#A join=%u\n", dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
+
   rpl_process_parent_event(instance, p);
   p->dtsn = dio->dtsn;
 
@@ -1175,6 +1196,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   RPL_STAT(rpl_stats.global_repairs++);
 }
+
 /*---------------------------------------------------------------------------*/
 void
 rpl_local_repair(rpl_instance_t *instance)
@@ -1193,7 +1215,12 @@ rpl_local_repair(rpl_instance_t *instance)
     }
   }
 
+  /* no downward route anymore */
+  instance->has_downward_route = 0;
+
   rpl_reset_dio_timer(instance);
+  /* Request refresh of DAO registrations next DIO */
+  RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1270,6 +1297,19 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   return return_value;
 }
 /*---------------------------------------------------------------------------*/
+static int
+add_nbr_from_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
+{
+  /* add this to the neighbor cache if not already there */
+  if(rpl_icmp6_update_nbr_table(from, NBR_TABLE_REASON_RPL_DIO, dio) == NULL) {
+    PRINTF("RPL: Out of memory, dropping DIO from ");
+    PRINT6ADDR(from);
+    PRINTF("\n");
+    return 0;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 void
 rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
@@ -1294,23 +1334,23 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dag != NULL && instance != NULL) {
     if(lollipop_greater_than(dio->version, dag->version)) {
       if(dag->rank == ROOT_RANK(instance)) {
-	PRINTF("RPL: Root received inconsistent DIO version number\n");
-	dag->version = dio->version;
-	RPL_LOLLIPOP_INCREMENT(dag->version);
-	rpl_reset_dio_timer(instance);
+        PRINTF("RPL: Root received inconsistent DIO version number (current: %u, received: %u)\n", dag->version, dio->version);
+        dag->version = dio->version;
+        RPL_LOLLIPOP_INCREMENT(dag->version);
+        rpl_reset_dio_timer(instance);
 #if CETIC_6LBR
-    nvm_data.rpl_version_id = dag->version;
-    store_nvm_config();
+        nvm_data.rpl_version_id = dag->version;
+        store_nvm_config();
 #endif
       } else {
         PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
           if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-            PRINTF("RPL : Prefix announced in DIO\n");
+            PRINTF("RPL: Prefix announced in DIO\n");
             rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
           }
         }
-	global_repair(from, dag, dio);
+        global_repair(from, dag, dio);
       }
       return;
     }
@@ -1326,8 +1366,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(instance == NULL) {
-    PRINTF("RPL: New instance detected: Joining...\n");
-    rpl_join_instance(from, dio);
+    PRINTF("RPL: New instance detected (ID=%u): Joining...\n", dio->instance_id);
+    if(add_nbr_from_dio(from, dio)) {
+      rpl_join_instance(from, dio);
+    } else {
+      PRINTF("RPL: Not joining since could not add parent\n");
+    }
     return;
   }
 
@@ -1339,6 +1383,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dag == NULL) {
 #if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
+    if(!add_nbr_from_dio(from, dio)) {
+      PRINTF("RPL: Could not add new DAG, could not add parent\n");
+      return;
+    }
     dag = rpl_add_dag(from, dio);
     if(dag == NULL) {
       PRINTF("RPL: Failed to add DAG.\n");
@@ -1362,7 +1410,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* Prefix Information Option treated to add new prefix */
   if(dio->prefix_info.length != 0) {
     if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-      PRINTF("RPL : Prefix announced in DIO\n");
+      PRINTF("RPL: Prefix announced in DIO\n");
       rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
     }
   }
@@ -1386,7 +1434,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    * a candidate parent, and let rpl_process_parent_event decide
    * whether to keep it in the set.
    */
-  rpl_update_dag(instance, dag, dio);
+
+  if(!add_nbr_from_dio(from, dio)) {
+    PRINTF("RPL: Could not add parent based on DIO\n");
+    return;
+  }
+
   p = rpl_find_parent(dag, from);
   if(p == NULL) {
     previous_dag = find_parent_dag(instance, from);

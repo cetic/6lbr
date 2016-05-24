@@ -55,7 +55,7 @@ usage(int result)
 }
 
 static void
-print_hex_line(unsigned char *prefix, unsigned char *outbuf, int index)
+print_hex_line(char *prefix, unsigned char *outbuf, int index)
 {
   int i;
 
@@ -92,7 +92,8 @@ main(int argc, char **argv)
   char *speedname = BAUDRATE_S;
   char *device = MODEMDEVICE;
   char *timeformat = NULL;
-  unsigned char buf[BUFSIZE], outbuf[HCOLS];
+  unsigned char buf[BUFSIZE];
+  char outbuf[HCOLS];
   unsigned char mode = MODE_START_TEXT;
   int nfound, flags = 0;
   unsigned char lastc = '\0';
@@ -164,13 +165,21 @@ main(int argc, char **argv)
   }
   fprintf(stderr, "connecting to %s (%s)", device, speedname);
 
-#ifdef O_SYNC
+
+
+#ifndef O_SYNC
+#define O_SYNC 0
+#endif
+#ifdef O_DIRECT
   fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC);
-  if(fd < 0 && errno == EINVAL){ // O_SYNC not supported (e.g. raspberian)
-    fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT);
+  /* Some systems do not support certain parameters (e.g. raspbian)
+   * Just do some random testing. Not sure  whether there is a better way
+   * of doing this. */
+  if(fd < 0 && errno == EINVAL){
+    fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   }
 #else
-  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC );
+  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
 #endif
   if(fd < 0) {
     fprintf(stderr, "\n");
@@ -265,7 +274,7 @@ main(int argc, char **argv)
     }
 
     if(FD_ISSET(fd, &smask)) {
-      int i, j, n = read(fd, buf, sizeof(buf));
+      int i, n = read(fd, buf, sizeof(buf));
       if(n < 0) {
         perror("could not read");
         exit(-1);

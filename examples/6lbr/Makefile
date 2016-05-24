@@ -112,6 +112,8 @@ MODULES += core/net/ip64 core/net/ip64-addr
 PROJECT_SOURCEFILES += ip64-eth-driver.c
 endif
 
+LDGENFLAGS += $(CFLAGS)
+
 tools:
 	cd tools && $(MAKE)
 

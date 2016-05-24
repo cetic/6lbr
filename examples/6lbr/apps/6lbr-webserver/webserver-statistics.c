@@ -181,7 +181,6 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Collisions : %d<br />", csma_collisions);
   add("Retransmissions : %d<br />", csma_retransmissions);
   add("Dropped packets : %d<br />", csma_dropped);
-  add("Deferred packets : %d<br />", csma_deferred);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

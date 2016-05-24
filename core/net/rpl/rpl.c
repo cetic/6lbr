@@ -256,7 +256,8 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   rep->state.dag = dag;
   rep->state.lifetime = RPL_LIFETIME(dag->instance, dag->instance->default_lifetime);
-  rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
+  /* always clear state flags for the no-path received when adding/refreshing */
+  RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
 
   PRINTF("RPL: Added a route to ");
   PRINT6ADDR(prefix);
@@ -303,7 +304,11 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 
   PRINTF("RPL: Neighbor state changed for ");
   PRINT6ADDR(&nbr->ipaddr);
+#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA
   PRINTF(", nscount=%u, state=%u\n", nbr->nscount, nbr->state);
+#else /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
+  PRINTF(", state=%u\n", nbr->state);
+#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);

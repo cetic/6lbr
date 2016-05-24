@@ -226,7 +226,7 @@
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -259,8 +259,8 @@
 /* Define our IPv6 prefixes/contexts here */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
+  addr_contexts[0].prefix[0] = UIP_DS6_DEFAULT_PREFIX_0; \
+  addr_contexts[0].prefix[1] = UIP_DS6_DEFAULT_PREFIX_1; \
 }
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
