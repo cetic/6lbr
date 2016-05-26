@@ -262,6 +262,26 @@ extern void log6lbr_timestamp();
 #else
 #define _SERVICE_FILTER_RADIO_OUT(...)
 #endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_TAP_IN
+#define _SERVICE_FILTER_TAP_IN(a) a
+#else
+#define _SERVICE_FILTER_TAP_IN(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_TAP_OUT
+#define _SERVICE_FILTER_TAP_OUT(a) a
+#else
+#define _SERVICE_FILTER_TAP_OUT(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_SLIP_IN
+#define _SERVICE_FILTER_SLIP_IN(a) a
+#else
+#define _SERVICE_FILTER_SLIP_IN(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_SLIP_OUT
+#define _SERVICE_FILTER_SLIP_OUT(a) a
+#else
+#define _SERVICE_FILTER_SLIP_OUT(...)
+#endif
 #if LOG6LBR_SERVICE & LOG6LBR_SERVICE_PF_IN
 #define _SERVICE_FILTER_PF_IN(a) a
 #else
@@ -271,6 +291,11 @@ extern void log6lbr_timestamp();
 #define _SERVICE_FILTER_PF_OUT(a) a
 #else
 #define _SERVICE_FILTER_PF_OUT(...)
+#endif
+#if LOG6LBR_SERVICE & LOG6LBR_SERVICE_SLIP_DBG
+#define _SERVICE_FILTER_SLIP_DBG(a) a
+#else
+#define _SERVICE_FILTER_SLIP_DBG(...)
 #endif
 
 #define _LOG6LBR_LEVEL_F(level, service, func, ...) _SERVICE_FILTER_##service(_LEVEL_FILTER_##level(_LOG6LBR_LEVEL_F_REAL(level, func, __VA_ARGS__)))
