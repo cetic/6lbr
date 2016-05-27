@@ -49,22 +49,33 @@ static httpd_cgi_command_t *commands = NULL;
 void
 httpd_instances_add(void *dgroup, uint16_t nb)
 {
-  httpd_group_t *group = (httpd_group_t *)malloc(nb * sizeof(httpd_group_t));
+  httpd_group_t *group = (httpd_group_t *)malloc(2 + nb * sizeof(httpd_group_t));
   
+  group[0].title = (char*)malloc(sizeof(char));
+  sprintf(group[0].title, "%c", '-');
+  group[0].next = &group[1];
+  group[1].title = (char*)malloc(sizeof(char));
+  sprintf(group[1].title, "%c", '+');
 
-  int i;
-  char * instance;
-  for(i=0;i<nb-1;i++){
+  if(nb > 0){
+    group[1].next = &group[2]; 
+    int i;
+    char * instance;
+    for(i=0;i<nb-1;i++){
+      instance = (char*)malloc(5*sizeof(char));
+      sprintf(instance,"%d",nvms_data[i].rpl_instance_id);
+      group[i+2].title = instance;
+      LOG6LBR_INFO("Adding instance : %s\n", group[i+2].title);
+      group[i+2].next = &group[i+3];
+    }
     instance = (char*)malloc(5*sizeof(char));
-    sprintf(instance,"%d",i);
-    group[i].title = instance;
-    LOG6LBR_INFO("Adding instance : %s\n", group[i].title);
-    group[i].next = &group[i+1];
+    sprintf(instance,"%d",nvms_data[i].rpl_instance_id);
+    group[nb+1].title = instance;
+    group[nb+1].next = NULL;
   }
-  instance = (char*)malloc(5*sizeof(char));
-  sprintf(instance,"%d",i);
-  group[nb-1].title = instance;
-  group[nb-1].next = NULL;
+  else {
+    group[1].next = NULL;
+  }
   
   instances = &group[0];
 }

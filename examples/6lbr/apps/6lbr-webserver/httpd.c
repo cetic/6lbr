@@ -202,9 +202,9 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 #endif /* URLCONV */
   if(s->query) {
-    LOG6LBR_6ADDR(DEBUG, &uip_conn->ripaddr, "Request for '%s?%s' from ", s->filename, s->query);
+    LOG6LBR_6ADDR(INFO, &uip_conn->ripaddr, "Request for '%s?%s' from ", s->filename, s->query);
   } else {
-    LOG6LBR_6ADDR(DEBUG, &uip_conn->ripaddr, "Request for '%s' from ", s->filename);
+    LOG6LBR_6ADDR(INFO, &uip_conn->ripaddr, "Request for '%s' from ", s->filename);
   }
 
   s->state = STATE_OUTPUT;

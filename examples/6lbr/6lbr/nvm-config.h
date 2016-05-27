@@ -41,7 +41,7 @@
 
 extern nvm_data_t *nvms_data;
 extern nvm_data_t nvm_data;
-extern uint16_t rpl_instances;
+extern uint16_t rpl_instances, rpl_current_instance;
 
 void load_nvm_config(void);
 void store_nvm_config(void);

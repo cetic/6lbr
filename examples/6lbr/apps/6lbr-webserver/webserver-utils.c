@@ -45,6 +45,8 @@
 
 #include <stdarg.h>
 
+#include <stdlib.h>
+
 /*---------------------------------------------------------------------------*/
 
 #define WEBSERVER_CONF_LOADTIME 1
@@ -222,23 +224,30 @@ key_conv(const char *str, uint8_t * key, int size)
 static void
 add_instances_menu(struct httpd_state *s)
 {
+  add("<div class=\"barre_nav\">");
   httpd_group_t *f;
   for(f = httpd_instance_head(); f != NULL; f = f->next) {
     add("<div class=\"menu-general\">");
     if(s->script != NULL && f == s->script->group) {
       add("<span>%s</span>", f->title);
     } else {
-      add("<a href=\"%s\">%s</a>", f->title, f->title);
+      if (strcmp(f->title, "+") == 0 || strcmp(f->title, "-") == 0)
+	  add("<a href=\"instances_mgmt?%s\">%s</a>", f->title, f->title);
+      else {
+	if (rpl_current_instance == atoi(f->title))
+	  add("<span>%s</span>", f->title);
+	else
+	  add("<a href=\"select?%s\">%s</a>", f->title, f->title);
+      }
     }
     add("</div>");
   }
-
+  add("</div>");
 }
 /*---------------------------------------------------------------------------*/
 static void
 add_menu(struct httpd_state *s)
 {
-  add_instances_menu(s);
   add("<div class=\"barre_nav\">");
   httpd_group_t *f;
   for(f = httpd_group_head(); f != NULL; f = f->next) {
@@ -287,6 +296,9 @@ PT_THREAD(generate_top(struct httpd_state *s))
     add("<title>6LBR</title>");
   }
   add(BODY);
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add_instances_menu(s);
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add_menu(s);

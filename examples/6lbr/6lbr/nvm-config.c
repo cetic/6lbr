@@ -50,7 +50,7 @@
 #include "log-6lbr.h"
 
 nvm_data_t *nvms_data;
-uint16_t rpl_instances;
+uint16_t rpl_instances, rpl_current_instance;
 nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/
