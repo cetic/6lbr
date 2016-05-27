@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "contiki-net.h"
 #include "httpd-cgi.h"
@@ -51,10 +52,10 @@ httpd_instances_add(void *dgroup, uint16_t nb)
 {
   httpd_group_t *group = (httpd_group_t *)malloc(2 + nb * sizeof(httpd_group_t));
   
-  group[0].title = (char*)malloc(sizeof(char));
+  group[0].title = (char*)malloc(2*sizeof(char));
   sprintf(group[0].title, "%c", '-');
   group[0].next = &group[1];
-  group[1].title = (char*)malloc(sizeof(char));
+  group[1].title = (char*)malloc(2*sizeof(char));
   sprintf(group[1].title, "%c", '+');
 
   if(nb > 0){

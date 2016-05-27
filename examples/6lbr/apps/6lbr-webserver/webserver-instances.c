@@ -330,9 +330,16 @@ PT_THREAD(generate_instances(struct httpd_state *s))
     PSOCK_END(&s->sout);
   }
   else if (strcmp(s->query,"-") == 0){
-    
+    PSOCK_BEGIN(&s->sout);
+    add("<form action=\"instance_rm\" method=\"get\">");
+    add("<H2>Deleting the RPL instance number :</H2>");
+    add("<br><input type=\"text\" name=\"instance\" value=\"%i\"/></br>",rpl_current_instance);
+    add("<br /><input type=\"submit\" value=\"OK\"/></form>");
+    add("<br>or choice other menu to cancel</br>");
+    SEND_STRING(&s->sout, buf);
+    reset_buf();    
+    PSOCK_END(&s->sout);
   }
-  
 }
 
 /*---------------------------------------------------------------------------*/
@@ -545,6 +552,7 @@ webserver_instance_new(struct httpd_state *s)
     nvm_data_t * new_nvms_data = (nvm_data_t*)malloc(rpl_instances * sizeof(nvm_data_t));
     memcpy(new_nvms_data, nvms_data, (rpl_instances - 1) * sizeof(nvm_data_t));
     memcpy(&new_nvms_data[rpl_instances-1], &nvm_data, sizeof(nvm_data_t));
+    free(nvms_data);
     nvms_data = new_nvms_data;
     store_nvm_config();
     if(!reboot_needed) {
@@ -562,10 +570,64 @@ webserver_instance_new(struct httpd_state *s)
 }
 
 static httpd_cgi_call_t *
+webserver_instance_rm(struct httpd_state *s)
+{
+  
+  const char *ptr = s->query;
+  char *next;
+
+  while(*ptr) {
+    const char *param = ptr;
+
+    next = index(ptr, '=');
+    if(!next)
+      break;
+    *next = 0;
+    ptr = next + 1;
+    const char *value = ptr;
+
+    next = index(ptr, '&');
+    if(next) {
+      *next = 0;
+      ptr = next + 1;
+    } else {
+      ptr += strlen(ptr);
+    }
+
+    LOG6LBR_DEBUG("Got param: '%s' = '%s'\n", param, value);
+
+    int instance_id = atoi(value);
+    webserver_result_title = "Configuration";
+    if(instance_id>0){
+      int i=0;
+      rpl_instances--;
+      nvm_data_t * new_nvms_data = (nvm_data_t*)malloc(rpl_instances * sizeof(nvm_data_t));
+      for(i=0;i<rpl_instances+1;i++)
+	if(nvms_data[i].rpl_instance_id != instance_id)
+	  memcpy(&new_nvms_data[i], &nvms_data[i], sizeof(nvm_data_t));
+      free(nvms_data);
+      nvms_data = new_nvms_data;
+      if(rpl_instances != 0)
+	nvm_data = nvms_data[0];
+      store_nvm_config();
+      char rt[35] = "Instance number ";
+      strcat(rt, s->query);
+      strcat(rt, " deleted");
+      webserver_result_text = (char*)malloc(35*sizeof(char));
+      strcpy(webserver_result_text, rt);
+      webserver_result_refresh = 15;
+      process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
+      return &webserver_result_page;
+    }
+  }
+}
+
+
+static httpd_cgi_call_t *
 webserver_instances_selection(struct httpd_state *s)
 {
   int instance_id = atoi(s->query);
-  if(instance_id){
+  if(instance_id>0){
     int i=0;
     while(nvms_data[i].rpl_instance_id != instance_id)
       i++;    
@@ -593,4 +655,5 @@ webserver_instances_selection(struct httpd_state *s)
 HTTPD_CGI_CALL_NAME(webserver_instances);
 HTTPD_CGI_CALL(webserver_instances, "instances_mgmt", "Instance Management", generate_instances, 0);
 HTTPD_CGI_CMD(webserver_instance_new_cmd, "instance_new", webserver_instance_new,0); 
+HTTPD_CGI_CMD(webserver_instance_rm_cmd, "instance_rm", webserver_instance_rm,0); 
 HTTPD_CGI_CMD(webserver_instances_select_cmd, "select", webserver_instances_selection,0); 
