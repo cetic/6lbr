@@ -202,62 +202,6 @@ set_rime_addr(void)
   printf("%d\n", addr.u8[i]);
 }
 /*---------------------------------------------------------------------------*/
-#if NETSTACK_CONF_WITH_IPV6
-static void
-start_uip6()
-{
-  NETSTACK_NETWORK.init();
-
-  process_start(&tcpip_process, NULL);
-
-  printf("Tentative link-local IPv6 address ");
-  {
-    uip_ds6_addr_t *lladdr;
-    int i;
-    lladdr = uip_ds6_get_link_local(-1);
-    for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
-             lladdr->ipaddr.u8[i * 2 + 1]);
-    }
-    printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
-  }
-
-#if !UIP_DS6_NO_STATIC_ADDRESS
-  if(!UIP_CONF_IPV6_RPL) {
-    uip_ipaddr_t ipaddr;
-    int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-    uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
-    printf("Tentative global IPv6 address ");
-    for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:",
-             ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
-    }
-    printf("%02x%02x\n",
-           ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
-  }
-#endif /* !UIP_DS6_NO_STATIC_ADDRESS */
-}
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-/*---------------------------------------------------------------------------*/
-static void
-start_network_layer()
-{
-#if NETSTACK_CONF_WITH_IPV6
-#if SLIP_RADIO
-  NETSTACK_NETWORK.init();
-#else
-  start_uip6();
-#endif /* SLIP_RADIO */
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-  /* Start autostart processes (defined in Contiki application) */
-  print_processes(autostart_processes);
-  autostart_start(autostart_processes);
-  /* To support link layer security in combination with NETSTACK_CONF_WITH_IPV4 and
-   * TIMESYNCH_CONF_ENABLED further things may need to be moved here */
-}
-/*---------------------------------------------------------------------------*/
 void
 contiki_init()
 {
@@ -295,9 +239,7 @@ contiki_init()
   queuebuf_init();
 
   /* Initialize communication stack */
-  NETSTACK_RADIO.init();
-  NETSTACK_RDC.init();
-  NETSTACK_MAC.init();
+  netstack_init();
   printf("%s/%s/%s, channel check rate %lu Hz\n",
          NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
@@ -359,6 +301,7 @@ contiki_init()
              lladdr->ipaddr.u8[15]);
     }
 
+#if !UIP_DS6_NO_STATIC_ADDRESS
     if(1) {
       uip_ipaddr_t ipaddr;
       int i;
@@ -374,6 +317,7 @@ contiki_init()
              ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
     }
   }
+#endif
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /* Initialize eeprom */
@@ -382,7 +326,9 @@ contiki_init()
   /* Start serial process */
   serial_line_init();
 
-  NETSTACK_LLSEC.bootstrap(start_network_layer);
+  /* Start autostart processes (defined in Contiki application) */
+  print_processes(autostart_processes);
+  autostart_start(autostart_processes);
 }
 /*---------------------------------------------------------------------------*/
 static void

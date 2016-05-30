@@ -146,6 +146,7 @@ static uip_ipaddr_t ipaddr;
 #if CETIC_6LBR_ROUTER
 static uip_ds6_route_info_t *rtinfo; /**  Pointer to a route information list entry */
 #endif
+#endif
 #if (!UIP_CONF_ROUTER || UIP_ND6_SEND_RA)
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif

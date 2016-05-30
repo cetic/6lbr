@@ -176,6 +176,7 @@
 #define ADC_SENSORS_ADC3_PIN     5          /**< ADC3 to PA5, 3V3      */
 #define ADC_SENSORS_ADC4_PIN     6          /**< ADC4 to PA6, 3V3      */
 #define ADC_SENSORS_ADC5_PIN     (-1)       /**< Not used              */
+#define ADC_SENSORS_ADC6_PIN     (-1)       /**< Not used              */
 #define ADC_SENSORS_MAX          4          /**< PA2, PA4, PA5, PA6    */
 
 

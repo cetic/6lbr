@@ -258,6 +258,7 @@ parse(void)
        return FRAMER_FAILED;
     }
   }
+  }
   
   return result;
 }

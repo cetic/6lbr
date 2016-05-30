@@ -464,7 +464,9 @@ typedef uint32_t rtimer_clock_t;
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
+#ifndef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN                     0
+#endif
 #define UIP_CONF_NETIF_MAX_ADDRESSES         3
 
 /* TCP, UDP, ICMP */
@@ -483,7 +485,9 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ROUTER                      1
 #endif
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA                 0
+#endif
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
 
