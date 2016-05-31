@@ -57,7 +57,7 @@ static native_config_callback_t network_route_config_cb;
 #endif
 /*---------------------------------------------------------------------------*/
 static int native_config_global_handler(config_level_t level, void* user, const char* section, const char* name,
-    const char* value) {
+	 const char* value) {
   if(!name) {
     //ignore end of section
     return 1;

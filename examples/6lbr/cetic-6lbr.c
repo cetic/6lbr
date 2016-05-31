@@ -511,9 +511,15 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   packet_filter_init();
-  int i;
-  for(i=0;i<rpl_instances;i++){
-    nvm_data = nvms_data[i];
+  if(rpl_instances > 0){
+    int i;
+    for(i=0;i<rpl_instances;i++){
+      nvm_data = nvms_data[i];
+      cetic_6lbr_init();
+    }
+  }
+  else {
+    check_nvm(&nvm_data,1); 
     cetic_6lbr_init();
   }
 
@@ -530,9 +536,12 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     platform_restart();
   }
-  for(i=0;i<rpl_instances;i++){
-    nvm_data = nvms_data[i];
-    cetic_6lbr_init_finalize();
+  if(rpl_instances > 0){
+    int i;
+    for(i=0;i<rpl_instances;i++){
+      nvm_data = nvms_data[i];
+      cetic_6lbr_init_finalize();
+    }
   }
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
