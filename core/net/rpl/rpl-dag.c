@@ -953,7 +953,7 @@ rpl_update_dag(rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio)
 {
   dag->grounded = dio->grounded;
   dag->preference = dio->preference;
-  dag->lifetime = RPL_DAG_LIFETIME;
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) * RPL_DAG_LIFETIME / 1000;
 }
 /*---------------------------------------------------------------------------*/
 void
