@@ -72,8 +72,8 @@
 #undef RPL_CONF_MIN_HOPRANKINC
 #define RPL_CONF_MIN_HOPRANKINC    (nvm_data.rpl_min_hoprankinc)
 
-#undef RPL_CONF_MAX_HOPRANKINC
-#define RPL_CONF_MAX_HOPRANKINC    (nvm_data.rpl_max_rankinc)
+#undef RPL_CONF_MAX_RANKINC
+#define RPL_CONF_MAX_RANKINC    (nvm_data.rpl_max_rankinc)
 
 #undef RPL_CONF_DEFAULT_LIFETIME_UNIT
 #define RPL_CONF_DEFAULT_LIFETIME_UNIT    (nvm_data.rpl_lifetime_unit)
