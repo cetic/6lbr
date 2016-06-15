@@ -316,8 +316,8 @@ contiki_init()
       printf("%02x%02x\n",
              ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
     }
+#endif /* !UIP_DS6_NO_STATIC_ADDRESS */
   }
-#endif
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /* Initialize eeprom */
