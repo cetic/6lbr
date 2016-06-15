@@ -479,14 +479,16 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
   dag->prefix_info.length = len;
   dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
   PRINTF("RPL: Prefix set - will announce this in DIOs\n");
-  /* Autoconfigure an address if this node does not already have an address
-     with this prefix. Otherwise, update the prefix */
-  if(last_len == 0) {
-    PRINTF("rpl_set_prefix - prefix NULL\n");
-    check_prefix(NULL, &dag->prefix_info);
-  } else {
-    PRINTF("rpl_set_prefix - prefix NON-NULL\n");
-    check_prefix(&last_prefix, &dag->prefix_info);
+  if(dag->rank != ROOT_RANK(dag->instance)) {
+    /* Autoconfigure an address if this node does not already have an address
+       with this prefix. Otherwise, update the prefix */
+    if(last_len == 0) {
+      PRINTF("rpl_set_prefix - prefix NULL\n");
+      check_prefix(NULL, &dag->prefix_info);
+    } else {
+      PRINTF("rpl_set_prefix - prefix NON-NULL\n");
+      check_prefix(&last_prefix, &dag->prefix_info);
+    }
   }
   return 1;
 }
@@ -728,22 +730,17 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   old_rank = instance->current_dag->rank;
   last_parent = instance->current_dag->preferred_parent;
 
-  best_dag = instance->current_dag;
-  if(best_dag->rank != ROOT_RANK(instance)) {
-    if(rpl_select_parent(p->dag) != NULL) {
-      if(p->dag != best_dag) {
-        best_dag = instance->of->best_dag(best_dag, p->dag);
-      }
-    } else if(p->dag == best_dag) {
-      best_dag = NULL;
-      for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
-        if(dag->used && dag->preferred_parent != NULL && dag->preferred_parent->rank != INFINITE_RANK) {
-          if(best_dag == NULL) {
-            best_dag = dag;
-          } else {
-            best_dag = instance->of->best_dag(best_dag, dag);
-          }
-        }
+  if(instance->current_dag->rank != ROOT_RANK(instance)) {
+    rpl_select_parent(p->dag);
+  }
+
+  best_dag = NULL;
+  for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
+    if(dag->used && dag->preferred_parent != NULL && dag->preferred_parent->rank != INFINITE_RANK) {
+      if(best_dag == NULL) {
+        best_dag = dag;
+      } else {
+        best_dag = instance->of->best_dag(best_dag, dag);
       }
     }
   }
@@ -978,7 +975,7 @@ rpl_update_dag(rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio)
 {
   dag->grounded = dio->grounded;
   dag->preference = dio->preference;
-  dag->lifetime = RPL_DAG_LIFETIME;
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) * RPL_DAG_LIFETIME / 1000;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -1423,7 +1420,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   /* The DIO comes from a valid DAG, we can refresh its lifetime */
-  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) / 1000;
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) * RPL_DAG_LIFETIME / 1000;
   PRINTF("Set dag ");
   PRINT6ADDR(&dag->dag_id);
   PRINTF(" lifetime to %ld\n", dag->lifetime);

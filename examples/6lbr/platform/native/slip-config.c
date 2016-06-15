@@ -145,6 +145,7 @@ slip_config_handle_arguments(int argc, char **argv)
       slip_config_flowcontrol = 1;
       break;
 
+#if !LOG6LBR_STATIC
     case 'L':
       if (optarg) {
         Log6lbr_level = atoi(optarg) * 10;
@@ -160,6 +161,7 @@ slip_config_handle_arguments(int argc, char **argv)
         Log6lbr_services = Log6lbr_Service_DEFAULT;
       }
       break;
+#endif
 
     case 's':
       if(strncmp("/dev/", optarg, 5) == 0) {
