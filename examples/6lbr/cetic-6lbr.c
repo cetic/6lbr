@@ -74,6 +74,7 @@
 
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
+#include "framer-wrapper.h"
 #endif
 
 #if WEBSERVER
@@ -484,6 +485,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   NETSTACK_MAC.off(1);
 
 #if CETIC_6LBR_LLSEC_WRAPPER
+  framer_wrapper_init();
   llsec_wrapper_init();
 #endif
 

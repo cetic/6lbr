@@ -278,6 +278,8 @@
 #endif
 
 #if CETIC_6LBR_LLSEC_WRAPPER
+#undef NETSTACK_FRAMER
+#define NETSTACK_FRAMER framer_wrapper
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC llsec_wrapper_driver
 #endif
