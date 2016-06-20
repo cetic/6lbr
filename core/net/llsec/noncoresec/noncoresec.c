@@ -80,7 +80,6 @@ extern const struct framer DECORATED_FRAMER;
 #define SEC_LVL         2
 #endif /* NONCORESEC_CONF_SEC_LVL */
 
-#define WITH_ENCRYPTION (SEC_LVL & (1 << 2))
 #define MIC_LEN         LLSEC802154_MIC_LEN(SEC_LVL)
 
 #ifdef NONCORESEC_CONF_KEY
@@ -102,7 +101,7 @@ extern const struct framer DECORATED_FRAMER;
 #define PRINTF(...)
 #endif /* DEBUG */
 
-#if LLSEC802154_USES_AUX_HEADER && SEC_LVL && LLSEC802154_USES_FRAME_COUNTER
+#if LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_FRAME_COUNTER
 
 /* network-wide CCM* key */
 #ifdef NONCORESEC_CONF_KEY_REF
@@ -124,22 +123,22 @@ aead(uint8_t hdrlen, int forward)
   uint8_t *a;
   uint8_t a_len;
   uint8_t *result;
-  uint8_t generated_mic[MIC_LEN];
+  uint8_t generated_mic[LLSEC802154_MIC_LEN(7)];
   uint8_t *mic;
   
   ccm_star_packetbuf_set_nonce(nonce, forward);
   totlen = packetbuf_totlen();
   a = packetbuf_hdrptr();
-#if WITH_ENCRYPTION
-  a_len = hdrlen;
-  m = a + a_len;
-  m_len = totlen - hdrlen;
-#else /* WITH_ENCRYPTION */
-  a_len = totlen;
-  m = NULL;
-  m_len = 0;
-#endif /* WITH_ENCRYPTION */
-  
+  if(SEC_LVL & (1 << 2)) {
+    a_len = hdrlen;
+    m = a + a_len;
+    m_len = totlen - hdrlen;
+  } else {
+    a_len = totlen;
+    m = NULL;
+    m_len = 0;
+  }
+
   mic = a + totlen;
   result = forward ? mic : generated_mic;
   
