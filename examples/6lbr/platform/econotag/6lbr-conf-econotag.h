@@ -60,10 +60,10 @@
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     50
+#define UIP_CONF_DS6_NBR_NBU     30
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   50
+#define UIP_CONF_MAX_ROUTES   30
 
 #endif
 
@@ -78,6 +78,7 @@
 
 #define CETIC_CSMA_STATS      0
 
+#define CETIC_6LBR_MAC_WRAPPER          0
 #define CETIC_6LBR_LLSEC_WRAPPER        0
 
 #undef CETIC_6LBR_IP64
