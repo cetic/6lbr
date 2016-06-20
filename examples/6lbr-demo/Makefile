@@ -241,10 +241,16 @@ CLEAN+=$(PROJECTDIR)/dyn_resources/*
 .PHONY: dynamic-resources
 endif
 
-all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
-all_z1: bin_z1/6lbr-demo-coapserver.z1
+all_sky: bin_sky/6lbr-demo.sky
+all_z1: bin_z1/6lbr-demo-webserver.z1 bin_z1/6lbr-demo-coapserver.z1
 all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
 all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+
+bin_sky/6lbr-demo.sky:
+	mkdir -p bin_sky
+	$(MAKE) TARGET=sky clean
+	$(MAKE) TARGET=sky RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.sky bin_sky/6lbr-demo.sky
 
 bin_sky/6lbr-demo-webserver.sky:
 	mkdir -p bin_sky
@@ -257,6 +263,12 @@ bin_sky/6lbr-demo-coapserver.sky:
 	$(MAKE) TARGET=sky clean
 	$(MAKE) TARGET=sky WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
 	cp 6lbr-demo.sky bin_sky/6lbr-demo-coapserver.sky
+
+bin_z1/6lbr-demo-webserver.z1:
+	mkdir -p bin_z1
+	$(MAKE) TARGET=z1 clean
+	$(MAKE) TARGET=z1 WITH_UDPCLIENT=0 WITH_WEBSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.z1 bin_z1/6lbr-demo-webserver.z1
 
 bin_z1/6lbr-demo-coapserver.z1:
 	mkdir -p bin_z1
