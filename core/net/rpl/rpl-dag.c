@@ -321,6 +321,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
         }
         if(dag == dag->instance->current_dag) {
           PRINTF("RPL: Dropping a joined DAG when setting this node as root");
+          rpl_set_default_route(instance, NULL);
           dag->instance->current_dag = NULL;
         } else {
           PRINTF("RPL: Dropping a DAG when setting this node as root");
