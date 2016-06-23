@@ -260,13 +260,10 @@ eth_input(void)
   }
   if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40 < uip_len) {
 #if CONTIKI_TARGET_NATIVE
-    if(ethernet_has_fcs) {
-      uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40;
-    } else
+    if(!ethernet_has_fcs)
 #endif
-    {
       LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: packet size different than reported in IPv6 header, %d vs %d\n", uip_len, (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40);
-    }
+    uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40;
   } else if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40 > uip_len) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: packet shorter than reported in IPv6 header, %d vs %d\n", uip_len, (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40);
     uip_len = 0;
