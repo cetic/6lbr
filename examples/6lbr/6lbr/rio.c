@@ -59,18 +59,22 @@ uip_ds6_route_info_add(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen,
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *) uip_ds6_route_info_list, UIP_DS6_ROUTE_INFO_NB,
       sizeof(uip_ds6_route_info_t), ipaddr, ipaddrlen,
-      (uip_ds6_element_t **) & locrtinfo) == FREESPACE) {
-    locrtinfo->isused = 1;
-    uip_ipaddr_copy(&locrtinfo->ipaddr, ipaddr);
-    locrtinfo->length = ipaddrlen;
-    locrtinfo->flags = flags;
-    locrtinfo->lifetime = rlifetime;
-    LOG6LBR_6ADDR(DEBUG, &locrtinfo->ipaddr, "Adding route information: length=%u, flags=%x, route lifetime=%lu, dest=",
-           ipaddrlen, flags, rlifetime);
-    return locrtinfo;
-  } else {
-    LOG6LBR_ERROR("No more space in route information list\n");
-  }
+      (uip_ds6_element_t **) & locrtinfo) != FOUND)
+    if(uip_ds6_list_loop
+       ((uip_ds6_element_t *) uip_ds6_route_info_list, UIP_DS6_ROUTE_INFO_NB,
+	sizeof(uip_ds6_route_info_t), ipaddr, ipaddrlen,
+	(uip_ds6_element_t **) & locrtinfo) == FREESPACE) {
+      locrtinfo->isused = 1;
+      uip_ipaddr_copy(&locrtinfo->ipaddr, ipaddr);
+      locrtinfo->length = ipaddrlen;
+      locrtinfo->flags = flags;
+      locrtinfo->lifetime = rlifetime;
+      LOG6LBR_6ADDR(DEBUG, &locrtinfo->ipaddr, "Adding route information: length=%u, flags=%x, route lifetime=%lu, dest=",
+		    ipaddrlen, flags, rlifetime);
+      return locrtinfo;
+    } else {
+      LOG6LBR_ERROR("No more space in route information list\n");
+    }
   return NULL;
 }
 

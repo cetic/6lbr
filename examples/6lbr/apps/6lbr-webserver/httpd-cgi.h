@@ -79,8 +79,10 @@ typedef struct httpd_cgi_command httpd_cgi_command_t;
 #define HTTPD_CUSTOM_TOP    0x00000002
 #define HTTPD_CUSTOM_BOTTOM 0x00000004
 
+void httpd_instances_add(void *group, uint16_t nb);
 void httpd_group_add(httpd_group_t *group);
 void httpd_group_add_page(httpd_group_t *group, httpd_cgi_call_t *c);
+httpd_group_t* httpd_instance_head(void);
 httpd_group_t* httpd_group_head(void);
 
 void httpd_cgi_add(httpd_cgi_call_t *c);
@@ -94,8 +96,14 @@ httpd_cgi_command_t* httpd_cgi_command_head(void);
 #define HTTPD_CGI_CALL_NAME(name) \
 extern struct httpd_cgi_call name;
 
+#define HTTPD_GROUPS_NAME(name) \
+    extern httpd_group_t * name;
+
 #define HTTPD_GROUP_NAME(name) \
     extern httpd_group_t name;
+
+#define HTTPD_GROUPS(name) \
+httpd_group_t * name = NULL
 
 #define HTTPD_GROUP(name, str) \
 httpd_group_t name = {NULL, str, NULL, 0}

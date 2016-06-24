@@ -65,55 +65,57 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   reset_buf();
   for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
     if(instance_table[i].used) {
-      add("<h2>Instance %d</h2>", instance_table[i].instance_id);
-      for(j = 0; j < RPL_MAX_DAG_PER_INSTANCE; ++j) {
-        if(instance_table[i].dag_table[j].used) {
-          add("<h3>DODAG %d</h3>", j);
-          add("DODAG ID : ");
-          ipaddr_add(&instance_table[i].dag_table[j].dag_id);
-          SEND_STRING(&s->sout, buf);
-          reset_buf();
-          add("<br />Version : %d", instance_table[i].dag_table[j].version);
-          add("<br />Grounded : %s",
-              instance_table[i].dag_table[j].grounded ? "Yes" : "No");
-          add("<br />Preference : %d",
-              instance_table[i].dag_table[j].preference);
-          add("<br />Mode of Operation : %u", instance_table[i].mop);
-          add("<br />Objective Function Code Point : %u",
-              instance_table[i].of->ocp);
-          add("<br />Joined : %s",
-              instance_table[i].dag_table[j].joined ? "Yes" : "No");
-          add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
-          add("<br />");
-          SEND_STRING(&s->sout, buf);
-          reset_buf();
-          add("<br />Current DIO Interval [%u-%u] : %u",
-              instance_table[i].dio_intmin,
-              instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
-              instance_table[i].dio_intcurrent);
-          if(instance_table[i].dio_send) {
-            add("<br />Next DIO : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND );
-            add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) + instance_table[i].dio_next_delay - clock_time()) / CLOCK_SECOND );
-          } else {
-            add("<br />Next DIO : -");
-            add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND);
-          }
-          if (instance_table[i].dio_redundancy > 0) {
-            add("<br />DIO suppression : %s (%u >= %u)", (instance_table[i].dio_counter >= instance_table[i].dio_redundancy ? "Yes" : "No"), instance_table[i].dio_counter, instance_table[i].dio_redundancy);
-          } else {
-            add("<br />DIO suppression : Disabled");
-          }
-          add("<br />");
+	if(instance_table[i].instance_id == rpl_current_instance){
+	  add("<h2>Instance %d</h2>", instance_table[i].instance_id);
+	  for(j = 0; j < RPL_MAX_DAG_PER_INSTANCE; ++j) {
+	    if(instance_table[i].dag_table[j].used) {
+	      add("<h3>DODAG %d</h3>", j);
+	      add("DODAG ID : ");
+	      ipaddr_add(&instance_table[i].dag_table[j].dag_id);
+	      SEND_STRING(&s->sout, buf);
+	      reset_buf();
+	      add("<br />Version : %d", instance_table[i].dag_table[j].version);
+	      add("<br />Grounded : %s",
+		  instance_table[i].dag_table[j].grounded ? "Yes" : "No");
+	      add("<br />Preference : %d",
+		  instance_table[i].dag_table[j].preference);
+	      add("<br />Mode of Operation : %u", instance_table[i].mop);
+	      add("<br />Objective Function Code Point : %u",
+		  instance_table[i].of->ocp);
+	      add("<br />Joined : %s",
+		  instance_table[i].dag_table[j].joined ? "Yes" : "No");
+	      add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
+	      add("<br />");
+	      SEND_STRING(&s->sout, buf);
+	      reset_buf();
+	      add("<br />Current DIO Interval [%u-%u] : %u",
+		  instance_table[i].dio_intmin,
+		  instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
+		  instance_table[i].dio_intcurrent);
+	      if(instance_table[i].dio_send) {
+		add("<br />Next DIO : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND );
+		add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) + instance_table[i].dio_next_delay - clock_time()) / CLOCK_SECOND );
+	      } else {
+		add("<br />Next DIO : -");
+		add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND);
+	      }
+	      if (instance_table[i].dio_redundancy > 0) {
+		add("<br />DIO suppression : %s (%u >= %u)", (instance_table[i].dio_counter >= instance_table[i].dio_redundancy ? "Yes" : "No"), instance_table[i].dio_counter, instance_table[i].dio_redundancy);
+	      } else {
+		add("<br />DIO suppression : Disabled");
+	      }
+	      add("<br />");
 #if RPL_CONF_STATS
-          add("DIO intervals : %d<br />", instance_table[i].dio_totint);
-          add("Sent DIO : %d<br />", instance_table[i].dio_totsend);
-          add("Received DIO : %d<br />", instance_table[i].dio_totrecv);
-          add("<br />");
+	      add("DIO intervals : %d<br />", instance_table[i].dio_totint);
+	      add("Sent DIO : %d<br />", instance_table[i].dio_totsend);
+	      add("Received DIO : %d<br />", instance_table[i].dio_totrecv);
+	      add("<br />");
 #endif
-          SEND_STRING(&s->sout, buf);
-          reset_buf();
-        }
-      }
+	      SEND_STRING(&s->sout, buf);
+	      reset_buf();
+	    }
+	  }
+	}
     }
   }
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {

@@ -87,34 +87,34 @@ PT_THREAD(generate_network(struct httpd_state *s))
     if(uip_ds6_if.addr_list[i].isused) {
       ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
       char flag;
-
+      
       if(uip_ds6_if.addr_list[i].state == ADDR_TENTATIVE) {
-        flag = 'T';
+	flag = 'T';
       } else if(uip_ds6_if.addr_list[i].state == ADDR_PREFERRED) {
-        flag = 'P';
+	flag = 'P';
       } else {
-        flag = '?';
+	flag = '?';
       }
       add(" %c", flag);
       if(uip_ds6_if.addr_list[i].type == ADDR_MANUAL) {
-        flag = 'M';
+	flag = 'M';
       } else if(uip_ds6_if.addr_list[i].type == ADDR_DHCP) {
-        flag = 'D';
+	flag = 'D';
       } else if(uip_ds6_if.addr_list[i].type == ADDR_AUTOCONF) {
-        flag = 'A';
+	flag = 'A';
       } else {
-        flag = '?';
+	flag = '?';
       }
       add(" %c", flag);
       if(!uip_ds6_if.addr_list[i].isinfinite) {
-        add(" %u s", stimer_remaining(&uip_ds6_if.addr_list[i].vlifetime));
+	add(" %u s", stimer_remaining(&uip_ds6_if.addr_list[i].vlifetime));
       }
       add("\n");
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
   }
-
+  
   add("</pre><h2>Prefixes</h2><pre>");
   for(i = 0; i < UIP_DS6_PREFIX_NB; i++) {
     if(uip_ds6_prefix_list[i].isused) {
@@ -122,11 +122,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
       add(" ");
 #if UIP_CONF_ROUTER
       if(uip_ds6_prefix_list[i].advertise) {
-        add("A");
+	add("A");
       }
 #else
       if(uip_ds6_prefix_list[i].isinfinite) {
-        add("I");
+	add("I");
       }
 #endif
       add("\n");
@@ -134,7 +134,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
-
+  
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64</h2><pre>");
@@ -149,11 +149,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ip4addr_add(ip64_get_draddr());
       add("<br />");
       if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
-        extern struct ip64_dhcpc_state *ip64_dhcp_state;
-        add("DHCP Server : ");
-        ip4addr_add_u8(ip64_dhcp_state->serverid);
-        add("<br />");
-        add("DHCP lease time : %d s<br />", uip_ntohs(ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(ip64_dhcp_state->lease_time[1]));
+	extern struct ip64_dhcpc_state *ip64_dhcp_state;
+	add("DHCP Server : ");
+	ip4addr_add_u8(ip64_dhcp_state->serverid);
+	add("<br />");
+	add("DHCP lease time : %d s<br />", uip_ntohs(ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(ip64_dhcp_state->lease_time[1]));
       }
     } else {
       add("Waiting configuration<br />");
@@ -162,13 +162,13 @@ PT_THREAD(generate_network(struct httpd_state *s))
     reset_buf();
   }
 #endif
-
+  
   add("</pre><h2>Neighbors</h2><pre>");
-
+  
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
-
+    
     if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"nbr-rm?");
       ipaddr_add(&nbr->ipaddr);
@@ -188,7 +188,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
-
+      
   add("</pre><h2>Routes</h2><pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -228,9 +228,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
-
+  
   add("</pre><h2>Default Routers</h2><pre>");
-
+  
   for(dr = uip_ds6_defrt_list_head(); dr != NULL; dr = list_item_next(r)) {
     ipaddr_add(&dr->ipaddr);
     if(!dr->isinfinite) {
@@ -240,21 +240,21 @@ PT_THREAD(generate_network(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
-
+  
 #if UIP_CONF_DS6_ROUTE_INFORMATION
   add("</pre><h2>Route info</h2><pre>");
   for(i = 0; i < UIP_DS6_ROUTE_INFO_NB; i++) {
     if(uip_ds6_route_info_list[i].isused) {
       ipaddr_add(&uip_ds6_route_info_list[i].ipaddr);
       add("/%u (%x) %us\n", uip_ds6_route_info_list[i].length,
-          uip_ds6_route_info_list[i].flags,
-          uip_ds6_route_info_list[i].lifetime);
+	  uip_ds6_route_info_list[i].flags,
+	  uip_ds6_route_info_list[i].lifetime);
     }
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-
+  
   add("</pre><h2>DNS server</h2><pre>");
   //Note: Currently we assume only one DNS server
   uip_ipaddr_t * dns = uip_nameserver_get(0);
@@ -264,33 +264,33 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
-
+  
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");
     static struct ip64_addrmap_entry *m;
     for(m = ip64_addrmap_list();
-        m != NULL;
-        m = list_item_next(m)) {
+	m != NULL;
+	m = list_item_next(m)) {
       if(timer_expired(&m->timer)) continue;
       ipaddr_add(&m->ip6addr);
       add("%%%d (%d)", m->ip6port, m->protocol);
       if(m->ip6to4 && m->ip4to6) {
-        add(" <-> ");
+	add(" <-> ");
       } else if(m->ip6to4) {
-        add(" -> ");
+	add(" -> ");
       } else {
-        add(" <- ");
+	add(" <- ");
       }
       ip4addr_add(&m->ip4addr);
       add("%%%d : %d (%x) %us\n", m->ip4port, m->mapped_port,
-          m->flags, (m->timer.interval - (clock_time() - m->timer.start)) / CLOCK_SECOND);
+	  m->flags, (m->timer.interval - (clock_time() - m->timer.start)) / CLOCK_SECOND);
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
   }
 #endif
-
+  
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   add("<pre><h2>6LoWPAN Prefix contexts</h2><pre>");
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
@@ -304,12 +304,12 @@ PT_THREAD(generate_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-
+  
 #if CETIC_6LBR_TRANSPARENTBRIDGE
   add("<h2>HW Prefixes cache</h2><pre>");
   for(i = 0; i < prefixCounter; i++) {
     add("%02x:%02x:%02x\n", prefixBuffer[i][0], prefixBuffer[i][1],
-        prefixBuffer[i][2]);
+	prefixBuffer[i][2]);
   }
   SEND_STRING(&s->sout, buf);
   add("</pre><br />");
@@ -317,6 +317,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 #endif
   PSOCK_END(&s->sout);
 }
+
 static void
 add_network_cases(const uint8_t state)
 {

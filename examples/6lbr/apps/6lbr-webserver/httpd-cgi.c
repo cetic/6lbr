@@ -36,14 +36,57 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "contiki-net.h"
 #include "httpd-cgi.h"
 #include "nvm-config.h"
 
+static httpd_group_t *instances = NULL;
 static httpd_group_t *groups = NULL;
 static httpd_cgi_call_t *calls = NULL;
 static httpd_cgi_command_t *commands = NULL;
+/*---------------------------------------------------------------------------*/
+void
+httpd_instances_add(void *dgroup, uint16_t nb)
+{
+  httpd_group_t *group;
+  if(nb > 0){
+    group = (httpd_group_t *)malloc(2 + nb * sizeof(httpd_group_t));
+  
+    group[0].title = (char*)malloc(2*sizeof(char));
+    sprintf(group[0].title, "%c", '-');
+    group[0].next = &group[1];
+    group[1].title = (char*)malloc(2*sizeof(char));
+    sprintf(group[1].title, "%c", '+');
+  }
+  else {
+    group = (httpd_group_t *)malloc(sizeof(httpd_group_t));
+  
+    group[0].title = (char*)malloc(2*sizeof(char));
+    sprintf(group[0].title, "%c", '+');
+    group[0].next = NULL;
+  }
+
+  if(nb > 0){
+    group[1].next = &group[2]; 
+    int i;
+    char * instance;
+    for(i=0;i<nb-1;i++){
+      instance = (char*)malloc(5*sizeof(char));
+      sprintf(instance,"%d",nvms_data[i].rpl_instance_id);
+      group[i+2].title = instance;
+      LOG6LBR_INFO("Adding instance : %s\n", group[i+2].title);
+      group[i+2].next = &group[i+3];
+    }
+    instance = (char*)malloc(5*sizeof(char));
+    sprintf(instance,"%d",nvms_data[i].rpl_instance_id);
+    group[nb+1].title = instance;
+    group[nb+1].next = NULL;
+  }
+  
+  instances = &group[0];
+}
 /*---------------------------------------------------------------------------*/
 void
 httpd_group_add(httpd_group_t *group)
@@ -58,6 +101,11 @@ httpd_group_add(httpd_group_t *group)
     for(l = groups; l->next != NULL; l = l->next);
     l->next = group;
   }
+}
+/*---------------------------------------------------------------------------*/
+httpd_group_t* httpd_instance_head(void)
+{
+  return instances;
 }
 /*---------------------------------------------------------------------------*/
 httpd_group_t* httpd_group_head(void)

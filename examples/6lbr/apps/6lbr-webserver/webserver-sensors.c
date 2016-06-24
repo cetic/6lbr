@@ -94,121 +94,129 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
   reset_buf();
 
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused) {
-      add("<tr><td>");
-      add("<a href=\"sensor?ip=");
-      ipaddr_add(&node_info_table[i].ipaddr);
+    
+    uip_ds6_route_t * ds6_r = uip_ds6_route_lookup(&node_info_table[i].ipaddr);
+    if(ds6_r){
+      rpl_dag_t * dag = (rpl_dag_t*)ds6_r->state.dag; 
+      if(dag->instance->instance_id == rpl_current_instance){
+    
+	if(node_info_table[i].isused) {
+	  add("<tr><td>");
+	  add("<a href=\"sensor?ip=");
+	  ipaddr_add(&node_info_table[i].ipaddr);
 #if CETIC_NODE_CONFIG_HAS_NAME
-      if ( node_config_loaded ) {
-        add("\">%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ipaddr)));
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add(")</a></td>");
-      } else
+	  if ( node_config_loaded ) {
+	    add("\">%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ipaddr)));
+	    ipaddr_add(&node_info_table[i].ipaddr);
+	    add(")</a></td>");
+	  } else
 #endif
-      {
-        add("\">");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("</a></td>");
-      }
-
-      if(0) {
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-         && node_info_table[i].ipaddr.u8[9] == 0x12
-         && (node_info_table[i].ipaddr.u8[10] == 0x74 ||
-             node_info_table[i].ipaddr.u8[10] == 0x75)) {
-        add("<td>Moteiv Telos</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-         && node_info_table[i].ipaddr.u8[9] == 0x1A
-         && node_info_table[i].ipaddr.u8[10] == 0x4C) {
-        add("<td>Crossbow Sky</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0xC3
-         && node_info_table[i].ipaddr.u8[9] == 0x0C
-         && node_info_table[i].ipaddr.u8[10] == 0x00) {
-        add("<td>Zolertia Z1</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-         && node_info_table[i].ipaddr.u8[9] == 0x80
-         && node_info_table[i].ipaddr.u8[10] == 0xE1) {
-        add("<td>STMicro</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-         && node_info_table[i].ipaddr.u8[9] == 0x12
-         && node_info_table[i].ipaddr.u8[10] == 0x4B) {
-        add("<td>TI</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-                && node_info_table[i].ipaddr.u8[9] == 0x50
-                && node_info_table[i].ipaddr.u8[10] == 0xC2
-                && node_info_table[i].ipaddr.u8[11] == 0xA8
-                && (node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0) {
-        add("<td>Redwire Econotag I</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0x02
-                && node_info_table[i].ipaddr.u8[9] == 0x05
-                && node_info_table[i].ipaddr.u8[10] == 0x0C
-                && node_info_table[i].ipaddr.u8[11] == 0x2A
-                && node_info_table[i].ipaddr.u8[12] == 0x8C) {
-        add("<td>Redwire Econotag I</td>");
-      } else if(node_info_table[i].ipaddr.u8[8] == 0xEE
-                && node_info_table[i].ipaddr.u8[9] == 0x47
-                && node_info_table[i].ipaddr.u8[10] == 0x3C) {
-        if(node_info_table[i].ipaddr.u8[11] == 0x4D
-           && node_info_table[i].ipaddr.u8[12] == 0x12) {
-          add("<td>Redwire M12</td>");
-        } else {
-          add("<td>Redwire Unknown</td>");
-        }
-      } else if((node_info_table[i].ipaddr.u8[8] & 0x02) == 0) {
-        add("<td>User defined</td>");
-      } else {
-        add("<td>Unknown</td>");
-      }
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
+	    {
+	      add("\">");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("</a></td>");
+	    }
+	  
+	  if(0) {
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x12
+		    && (node_info_table[i].ipaddr.u8[10] == 0x74 ||
+			node_info_table[i].ipaddr.u8[10] == 0x75)) {
+	    add("<td>Moteiv Telos</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x1A
+		    && node_info_table[i].ipaddr.u8[10] == 0x4C) {
+	    add("<td>Crossbow Sky</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0xC3
+		    && node_info_table[i].ipaddr.u8[9] == 0x0C
+		    && node_info_table[i].ipaddr.u8[10] == 0x00) {
+	    add("<td>Zolertia Z1</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x80
+		    && node_info_table[i].ipaddr.u8[10] == 0xE1) {
+	    add("<td>STMicro</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x12
+		    && node_info_table[i].ipaddr.u8[10] == 0x4B) {
+	    add("<td>TI</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x50
+		    && node_info_table[i].ipaddr.u8[10] == 0xC2
+		    && node_info_table[i].ipaddr.u8[11] == 0xA8
+		    && (node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0) {
+	    add("<td>Redwire Econotag I</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0x02
+		    && node_info_table[i].ipaddr.u8[9] == 0x05
+		    && node_info_table[i].ipaddr.u8[10] == 0x0C
+		    && node_info_table[i].ipaddr.u8[11] == 0x2A
+		    && node_info_table[i].ipaddr.u8[12] == 0x8C) {
+	    add("<td>Redwire Econotag I</td>");
+	  } else if(node_info_table[i].ipaddr.u8[8] == 0xEE
+		    && node_info_table[i].ipaddr.u8[9] == 0x47
+		    && node_info_table[i].ipaddr.u8[10] == 0x3C) {
+	    if(node_info_table[i].ipaddr.u8[11] == 0x4D
+	       && node_info_table[i].ipaddr.u8[12] == 0x12) {
+	      add("<td>Redwire M12</td>");
+	    } else {
+	      add("<td>Redwire Unknown</td>");
+	    }
+	  } else if((node_info_table[i].ipaddr.u8[8] & 0x02) == 0) {
+	    add("<td>User defined</td>");
+	  } else {
+	    add("<td>Unknown</td>");
+	  }
+	  SEND_STRING(&s->sout, buf);
+	  reset_buf();
 #if CETIC_6LBR_IP64 && CETIC_NODE_CONFIG
-      if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
-        node_config_t * config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        if(config && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
-          add("<td><a href=\"http://");
-          ip4addr_add(ip64_get_hostaddr());
-          add(":%d/\">web</a></td>", config->http_port);
-          add("<td><a href=\"coap://");
-          ip4addr_add(ip64_get_hostaddr());
-          add(":%d/\">coap</a></td>", config->coap_port);
-        } else {
-          add("<td></td><td></td>");
-        }
-      } else
+	  if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
+	    node_config_t * config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+	    if(config && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+	      add("<td><a href=\"http://");
+	      ip4addr_add(ip64_get_hostaddr());
+	      add(":%d/\">web</a></td>", config->http_port);
+	      add("<td><a href=\"coap://");
+	      ip4addr_add(ip64_get_hostaddr());
+	      add(":%d/\">coap</a></td>", config->coap_port);
+	    } else {
+	      add("<td></td><td></td>");
+	    }
+	  } else
 #endif
-      {
-        add("<td><a href=\"http://[");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("]/\">web</a></td>");
-        add("<td><a href=\"coap://[");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("]:5683/\">coap</a></td>");
-      }
-      if(node_info_table[i].messages_received > 0) {
-        add("<td>");
+	    {
+	      add("<td><a href=\"http://[");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("]/\">web</a></td>");
+	      add("<td><a href=\"coap://[");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("]:5683/\">coap</a></td>");
+	    }
+	  if(node_info_table[i].messages_received > 0) {
+	    add("<td>");
 #if CETIC_NODE_CONFIG_HAS_NAME
-        if (node_config_loaded) {
-          add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
-          ipaddr_add(&node_info_table[i].ip_parent);
-          add(")");
-        } else {
-          ipaddr_add(&node_info_table[i].ip_parent);
-        }
+	    if (node_config_loaded) {
+	      add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
+	      ipaddr_add(&node_info_table[i].ip_parent);
+	      add(")");
+	    } else {
+	      ipaddr_add(&node_info_table[i].ip_parent);
+	    }
 #else
-        ipaddr_add(&node_info_table[i].ip_parent);
+	    ipaddr_add(&node_info_table[i].ip_parent);
 #endif
-        add("</td>");
-        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
-        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
-      } else {
-        add("<td></td><td></td><td></td>");
+	    add("</td>");
+	    add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
+	    add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
+	  } else {
+	    add("<td></td><td></td><td></td>");
+	  }
+	  add("<td>%d</td>",
+	      (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
+	  add("<td>%s</td>", node_info_table[i].has_route ? "OK" : "NR");
+	  add("</tr>");
+	  SEND_STRING(&s->sout, buf);
+	  reset_buf();
+	}
       }
-      add("<td>%d</td>",
-          (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
-      add("<td>%s</td>", node_info_table[i].has_route ? "OK" : "NR");
-      add("</tr>");
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
     }
   }
   add("</tbody></table><br />");
@@ -287,42 +295,50 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
 #endif
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
-      if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
+
+      uip_ds6_route_t * ds6_r = uip_ds6_route_lookup(&node_info_table[i].ipaddr);
+      if(ds6_r){
+	rpl_dag_t * dag = (rpl_dag_t*)ds6_r->state.dag; 
+	if(dag->instance->instance_id == rpl_current_instance){
+
+	  if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
 #if CETIC_NODE_CONFIG_HAS_NAME
-        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
-        if ( node_config ) {
-          if ( parent_node_config ) {
-            add("%%22%s%%22->%%22%s%%22;",
-                node_config_get_name(node_config),
-                node_config_get_name(parent_node_config));
-          } else {
-            add("%%22%s%%22->%%22%04hx%%22;",
-                node_config_get_name(node_config),
-                (node_info_table[i].ip_parent.u8[14] << 8) +
-                node_info_table[i].ip_parent.u8[15]);
-          }
-        } else {
-          if (parent_node_config) {
-            add("%%22%04hx%%22->%%22%s%%22;",
-                (node_info_table[i].ipaddr.u8[14] << 8) +
-                node_info_table[i].ipaddr.u8[15],
-                node_config_get_name(parent_node_config));
-          } else {
-            add("%%22%04hx%%22->%%22%04hx%%22;",
-                (node_info_table[i].ipaddr.u8[14] << 8) +
-                node_info_table[i].ipaddr.u8[15],
-                (node_info_table[i].ip_parent.u8[14] << 8) +
-                node_info_table[i].ip_parent.u8[15]);
-          }
-        }
+	    node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+	    node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
+	    if ( node_config ) {
+	      if ( parent_node_config ) {
+		add("%%22%s%%22->%%22%s%%22;",
+		    node_config_get_name(node_config),
+		    node_config_get_name(parent_node_config));
+	      } else {
+		add("%%22%s%%22->%%22%04hx%%22;",
+		    node_config_get_name(node_config),
+		    (node_info_table[i].ip_parent.u8[14] << 8) +
+		    node_info_table[i].ip_parent.u8[15]);
+	      }
+	    } else {
+	      if (parent_node_config) {
+		add("%%22%04hx%%22->%%22%s%%22;",
+		    (node_info_table[i].ipaddr.u8[14] << 8) +
+		    node_info_table[i].ipaddr.u8[15],
+		    node_config_get_name(parent_node_config));
+	      } else {
+		add("%%22%04hx%%22->%%22%04hx%%22;",
+		    (node_info_table[i].ipaddr.u8[14] << 8) +
+		    node_info_table[i].ipaddr.u8[15],
+		    (node_info_table[i].ip_parent.u8[14] << 8) +
+		    node_info_table[i].ip_parent.u8[15]);
+	      }
+	    }
 #else
-        add("%%22%04hx%%22->%%22%04hx%%22;",
-            (node_info_table[i].ipaddr.u8[14] << 8) +
-            node_info_table[i].ipaddr.u8[15],
-            (node_info_table[i].ip_parent.u8[14] << 8) +
-            node_info_table[i].ip_parent.u8[15]);
+	    add("%%22%04hx%%22->%%22%04hx%%22;",
+		(node_info_table[i].ipaddr.u8[14] << 8) +
+		node_info_table[i].ipaddr.u8[15],
+		(node_info_table[i].ip_parent.u8[14] << 8) +
+		node_info_table[i].ip_parent.u8[15]);
 #endif
+	  }
+	}
       }
     }
   }
@@ -343,24 +359,32 @@ PT_THREAD(generate_sensors_prr(struct httpd_state *s))
   add("['Sensor', 'IP', 'PRR Up', 'PRR Down'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused && node_info_table[i].messages_sent > 0 && node_info_table[i].replies_sent > 0) {
-      float prr_up = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
-      float prr_down = 100.0 * (node_info_table[i].replies_sent - node_info_table[i].down_messages_lost)/node_info_table[i].replies_sent;
+
+      uip_ds6_route_t * ds6_r = uip_ds6_route_lookup(&node_info_table[i].ipaddr);
+      if(ds6_r){
+	rpl_dag_t * dag = (rpl_dag_t*)ds6_r->state.dag; 
+	if(dag->instance->instance_id == rpl_current_instance){
+
+	  float prr_up = 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent;
+	  float prr_down = 100.0 * (node_info_table[i].replies_sent - node_info_table[i].down_messages_lost)/node_info_table[i].replies_sent;
 #if CETIC_NODE_CONFIG_HAS_NAME
-      if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\",", node_config_get_name(node_config));
-      } else
+	  if (node_config_loaded) {
+	    node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+	    add("[\"%s\",", node_config_get_name(node_config));
+	  } else
 #endif
-      {
-        add("[\"");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("\",");
+	    {
+	      add("[\"");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("\",");
+	    }
+	  add("\"");
+	  ipaddr_add(&node_info_table[i].ipaddr);
+	  add("\",%.1f,%.1f],", prr_up, prr_down);
+	  SEND_STRING(&s->sout, buf);
+	  reset_buf();
+	}
       }
-      add("\"");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("\",%.1f,%.1f],", prr_up, prr_down);
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
     }
   }
   add("]);var options={vAxis:{minValue: 0,maxValue: 100},legend:{position: \"none\"}};");
@@ -382,22 +406,29 @@ PT_THREAD(generate_sensors_parent_switch(struct httpd_state *s))
   add("['Sensor', 'IP', 'Parent switch'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
+
+      uip_ds6_route_t * ds6_r = uip_ds6_route_lookup(&node_info_table[i].ipaddr);
+      if(ds6_r){
+	rpl_dag_t * dag = (rpl_dag_t*)ds6_r->state.dag; 
+	if(dag->instance->instance_id == rpl_current_instance){
 #if CETIC_NODE_CONFIG_HAS_NAME
-      if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\",", node_config_get_name(node_config));
-      } else
+	  if (node_config_loaded) {
+	    node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+	    add("[\"%s\",", node_config_get_name(node_config));
+	  } else
 #endif
-      {
-        add("[\"");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("\",");
+	    {
+	      add("[\"");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("\",");
+	    }
+	  add("\"");
+	  ipaddr_add(&node_info_table[i].ipaddr);
+	  add("\",%d],", node_info_table[i].parent_switch);
+	  SEND_STRING(&s->sout, buf);
+	  reset_buf();
+	}
       }
-      add("\"");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("\",%d],", node_info_table[i].parent_switch);
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
     }
   }
   add("]);var options={vAxis:{minValue: 0},legend:{position: \"none\"}};");
@@ -419,22 +450,28 @@ PT_THREAD(generate_sensors_hop_count(struct httpd_state *s))
   add("['Sensor', 'IP', 'Hop count'],");
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused && node_info_table[i].messages_sent > 0) {
+      uip_ds6_route_t * ds6_r = uip_ds6_route_lookup(&node_info_table[i].ipaddr);
+      if(ds6_r){
+	rpl_dag_t * dag = (rpl_dag_t*)ds6_r->state.dag; 
+	if(dag->instance->instance_id == rpl_current_instance){
 #if CETIC_NODE_CONFIG_HAS_NAME
-      if (node_config_loaded) {
-        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        add("[\"%s\",", node_config_get_name(node_config));
-      } else
+	  if (node_config_loaded) {
+	    node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+	    add("[\"%s\",", node_config_get_name(node_config));
+	  } else
 #endif
-      {
-        add("[\"");
-        ipaddr_add(&node_info_table[i].ipaddr);
-        add("\",");
+	    {
+	      add("[\"");
+	      ipaddr_add(&node_info_table[i].ipaddr);
+	      add("\",");
+	    }
+	  add("\"");
+	  ipaddr_add(&node_info_table[i].ipaddr);
+	  add("\",%d],", node_info_table[i].hop_count);
+	  SEND_STRING(&s->sout, buf);
+	  reset_buf();
+	}
       }
-      add("\"");
-      ipaddr_add(&node_info_table[i].ipaddr);
-      add("\",%d],", node_info_table[i].hop_count);
-      SEND_STRING(&s->sout, buf);
-      reset_buf();
     }
   }
   add("]);var options={vAxis:{minValue: 0},legend:{position: \"none\"}};");

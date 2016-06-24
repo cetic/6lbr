@@ -45,6 +45,7 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
+HTTPD_GROUPS(instances_group);
 HTTPD_GROUP(main_group, "System");
 HTTPD_GROUP(sensors_group, "Sensors");
 HTTPD_GROUP(status_group, "Status");
@@ -52,6 +53,13 @@ HTTPD_GROUP(config_group, "Configuration");
 HTTPD_GROUP(statistics_group, "Statistics");
 HTTPD_GROUP(admin_group, "Administration");
 
+HTTPD_CGI_CALL_NAME(webserver_instances)
+HTTPD_CGI_CMD_NAME(webserver_instances_select_cmd)
+HTTPD_CGI_CMD_NAME(webserver_instance_rm_cmd)
+HTTPD_CGI_CMD_NAME(webserver_instance_new_cmd)
+/*
+HTTPD_CGI_CALL_NAME(webserver_instances_rm)
+*/
 HTTPD_CGI_CALL_NAME(webserver_main)
 HTTPD_CGI_CALL_NAME(webserver_network)
 HTTPD_CGI_CMD_NAME(webserver_network_route_add_cmd)
@@ -100,6 +108,7 @@ void
 webserver_init(void)
 {
   httpd_init();
+  httpd_instances_add(&instances_group,rpl_instances);
 
   httpd_group_add(&main_group);
   httpd_group_add(&sensors_group);
@@ -108,6 +117,11 @@ webserver_init(void)
   httpd_group_add(&statistics_group);
   httpd_group_add(&admin_group);
 
+  
+  httpd_group_add_page(&instances_group, &webserver_instances);
+  httpd_cgi_command_add(&webserver_instances_select_cmd);
+  httpd_cgi_command_add(&webserver_instance_rm_cmd);
+  httpd_cgi_command_add(&webserver_instance_new_cmd);
   httpd_group_add_page(&main_group, &webserver_main);
   httpd_group_add_page(&config_group, &webserver_config);
 #if CETIC_NODE_INFO

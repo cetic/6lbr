@@ -511,6 +511,13 @@ update_config(const char *name, uint8_t *reboot_needed)
     }
   }
   if(do_update) {
+    int i,find=0;
+    for(i=0;i<rpl_instances && !find;i++)
+      if(nvms_data[i].rpl_instance_id == rpl_current_instance){
+	nvms_data[i] = nvm_data;
+	find=1;
+      }
+
     store_nvm_config();
 #if !LOG6LBR_STATIC
     if(nvm_data.log_level != 0xFF) {

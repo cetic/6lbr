@@ -459,7 +459,6 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   platform_init();
   platform_load_config(CONFIG_LEVEL_LOAD);
-
 #if !LOG6LBR_STATIC
   if(nvm_data.log_level != 0xFF) {
     Log6lbr_level = nvm_data.log_level;
@@ -512,8 +511,17 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   packet_filter_init();
-
-  cetic_6lbr_init();
+  if(rpl_instances > 0){
+    int i;
+    for(i=0;i<rpl_instances;i++){
+      nvm_data = nvms_data[i];
+      cetic_6lbr_init();
+    }
+  }
+  else {
+    check_nvm(&nvm_data,1); 
+    cetic_6lbr_init();
+  }
 
   //Wait result of DAD on 6LBR addresses
   LOG6LBR_INFO("Checking addresses duplication\n");
@@ -528,7 +536,13 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     platform_restart();
   }
-  cetic_6lbr_init_finalize();
+  if(rpl_instances > 0){
+    int i;
+    for(i=0;i<rpl_instances;i++){
+      nvm_data = nvms_data[i];
+      cetic_6lbr_init_finalize();
+    }
+  }
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
 #if CETIC_NODE_CONFIG
