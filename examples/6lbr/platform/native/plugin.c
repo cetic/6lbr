@@ -110,7 +110,7 @@ void plugins_load() {
     if ((dp = readdir(dirp)) != NULL) {
       int len = strlen(dp->d_name);
       if ( len > 3 && strcmp(&dp->d_name[len-3], ".so") == 0 ) {
-        char * filename = (char *)malloc(strlen(slip_config_plugins)+len+1);
+        char * filename = (char *)malloc(strlen(slip_config_plugins)+len+1+1);
         strcpy(filename, slip_config_plugins);
         strcat(filename, "/");
         strcat(filename, dp->d_name);
