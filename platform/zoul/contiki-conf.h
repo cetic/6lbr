@@ -71,11 +71,19 @@ typedef uint32_t uip_stats_t;
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
 /** @} */
+/*---------------------------------------------------------------------------*/
+#define TSCH_CONF_HW_FRAME_FILTERING    0
+
+/* 352us from calling transmit() until the SFD byte has been sent */
+#define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(352))
+/* 192us as in datasheet but ACKs are not always received, so adjusted to 250us */
+#define RADIO_DELAY_BEFORE_RX     ((unsigned)US_TO_RTIMERTICKS(250))
+#define RADIO_DELAY_BEFORE_DETECT 0
 /*---------------------------------------------------------------------------*/
 /**
  * \name Serial Boot Loader Backdoor configuration
@@ -101,7 +109,9 @@ typedef uint32_t rtimer_clock_t;
  *
  * @{
  */
+#ifndef COFFEE_CONF_SIZE
 #define COFFEE_CONF_SIZE            (4 * COFFEE_SECTOR_SIZE)
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -514,10 +524,10 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS                16
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES                 20
+#define UIP_CONF_MAX_ROUTES                 16
 #endif
 
 /* uIP */

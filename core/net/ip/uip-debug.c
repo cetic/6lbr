@@ -30,7 +30,7 @@
 
 /**
  * \file
- *         A set of debugging tools
+ *         A set of debugging tools for the IP stack
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  *         Niclas Finne <nfi@sics.se>

@@ -12,9 +12,11 @@ cc26xx/very-sleepy-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=srf06/cc13xx \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc2650 \
+cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc1310 \
 cc26xx/very-sleepy-demo/srf06-cc26xx \
 hello-world/cc2538dk \
 ipv6/rpl-border-router/cc2538dk \
+ipv6/rpl-border-router/cc2538dk:MAKE_WITH_NON_STORING=1 \
 er-rest-example/cc2538dk \
 ipso-objects/cc2538dk \
 webserver-ipv6/cc2538dk \
@@ -45,6 +47,9 @@ stm32nucleo-spirit1/sensor-demo/stm32nucleo-spirit1 \
 ipv6/multicast/stm32nucleo-spirit1 \
 udp-ipv6/stm32nucleo-spirit1 \
 hello-world/stm32nucleo-spirit1 \
+cfs-coffee/cc2538dk \
+cfs-coffee/openmote-cc2538 \
+cfs-coffee/zoul
 
 TOOLS=
 

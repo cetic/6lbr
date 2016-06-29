@@ -146,6 +146,9 @@
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   300
 #endif /* UIP_CONF_MAX_ROUTES */
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM 300
+#endif /* RPL_NS_CONF_LINK_NUM */
 
 #define TCPIP_CONF_ANNOTATE_TRANSMISSIONS 1
 
@@ -208,7 +211,7 @@ typedef unsigned short uip_stats_t;
 #define CLOCK_CONF_SECOND 1000L
 typedef unsigned long clock_time_t;
 typedef unsigned long rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed long)((a)-(b)))
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32

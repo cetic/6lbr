@@ -32,13 +32,14 @@
  * \addtogroup cc26xx-platforms
  * @{
  *
- * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM, CC2650 SensorTag and LaunchPad
+ * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM, CC2650 SensorTag and LaunchPads
  *
  * This platform supports a number of different boards:
  * - A standard TI SmartRF06EB with a CC26xx EM mounted on it
  * - A standard TI SmartRF06EB with a CC1310 EM mounted on it
  * - The new TI SensorTag2.0
  * - The TI CC2650 LaunchPad
+ * - The TI CC1310 LaunchPad
  * @{
  */
 #include "ti-lib.h"
@@ -58,6 +59,7 @@
 #include "uart.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "sys/node-id.h"
 #include "lib/sensors.h"
 #include "button-sensor.h"
 #include "dev/serial-line.h"
@@ -66,6 +68,8 @@
 #include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
+/*---------------------------------------------------------------------------*/
+unsigned short node_id = 0;
 /*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
@@ -122,6 +126,10 @@ set_rf_params(void)
     printf("%02x\n", linkaddr_node_addr.u8[i]);
   }
 #endif
+
+  /* also set the global node id */
+  node_id = short_addr;
+  printf(" Node ID: %d\n", node_id);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -140,6 +148,11 @@ main(void)
 
   /* Set the LF XOSC as the LF system clock source */
   oscillators_select_lf_xosc();
+
+#if CC2650_FAST_RADIO_STARTUP
+  /* Also request HF XOSC to start up */
+  oscillators_request_hf_xosc();
+#endif
 
   lpm_init();
 

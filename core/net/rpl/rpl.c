@@ -47,6 +47,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
 #define DEBUG DEBUG_NONE
@@ -118,7 +119,7 @@ rpl_purge_routes(void)
   uip_ds6_route_t *r;
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   uip_mcast6_route_t *mcast_route;
 #endif
 
@@ -163,7 +164,7 @@ rpl_purge_routes(void)
     }
   }
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   mcast_route = uip_mcast6_route_list_head();
 
   while(mcast_route != NULL) {
@@ -182,7 +183,7 @@ void
 rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   uip_mcast6_route_t *mcast_route;
 #endif
 
@@ -197,7 +198,7 @@ rpl_remove_routes(rpl_dag_t *dag)
     }
   }
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   mcast_route = uip_mcast6_route_list_head();
 
   while(mcast_route != NULL) {
@@ -220,12 +221,10 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 
   while(r != NULL) {
     if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), nexthop) &&
-       r->state.dag == dag) {
-      uip_ds6_route_rm(r);
-      r = uip_ds6_route_head();
-    } else {
-      r = uip_ds6_route_next(r);
+        r->state.dag == dag) {
+      r->state.lifetime = 0;
     }
+    r = uip_ds6_route_next(r);
   }
   ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
@@ -286,10 +285,6 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
         parent->flags |= RPL_PARENT_FLAG_UPDATED;
-        if(instance->of->neighbor_link_callback != NULL) {
-          instance->of->neighbor_link_callback(parent, status, numtx);
-          parent->last_tx_time = clock_time();
-        }
       }
     }
   }
@@ -369,7 +364,9 @@ rpl_init(void)
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
 
-  RPL_OF.reset(NULL);
+#if RPL_WITH_NON_STORING
+  rpl_ns_init();
+#endif /* RPL_WITH_NON_STORING */
 }
 /*---------------------------------------------------------------------------*/
 
