@@ -39,7 +39,9 @@
  *    Routing table manipulation
  */
 #include "net/ipv6/uip-ds6.h"
+#if UIP_CONF_IPV6_RPL
 #include "net/rpl/rpl-private.h"
+#endif
 #include "net/ip/uip.h"
 
 #include "lib/list.h"
