@@ -525,7 +525,9 @@ uip_ds6_route_add_static(uip_ipaddr_t *ipaddr, uint8_t length,
 
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+#if UIP_CONF_IPV6_RPL
   r->state.lifetime = RPL_ROUTE_INFINITE_LIFETIME;
+#endif
 #endif
 
   PRINTF("uip_ds6_route_add_static: adding route: ");
