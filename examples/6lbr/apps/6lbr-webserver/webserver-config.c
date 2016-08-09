@@ -178,7 +178,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
-  INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, "Disable anti-replay");
+  INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, "Enable anti-replay");
   INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -440,7 +440,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)
-    UPDATE_FLAG( "sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, 1)
+    UPDATE_FLAG( "sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, 1)
     UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)

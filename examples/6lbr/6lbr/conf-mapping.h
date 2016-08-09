@@ -87,7 +87,7 @@
 #undef NONCORESEC_CONF_KEY_REF
 #define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)
 
-#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY) != 0)
+#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
 
 #endif
