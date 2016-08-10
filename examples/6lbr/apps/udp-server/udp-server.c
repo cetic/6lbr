@@ -76,8 +76,12 @@ tcpip_handler(void)
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
 #if CETIC_NODE_INFO
-    node->replies_sent += 1;
-    sprintf(buf, "%d", node->last_down_sequence + 1);
+    if(node) {
+      node->replies_sent += 1;
+      sprintf(buf, "%d", node->last_down_sequence + 1);
+    } else {
+      sprintf(buf, "0");
+    }
 #else
     sprintf(buf, "Hello from the server! (%d)", ++seq_id);
 #endif

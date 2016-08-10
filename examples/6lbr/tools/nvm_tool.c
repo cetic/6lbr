@@ -667,7 +667,7 @@ print_nvm(void)
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
   PRINT_KEY("Security key", noncoresec_key, 16);
-  PRINT_BOOL("Noncoresec anti-replay disabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY);
+  PRINT_BOOL("Noncoresec anti-replay enabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
   PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
   PRINT_BOOL("Filter unknown nodes", global_flags, CETIC_GLOBAL_FILTER_NODES);
   printf("\n");
@@ -761,7 +761,7 @@ print_nvm(void)
 #define security_layer_option 12000
 #define security_level_option 12001
 #define noncoresec_key_option 12002
-#define noncoresec_dis_ar_option 12003
+#define noncoresec_en_ar_option 12003
 #define noncoresec_ar_wa_option 12004
 #define security_filter_nodes_option 12005
 
@@ -837,7 +837,7 @@ static struct option long_options[] = {
   {"security-layer", required_argument, 0, security_layer_option},
   {"security-level", required_argument, 0, security_level_option},
   {"security-key", required_argument, 0, noncoresec_key_option},
-  {"noncoresec-dis-ar", required_argument, 0, noncoresec_dis_ar_option},
+  {"noncoresec-dis-ar", required_argument, 0, noncoresec_en_ar_option},
   {"noncoresec-ar-wa", required_argument, 0, noncoresec_ar_wa_option},
   {"filter-nodes", required_argument, 0, security_filter_nodes_option},
 
@@ -1103,7 +1103,7 @@ main(int argc, char *argv[])
   char *security_layer = NULL;
   char *security_level = NULL;
   char *noncoresec_key = NULL;
-  char *noncoresec_dis_ar = NULL;
+  char *noncoresec_en_ar = NULL;
   char *noncoresec_ar_wa = NULL;
   char *security_filter_nodes = NULL;
 
@@ -1199,7 +1199,7 @@ main(int argc, char *argv[])
     CASE_OPTION(security_layer)
     CASE_OPTION(security_level)
     CASE_OPTION(noncoresec_key)
-    CASE_OPTION(noncoresec_dis_ar)
+    CASE_OPTION(noncoresec_en_ar)
     CASE_OPTION(noncoresec_ar_wa)
     CASE_OPTION(security_filter_nodes)
 
@@ -1323,7 +1323,7 @@ main(int argc, char *argv[])
     UPDATE_INT("security-layer", security_layer)
     UPDATE_INT("security-level", security_level)
     UPDATE_KEY("security-key", noncoresec_key)
-    UPDATE_FLAG("noncoresec-dis-ar", noncoresec_dis_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY)
+    UPDATE_FLAG("noncoresec-en-ar", noncoresec_en_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY)
     UPDATE_FLAG("noncoresec-ar-wa", noncoresec_ar_wa, noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND)
     UPDATE_FLAG("filter-nodes", security_filter_nodes, global_flags, CETIC_GLOBAL_FILTER_NODES)
 

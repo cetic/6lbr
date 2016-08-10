@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,50 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
 
 /**
- * \file
- *         Clock implementation for Unix.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "sys/clock.h"
-#include <time.h>
-#include <sys/time.h>
+#define LOG6LBR_MODULE "ETH"
+
+#include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
+
+#include "log-6lbr.h"
+#include "cetic-6lbr.h"
+#include "eth-drv.h"
+
 
 /*---------------------------------------------------------------------------*/
+
 void
-clock_init(void)
+eth_drv_send(uint8_t *packet, uint16_t len)
 {
-}
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-#ifdef __linux
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-#ifdef __linux
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return ts.tv_sec;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec;
-#endif
+  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
+  LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
 }
 /*---------------------------------------------------------------------------*/
 void
-clock_delay(unsigned int d)
+eth_drv_input(uint8_t *packet, uint16_t len)
 {
-  /* Does not do anything. */
+}
+/*---------------------------------------------------------------------------*/
+void
+eth_drv_exit(void)
+{
+}
+/*---------------------------------------------------------------------------*/
+void
+eth_drv_init(void)
+{
+  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
+  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
+  eth_mac_addr_ready = 1;
+  ethernet_ready = 1;
 }
 /*---------------------------------------------------------------------------*/

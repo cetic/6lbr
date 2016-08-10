@@ -246,11 +246,11 @@ typedef unsigned long rtimer_clock_t;
 #endif
 
 #ifndef UIP_CONF_TCP_MSS
-#define UIP_CONF_TCP_MSS                (UIP_CONF_BUFFER_SIZE - 70)
+#define UIP_CONF_TCP_MSS                (UIP_CONF_BUFFER_SIZE - 80)
 #endif
 
 #ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW         (UIP_CONF_BUFFER_SIZE - 70)
+#define UIP_CONF_RECEIVE_WINDOW         (UIP_CONF_BUFFER_SIZE - 80)
 #endif
 
 #define RF_CHANNEL                     26

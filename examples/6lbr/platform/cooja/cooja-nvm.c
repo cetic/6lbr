@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,31 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         Clock implementation for Unix.
+ *         NVM Interface for the Econotag platform
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "sys/clock.h"
-#include <time.h>
-#include <sys/time.h>
+#define LOG6LBR_MODULE "NVM"
 
-/*---------------------------------------------------------------------------*/
+#include "contiki.h"
+#include "contiki-lib.h"
+
+#include "cetic-6lbr.h"
+#include "nvm-config.h"
+#include "nvm-itf.h"
+#include "log-6lbr.h"
+
 void
-clock_init(void)
+nvm_data_read(void)
 {
 }
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-#ifdef __linux
-  struct timespec ts;
 
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-#ifdef __linux
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return ts.tv_sec;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec;
-#endif
-}
-/*---------------------------------------------------------------------------*/
 void
-clock_delay(unsigned int d)
+nvm_data_write(void)
 {
-  /* Does not do anything. */
 }
-/*---------------------------------------------------------------------------*/

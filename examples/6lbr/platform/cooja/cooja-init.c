@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,65 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
 
 /**
- * \file
- *         Clock implementation for Unix.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "sys/clock.h"
-#include <time.h>
-#include <sys/time.h>
+#define LOG6LBR_MODULE "CC2538"
 
-/*---------------------------------------------------------------------------*/
+#include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
+#include "watchdog.h"
+
+#include "platform-init.h"
+#include "cetic-6lbr.h"
+#include "sicslow-ethernet.h"
+#include "nvm-config.h"
+#include "log-6lbr.h"
+
 void
-clock_init(void)
+platform_init(void)
 {
 }
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-#ifdef __linux
-  struct timespec ts;
 
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-#ifdef __linux
-  struct timespec ts;
-
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-
-  return ts.tv_sec;
-#else
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec;
-#endif
-}
-/*---------------------------------------------------------------------------*/
 void
-clock_delay(unsigned int d)
+platform_finalize(void)
 {
-  /* Does not do anything. */
 }
-/*---------------------------------------------------------------------------*/
+
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    break;
+  default:
+    break;
+  }
+}
+
+void
+platform_radio_init(void)
+{
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
+  radio_ready = 1;
+  radio_mac_addr_ready = 1;
+}
+
+void
+platform_set_wsn_mac(linkaddr_t * mac_addr)
+{
+  linkaddr_set_node_addr(mac_addr);
+}
+
+void
+platform_restart(void)
+{
+  LOG6LBR_INFO("Rebooting...\n");
+  watchdog_reboot();
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,59 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         Clock implementation for Unix.
+ *         6LBR Project Configuration
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "sys/clock.h"
-#include <time.h>
-#include <sys/time.h>
+#ifndef SIXLBR_CONF_COOJADK_H
+#define SIXLBR_CONF_COOJADK_H
 
-/*---------------------------------------------------------------------------*/
-void
-clock_init(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-#ifdef __linux
-  struct timespec ts;
+/*------------------------------------------------------------------*/
+/* COOJADK 6LBR                                                    */
+/*------------------------------------------------------------------*/
 
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-#else
-  struct timeval tv;
+#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
 
-  gettimeofday(&tv, NULL);
+#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
 
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-#ifdef __linux
-  struct timespec ts;
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     255
 
-  clock_gettime(CLOCK_MONOTONIC, &ts);
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   255
 
-  return ts.tv_sec;
-#else
-  struct timeval tv;
 
-  gettimeofday(&tv, NULL);
+#define WEBSERVER_CONF_CFS_PATHLEN 1000
 
-  return tv.tv_sec;
-#endif
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_delay(unsigned int d)
-{
-  /* Does not do anything. */
-}
-/*---------------------------------------------------------------------------*/
+#define WEBSERVER_CONF_CFS_URLCONV      1
+
+#define WEBSERVER_CONF_CFS_CONNS        1
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID   0xABCD
+
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     csma_driver
+
+#define CETIC_CSMA_STATS      0
+
+#define CETIC_6LBR_LLSEC_WRAPPER        1
+
+#undef CETIC_6LBR_IP64
+#define CETIC_6LBR_IP64      1
+
+/* Do not change lines below */
+
+// IP packet must be 4 bytes aligned
+#undef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN 16
+
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nullrdc_driver
+
+#endif /* SIXLBR_CONF_COOJADK_H */
