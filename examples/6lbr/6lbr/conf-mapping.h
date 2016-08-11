@@ -81,6 +81,17 @@
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
+#undef RPL_CONF_WITH_DAO_ACK
+#define RPL_CONF_WITH_DAO_ACK       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
+
+#undef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)
+
+#undef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
+
+// Security configuration
+
 #undef NONCORESEC_CONF_SEC_LVL
 #define NONCORESEC_CONF_SEC_LVL     (nvm_data.security_level)
 
