@@ -247,6 +247,13 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+// Enable DAO-Ack
+#define RPL_CONF_WITH_DAO_ACK       1
+
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    0
+
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     0
+
 /* Z1 platform has limited RAM */
 
 #if defined CONTIKI_TARGET_Z1
