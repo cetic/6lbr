@@ -71,7 +71,7 @@ get_global_address(void)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        state == ADDR_PREFERRED &&
-       !uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+       !uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
       ipaddr = &uip_ds6_if.addr_list[i].ipaddr;
     }
   }
@@ -146,7 +146,7 @@ set_global_address(void)
 
   /* Assign a unique local address (RFC4193,
      http://tools.ietf.org/html/rfc4193). */
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
@@ -190,7 +190,7 @@ rpl_dag_root_init_dag_immediately(void)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        state == ADDR_PREFERRED &&
-       !uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+       !uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
       ipaddr = &uip_ds6_if.addr_list[i].ipaddr;
     }
   }
@@ -213,7 +213,7 @@ rpl_dag_root_init_dag_immediately(void)
         dag->instance->def_route = NULL;
       }
 
-      uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+      uip_ip6addr(&prefix, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
       rpl_set_prefix(dag, &prefix, 64);
       PRINTF("rpl_dag_root_init_dag: created a new RPL dag\n");
       return 0;

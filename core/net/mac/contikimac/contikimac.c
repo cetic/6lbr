@@ -106,7 +106,11 @@ static int we_are_receiving_burst = 0;
 
 /* INTER_PACKET_DEADLINE is the maximum time a receiver waits for the
    next packet of a burst when FRAME_PENDING is set. */
+#ifdef CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
+#define INTER_PACKET_DEADLINE               CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
+#else
 #define INTER_PACKET_DEADLINE               CLOCK_SECOND / 32
+#endif
 
 /* ContikiMAC performs periodic channel checks. Each channel check
    consists of two or more CCA checks. CCA_COUNT_MAX is the number of
@@ -166,12 +170,21 @@ static int we_are_receiving_burst = 0;
 /* MAX_SILENCE_PERIODS is the maximum amount of periods (a period is
    CCA_CHECK_TIME + CCA_SLEEP_TIME) that we allow to be silent before
    we turn of the radio. */
+#ifdef CONTIKIMAC_CONF_MAX_SILENCE_PERIODS
+#define MAX_SILENCE_PERIODS                CONTIKIMAC_CONF_MAX_SILENCE_PERIODS
+#else
 #define MAX_SILENCE_PERIODS                5
+#endif
 
 /* MAX_NONACTIVITY_PERIODS is the maximum number of periods we allow
    the radio to be turned on without any packet being received, when
    WITH_FAST_SLEEP is enabled. */
+#ifdef CONTIKIMAC_CONF_MAX_NONACTIVITY_PERIODS
+#define MAX_NONACTIVITY_PERIODS            CONTIKIMAC_CONF_MAX_NONACTIVITY_PERIODS
+#else
 #define MAX_NONACTIVITY_PERIODS            10
+#endif
+
 
 
 
@@ -181,7 +194,11 @@ static int we_are_receiving_burst = 0;
 
 /* GUARD_TIME is the time before the expected phase of a neighbor that
    a transmitted should begin transmitting packets. */
+#ifdef CONTIKIMAC_CONF_GUARD_TIME
+#define GUARD_TIME                         CONTIKIMAC_CONF_GUARD_TIME
+#else
 #define GUARD_TIME                         10 * CHECK_TIME + CHECK_TIME_TX
+#endif
 
 /* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
 #ifdef CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
@@ -201,7 +218,11 @@ static int we_are_receiving_burst = 0;
 
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */
+#ifdef CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME
+#define MAX_PHASE_STROBE_TIME              CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME
+#else
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
+#endif
 
 #ifdef CONTIKIMAC_CONF_SEND_SW_ACK
 #define CONTIKIMAC_SEND_SW_ACK CONTIKIMAC_CONF_SEND_SW_ACK
@@ -269,20 +290,24 @@ off(void)
 }
 /*---------------------------------------------------------------------------*/
 static volatile rtimer_clock_t cycle_start;
+static void powercycle_wrapper(struct rtimer *t, void *ptr);
 static char powercycle(struct rtimer *t, void *ptr);
 static void
 schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 2)) {
-      time = RTIMER_NOW() - RTIMER_TIME(t) + 2;
+    time += RTIMER_TIME(t);
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(time, now + RTIMER_GUARD_TIME)) {
+      time = now + RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, RTIMER_TIME(t) + time, 1,
-                   (void (*)(struct rtimer *, void *))powercycle, NULL);
+    r = rtimer_set(t, time, 1, powercycle_wrapper, NULL);
+
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
     }
@@ -293,15 +318,16 @@ static void
 schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(fixed_time, RTIMER_NOW() + 1)) {
-      fixed_time = RTIMER_NOW() + 1;
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(fixed_time, now + RTIMER_GUARD_TIME)) {
+      fixed_time = now + RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, fixed_time, 1,
-                   (void (*)(struct rtimer *, void *))powercycle, NULL);
+    r = rtimer_set(t, fixed_time, 1, powercycle_wrapper, NULL);
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
     }
@@ -331,6 +357,12 @@ powercycle_turn_radio_on(void)
   if(we_are_sending == 0 && we_are_receiving_burst == 0) {
     on();
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+powercycle_wrapper(struct rtimer *t, void *ptr)
+{
+  powercycle(t, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static char
@@ -507,14 +539,16 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 #endif
   int strobes;
   uint8_t got_strobe_ack = 0;
-  int len;
   uint8_t is_broadcast = 0;
   uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
   int ret;
   uint8_t contikimac_was_on;
+#if !RDC_CONF_HARDWARE_ACK
+  int len;
   uint8_t seqno;
+#endif
   
   /* Exit if RDC and radio were explicitly turned off */
    if(!contikimac_is_on && !contikimac_keep_radio_on) {
@@ -558,7 +592,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-    if(NETSTACK_FRAMER.create_and_secure() < 0) {
+    if(NETSTACK_FRAMER.create() < 0) {
       PRINTF("contikimac: framer failed\n");
       return MAC_TX_ERR_FATAL;
     }
@@ -655,11 +689,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
        or rx cycle */
      on();
   }
+  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
 #endif
 
   watchdog_periodic();
   t0 = RTIMER_NOW();
-  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
@@ -672,7 +706,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       break;
     }
 
+#if !RDC_CONF_HARDWARE_ACK
     len = 0;
+#endif
 
     {
       rtimer_clock_t wt;
@@ -801,6 +837,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   int is_receiver_awake;
+  int pending;
   
   if(buf_list == NULL) {
     return;
@@ -825,7 +862,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
         packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
       }
       packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-      if(NETSTACK_FRAMER.create_and_secure() < 0) {
+      if(NETSTACK_FRAMER.create() < 0) {
         PRINTF("contikimac: framer failed\n");
         mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
         return;
@@ -845,7 +882,9 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 
     /* Prepare the packetbuf */
     queuebuf_to_packetbuf(curr->buf);
-    
+
+    pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
+
     /* Send the current packet */
     ret = send_packet(sent, ptr, curr, is_receiver_awake);
     if(ret != MAC_TX_DEFERRED) {
@@ -862,7 +901,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       /* The transmission failed, we stop the burst */
       next = NULL;
     }
-  } while((next != NULL) && packetbuf_attr(PACKETBUF_ATTR_PENDING));
+  } while((next != NULL) && pending);
 }
 /*---------------------------------------------------------------------------*/
 /* Timer callback triggered when receiving a burst, after having
@@ -911,8 +950,6 @@ input_packet(void)
          broadcast address. */
 
       /* If FRAME_PENDING is set, we are receiving a packets in a burst */
-      /* TODO To prevent denial-of-sleep attacks, the transceiver should
-         be disabled upon receipt of an unauthentic frame. */
       we_are_receiving_burst = packetbuf_attr(PACKETBUF_ATTR_PENDING);
       if(we_are_receiving_burst) {
         on();
@@ -989,8 +1026,7 @@ init(void)
   radio_is_on = 0;
   PT_INIT(&pt);
 
-  rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
-             (void (*)(struct rtimer *, void *))powercycle, NULL);
+  rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1, powercycle_wrapper, NULL);
 
   contikimac_is_on = 1;
 
@@ -1006,8 +1042,7 @@ turn_on(void)
   if(contikimac_is_on == 0) {
     contikimac_is_on = 1;
     contikimac_keep_radio_on = 0;
-    rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
-               (void (*)(struct rtimer *, void *))powercycle, NULL);
+    rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1, powercycle_wrapper, NULL);
   }
   return 1;
 }

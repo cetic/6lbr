@@ -58,6 +58,7 @@ llsec_wrapper_init(void)
     LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
     current_llsec_driver = &nullsec_driver;
   }
+  current_llsec_driver->init();
 }
 /*---------------------------------------------------------------------------*/
 char const * llsec_wrapper_name(void)
@@ -66,9 +67,9 @@ char const * llsec_wrapper_name(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+init(void)
 {
-  current_llsec_driver->bootstrap(on_bootstrapped);
+  //init is deferred until 6lbr config is read
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -77,30 +78,16 @@ send(mac_callback_t sent, void *ptr)
   current_llsec_driver->send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
-static int
-on_frame_created(void)
-{
-  return current_llsec_driver->on_frame_created();
-}
-/*---------------------------------------------------------------------------*/
 static void
 input(void)
 {
   current_llsec_driver->input();
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-get_overhead(void)
-{
-  return current_llsec_driver->get_overhead();
-}
-/*---------------------------------------------------------------------------*/
 const struct llsec_driver llsec_wrapper_driver = {
   "llsec-wrapper",
-  bootstrap,
+  init,
   send,
-  on_frame_created,
   input,
-  get_overhead
 };
 /*---------------------------------------------------------------------------*/

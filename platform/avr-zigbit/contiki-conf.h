@@ -62,18 +62,10 @@
  */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -96,7 +88,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #endif
 
 #define LINKADDR_CONF_SIZE       8
-#define PACKETBUF_CONF_HDR_SIZE    0
 
 //define NETSTACK_CONF_WITH_IPV6            1 //Let the makefile do this, allows hello-world to compile
 #if NETSTACK_CONF_WITH_IPV6
@@ -108,7 +99,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 /* The new NETSTACK interface requires RF230BB */
 #if RF230BB
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 #define UIP_CONF_LLH_LEN         0
 
 /* No radio cycling */
@@ -134,7 +124,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 #else
 /* Original combined RF230/mac code will not compile with current contiki stack */
-//#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 handles headers internally
 //FTH081105
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_MAXAGE 5

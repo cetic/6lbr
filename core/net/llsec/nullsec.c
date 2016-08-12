@@ -58,9 +58,9 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+init(void)
 {
-  on_bootstrapped();
+
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -68,12 +68,6 @@ send(mac_callback_t sent, void *ptr)
 {
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
   NETSTACK_MAC.send(sent, ptr);
-}
-/*---------------------------------------------------------------------------*/
-static int
-on_frame_created(void)
-{
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -96,19 +90,11 @@ input(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-get_overhead(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
 const struct llsec_driver nullsec_driver = {
   "nullsec",
-  bootstrap,
+  init,
   send,
-  on_frame_created,
-  input,
-  get_overhead
+  input
 };
 /*---------------------------------------------------------------------------*/
 

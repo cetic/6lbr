@@ -50,6 +50,11 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
+/* A configurable function called after update of the RPL DIO interval */
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+void RPL_CALLBACK_NEW_DIO_INTERVAL(uint8_t dio_interval);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
+
 /*---------------------------------------------------------------------------*/
 static struct ctimer periodic_timer;
 
@@ -124,6 +129,10 @@ new_dio_interval(rpl_instance_t *instance)
   /* schedule the timer */
   PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
   ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
+
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+  RPL_CALLBACK_NEW_DIO_INTERVAL(instance->dio_intcurrent);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -152,7 +161,7 @@ handle_dio_timer(void *ptr)
 #endif /* RPL_CONF_STATS */
       dio_output(instance, NULL);
     } else {
-      PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
+      PRINTF("RPL: Suppressing DIO transmission (%d >= %d)\n",
              instance->dio_counter, instance->dio_redundancy);
     }
     instance->dio_send = 0;
@@ -215,6 +224,8 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
     expiration_time = (clock_time_t)instance->default_lifetime *
       (clock_time_t)instance->lifetime_unit *
       CLOCK_SECOND / 2;
+    /* make the time for the re registration be betwen 1/2 - 3/4 of lifetime */
+    expiration_time = expiration_time + (random_rand() % (expiration_time / 2));
     PRINTF("RPL: Scheduling DAO lifetime timer %u ticks in the future\n",
            (unsigned)expiration_time);
     ctimer_set(&instance->dao_lifetime_timer, expiration_time,
@@ -312,7 +323,7 @@ schedule_dao(rpl_instance_t *instance, clock_time_t latency)
 void
 rpl_schedule_dao(rpl_instance_t *instance)
 {
-  schedule_dao(instance, RPL_DAO_LATENCY);
+  schedule_dao(instance, RPL_DAO_DELAY);
 }
 /*---------------------------------------------------------------------------*/
 void

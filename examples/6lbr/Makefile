@@ -104,13 +104,15 @@ PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo
 PROJECT_SOURCEFILES += dtls-echo.c
 endif
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c mac-wrapper.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c framer-wrapper.c mac-wrapper.c
 MODULES += core/net/llsec/noncoresec
 
 ifeq ($(WITH_IP64),1)
 MODULES += core/net/ip64 core/net/ip64-addr
 PROJECT_SOURCEFILES += ip64-eth-driver.c
 endif
+
+LDGENFLAGS += $(CFLAGS)
 
 tools:
 	cd tools && $(MAKE)

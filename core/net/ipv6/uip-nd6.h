@@ -59,8 +59,11 @@
 
 /** \name RFC 4861 Host constant */
 /** @{ */
+/** \brief Maximum router solicitation delay */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
+/** \brief Router solicitation interval */
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
+/** \brief Maximum router solicitations */
 #ifndef UIP_CONF_ND6_MAX_RTR_SOLICITATIONS
 #define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
 #else
@@ -136,9 +139,9 @@
 #endif
 
 #ifdef UIP_CONF_ND6_RETRANS_TIMER
-#define UIP_ND6_RETRANS_TIMER	       UIP_CONF_ND6_RETRANS_TIMER
+#define UIP_ND6_RETRANS_TIMER          UIP_CONF_ND6_RETRANS_TIMER
 #else
-#define UIP_ND6_RETRANS_TIMER	       1000
+#define UIP_ND6_RETRANS_TIMER          1000
 #endif
 
 #define UIP_ND6_DELAY_FIRST_PROBE_TIME 5

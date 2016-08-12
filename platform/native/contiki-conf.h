@@ -46,7 +46,6 @@ int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
 
@@ -102,6 +101,8 @@ typedef unsigned int uip_stats_t;
 
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
+
 #define UIP_CONF_ROUTER                 1
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
@@ -110,9 +111,6 @@ typedef unsigned int uip_stats_t;
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
 #define UIP_CONF_IPV6_CHECKS     1
 #define UIP_CONF_IPV6_QUEUE_PKT  1

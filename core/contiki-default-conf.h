@@ -78,13 +78,6 @@
 #define NETSTACK_CONF_LLSEC nullsec_driver
 #endif /* NETSTACK_CONF_LLSEC */
 
-/* To avoid unnecessary complexity, we assume the common case of
-   a constant LoWPAN-wide IEEE 802.15.4 security level, which
-   can be specified by defining LLSEC802154_CONF_SECURITY_LEVEL. */
-#ifndef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL 0
-#endif /* LLSEC802154_CONF_SECURITY_LEVEL */
-
 /* NETSTACK_CONF_NETWORK specifies the network layer and can be either
    sicslowpan_driver, for IPv6 networking, or rime_driver, for the
    custom Rime network stack. */
@@ -148,6 +141,13 @@
 #define UIP_CONF_IPV6_RPL 1
 #endif /* UIP_CONF_IPV6_RPL */
 
+/* If RPL is enabled also enable the RPL NBR Policy */
+#if UIP_CONF_IPV6_RPL
+#ifndef NBR_TABLE_FIND_REMOVABLE
+#define NBR_TABLE_FIND_REMOVABLE rpl_nbr_policy_find_removable
+#endif /* NBR_TABLE_FIND_REMOVABLE */
+#endif /* UIP_CONF_IPV6_RPL */
+
 /* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
    node will be able to handle. */
 #ifndef UIP_CONF_MAX_ROUTES
@@ -192,10 +192,24 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 #endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 
+/* UIP_CONF_ND6_SEND_RA enables standard IPv6 Router Advertisement.
+ * We enable it by default when IPv6 is used without RPL. */
+#ifndef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
+#endif /* UIP_CONF_ND6_SEND_RA */
+
 /* UIP_CONF_ND6_SEND_NA enables standard IPv6 Neighbor Discovery Protocol.
-   This is unneeded when RPL is used. Disable to save ROM and a little RAM. */
+   We enable it by default when IPv6 is used without RPL.
+   With RPL, the neighbor cache (link-local IPv6 <-> MAC address mapping)
+   is fed whenever receiving DIO and DAO messages. This is always sufficient
+   for RPL routing, i.e. to send to the preferred parent or any child.
+   Link-local unicast to other neighbors may, however, not be possible if
+   we never receive any DIO from them. This may happen if the link from the
+   neighbor to us is weak, if DIO transmissions are suppressed (Trickle
+   timer) or if the neighbor chooses not to transmit DIOs because it is
+   a leaf node or for any reason. */
 #ifndef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA 1
+#define UIP_CONF_ND6_SEND_NA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
 #endif /* UIP_CONF_ND6_SEND_NA */
 
 /*---------------------------------------------------------------------------*/
@@ -205,14 +219,6 @@
  * code (sicslowpan). They typically depend on the type of radio used
  * on the target platform, and are therefore platform-specific.
  */
-
-/* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS specifies how many times the
-   MAC layer should resend packets if no link-layer ACK was
-   received. This only makes sense with the csma_driver
-   NETSTACK_CONF_MAC. */
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS 4
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
 /* SICSLOWPAN_CONF_FRAG specifies if 6lowpan fragmentation should be
    used or not. Fragmentation is on by default. */

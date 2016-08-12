@@ -81,8 +81,8 @@
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
-#undef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL     (nvm_data.security_level)
+#undef NONCORESEC_CONF_SEC_LVL
+#define NONCORESEC_CONF_SEC_LVL     (nvm_data.security_level)
 
 #undef NONCORESEC_CONF_KEY_REF
 #define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)

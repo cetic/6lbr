@@ -74,6 +74,7 @@
 
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
+#include "framer-wrapper.h"
 #endif
 
 #if WEBSERVER
@@ -139,7 +140,6 @@ uip_ip4addr_t eth_ip64_gateway;
 
 //Misc
 unsigned long cetic_6lbr_startup;
-static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
@@ -435,12 +435,6 @@ cetic_6lbr_init_finalize(void)
 }
 
 /*---------------------------------------------------------------------------*/
-static void llsec_bootstrap_cb(void)
-{
-  security_ready = 1;
-  LOG6LBR_INFO("Security layer initialized\n");
-}
-/*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
@@ -491,12 +485,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   NETSTACK_MAC.off(1);
 
 #if CETIC_6LBR_LLSEC_WRAPPER
+  framer_wrapper_init();
   llsec_wrapper_init();
 #endif
-  NETSTACK_LLSEC.bootstrap(llsec_bootstrap_cb);
-  while(!security_ready) {
-    PROCESS_PAUSE();
-  }
 
   //6LoWPAN init
   memcpy(addr_contexts[0].prefix, nvm_data.wsn_6lowpan_context_0, sizeof(addr_contexts[0].prefix));

@@ -114,41 +114,41 @@
 #define GC_RELUCTANT    1
 
 /* File descriptor macros. */
-#define FD_VALID(fd) \
-  ((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && \
-   coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
+#define FD_VALID(fd)      ((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && \
+                           coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
 #define FD_READABLE(fd)   (coffee_fd_set[(fd)].flags & CFS_READ)
 #define FD_WRITABLE(fd)   (coffee_fd_set[(fd)].flags & CFS_WRITE)
 #define FD_APPENDABLE(fd) (coffee_fd_set[(fd)].flags & CFS_APPEND)
 
 /* File object macros. */
-#define FILE_MODIFIED(file) ((file)->flags & COFFEE_FILE_MODIFIED)
-#define FILE_FREE(file)   ((file)->max_pages == 0)
+#define FILE_MODIFIED(file)     ((file)->flags & COFFEE_FILE_MODIFIED)
+#define FILE_FREE(file)         ((file)->max_pages == 0)
 #define FILE_UNREFERENCED(file) ((file)->references == 0)
 
 /* File header flags. */
-#define HDR_FLAG_VALID    0x1 /* Completely written header. */
-#define HDR_FLAG_ALLOCATED  0x2 /* Allocated file. */
-#define HDR_FLAG_OBSOLETE 0x4 /* File marked for GC. */
-#define HDR_FLAG_MODIFIED 0x8 /* Modified file, log exists. */
-#define HDR_FLAG_LOG    0x10  /* Log file. */
-#define HDR_FLAG_ISOLATED 0x20  /* Isolated page. */
+#define HDR_FLAG_VALID     0x01 /* Completely written header. */
+#define HDR_FLAG_ALLOCATED 0x02 /* Allocated file. */
+#define HDR_FLAG_OBSOLETE  0x04 /* File marked for GC. */
+#define HDR_FLAG_MODIFIED  0x08 /* Modified file, log exists. */
+#define HDR_FLAG_LOG       0x10 /* Log file. */
+#define HDR_FLAG_ISOLATED  0x20 /* Isolated page. */
 
 /* File header macros. */
 #define CHECK_FLAG(hdr, flag) ((hdr).flags & (flag))
-#define HDR_VALID(hdr)    CHECK_FLAG(hdr, HDR_FLAG_VALID)
-#define HDR_ALLOCATED(hdr)  CHECK_FLAG(hdr, HDR_FLAG_ALLOCATED)
-#define HDR_FREE(hdr)   !HDR_ALLOCATED(hdr)
-#define HDR_LOG(hdr)    CHECK_FLAG(hdr, HDR_FLAG_LOG)
-#define HDR_MODIFIED(hdr) CHECK_FLAG(hdr, HDR_FLAG_MODIFIED)
-#define HDR_ISOLATED(hdr) CHECK_FLAG(hdr, HDR_FLAG_ISOLATED)
-#define HDR_OBSOLETE(hdr)   CHECK_FLAG(hdr, HDR_FLAG_OBSOLETE)
-#define HDR_ACTIVE(hdr)   (HDR_ALLOCATED(hdr) && \
-                           !HDR_OBSOLETE(hdr) && \
-                           !HDR_ISOLATED(hdr))
+#define HDR_VALID(hdr)        CHECK_FLAG(hdr, HDR_FLAG_VALID)
+#define HDR_ALLOCATED(hdr)    CHECK_FLAG(hdr, HDR_FLAG_ALLOCATED)
+#define HDR_FREE(hdr)         !HDR_ALLOCATED(hdr)
+#define HDR_LOG(hdr)          CHECK_FLAG(hdr, HDR_FLAG_LOG)
+#define HDR_MODIFIED(hdr)     CHECK_FLAG(hdr, HDR_FLAG_MODIFIED)
+#define HDR_ISOLATED(hdr)     CHECK_FLAG(hdr, HDR_FLAG_ISOLATED)
+#define HDR_OBSOLETE(hdr)     CHECK_FLAG(hdr, HDR_FLAG_OBSOLETE)
+#define HDR_ACTIVE(hdr)       (HDR_ALLOCATED(hdr) && \
+                               !HDR_OBSOLETE(hdr) && \
+                               !HDR_ISOLATED(hdr))
 
 /* Shortcuts derived from the hardware-dependent configuration of Coffee. */
-#define COFFEE_SECTOR_COUNT (unsigned)(COFFEE_SIZE / COFFEE_SECTOR_SIZE)
+#define COFFEE_SECTOR_COUNT \
+  (coffee_page_t)(COFFEE_SIZE / COFFEE_SECTOR_SIZE)
 #define COFFEE_PAGE_COUNT \
   ((coffee_page_t)(COFFEE_SIZE / COFFEE_PAGE_SIZE))
 #define COFFEE_PAGES_PER_SECTOR \
@@ -201,21 +201,13 @@ struct log_param {
 };
 
 /*
- * The protected memory consists of structures that should not be
- * overwritten during system checkpointing because they may be used by
- * the checkpointing implementation. These structures need not be
- * protected if checkpointing is not used.
+ * Variables that keep track of opened files and internal
+ * optimization information for Coffee.
  */
-static struct protected_mem_t {
-  struct file coffee_files[COFFEE_MAX_OPEN_FILES];
-  struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
-  coffee_page_t next_free;
-  char gc_wait;
-} protected_mem;
-static struct file *const coffee_files = protected_mem.coffee_files;
-static struct file_desc *const coffee_fd_set = protected_mem.coffee_fd_set;
-static coffee_page_t *const next_free = &protected_mem.next_free;
-static char *const gc_wait = &protected_mem.gc_wait;
+static struct file coffee_files[COFFEE_MAX_OPEN_FILES];
+static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
+static coffee_page_t next_free;
+static char gc_wait;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -243,7 +235,7 @@ absolute_offset(coffee_page_t page, cfs_offset_t offset)
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
-get_sector_status(uint16_t sector, struct sector_status *stats)
+get_sector_status(coffee_page_t sector, struct sector_status *stats)
 {
   static coffee_page_t skip_pages;
   static char last_pages_are_active;
@@ -313,7 +305,7 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
   /*
    * Determine the amount of pages in the following sectors that
    * should be remembered for the next iteration. This is necessary
-   * because no page except the first of a file contains information
+   * because no file page except the first contains information
    * about what type of page it is. A side effect of remembering this
    * amount is that there is no need to read in the headers of each
    * of these pages from the storage.
@@ -364,11 +356,11 @@ isolate_pages(coffee_page_t start, coffee_page_t skip_pages)
 static void
 collect_garbage(int mode)
 {
-  uint16_t sector;
+  coffee_page_t sector;
   struct sector_status stats;
   coffee_page_t first_page, isolation_count;
 
-  PRINTF("Coffee: Running the file system garbage collector in %s mode\n",
+  PRINTF("Coffee: Running the garbage collector in %s mode\n",
          mode == GC_RELUCTANT ? "reluctant" : "greedy");
   /*
    * The garbage collector erases as many sectors as possible. A sector is
@@ -377,7 +369,7 @@ collect_garbage(int mode)
   for(sector = 0; sector < COFFEE_SECTOR_COUNT; sector++) {
     isolation_count = get_sector_status(sector, &stats);
     PRINTF("Coffee: Sector %u has %u active, %u obsolete, and %u free pages.\n",
-           sector, (unsigned)stats.active,
+           (unsigned)sector, (unsigned)stats.active,
            (unsigned)stats.obsolete, (unsigned)stats.free);
 
     if(stats.active > 0) {
@@ -387,8 +379,8 @@ collect_garbage(int mode)
     if((mode == GC_RELUCTANT && stats.free == 0) ||
        (mode == GC_GREEDY && stats.obsolete > 0)) {
       first_page = sector * COFFEE_PAGES_PER_SECTOR;
-      if(first_page < *next_free) {
-        *next_free = first_page;
+      if(first_page < next_free) {
+        next_free = first_page;
       }
 
       if(isolation_count > 0) {
@@ -410,7 +402,7 @@ next_file(coffee_page_t page, struct file_header *hdr)
 {
   /*
    * The quick-skip algorithm for finding file extents is the most
-   * essential part of Coffee. The file allocation rules enables this
+   * essential part of Coffee. The file allocation rules enable this
    * algorithm to quickly jump over free areas and allocated extents
    * after reading single headers and determining their status.
    *
@@ -539,7 +531,7 @@ find_contiguous_pages(coffee_page_t amount)
   struct file_header hdr;
 
   start = INVALID_PAGE;
-  for(page = *next_free; page < COFFEE_PAGE_COUNT;) {
+  for(page = next_free; page < COFFEE_PAGE_COUNT;) {
     read_header(&hdr, page);
     if(HDR_FREE(hdr)) {
       if(start == INVALID_PAGE) {
@@ -555,8 +547,8 @@ find_contiguous_pages(coffee_page_t amount)
       page = next_file(page, &hdr);
 
       if(start + amount <= page) {
-        if(start == *next_free) {
-          *next_free = start + amount;
+        if(start == next_free) {
+          next_free = start + amount;
         }
         return start;
       }
@@ -589,7 +581,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds,
   hdr.flags |= HDR_FLAG_OBSOLETE;
   write_header(&hdr, page);
 
-  *gc_wait = 0;
+  gc_wait = 0;
 
   /* Close all file descriptors that reference the removed file. */
   if(close_fds) {
@@ -638,13 +630,13 @@ reserve(const char *name, coffee_page_t pages,
 
   page = find_contiguous_pages(pages);
   if(page == INVALID_PAGE) {
-    if(*gc_wait) {
+    if(gc_wait) {
       return NULL;
     }
     collect_garbage(GC_GREEDY);
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
-      *gc_wait = 1;
+      gc_wait = 1;
       return NULL;
     }
   }
@@ -656,7 +648,7 @@ reserve(const char *name, coffee_page_t pages,
   write_header(&hdr, page);
 
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
-         pages, page, name);
+         (unsigned)pages, (unsigned)page, name);
 
   file = load_file(page, &hdr);
   if(file != NULL) {
@@ -851,7 +843,7 @@ merge_log(coffee_page_t file_page, int extend)
     return -1;
   }
 
-  /* Copy the log configuration and the EOF hint. */
+  /* Copy the log configuration. */
   read_header(&hdr2, new_file->page);
   hdr2.log_record_size = hdr.log_record_size;
   hdr2.log_records = hdr.log_records;
@@ -1063,7 +1055,12 @@ cfs_seek(int fd, cfs_offset_t offset, int whence)
   }
 
   if(fdp->file->end < new_offset) {
-    fdp->file->end = new_offset;
+    if(FD_WRITABLE(fd)) {
+      fdp->file->end = new_offset;
+    } else {
+      /* Disallow seeking past the end of the file for read only FDs */
+      return (cfs_offset_t)-1;
+    }
   }
 
   return fdp->offset = new_offset;
@@ -1106,11 +1103,22 @@ cfs_read(int fd, void *buf, unsigned size)
 
   fdp = &coffee_fd_set[fd];
   file = fdp->file;
-  if(fdp->offset + size > file->end) {
-    size = file->end - fdp->offset;
+  
+#if COFFEE_IO_SEMANTICS
+  if(fdp->io_flags & CFS_COFFEE_IO_ENSURE_READ_LENGTH) {
+    while(fdp->offset + size > file->end) {
+      ((char*)buf)[--size] = 0;
+    }
+  } else {
+#endif
+    if(fdp->offset + size > file->end) {
+      size = file->end - fdp->offset;
+    }
+#if COFFEE_IO_SEMANTICS
   }
+#endif
 
-  /* If the file is allocated, read directly in the file. */
+  /* If the file is not modified, read directly from the file extent. */
   if(!FILE_MODIFIED(file)) {
     COFFEE_READ(buf, size, absolute_offset(file->page, fdp->offset));
     fdp->offset += size;
@@ -1121,8 +1129,9 @@ cfs_read(int fd, void *buf, unsigned size)
   read_header(&hdr, file->page);
 
   /*
-   * Fill the buffer by copying from the log in first hand, or the
-   * ordinary file if the page has no log record.
+   * Copy the contents of the most recent log record. If there is
+   * no log record for the file area to read from, we simply read
+   * from the original file extent.
    */
   for(bytes_left = size; bytes_left > 0; bytes_left -= r) {
     lp.offset = fdp->offset;
@@ -1250,8 +1259,8 @@ int
 cfs_opendir(struct cfs_dir *dir, const char *name)
 {
   /*
-   * Coffee is only guaranteed to support "/" and ".", but it does not
-   * currently enforce this.
+   * Coffee is only guaranteed to support the directory names "/" and ".",
+   * but it does not enforce this currently.
    */
   memset(dir->dummy_space, 0, sizeof(coffee_page_t));
   return 0;
@@ -1262,13 +1271,13 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
 {
   struct file_header hdr;
   coffee_page_t page;
+  coffee_page_t next_page;
 
   memcpy(&page, dir->dummy_space, sizeof(coffee_page_t));
 
   while(page < COFFEE_PAGE_COUNT) {
     read_header(&hdr, page);
     if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr)) {
-      coffee_page_t next_page;
       memcpy(record->name, hdr.name, sizeof(record->name));
       record->name[sizeof(record->name) - 1] = '\0';
       record->size = file_end(page);
@@ -1342,11 +1351,9 @@ cfs_coffee_set_io_semantics(int fd, unsigned flags)
 int
 cfs_coffee_format(void)
 {
-  unsigned i;
+  coffee_page_t i;
 
-  PRINTF("Coffee: Formatting %u sectors", COFFEE_SECTOR_COUNT);
-
-  *next_free = 0;
+  PRINTF("Coffee: Formatting %u sectors", (unsigned)COFFEE_SECTOR_COUNT);
 
   for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
@@ -1354,16 +1361,13 @@ cfs_coffee_format(void)
   }
 
   /* Formatting invalidates the file information. */
-  memset(&protected_mem, 0, sizeof(protected_mem));
+  memset(&coffee_files, 0, sizeof(coffee_files));
+  memset(&coffee_fd_set, 0, sizeof(coffee_fd_set));
+  next_free = 0;
+  gc_wait = 1;
 
   PRINTF(" done!\n");
 
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void *
-cfs_coffee_get_protected_mem(unsigned *size)
-{
-  *size = sizeof(protected_mem);
-  return &protected_mem;
-}

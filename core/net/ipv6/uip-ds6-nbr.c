@@ -79,20 +79,26 @@ uip_ds6_neighbors_init(void)
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                uint8_t isrouter, uint8_t state)
+                uint8_t isrouter, uint8_t state, nbr_table_reason_t reason,
+                void *data)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
+                                            , reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
     nbr->isrouter = isrouter;
+#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
     nbr->state = state;
-  #if UIP_CONF_IPV6_QUEUE_PKT
+#if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
-  #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#if UIP_ND6_SEND_NA
     /* timers are set separately, for now we put them in expired state */
     stimer_set(&nbr->reachable, 0);
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
+#endif /* UIP_ND6_SEND_NA */
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");
@@ -111,7 +117,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 }
 
 /*---------------------------------------------------------------------------*/
-void
+int
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
@@ -119,9 +125,9 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
     NEIGHBOR_STATE_CHANGED(nbr);
-    nbr_table_remove(ds6_neighbors, nbr);
+    return nbr_table_remove(ds6_neighbors, nbr);
   }
-  return;
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -203,18 +209,18 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #if UIP_DS6_LL_NUD
   /* From RFC4861, page 72, last paragraph of section 7.3.3:
    *
-   * 	"In some cases, link-specific information may indicate that a path to
-   * 	a neighbor has failed (e.g., the resetting of a virtual circuit). In
-   * 	such cases, link-specific information may be used to purge Neighbor
-   * 	Cache entries before the Neighbor Unreachability Detection would do
-   * 	so. However, link-specific information MUST NOT be used to confirm
-   * 	the reachability of a neighbor; such information does not provide
-   * 	end-to-end confirmation between neighboring IP layers."
+   *         "In some cases, link-specific information may indicate that a path to
+   *         a neighbor has failed (e.g., the resetting of a virtual circuit). In
+   *         such cases, link-specific information may be used to purge Neighbor
+   *         Cache entries before the Neighbor Unreachability Detection would do
+   *         so. However, link-specific information MUST NOT be used to confirm
+   *         the reachability of a neighbor; such information does not provide
+   *         end-to-end confirmation between neighboring IP layers."
    *
    * However, we assume that receiving a link layer ack ensures the delivery
-   * of the transmitted packed to the IP stack of the neighbour. This is a 
-   * fair assumption and allows battery powered nodes save some battery by 
-   * not re-testing the state of a neighbour periodically if it 
+   * of the transmitted packed to the IP stack of the neighbour. This is a
+   * fair assumption and allows battery powered nodes save some battery by
+   * not re-testing the state of a neighbour periodically if it
    * acknowledges link packets. */
   if(status == MAC_TX_OK) {
     uip_ds6_nbr_t *nbr;
@@ -230,18 +236,19 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #endif /* UIP_DS6_LL_NUD */
 
 }
+#if UIP_ND6_SEND_NA
 /*---------------------------------------------------------------------------*/
+/** Periodic processing on neighbors */
 void
 uip_ds6_neighbor_periodic(void)
 {
-  /* Periodic processing on neighbors */
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
 #if UIP_CONF_IPV6_RPL
-        /* when a neighbor leave it's REACHABLE state and is a default router,
+        /* when a neighbor leave its REACHABLE state and is a default router,
            instead of going to STALE state it enters DELAY state in order to
            force a NUD on it. Otherwise, if there is no upward traffic, the
            node never knows if the default router is still reachable. This
@@ -268,7 +275,6 @@ uip_ds6_neighbor_periodic(void)
 #endif /* UIP_CONF_IPV6_RPL */
       }
       break;
-#if UIP_ND6_SEND_NA
     case NBR_INCOMPLETE:
       if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
         uip_ds6_nbr_rm(nbr);
@@ -304,7 +310,6 @@ uip_ds6_neighbor_periodic(void)
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
-#endif /* UIP_ND6_SEND_NA */
     default:
       break;
     }
@@ -330,5 +335,6 @@ uip_ds6_get_least_lifetime_neighbor(void)
   }
   return nbr_expiring;
 }
+#endif /* UIP_ND6_SEND_NA */
 /*---------------------------------------------------------------------------*/
 /** @} */

@@ -278,11 +278,15 @@
 #endif
 
 #if CETIC_6LBR_LLSEC_WRAPPER
+#undef NETSTACK_FRAMER
+#define NETSTACK_FRAMER framer_wrapper
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC llsec_wrapper_driver
 #endif
 
-#define LLSEC802154_CONF_SECURITY 1
-#define LLSEC802154_CONF_USES_ENCRYPTION 1
+#define LLSEC802154_CONF_ENABLED 1
+
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA        1
 
 #endif /* __PROJECT_6LBR_CONF_H__ */

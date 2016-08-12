@@ -45,6 +45,9 @@
 
 #include "net/llsec/anti-replay.h"
 #include "net/packetbuf.h"
+#include "net/llsec/llsec802154.h"
+
+#if LLSEC802154_USES_FRAME_COUNTER
 
 /* This node's current frame counter value */
 static uint32_t counter;
@@ -55,7 +58,8 @@ anti_replay_set_counter(void)
 {
   frame802154_frame_counter_t reordered_counter;
   
-  reordered_counter.u32 = LLSEC802154_HTONL(++counter);
+  ++counter;
+  reordered_counter.u32 = LLSEC802154_HTONL(counter);
   
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, reordered_counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, reordered_counter.u16[1]);
@@ -106,5 +110,6 @@ anti_replay_was_replayed(struct anti_replay_info *info)
   }
 }
 /*---------------------------------------------------------------------------*/
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 
 /** @} */

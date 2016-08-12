@@ -100,4 +100,8 @@
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
+// Set max PM to 1, at level 2 the SRAM is only 16kB
+#undef LPM_CONF_MAX_PM
+#define LPM_CONF_MAX_PM       1
+
 #endif /* SIXLBR_CONF_CC2538DK_H */

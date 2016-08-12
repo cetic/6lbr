@@ -57,21 +57,6 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
-/*---------------------------------------------------------------------------*/
-/**
- * \name Flash Memory configuration
- *
- * @{
- */
-#ifndef FLASH_CONF_ORIGIN
-#define FLASH_CONF_ORIGIN  0x00200000
-#endif
-
-#ifndef FLASH_CONF_SIZE
-#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
-#endif
-/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name Watchdog Timer configuration
@@ -452,7 +437,7 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -491,8 +476,8 @@ typedef uint32_t rtimer_clock_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
+  addr_contexts[0].prefix[0] = UIP_DS6_DEFAULT_PREFIX_0; \
+  addr_contexts[0].prefix[1] = UIP_DS6_DEFAULT_PREFIX_1; \
 }
 #endif
 
@@ -517,6 +502,24 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Security
+ *
+ * @{
+ */
+#ifndef CRYPTO_CONF_INIT
+#define CRYPTO_CONF_INIT        1 /**< Whether to init cryptoprocessor */
+#endif
+
+#ifndef AES_128_CONF
+#define AES_128_CONF            cc2538_aes_128_driver /**< AES-128 driver */
+#endif
+
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 

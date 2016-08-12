@@ -57,7 +57,6 @@ extern uint32_t csma_sent_packets;
 extern uint32_t csma_received_packets;
 extern uint32_t csma_noack;
 extern uint32_t csma_collisions;
-extern uint32_t csma_deferred;
 extern uint32_t csma_retransmissions;
 extern uint32_t csma_dropped;
 
