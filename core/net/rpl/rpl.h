@@ -191,9 +191,7 @@ typedef struct rpl_instance rpl_instance_t;
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
   void (*neighbor_link_callback)(rpl_parent_t *, int, int);
-#if RPL_WITH_DAO_ACK
   void (*dao_ack_callback)(rpl_parent_t *, int status);
-#endif
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
@@ -248,9 +246,7 @@ struct rpl_instance {
   struct ctimer dao_lifetime_timer;
   struct ctimer unicast_dio_timer;
   rpl_parent_t *unicast_dio_target;
-#if RPL_WITH_DAO_ACK
   struct ctimer dao_retransmit_timer;
-#endif /* RPL_WITH_DAO_ACK */
 };
 
 /*---------------------------------------------------------------------------*/

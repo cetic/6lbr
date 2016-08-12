@@ -54,9 +54,7 @@
 
 static void reset(rpl_dag_t *);
 static void neighbor_link_callback(rpl_parent_t *, int, int);
-#if RPL_WITH_DAO_ACK
 static void dao_ack_callback(rpl_parent_t *, int);
-#endif
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
@@ -65,9 +63,7 @@ static void update_metric_container(rpl_instance_t *);
 rpl_of_t rpl_mrhof = {
   reset,
   neighbor_link_callback,
-#if RPL_WITH_DAO_ACK
   dao_ack_callback,
-#endif
   best_parent,
   best_dag,
   calculate_rank,
@@ -122,11 +118,10 @@ reset(rpl_dag_t *dag)
 {
   PRINTF("RPL: Reset MRHOF\n");
 }
-
-#if RPL_WITH_DAO_ACK
 static void
 dao_ack_callback(rpl_parent_t *p, int status)
 {
+  if(RPL_WITH_DAO_ACK) {
   if(status == RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT) {
     return;
   }
@@ -139,8 +134,8 @@ dao_ack_callback(rpl_parent_t *p, int status)
     /* punish the total lack of ACK with a similar punishment */
     neighbor_link_callback(p, MAC_TX_OK, 10);
   }
+  }
 }
-#endif /* RPL_WITH_DAO_ACK */
 
 static void
 neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
