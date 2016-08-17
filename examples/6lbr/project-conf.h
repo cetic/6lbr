@@ -285,4 +285,7 @@
 #define LLSEC802154_CONF_SECURITY 1
 #define LLSEC802154_CONF_USES_ENCRYPTION 1
 
+//IP64 DHCP is manually started in cetic-6lbr if needed
+#define IP64_CONF_DHCP 0
+
 #endif /* __PROJECT_6LBR_CONF_H__ */
