@@ -292,4 +292,7 @@
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
 
+//IP64 DHCP is manually started in cetic-6lbr if needed
+#define IP64_CONF_DHCP 0
+
 #endif /* __PROJECT_6LBR_CONF_H__ */
