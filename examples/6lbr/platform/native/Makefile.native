@@ -121,8 +121,9 @@ ipk:
 plugins: $(PLUGINS_DIRS)
 
 ifneq ($(PLUGINS_DIRS),)
+LDFLAGS_ORIG:=$(LDFLAGS)
 $(PLUGINS_DIRS):
-	$(MAKE) -C $@
+	LDFLAGS="$(LDFLAGS_ORIG)" $(MAKE) -C $@
 endif
 
 plugins-install:
