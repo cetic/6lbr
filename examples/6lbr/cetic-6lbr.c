@@ -373,7 +373,9 @@ cetic_6lbr_init_finalize(void)
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
 #endif
-  uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
+  if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
+  }
 
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
