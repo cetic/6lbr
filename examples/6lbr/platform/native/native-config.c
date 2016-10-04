@@ -43,11 +43,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
-#include "er-coap.h"
 #include "cetic-6lbr.h"
 
 #include "native-config.h"
 #include "ini.h"
+
+char const *  config_file_name = NULL;
 
 LIST(callbacks);
 

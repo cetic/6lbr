@@ -70,7 +70,7 @@ const char *slip_config_ifdown_script = NULL;
 char const *slip_config_www_root = "../www";
 char const *slip_config_plugins = NULL;
 char const *ip_config_file_name = NULL;
-char const *  config_file_name = NULL;
+extern char const *  config_file_name;
 char const *  node_config_file_name = NULL;
 int slip_config_dtr_rts_set = 1;
 
