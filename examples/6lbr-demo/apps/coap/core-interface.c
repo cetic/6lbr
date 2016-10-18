@@ -54,6 +54,10 @@
 
 int core_itf_linked_batch_resource = 0;
 
+typedef uint8_t core_interface_buffer_t[CORE_ITF_MAX_BATCH_BUFFER_SIZE+1];
+
+MEMB(core_interface_buffers, core_interface_buffer_t, CORE_ITF_MAX_BATCH_BUFFER);
+
 /*---------------------------------------------------------------------------*/
 #define ADD_CHAR_IF_POSSIBLE_HDLR(char) \
   if(strpos >= *offset && bufpos < preferred_size) { \
@@ -78,7 +82,7 @@ int core_itf_linked_batch_resource = 0;
   strpos += tmplen
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffer, int *batch_buffer_size, resource_t * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_data_handler(unsigned int accepted_type, void **batch_buffer, int *batch_buffer_size, resource_t * batch_resource_list[], int batch_resource_list_size, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int i;
   int32_t tmp = 0;
@@ -91,28 +95,36 @@ resource_batch_get_data_handler(unsigned int accepted_type, uint8_t *batch_buffe
 
   if ( *offset == 0 ) {
     *batch_buffer_size = 0;
+    *batch_buffer = memb_alloc(&core_interface_buffers);
+    if (*batch_buffer == NULL) {
+      coap_set_status_code(response, BAD_OPTION_4_02);
+      coap_set_payload(response, "BlockOutOfScope", 15);
+      return;
+    }
     if(batch_resource_list_size > 0)
-      *batch_buffer_size += COAP_DATA_FORMAT.start_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+      *batch_buffer_size += COAP_DATA_FORMAT.start_batch(((uint8_t*)*batch_buffer) + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
     for (i = 0; i < batch_resource_list_size; ++i) {
       tmp = 0;
-      batch_resource_list[i]->get_handler(request, response, batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
+      batch_resource_list[i]->get_handler(request, response, ((uint8_t*)*batch_buffer) + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, &tmp);
       *batch_buffer_size += REST.get_request_payload(response, &tmp_payload);
       if (i + 1 < batch_resource_list_size ) {
-        *batch_buffer_size += COAP_DATA_FORMAT.batch_separator(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+        *batch_buffer_size += COAP_DATA_FORMAT.batch_separator(((uint8_t*)*batch_buffer) + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
       }
     }
     if(batch_resource_list_size > 0)
-      *batch_buffer_size += COAP_DATA_FORMAT.end_batch(batch_buffer + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
+      *batch_buffer_size += COAP_DATA_FORMAT.end_batch(((uint8_t*)*batch_buffer) + *batch_buffer_size, CORE_ITF_MAX_BATCH_BUFFER_SIZE - *batch_buffer_size, 0, accepted_type);
   }
   if (*offset > *batch_buffer_size) {
     coap_set_status_code(response, BAD_OPTION_4_02);
     coap_set_payload(response, "BlockOutOfScope", 15);
     return;
   }
-  coap_set_payload(response, batch_buffer + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
+  coap_set_payload(response, ((uint8_t*)*batch_buffer) + *offset, *offset + preferred_size > *batch_buffer_size ? *batch_buffer_size - *offset : preferred_size);
   coap_set_header_content_format(response, COAP_DATA_FORMAT.format_type(accepted_type));
   if (*offset + preferred_size >= *batch_buffer_size) {
     *offset = -1;
+    memb_free(&core_interface_buffers, *batch_buffer);
+    *batch_buffer = NULL;
   } else {
     *offset += preferred_size;
   }
@@ -203,7 +215,7 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
 }
 /*---------------------------------------------------------------------------*/
 void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+resource_batch_get_handler(void **batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   if (request != NULL) {
