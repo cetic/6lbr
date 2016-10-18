@@ -177,7 +177,7 @@ endif
 endif
 
 ifeq ($(TARGET),srf06-cc26xx)
-ifeq ($(BOARD),sensortag)
+ifeq ($(BOARD),sensortag/cc2650)
 WITH_CETIC_6LN_NVM?=0
 ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += sensortag-nvm.c
