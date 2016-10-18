@@ -179,6 +179,7 @@ endif
 ifeq ($(TARGET),srf06-cc26xx)
 ifeq ($(BOARD),sensortag)
 WITH_CETIC_6LN_NVM?=0
+CFLAGS+=-DWITH_CETIC_6LN_NVM=$(WITH_CETIC_6LN_NVM)
 ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += sensortag-nvm.c
 endif
