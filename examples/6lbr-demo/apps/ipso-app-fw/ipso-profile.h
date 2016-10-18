@@ -171,6 +171,8 @@
 
 // OTHER
 
+#define ACTUATOR_PATH "act"
+
 #define LIGHT_PHOTOSYNTHETIC_SENSOR_RES SENSOR_PATH "photo"
 #define LIGHT_SOLAR_SENSOR_RES SENSOR_PATH "solar"
 #define TEMPERATURE_SENSOR_RES SENSOR_PATH "temp"
@@ -188,6 +190,7 @@
 #define DBM_RT "ucum:dBm"
 #define PERCENT_RT "ucum:%"
 #define RAW_RT "raw"
+#define BOOLEAN_RT "bool"
 
 #define TEMPERATURE_SENSOR_RES_ID "temp"
 #define HUMIDITY_SENSOR_RES_ID "humidity"

@@ -60,6 +60,7 @@
 #include "illuminance-resource.h"
 #include "batmon-resource.h"
 #include "batmon-temp-resource.h"
+#include "buzzer-resource.h"
 
 #include "tmp-007-sensor.h"
 #include "hdc-1000-sensor.h"
@@ -203,7 +204,25 @@ inline static int get_batmon_temp(void) {
 #define SENSOR_INIT_BATMON_TEMP() SENSORS_ACTIVATE(batmon_sensor)
 #define REST_REST_BATMON_TEMP_VALUE get_batmon_temp()
 /*---------------------------------------------------------------------------*/
+#if REST_RES_BUZZER
+#include "buzzer.h"
+inline int buzzer_value(void) {
+  return buzzer_state();
+}
 
+static int buzzer_set(uint32_t value, uint32_t len) {
+  if (value) {
+    buzzer_start(1000);
+  } else {
+    buzzer_stop();
+  }
+  return 1;
+}
+
+#define SENSOR_INIT_BUZZER()
+#define REST_REST_BUZZER_VALUE buzzer_value()
+#define REST_REST_BUZZER_ACTUATOR buzzer_set
+#endif
 /*---------------------------------------------------------------------------*/
 
 REST_RES_AMBIENT_TEMP_DEFINE();
@@ -215,6 +234,7 @@ REST_RES_PRESSURE_TEMP_DEFINE();
 REST_RES_ILLUMINANCE_DEFINE();
 REST_RES_BATMON_DEFINE();
 REST_RES_BATMON_TEMP_DEFINE();
+REST_RES_BUZZER_DEFINE();
 
 #if WITH_LWM2M
 REST_RES_AMBIENT_TEMP_SO_INSTANCE_DEFINE("ucum:Celcius", "Ambient temperature");
@@ -225,6 +245,7 @@ REST_RES_PRESSURE_SO_INSTANCE_DEFINE("ucum:Celcius", "Pressure");
 REST_RES_PRESSURE_TEMP_SO_INSTANCE_DEFINE("ucum:Celcius", "Pressure temperature");
 REST_RES_ILLUMINANCE_SO_INSTANCE_DEFINE("ucum:Celcius", "Illuminance");
 REST_RES_BATMON_TEMP_SO_INSTANCE_DEFINE("ucum:Celcius", "Battery temperature");
+REST_RES_BUZZER_SO_INSTANCE_DEFINE("ucum:Celcius", "Buzzer");
 #endif
 
 #if WITH_LWM2M
@@ -238,6 +259,7 @@ char const * lwm2m_objects_link = ""
   REST_RES_PRESSURE_TEMP_SO_INSTANCE_LINK
   REST_RES_ILLUMINANCE_SO_INSTANCE_LINK
   REST_RES_BATMON_TEMP_SO_INSTANCE_LINK
+  REST_RES_BUZZER_SO_INSTANCE_LINK
   ;
 #endif
 void
@@ -261,6 +283,7 @@ platform_resources_init(void)
   REST_RES_BATMON_INIT_WITH_PATH(DEVICE_POWER_SUPPLY_ENUM_LINE DEVICE_POWER_SUPPLY_VOLTAGE_RES);
 #endif
   REST_RES_BATMON_TEMP_INIT();
+  REST_RES_BUZZER_INIT();
 
   #if WITH_LWM2M
   REST_RES_AMBIENT_TEMP_SO_INSTANCE_INIT();
@@ -275,6 +298,8 @@ platform_resources_init(void)
   REST_RES_ILLUMINANCE_SO_INSTANCE_INIT();
 
   REST_RES_BATMON_TEMP_SO_INSTANCE_INIT();
+
+  REST_RES_BUZZER_SO_INSTANCE_INIT();
 
   lwm2m_set_resources_list(lwm2m_objects_link);
 #endif
