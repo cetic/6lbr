@@ -225,14 +225,6 @@
 #define SKY_CONF_MAX_TX_POWER 	31
 #endif
 
-#if CONTIKI_TARGET_ECONOTAG
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK_HW     1
-#else
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK	1
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
