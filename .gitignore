@@ -72,6 +72,12 @@ contiki-cc2530dk.lib
 *.sensinode
 *.cc2530dk
 
+#Eclipse configuration files
+.project
+.cproject
+.pydevproject
+.settings
+
 # VC++ build artifacts
 *.exp
 *.ilk
