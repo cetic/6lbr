@@ -242,11 +242,10 @@ $(PROJECTDIR)/dynamic-resources.mk:
 	@echo 'GEN_FILES+=$(FULL_RESOURCE_FILES)' > $(PROJECTDIR)/dynamic-resources.mk
 
 PROJECTDIRS+=$(PROJECTDIR)/dyn_resources
+endif
 
 CLEAN+=$(PROJECTDIR)/dyn_resources/* $(PROJECTDIR)/dynamic-resources.mk
-
 .PHONY: $(FULL_RESOURCE_FILES)
-endif
 
 all_sky: bin_sky/6lbr-demo.sky
 all_z1: bin_z1/6lbr-demo-webserver.z1 bin_z1/6lbr-demo-coapserver.z1
