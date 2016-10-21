@@ -81,10 +81,12 @@
 #define RF_CHANNEL 26
 #endif
 
+#undef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL RF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL RF_CHANNEL
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL RF_CHANNEL
+#undef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
 /* Security                                                                  */
