@@ -46,7 +46,7 @@
 #include <string.h>
 
 #include "log-6lbr.h"
-#include "slip-config.h"
+#include "native-args.h"
 #include "plugin.h"
 
 LIST(sixlbr_plugins);
@@ -98,10 +98,10 @@ void plugins_load() {
 
   list_init(sixlbr_plugins);
 
-  if (slip_config_plugins == NULL) return;
+  if (sixlbr_config_plugins == NULL) return;
 
-  if ((dirp = opendir(slip_config_plugins)) == NULL) {
-    LOG6LBR_ERROR("couldn't open '%s' : %s\n", slip_config_plugins, strerror(errno));
+  if ((dirp = opendir(sixlbr_config_plugins)) == NULL) {
+    LOG6LBR_ERROR("couldn't open '%s' : %s\n", sixlbr_config_plugins, strerror(errno));
     return;
   }
 
@@ -110,8 +110,8 @@ void plugins_load() {
     if ((dp = readdir(dirp)) != NULL) {
       int len = strlen(dp->d_name);
       if ( len > 3 && strcmp(&dp->d_name[len-3], ".so") == 0 ) {
-        char * filename = (char *)malloc(strlen(slip_config_plugins)+len+1+1);
-        strcpy(filename, slip_config_plugins);
+        char * filename = (char *)malloc(strlen(sixlbr_config_plugins)+len+1+1);
+        strcpy(filename, sixlbr_config_plugins);
         strcat(filename, "/");
         strcat(filename, dp->d_name);
         plugin_load(filename);

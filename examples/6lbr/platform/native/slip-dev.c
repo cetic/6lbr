@@ -57,7 +57,7 @@
 #include "net/packetbuf.h"
 #include "cmd.h"
 #include "slip-cmds.h"
-#include "slip-config.h"
+#include "native-args.h"
 
 #ifdef SLIP_DEV_CONF_SEND_DELAY
 #define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY
@@ -378,7 +378,7 @@ static void
 stty_telos(int fd)
 {
   struct termios tty;
-  speed_t speed = slip_config_b_rate;
+  speed_t speed = slip_config_baud_rate;
   int i;
 
   if(tcflush(fd, TCIOFLUSH) == -1) {

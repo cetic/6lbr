@@ -42,7 +42,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
-#include "slip-config.h"
+#include "../../platform/native/native-args.h"
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
@@ -58,7 +58,7 @@ PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
   char filename[HTTPD_PATHLEN];
-  strcpy(filename, slip_config_www_root);
+  strcpy(filename, sixlbr_config_www_root);
   strcat(filename, s->filename);
   strcpy(s->filename, filename);
 

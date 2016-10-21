@@ -37,7 +37,7 @@
 #define LOG6LBR_MODULE "NODECFG"
 
 #include "node-config.h"
-#include "slip-config.h"
+#include "../../platform/native/native-args.h"
 #include "log-6lbr.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -92,9 +92,9 @@ void node_config_load(void) {
   node_config_http_port = node_config_first_http_port;
   node_config_add_br();
 
-  if (node_config_file_name) {
-    LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
-    node_config_file = fopen(node_config_file_name, "r");
+  if (sixlbr_config_node_config_file_name) {
+    LOG6LBR_INFO("Using node_config.conf : %s\n", sixlbr_config_node_config_file_name);
+    node_config_file = fopen(sixlbr_config_node_config_file_name, "r");
     if ( node_config_file != NULL ) {
       do {
         result = fscanf(node_config_file, "%s %hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
@@ -116,7 +116,7 @@ void node_config_load(void) {
       fclose(node_config_file);
       node_config_loaded = 1;
     } else {
-      LOG6LBR_ERROR("Can not open %s : %s\n", node_config_file_name, strerror(errno));
+      LOG6LBR_ERROR("Can not open %s : %s\n", sixlbr_config_node_config_file_name, strerror(errno));
     }
   } else {
     LOG6LBR_INFO("No node_config.conf file specified\n");
@@ -169,11 +169,11 @@ void node_config_load(void) {
   node_config_http_port = node_config_first_http_port;
   node_config_add_br();
 
-  if (node_config_file_name) {
-    LOG6LBR_INFO("Using node_config.conf : %s\n", node_config_file_name);
-    result = ini_parse(node_config_file_name, node_config_handler, NULL);
+  if (sixlbr_config_node_config_file_name) {
+    LOG6LBR_INFO("Using node_config.conf : %s\n", sixlbr_config_node_config_file_name);
+    result = ini_parse(sixlbr_config_node_config_file_name, node_config_handler, NULL);
     if (result < 0) {
-      LOG6LBR_ERROR("Can not open %s : %s\n", node_config_file_name, strerror(errno));
+      LOG6LBR_ERROR("Can not open %s : %s\n", sixlbr_config_node_config_file_name, strerror(errno));
     }
     else if (result) {
       LOG6LBR_WARN("Syntax error in node_config.conf : %d\n", result);
@@ -239,7 +239,7 @@ void node_config_impl_init(void) {
     if(infd == -1) {
       LOG6LBR_ERROR("Error returned by inotify_init() : %s\n", strerror(errno));
     }
-    int inwd = inotify_add_watch(infd, node_config_file_name, IN_CLOSE_WRITE);
+    int inwd = inotify_add_watch(infd, sixlbr_config_node_config_file_name, IN_CLOSE_WRITE);
     if(inwd == -1) {
       LOG6LBR_ERROR("Error returned by inotify_add_watch : %s\n", strerror(errno));
     }

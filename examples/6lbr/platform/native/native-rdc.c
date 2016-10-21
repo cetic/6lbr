@@ -46,7 +46,7 @@
 #include "net/netstack.h"
 #include "packetutils.h"
 #include "sys/ctimer.h"
-#include "native-slip.h"
+#include "slip-dev.h"
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"

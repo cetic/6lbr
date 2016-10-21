@@ -22,7 +22,7 @@ PROJECTDIRS += $(6LBR)/platform/native
 
 APPS += slip-cmd
 
-PROJECT_SOURCEFILES += native-init.c native-nvm.c native-config.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c 6lbr-watchdog.c plugin.c lost-symbols.c
+PROJECT_SOURCEFILES += native-init.c native-nvm.c native-config.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c native-args.c slip-dev.c 6lbr-watchdog.c plugin.c lost-symbols.c
 
 PROJECTDIRS+= lib/inih
 PROJECT_SOURCEFILES += ini.c

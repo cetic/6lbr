@@ -37,7 +37,7 @@
 #define LOG6LBR_MODULE "CONFIG"
 
 #include "node-config.h"
-#include "slip-config.h"
+#include "native-args.h"
 #include "log-6lbr.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -48,7 +48,7 @@
 #include "native-config.h"
 #include "ini.h"
 
-char const *  config_file_name = NULL;
+char const *  sixlbr_config_config_file_name = NULL;
 
 LIST(callbacks);
 
@@ -132,14 +132,14 @@ void native_config_load(config_level_t config_level)
 {
   int result;
 
-  if (config_file_name) {
-    LOG6LBR_INFO("Loading configuration : %s\n",config_file_name);
-    result = ini_parse(config_file_name, native_config_handler, &config_level);
+  if (sixlbr_config_config_file_name) {
+    LOG6LBR_INFO("Loading configuration : %s\n",sixlbr_config_config_file_name);
+    result = ini_parse(sixlbr_config_config_file_name, native_config_handler, &config_level);
     if (result < 0) {
-      LOG6LBR_WARN("Can not open %s : %s\n", config_file_name, strerror(errno));
+      LOG6LBR_WARN("Can not open %s : %s\n", sixlbr_config_config_file_name, strerror(errno));
     }
     else if (result) {
-      LOG6LBR_FATAL("Syntax error in %s at line %d\n", config_file_name, result);
+      LOG6LBR_FATAL("Syntax error in %s at line %d\n", sixlbr_config_config_file_name, result);
       exit(1);
     }
   } else {
