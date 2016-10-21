@@ -49,6 +49,15 @@ char * node_info_export_file_name = NULL;
 int node_info_export_enable = 0;
 
 static native_config_callback_t node_info_export_config_cb;
+
+#if WEBSERVER
+#include "httpd-cgi.h"
+HTTPD_GROUP_NAME(sensors_group);
+HTTPD_CGI_CALL_NAME(webserver_node_info_export);
+HTTPD_CGI_CMD_NAME(webserver_node_info_export_toggle_cmd);
+HTTPD_CGI_CMD_NAME(webserver_node_info_export_config_cmd);
+#endif
+
 PROCESS(node_info_export_process, "Node info export");
 /*---------------------------------------------------------------------------*/
 static int
@@ -191,5 +200,11 @@ node_info_export_init(void)
   node_info_export_file_name = strdup("/tmp/node-info.csv");
   native_config_add_callback(&node_info_export_config_cb, "node-info.export", node_info_export_config_handler, NULL);
   process_start(&node_info_export_process, NULL);
+#if WEBSERVER
+  httpd_group_add_page(&sensors_group, &webserver_node_info_export);
+  httpd_cgi_command_add(&webserver_node_info_export_toggle_cmd);
+  httpd_cgi_command_add(&webserver_node_info_export_config_cmd);
+#endif
+
 }
 /*---------------------------------------------------------------------------*/
