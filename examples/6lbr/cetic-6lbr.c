@@ -510,8 +510,16 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   PROCESS_PAUSE();
 
+#if WEBSERVER
+  webserver_init();
+#endif
+
 #if CETIC_NODE_INFO
   node_info_init();
+#endif
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
 #endif
 
   packet_filter_init();
@@ -534,13 +542,6 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_init_finalize();
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
-#if CETIC_NODE_CONFIG
-  node_config_init();
-#endif
-
-#if WEBSERVER
-  webserver_init();
-#endif
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
 #endif
