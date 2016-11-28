@@ -79,6 +79,12 @@
 #define SELECT_MAX 8
 #endif
 
+#ifdef SELECT_CONF_TIMEOUT
+#define SELECT_TIMEOUT SELECT_CONF_TIMEOUT
+#else
+#define SELECT_TIMEOUT 1000
+#endif
+
 static const struct select_callback *select_callback[SELECT_MAX];
 static int select_max = 0;
 
@@ -264,7 +270,7 @@ main(int argc, char **argv)
     retval = process_run();
 
     tv.tv_sec = 0;
-    tv.tv_usec = retval ? 1 : 1000;
+    tv.tv_usec = retval ? 1 : SELECT_TIMEOUT;
 
     FD_ZERO(&fdr);
     FD_ZERO(&fdw);
