@@ -44,6 +44,7 @@
 #include "nvm-config.h"
 #include "native-rdc.h"
 #include "native-config-file.h"
+#include "native-config-handlers.h"
 #include "plugin.h"
 #include "6lbr-watchdog.h"
 #include "native-config.h"
@@ -69,6 +70,7 @@ platform_init(void)
     LOG6LBR_WARN("6LBR Watchdog disabled\n");
   }
   native_config_init();
+  native_config_handlers_init();
   plugins_load();
 
   struct sigaction action;

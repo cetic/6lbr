@@ -37,5 +37,6 @@
 #ifndef NATIVE_CONFIG_HANDLER_H_
 #define NATIVE_CONFIG_HANDLER_H_
 
+void native_config_handlers_init(void);
 
 #endif /* NATIVE_CONFIG_HANDLER_H_ */
