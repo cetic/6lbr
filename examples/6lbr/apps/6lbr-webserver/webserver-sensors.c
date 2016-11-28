@@ -215,7 +215,7 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
       }
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
-      add("<td>%s</td>", (node_info_table[i].flags & NODE_INFO_HAS_ROUTE) != 0 ? "OK" : "NR");
+      add("<td>%s</td>", node_info_flags_text(node_info_table[i].flags));
       add("</tr>");
       SEND_STRING(&s->sout, buf);
       reset_buf();

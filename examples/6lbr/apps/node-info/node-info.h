@@ -66,6 +66,7 @@ typedef struct node_info {
 #define NODE_INFO_UPSTREAM_VALID 2
 #define NODE_INFO_DOWNSTREAM_VALID 4
 #define NODE_INFO_PARENT_VALID 8
+#define NODE_INFO_REJECTED 0x10
 
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
@@ -87,6 +88,15 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info);
 
 void
 node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count);
+
+void
+node_info_set_flags(uip_ipaddr_t * ipaddr, uint32_t flags);
+
+void
+node_info_clear_flags(uip_ipaddr_t * ipaddr, uint32_t flags);
+
+char const *
+node_info_flags_text(uint32_t flags);
 
 void
 node_info_reset_statistics(node_info_t * node_info);

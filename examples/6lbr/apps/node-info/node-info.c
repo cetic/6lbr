@@ -56,21 +56,10 @@ node_info_route_notification_cb(int event,
                                 uip_ipaddr_t * route,
                                 uip_ipaddr_t * nexthop, int num_routes)
 {
-  node_info_t *node = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node = node_info_lookup(route);
-    if(node == NULL) {
-      node = node_info_add(route);
-    }
-    if(node != NULL) {
-      node->flags |= NODE_INFO_HAS_ROUTE;
-      node->last_seen = clock_time();
-    }
- } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
-   node = node_info_lookup(route);
-   if(node != NULL) {
-     node->flags &= ~NODE_INFO_HAS_ROUTE;
-   }
+    node_info_set_flags(route, NODE_INFO_HAS_ROUTE);
+  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
+    node_info_clear_flags(route, NODE_INFO_HAS_ROUTE);
   }
 }
 
@@ -200,6 +189,48 @@ node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
     node->last_seen = clock_time();
     if(hop_count != -1) {
       node->hop_count = hop_count;
+    }
+  }
+}
+
+void
+node_info_set_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
+{
+  node_info_t *node = NULL;
+  node = node_info_lookup(ipaddr);
+  if(node == NULL) {
+    node = node_info_add(ipaddr);
+  }
+  if ( node != NULL ) {
+    node->last_seen = clock_time();
+    node->flags |= flags;
+  }
+}
+
+void
+node_info_clear_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
+{
+  node_info_t *node = NULL;
+  node = node_info_lookup(ipaddr);
+  if(node == NULL) {
+    node = node_info_add(ipaddr);
+  }
+  if ( node != NULL ) {
+    node->last_seen = clock_time();
+    node->flags &= ~flags;
+  }
+}
+
+char const *
+node_info_flags_text(uint32_t flags)
+{
+  if((flags & NODE_INFO_REJECTED) != 0) {
+    return "REJECTED";
+  } else {
+    if((flags & NODE_INFO_HAS_ROUTE) != 0) {
+      return "OK";
+    } else {
+      return "NR";
     }
   }
 }
