@@ -37,7 +37,7 @@
 #define LOG6LBR_MODULE "NODECFG"
 
 #include "node-config.h"
-#include "../../platform/native/native-args.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 #include "stdio.h"
 #include "stdlib.h"

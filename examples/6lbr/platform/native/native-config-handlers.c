@@ -36,23 +36,18 @@
 
 #define LOG6LBR_MODULE "CONFIG"
 
-#include "node-config.h"
-#include "native-args.h"
+#include "contiki.h"
+#include "contiki-net.h"
+#include "native-config-file.h"
 #include "log-6lbr.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "errno.h"
 #include "cetic-6lbr.h"
 
-#include "native-config.h"
-#include "ini.h"
+#include <stdlib.h>
 
-char const *  sixlbr_config_config_file_name = NULL;
-
-LIST(callbacks);
+int sixlbr_config_select_timeout = 1000;
 
 static native_config_callback_t global_config_cb;
+static native_config_callback_t native_config_cb;
 #if UIP_DS6_STATIC_ROUTES
 static native_config_callback_t network_route_config_cb;
 #endif
@@ -64,6 +59,25 @@ static int native_config_global_handler(config_level_t level, void* user, const 
     return 1;
   }
   return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int native_config_native_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  if(level != CONFIG_LEVEL_LOAD) {
+    return 1;
+  }
+  if(!name) {
+    //ignore end of section
+    return 1;
+  }
+  if(strcmp(name, "select.timeout") == 0) {
+    sixlbr_config_select_timeout = atoi(value);
+    return 0;
+  } else {
+    LOG6LBR_ERROR("Invalid parameter : %s\n", name);
+    return 0;
+  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_DS6_STATIC_ROUTES
@@ -110,58 +124,10 @@ static int native_config_network_route_handler(config_level_t level, void* user,
 }
 #endif
 /*---------------------------------------------------------------------------*/
-static int native_config_handler(void* user, const char* section, const char* name,
-    const char* value) {
-  native_config_callback_t *cb;
-  for(cb = list_head(callbacks);
-      cb != NULL;
-      cb = list_item_next(cb)) {
-    if(strcmp(section, cb->section) == 0) {
-      break;
-    }
-  }
-  if(cb) {
-    return cb->callback(*(config_level_t *)user, cb->user, cb->section, name, value);
-  } else {
-    LOG6LBR_WARN("Invalid section : %s\n", section);
-  }
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-void native_config_load(config_level_t config_level)
+void native_config_handlers_init(void)
 {
-  int result;
-
-  if (sixlbr_config_config_file_name) {
-    LOG6LBR_INFO("Loading configuration : %s\n",sixlbr_config_config_file_name);
-    result = ini_parse(sixlbr_config_config_file_name, native_config_handler, &config_level);
-    if (result < 0) {
-      LOG6LBR_WARN("Can not open %s : %s\n", sixlbr_config_config_file_name, strerror(errno));
-    }
-    else if (result) {
-      LOG6LBR_FATAL("Syntax error in %s at line %d\n", sixlbr_config_config_file_name, result);
-      exit(1);
-    }
-  } else {
-    LOG6LBR_WARN("No configuration file specified\n");
-  }
-}
-/*---------------------------------------------------------------------------*/
-void native_config_add_callback(native_config_callback_t *cb_info,
-    char const * section, config_callback c, void *user)
-{
-  if(cb_info != NULL && c != NULL) {
-    cb_info->callback = c;
-    cb_info->section = section;
-    cb_info->user = user;
-    list_add(callbacks, cb_info);
-  }
-}
-/*---------------------------------------------------------------------------*/
-void native_config_init(void)
-{
-  list_init(callbacks);
   native_config_add_callback(&global_config_cb, "", native_config_global_handler, NULL);
+  native_config_add_callback(&native_config_cb, "native", native_config_native_handler, NULL);
 #if UIP_DS6_STATIC_ROUTES
   native_config_add_callback(&network_route_config_cb, "network.route", native_config_network_route_handler, NULL);
 #endif

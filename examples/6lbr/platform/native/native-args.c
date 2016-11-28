@@ -54,6 +54,7 @@
 #include "contiki.h"
 #include "native-nvm.h"
 #include "log-6lbr.h"
+#include "native-config.h"
 #include "native-args.h"
 
 int slip_config_flowcontrol = 0;

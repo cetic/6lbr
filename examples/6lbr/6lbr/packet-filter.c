@@ -55,7 +55,7 @@
 #include "platform-init.h"
 #include "log-6lbr.h"
 #if CONTIKI_TARGET_NATIVE
-#include "native-args.h"
+#include "native-config.h"
 #endif
 #include "6lbr-hooks.h"
 

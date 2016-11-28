@@ -90,4 +90,10 @@
 #define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
 
+#if CONTIKI_TARGET_NATIVE
+extern int sixlbr_config_select_timeout;
+#undef SELECT_CONF_TIMEOUT
+#define SELECT_CONF_TIMEOUT sixlbr_config_select_timeout
+#endif
+
 #endif

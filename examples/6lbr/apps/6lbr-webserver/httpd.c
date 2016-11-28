@@ -52,7 +52,7 @@
 #include "httpd-cgi.h"
 
 #if CONTIKI_TARGET_NATIVE
-#include "native-args.h"
+#include "native-config.h"
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>

@@ -78,7 +78,7 @@ struct ifreq if_idx;
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "cetic-6lbr.h"
-#include "native-args.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 
 //Temporary, should be removed

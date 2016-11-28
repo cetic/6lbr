@@ -43,7 +43,7 @@
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"
-#include "native-args.h"
+#include "native-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
 #if CETIC_6LBR_IP64

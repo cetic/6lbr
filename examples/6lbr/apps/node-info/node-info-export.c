@@ -38,7 +38,7 @@
 #include "contiki.h"
 #include "log-6lbr.h"
 #include "node-config.h"
-#include "native-config.h"
+#include "../../platform/native/native-config-file.h"
 #include "node-info.h"
 #include "node-info-export.h"
 #include "string.h"

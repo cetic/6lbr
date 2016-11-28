@@ -57,7 +57,7 @@
 #include "net/packetbuf.h"
 #include "cmd.h"
 #include "slip-cmds.h"
-#include "native-args.h"
+#include "native-config.h"
 
 #ifdef SLIP_DEV_CONF_SEND_DELAY
 #define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY

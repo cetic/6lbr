@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +29,33 @@
 
 /**
  * \file
- *         Header file for the native configuration
+ *         6LBR configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#ifndef NATIVE_CONFIG_FILE_H_
+#define NATIVE_CONFIG_FILE_H_
 
-#include <stdint.h>
-#include <termios.h>
+#include "platform-init.h"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+extern char const *  sixlbr_config_config_file_name;
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+typedef int (* config_callback)(config_level_t level, void* user, const char* section, const char* name,
+    const char* value);
 
-#endif
+typedef struct native_config_callback {
+  struct native_config_callback *next;
+  char const *section;
+  config_callback callback;
+  void * user;
+} native_config_callback_t;
+
+void native_config_add_callback(native_config_callback_t *cb_info,
+    char const * section, config_callback c, void *user);
+
+void native_config_init(void);
+
+void native_config_load(config_level_t level);
+
+#endif /* NATIVE_CONFIG_FILE_H_ */

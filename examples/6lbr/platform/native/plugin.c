@@ -46,7 +46,7 @@
 #include <string.h>
 
 #include "log-6lbr.h"
-#include "native-args.h"
+#include "native-config.h"
 #include "plugin.h"
 
 LIST(sixlbr_plugins);

@@ -43,9 +43,10 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "native-rdc.h"
-#include "native-config.h"
+#include "native-config-file.h"
 #include "plugin.h"
 #include "6lbr-watchdog.h"
+#include "native-config.h"
 #include "native-args.h"
 
 #include <arpa/inet.h>

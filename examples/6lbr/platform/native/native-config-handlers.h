@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +29,13 @@
 
 /**
  * \file
- *         Header file for the native configuration
+ *         6LBR configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#ifndef NATIVE_CONFIG_HANDLER_H_
+#define NATIVE_CONFIG_HANDLER_H_
 
-#include <stdint.h>
-#include <termios.h>
 
-extern int contiki_argc;
-extern char **contiki_argv;
-
-extern int slip_config_handle_arguments(int argc, char **argv);
-
-#endif
+#endif /* NATIVE_CONFIG_HANDLER_H_ */

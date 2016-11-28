@@ -42,7 +42,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
-#include "../../platform/native/native-args.h"
+#include "native-config.h"
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
