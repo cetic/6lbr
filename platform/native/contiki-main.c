@@ -125,6 +125,7 @@ select_set_callback(int fd, const struct select_callback *callback)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if ! CETIC_6LBR
 static int
 stdin_set_fd(fd_set *rset, fd_set *wset)
 {
@@ -144,6 +145,7 @@ stdin_handle_fd(fd_set *rset, fd_set *wset)
 const static struct select_callback stdin_fd = {
   stdin_set_fd, stdin_handle_fd
 };
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
