@@ -43,8 +43,8 @@ typedef struct node_info {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   clock_time_t last_seen;
-  int hop_count;
-  uint8_t has_route;
+  uint8_t hop_count;
+  uint32_t flags;
 
   //6lbr-demo udp info
   uint32_t messages_received;
@@ -62,10 +62,15 @@ typedef struct node_info {
   uint16_t parent_switch;
 } node_info_t;
 
+#define NODE_INFO_HAS_ROUTE 1
+#define NODE_INFO_UPSTREAM_VALID 2
+#define NODE_INFO_DOWNSTREAM_VALID 4
+#define NODE_INFO_PARENT_VALID 8
+
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
 void
-  node_info_init(void);
+node_info_init(void);
 
 node_info_t *node_info_add(uip_ipaddr_t * ipaddr);
 

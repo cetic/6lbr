@@ -63,13 +63,13 @@ node_info_route_notification_cb(int event,
       node = node_info_add(route);
     }
     if(node != NULL) {
-      node->has_route = 1;
+      node->flags |= NODE_INFO_HAS_ROUTE;
       node->last_seen = clock_time();
     }
  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
    node = node_info_lookup(route);
    if(node != NULL) {
-     node->has_route = 0;
+     node->flags &= ~NODE_INFO_HAS_ROUTE;
    }
   }
 }
@@ -126,6 +126,7 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     if (sep != NULL) {
       node->messages_received++;
       up_sequence = atoi(info);
+      node->flags |= NODE_INFO_UPSTREAM_VALID;
       *sep = 0;
       info = sep + 1;
       if (*info == ' ') {
@@ -137,6 +138,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       }
       if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
         uip_create_unspecified(&ip_parent);
+        node->flags &= ~NODE_INFO_PARENT_VALID;
+      } else {
+        node->flags |= NODE_INFO_PARENT_VALID;
       }
       if(!uip_ipaddr_cmp(&node->ip_parent, &ip_parent)) {
         uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
@@ -147,13 +151,17 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (sep != NULL) {
         info = sep + 1;
         down_sequence = atoi(info);
+        node->flags |= NODE_INFO_DOWNSTREAM_VALID;
+      } else {
+        node->flags &= ~NODE_INFO_DOWNSTREAM_VALID;
       }
       if (node->messages_received > 1) {
         uint16_t up_delta = up_sequence - node->last_up_sequence;
         if (up_delta < 100) {
           node->messages_sent += up_delta;
           node->up_messages_lost += up_delta - 1;
-          if(down_sequence != node->last_down_sequence + 1) {
+          if((node->flags & NODE_INFO_DOWNSTREAM_VALID) != 0 &&
+              down_sequence != node->last_down_sequence + 1) {
             node->down_messages_lost += 1;
           }
         } else {
@@ -172,6 +180,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       node->last_up_sequence = up_sequence;
       node->last_down_sequence = down_sequence;
     } else {
+      node->flags &= ~NODE_INFO_UPSTREAM_VALID;
+      node->flags &= ~NODE_INFO_DOWNSTREAM_VALID;
+      node->flags &= ~NODE_INFO_PARENT_VALID;
       node->last_up_sequence = 0;
       node->last_down_sequence = 0;
       uip_create_unspecified(&node->ip_parent);

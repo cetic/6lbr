@@ -137,7 +137,7 @@ dump_info(FILE* stream)
     }
     fprintf(stream, "\t%lu", (clock_time() - node_info_table[i].stats_start) / CLOCK_SECOND);
     fprintf(stream, "\t%lu", (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
-    fprintf(stream, "\t%s", node_info_table[i].has_route ? "OK" : "NR");
+    fprintf(stream, "\t%s", (node_info_table[i].flags & NODE_INFO_HAS_ROUTE) != 0? "OK" : "NR");
     fprintf(stream, "\n");
   }
 }

@@ -186,26 +186,36 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
       }
       if(node_info_table[i].messages_received > 0) {
         add("<td>");
+        if((node_info_table[i].flags & NODE_INFO_PARENT_VALID) != 0) {
 #if CETIC_NODE_CONFIG_HAS_NAME
-        if (node_config_loaded) {
-          add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
-          ipaddr_add(&node_info_table[i].ip_parent);
-          add(")");
-        } else {
-          ipaddr_add(&node_info_table[i].ip_parent);
-        }
+          if (node_config_loaded) {
+            add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
+            ipaddr_add(&node_info_table[i].ip_parent);
+            add(")");
+          } else {
+            ipaddr_add(&node_info_table[i].ip_parent);
+          }
 #else
-        ipaddr_add(&node_info_table[i].ip_parent);
+          ipaddr_add(&node_info_table[i].ip_parent);
 #endif
+        }
         add("</td>");
-        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
-        add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
+        if((node_info_table[i].flags & NODE_INFO_UPSTREAM_VALID) != 0) {
+          add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].up_messages_lost)/node_info_table[i].messages_sent);
+        } else {
+          add("<td></td>");
+        }
+        if((node_info_table[i].flags & NODE_INFO_DOWNSTREAM_VALID) != 0) {
+          add("<td>%.1f%%</td>", 100.0 * (node_info_table[i].messages_sent - node_info_table[i].down_messages_lost)/node_info_table[i].messages_sent);
+        } else {
+          add("<td></td>");
+        }
       } else {
         add("<td></td><td></td><td></td>");
       }
       add("<td>%d</td>",
           (clock_time() - node_info_table[i].last_seen) / CLOCK_SECOND);
-      add("<td>%s</td>", node_info_table[i].has_route ? "OK" : "NR");
+      add("<td>%s</td>", (node_info_table[i].flags & NODE_INFO_HAS_ROUTE) != 0 ? "OK" : "NR");
       add("</tr>");
       SEND_STRING(&s->sout, buf);
       reset_buf();

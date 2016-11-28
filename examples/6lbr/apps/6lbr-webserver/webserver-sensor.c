@@ -82,7 +82,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
         add("</a>");
       }
       add("<br />");
-      add("Downward route: %s<br />", node_info->has_route ? "Yes" : "No");
+      add("Downward route: %s<br />", (node_info->flags & NODE_INFO_HAS_ROUTE) != 0 ? "Yes" : "No");
       SEND_STRING(&s->sout, buf);
       reset_buf();
 
