@@ -58,8 +58,13 @@ PT_THREAD(generate_node_info_export(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
   add("<h2>Status</h2>");
   add("Status : %s<br />", node_info_export_enable ? "Enabled" : "Disabled");
+  add("Mode : %s<br />", node_info_export_global ? "Global" : "Per node");
   add("Interval : %d s<br />", node_info_export_interval);
-  add("File : %s<br />", node_info_export_file_name);
+  if(node_info_export_global) {
+    add("File : %s<br />", node_info_export_file_name);
+  } else {
+    add("Path : %s<br />", node_info_export_path);
+  }
   add("<form action=\"node-info-export-toggle\" method=\"get\">");
   add("<br /><input type=\"submit\" value=\"%s\"/></form><br />", node_info_export_enable ? "Disable" : "Enable");
   SEND_STRING(&s->sout, buf);
@@ -69,6 +74,7 @@ PT_THREAD(generate_node_info_export(struct httpd_state *s))
   add("<form action=\"node-info-export-config\" method=\"get\">");
   add("Interval: <input type=\"text\" name=\"interval\" value=\"%d\" /><br />", node_info_export_interval);
   add("File: <input type=\"text\" name=\"file\" value=\"%s\" /><br />", node_info_export_file_name);
+  add("Path: <input type=\"text\" name=\"path\" value=\"%s\" /><br />", node_info_export_path);
   add("<br /><input type=\"submit\" value=\"Config\"/></form><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -78,7 +84,7 @@ PT_THREAD(generate_node_info_export(struct httpd_state *s))
 static httpd_cgi_call_t *
 webserver_node_info_export_toggle(struct httpd_state *s)
 {
-  node_info_export_enable = !node_info_export_enable;
+  node_info_export_set_enable(!node_info_export_enable);
   return &webserver_node_info_export;
 }
 
@@ -111,7 +117,7 @@ webserver_node_info_export_config(struct httpd_state *s)
     LOG6LBR_DEBUG("Got param: '%s' = '%s'\n", param, value);
     if (0) {
     } else if(strcmp(param, "interval") == 0) {
-      node_info_export_interval = atoi(value);
+      node_info_export_set_interval(atoi(value));
     } else if(strcmp(param, "file") == 0) {
       node_info_export_file_name = strdup(value);
     } else {
