@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,47 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#include "contiki.h"
+#include "network-itf.h"
+#include <string.h>
 
-extern int contiki_argc;
-extern char **contiki_argv;
+static network_itf_t network_itf_type_table[NETWORK_ITF_NBR];
 
-extern int native_args_handle_arguments(int argc, char **argv);
+void
+network_itf_init(void)
+{
+  memset(network_itf_type_table, 0, sizeof(network_itf_type_table));
+}
 
-#endif
+uint8_t
+network_itf_register(uint8_t itf_type, struct mac_driver *mac)
+{
+  int i = 0;
+  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type == NETWORK_ITF_TYPE_NONE) {
+    i++;
+  }
+  if(i < NETWORK_ITF_NBR) {
+    network_itf_type_table[i].itf_type = itf_type;
+    network_itf_type_table[i].mac = mac;
+    return i;
+  } else {
+    return -1;
+  }
+}
+
+network_itf_t *
+network_itf_get_itf(uint8_t ifindex)
+{
+  if(ifindex == -1) {
+    return NULL;
+  }
+  if(ifindex < NETWORK_ITF_NBR) {
+    return &network_itf_type_table[ifindex];
+  } else {
+    return NULL;
+  }
+}

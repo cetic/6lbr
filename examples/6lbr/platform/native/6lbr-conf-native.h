@@ -41,6 +41,8 @@
 /* NATIVE 6LBR                                                      */
 /*------------------------------------------------------------------*/
 
+#define UIP_MULTI_RADIO 1
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM         256
 

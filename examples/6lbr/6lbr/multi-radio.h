@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016 CETIC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +25,27 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         Header file for the native configuration
+ *         A pseudo MAC layer for multi-radio support
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#ifndef MULTI_RADIO_H_
+#define MULTI_RADIO_H_
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "net/mac/mac.h"
+#include "dev/radio.h"
 
-extern int native_args_handle_arguments(int argc, char **argv);
+extern uint8_t multi_radio_input_ifindex;
+extern uint8_t multi_radio_output_ifindex;
 
-#endif
+extern const struct mac_driver multiradio_driver;
+
+#endif /* MULTI_RADIO_H_ */

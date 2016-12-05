@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,34 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#include "contiki.h"
+#include "uip-ds6-nbr.h"
+#include "switch-lookup.h"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+void
+switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
+{
+  if(lladdr != NULL && linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null) != 0) {
+    uip_ds6_nbr_t *nbr;
+    nbr = uip_ds6_nbr_ll_lookup(lladdr);
+    if(nbr) {
+      nbr->ifindex = ifindex;
+    }
+  }
+}
 
-extern int native_args_handle_arguments(int argc, char **argv);
-
-#endif
+uint8_t
+switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
+{
+  uip_ds6_nbr_t *nbr;
+  nbr = uip_ds6_nbr_ll_lookup(lladdr);
+  if(nbr) {
+    return nbr->ifindex;
+  } else {
+    return SWITCH_LOOKUP_NO_ITF;
+  }
+}

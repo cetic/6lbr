@@ -43,7 +43,7 @@
 #include "enc28j60.h"
 #include "enc28j60-drv.h"
 #include "nvm-config.h"
-#include "packet-filter.h"
+#include "packet-forwarding-engine.h"
 #include "sicslow-ethernet.h"
 
 #if CETIC_6LBR_IP64

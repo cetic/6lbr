@@ -39,15 +39,44 @@
 #ifndef NATIVE_SLIP_H_
 #define NATIVE_SLIP_H_
 
-#include "contiki.h"
-#include "net/ip/uip.h"
+#include "contiki-conf.h"
 #include <stdio.h>
+#include <termios.h>
 
-int slip_config_handle_arguments(int argc, char **argv);
+#define SLIP_MAX_DEVICE 1
+
+typedef struct {
+  uint8_t isused;
+
+  /* Device configuration */
+  int flowcontrol;
+  const char *siodev;
+  const char *host;
+  const char *port;
+  speed_t baud_rate;
+  int dtr_rts_set;
+  clock_time_t send_delay;
+  int timeout;
+  int retransmit;
+  int serialize_tx_attrs;
+  int deserialize_rx_attrs;
+  int crc8;
+
+  /* Device runtime */
+  uint8_t ifindex;
+  int slipfd;
+  FILE *inslip;
+  unsigned char slip_buf[2048];
+  int slip_end, slip_begin, slip_packet_end, slip_packet_count;
+  struct timer send_delay_timer;
+} slip_descr_t;
+
+extern slip_descr_t *slip_default_device;
+
+void slip_init(void);
+void slip_close(void);
+slip_descr_t * slip_new_device(void);
+void slip_init_all_dev(void);
 void write_to_slip(const uint8_t * buf, int len);
-
-int slip_init(void);
-int slip_set_fd(int maxfd, fd_set * rset, fd_set * wset);
-void slip_handle_fd(fd_set * rset, fd_set * wset);
 
 #endif /* NATIVE_SLIP_H_ */

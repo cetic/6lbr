@@ -40,6 +40,7 @@
 #include "contiki-net.h"
 #include "native-config.h"
 #include "native-config-file.h"
+#include "slip-dev.h"
 #include "log-6lbr.h"
 #include "cetic-6lbr.h"
 
@@ -73,19 +74,19 @@ static int native_config_native_handler(config_level_t level, void* user, const 
     sixlbr_config_select_timeout = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.timeout") == 0) {
-    sixlbr_config_slip_timeout = atoi(value);
+    slip_default_device->timeout = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.retransmit") == 0) {
-    sixlbr_config_slip_retransmit = atoi(value);
+    slip_default_device->retransmit = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.serialize_tx_attrs") == 0) {
-    sixlbr_config_slip_serialize_tx_attrs = atoi(value);
+    slip_default_device->serialize_tx_attrs = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.deserialize_rx_attrs") == 0) {
-    sixlbr_config_slip_deserialize_rx_attrs = atoi(value);
+    slip_default_device->deserialize_rx_attrs = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.crc8") == 0) {
-    sixlbr_config_slip_crc8 = atoi(value);
+    slip_default_device->crc8 = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.ip") == 0) {
     sixlbr_config_slip_ip = atoi(value);

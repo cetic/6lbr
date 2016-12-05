@@ -65,18 +65,6 @@ int callback_count;
 int native_rdc_ack_timeout;
 int native_rdc_parse_error;
 
-#ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
-#define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
-#else
-#define NATIVE_RDC_SLIP_TIMEOUT (CLOCK_SECOND / 5)
-#endif
-
-#ifdef NATIVE_RDC_CONF_SLIP_RETRANSMIT
-#define NATIVE_RDC_SLIP_RETRANSMIT NATIVE_RDC_CONF_SLIP_RETRANSMIT
-#else
-#define NATIVE_RDC_SLIP_RETRANSMIT 0
-#endif
-
 /* a structure for calling back when packet data is coming back
    from radio... */
 struct tx_callback {
@@ -131,7 +119,7 @@ packet_timeout(void *ptr)
     if(callback->retransmit > 0) {
       LOG6LBR_INFO("br-rdc: slip ack timeout, retransmit (%d)\n", callback->sid);
       callback->retransmit--;
-      ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
+      ctimer_set(&callback->timeout, slip_default_device->timeout, packet_timeout, callback);
       write_to_slip(callback->buf, callback->buf_len);
     } else {
       callback_count--;
@@ -172,11 +160,11 @@ setup_callback(mac_callback_t sent, void *ptr)
     callback->ptr = ptr;
     callback->sid = callback_pos;
     callback->isused = 1;
-    callback->retransmit = NATIVE_RDC_SLIP_RETRANSMIT;
+    callback->retransmit = slip_default_device->retransmit;
     if(!sixlbr_config_slip_ip) {
       packetbuf_attr_copyto(callback->attrs, callback->addrs);
     }
-    ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
+    ctimer_set(&callback->timeout, slip_default_device->timeout, packet_timeout, callback);
     return callback_pos;
   } else {
     return -1;
@@ -241,7 +229,7 @@ send_packet(mac_callback_t sent, void *ptr)
   } else {
     /* here we send the data over SLIP to the radio-chip */
     size = 0;
-    if(sixlbr_config_slip_serialize_tx_attrs) {
+    if(slip_default_device->serialize_tx_attrs) {
       size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
     }
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
@@ -372,7 +360,7 @@ slip_set_rf_channel(uint8_t channel)
 void
 native_rdc_init(void)
 {
-  slip_init();
+  slip_init_all_dev();
   process_start(&border_router_cmd_process, NULL);
   process_start(&native_rdc_process, NULL);
 }

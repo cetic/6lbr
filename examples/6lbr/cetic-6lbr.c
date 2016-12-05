@@ -55,7 +55,7 @@
 
 #include "cetic-6lbr.h"
 #include "platform-init.h"
-#include "packet-filter.h"
+#include "packet-forwarding-engine.h"
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"

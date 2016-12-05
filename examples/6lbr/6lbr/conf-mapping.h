@@ -96,13 +96,7 @@ extern int sixlbr_config_select_timeout;
 #undef SELECT_CONF_TIMEOUT
 #define SELECT_CONF_TIMEOUT sixlbr_config_select_timeout
 
-extern int sixlbr_config_slip_timeout;
-#undef NATIVE_RDC_CONF_SLIP_TIMEOUT
-#define NATIVE_RDC_CONF_SLIP_TIMEOUT sixlbr_config_slip_timeout
 
-extern int sixlbr_config_slip_retransmit;
-#undef NATIVE_RDC_CONF_SLIP_RETRANSMIT
-#define NATIVE_RDC_CONF_SLIP_RETRANSMIT sixlbr_config_slip_retransmit
 #endif
 
 #endif

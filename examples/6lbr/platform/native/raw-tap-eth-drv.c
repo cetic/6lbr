@@ -45,7 +45,7 @@
 #include "nvm-config.h"
 #include "native-config.h"
 #include "sicslow-ethernet.h"
-#include "packet-filter.h"
+#include "packet-forwarding-engine.h"
 #if CETIC_6LBR_IP64
 #include "ip64.h"
 #endif
