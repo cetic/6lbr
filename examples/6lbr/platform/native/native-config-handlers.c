@@ -45,6 +45,8 @@
 #include <stdlib.h>
 
 int sixlbr_config_select_timeout = 1000;
+int sixlbr_config_slip_timeout = (CLOCK_SECOND / 5);
+int sixlbr_config_slip_retransmit = 0;
 
 static native_config_callback_t global_config_cb;
 static native_config_callback_t native_config_cb;
@@ -73,6 +75,12 @@ static int native_config_native_handler(config_level_t level, void* user, const 
   if(strcmp(name, "select.timeout") == 0) {
     sixlbr_config_select_timeout = atoi(value);
     return 0;
+  } else if(strcmp(name, "slip.timeout") == 0) {
+      sixlbr_config_slip_timeout = atoi(value);
+      return 0;
+  } else if(strcmp(name, "slip.retransmit") == 0) {
+      sixlbr_config_slip_retransmit = atoi(value);
+      return 0;
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);
     return 0;
