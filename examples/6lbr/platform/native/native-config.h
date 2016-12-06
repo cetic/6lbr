@@ -65,5 +65,7 @@ extern char const *  sixlbr_config_node_config_file_name;
 extern int sixlbr_config_select_timeout;
 extern int sixlbr_config_slip_timeout;
 extern int sixlbr_config_slip_retransmit;
+extern int slip_config_serialize_tx_attrs;
+extern int slip_config_deserialize_rx_attrs;
 
 #endif

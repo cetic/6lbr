@@ -55,6 +55,7 @@
 #include "log-6lbr.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "packetutils.h"
 #include "cmd.h"
 #include "slip-cmds.h"
 #include "native-config.h"
@@ -162,7 +163,22 @@ is_sensible_string(const unsigned char *s, int len)
 void
 slip_packet_input(unsigned char *data, int len)
 {
-  packetbuf_copyfrom(data, len);
+  packetbuf_clear();
+  if(slip_config_deserialize_rx_attrs) {
+    int pos = packetutils_deserialize_atts(data, len);
+    if(pos < 0) {
+      LOG6LBR_ERROR("illegal packet attributes\n");
+      return;
+    }
+    len -= pos;
+    if(len > PACKETBUF_SIZE) {
+      len = PACKETBUF_SIZE;
+    }
+    memcpy(packetbuf_dataptr(), &data[pos], len);
+    packetbuf_set_datalen(len);
+  } else {
+    packetbuf_copyfrom(data, len);
+  }
   NETSTACK_RDC.input();
 }
 /*---------------------------------------------------------------------------*/

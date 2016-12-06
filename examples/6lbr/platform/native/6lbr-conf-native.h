@@ -83,8 +83,6 @@
 
 /* Do not change lines below */
 
-#define SERIALIZE_ATTRIBUTES 1
-
 #define SELECT_CALLBACK 1
 
 #define SELECT_CONF_MAX FD_SETSIZE

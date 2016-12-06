@@ -49,6 +49,7 @@
 #include "slip-dev.h"
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 
 #include <string.h>
@@ -195,9 +196,9 @@ send_packet(mac_callback_t sent, void *ptr)
   } else {
     /* here we send the data over SLIP to the radio-chip */
     size = 0;
-#if SERIALIZE_ATTRIBUTES
-    size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
-#endif
+    if(slip_config_serialize_tx_attrs) {
+      size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
+    }
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
       LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
