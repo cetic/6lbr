@@ -30,6 +30,12 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+/* Set to 1 if the BR sends packet attributes along with the packet to the SLIP Radio */
+#define DESERIALIZE_ATTRIBUTES 1
+
+/* Set to 1 if the SLIP Radio sends packet attributes along with the packet to the BR */
+#define SERIALIZE_ATTRIBUTES 0
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          16
 
