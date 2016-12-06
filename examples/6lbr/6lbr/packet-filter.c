@@ -55,7 +55,7 @@
 #include "platform-init.h"
 #include "log-6lbr.h"
 #if CONTIKI_TARGET_NATIVE
-#include "slip-config.h"
+#include "native-config.h"
 #endif
 #include "6lbr-hooks.h"
 
@@ -260,7 +260,7 @@ eth_input(void)
   }
   if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40 < uip_len) {
 #if CONTIKI_TARGET_NATIVE
-    if(!ethernet_has_fcs)
+    if(!sixlbr_config_ethernet_has_fcs)
 #endif
       LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: packet size different than reported in IPv6 header, %d vs %d\n", uip_len, (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40);
     uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + 40;

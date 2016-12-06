@@ -44,6 +44,9 @@
 #else
 #include "node-config-memb.h"
 #endif
+#if CETIC_NODE_INFO
+#include "node-info.h"
+#endif
 #include "nvm-data.h"
 #include "net/rpl/rpl.h"
 #include "6lbr-hooks.h"
@@ -97,20 +100,30 @@ char const *  node_config_get_name(node_config_t const *  node_config) {
 int node_config_allowed_node_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
 {
   /* Test if MAC of incoming node is allowed. */
+  int allowed = 0;
   if(dag != NULL) {
     if(node_config_find_by_ip(prefix) == NULL) {
       LOG6LBR_6ADDR(INFO, prefix, "Node has been rejected : ");
-      return 0;
+    } else {
+      LOG6LBR_6ADDR(DEBUG, prefix, "Node has been accepted : ");
+      allowed = 1;
     }
-    LOG6LBR_6ADDR(DEBUG, prefix, "Node has been accepted : ");
-    return 1;
   } else {
     if(uip_is_addr_mcast(prefix) || uip_is_addr_linklocal(prefix) || uip_ds6_is_my_addr(prefix) || uip_ds6_is_my_aaddr(prefix) ||
       node_config_find_by_ip(prefix)) {
-      return 1;
+      allowed = 1;
     }
-    return 0;
   }
+#if CETIC_NODE_INFO
+  if(dag != NULL && allowed) {
+    //As control traffic is always allowed, set the flag only when it's coming from RPL
+    node_info_clear_flags(prefix, NODE_INFO_REJECTED);
+  }
+  if(!allowed) {
+    node_info_set_flags(prefix, NODE_INFO_REJECTED);
+  }
+#endif
+  return allowed;
 }
 
 void node_config_init(void) {

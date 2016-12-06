@@ -52,7 +52,7 @@
 #include "httpd-cgi.h"
 
 #if CONTIKI_TARGET_NATIVE
-#include "slip-config.h"
+#include "native-config.h"
 
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
@@ -111,7 +111,7 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 static
 int httpd_is_file(char const *filename) {
   char filepath[HTTPD_PATHLEN];
-  strcpy(filepath, slip_config_www_root);
+  strcpy(filepath, sixlbr_config_www_root);
   strcat(filepath, filename);
   return access(filepath, R_OK) == 0;
 }

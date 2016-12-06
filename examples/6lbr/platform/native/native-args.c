@@ -30,7 +30,7 @@
 
 /**
  * \file
- *         Slip configuration
+ *         Program arguments parsing
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
@@ -54,7 +54,8 @@
 #include "contiki.h"
 #include "native-nvm.h"
 #include "log-6lbr.h"
-#include "slip-config.h"
+#include "native-config.h"
+#include "native-args.h"
 
 int slip_config_flowcontrol = 0;
 const char *slip_config_siodev = NULL;
@@ -62,16 +63,16 @@ const char *slip_config_host = NULL;
 const char *slip_config_port = NULL;
 char slip_config_tundev[32] = { "" };
 uint16_t slip_config_basedelay = 0;
-char const *default_nvm_file = "nvm.dat";
-uint8_t use_raw_ethernet = 1;
-uint8_t ethernet_has_fcs = 0;
-const char *slip_config_ifup_script = NULL;
-const char *slip_config_ifdown_script = NULL;
-char const *slip_config_www_root = "../www";
-char const *slip_config_plugins = NULL;
-char const *ip_config_file_name = NULL;
-extern char const *  config_file_name;
-char const *  node_config_file_name = NULL;
+char const *sixlbr_config_default_nvm_file = "nvm.dat";
+uint8_t sixlbr_config_use_raw_ethernet = 1;
+uint8_t sixlbr_config_ethernet_has_fcs = 0;
+const char *sixlbr_config_ifup_script = NULL;
+const char *sixlbr_config_ifdown_script = NULL;
+char const *sixlbr_config_www_root = "../www";
+char const *sixlbr_config_plugins = NULL;
+char const *sixlbr_config_ip_file_name = NULL;
+extern char const *  sixlbr_config_config_file_name;
+char const *  sixlbr_config_node_config_file_name = NULL;
 int slip_config_dtr_rts_set = 1;
 
 #if __APPLE__
@@ -116,7 +117,7 @@ int slip_config_dtr_rts_set = 1;
 #ifndef BAUDRATE
 #define BAUDRATE B115200
 #endif
-speed_t slip_config_b_rate = BAUDRATE;
+speed_t slip_config_baud_rate = BAUDRATE;
 
 /*---------------------------------------------------------------------------*/
 int
@@ -134,7 +135,7 @@ slip_config_handle_arguments(int argc, char **argv)
       break;
 
     case 'o':
-      config_file_name = optarg;
+      sixlbr_config_config_file_name = optarg;
       break;
 
     case 'B':
@@ -194,50 +195,50 @@ slip_config_handle_arguments(int argc, char **argv)
       break;
 
     case 'r':
-      use_raw_ethernet = 1;
+      sixlbr_config_use_raw_ethernet = 1;
       break;
 
     case 'R':
-      use_raw_ethernet = 0;
+      sixlbr_config_use_raw_ethernet = 0;
       break;
 
     case 'f':
-      ethernet_has_fcs = 1;
+      sixlbr_config_ethernet_has_fcs = 1;
       break;
 
     case 'U':
-      slip_config_ifup_script = optarg;
+      sixlbr_config_ifup_script = optarg;
       break;
 
     case 'D':
-      slip_config_ifdown_script = optarg;
+      sixlbr_config_ifdown_script = optarg;
       break;
 
     case 'w':
-      slip_config_www_root = optarg;
+      sixlbr_config_www_root = optarg;
       break;
 
     case 'v':
       printf("Warning: -v option is deprecated, use -L and -S instead\n");
       break;
     case 'P':
-      watchdog_interval = atoi(optarg);
+      sixlbr_config_watchdog_interval = atoi(optarg);
       break;
 
     case 'W':
-      watchdog_file_name = optarg;
+      sixlbr_config_watchdog_file_name = optarg;
       break;
 
     case 'C':
-      ip_config_file_name = optarg;
+      sixlbr_config_ip_file_name = optarg;
       break;
 
     case 'm':
-      slip_config_plugins = optarg;
+      sixlbr_config_plugins = optarg;
       break;
 
     case 'n':
-      node_config_file_name = optarg;
+      sixlbr_config_node_config_file_name = optarg;
       break;
 
     case 'y':
@@ -295,94 +296,94 @@ slip_config_handle_arguments(int argc, char **argv)
   case -2:
     break;                      /* Use default. */
   #ifdef B50
-      case 50: slip_config_b_rate = B50; break;
+      case 50: slip_config_baud_rate = B50; break;
   #endif
   #ifdef B75
-      case 75: slip_config_b_rate = B75; break;
+      case 75: slip_config_baud_rate = B75; break;
   #endif
   #ifdef B110
-      case 110: slip_config_b_rate = B110; break;
+      case 110: slip_config_baud_rate = B110; break;
   #endif
   #ifdef B134
-      case 134: slip_config_b_rate = B134; break;
+      case 134: slip_config_baud_rate = B134; break;
   #endif
   #ifdef B150
-      case 150: slip_config_b_rate = B150; break;
+      case 150: slip_config_baud_rate = B150; break;
   #endif
   #ifdef B200
-      case 200: slip_config_b_rate = B200; break;
+      case 200: slip_config_baud_rate = B200; break;
   #endif
   #ifdef B300
-      case 300: slip_config_b_rate = B300; break;
+      case 300: slip_config_baud_rate = B300; break;
   #endif
   #ifdef B600
-      case 600: slip_config_b_rate = B600; break;
+      case 600: slip_config_baud_rate = B600; break;
   #endif
   #ifdef B1200
-      case 1200: slip_config_b_rate = B1200; break;
+      case 1200: slip_config_baud_rate = B1200; break;
   #endif
   #ifdef B1800
-      case 1800: slip_config_b_rate = B1800; break;
+      case 1800: slip_config_baud_rate = B1800; break;
   #endif
   #ifdef B2400
-      case 2400: slip_config_b_rate = B2400; break;
+      case 2400: slip_config_baud_rate = B2400; break;
   #endif
   #ifdef B4800
-      case 4800: slip_config_b_rate = B4800; break;
+      case 4800: slip_config_baud_rate = B4800; break;
   #endif
   #ifdef B9600
-      case 9600: slip_config_b_rate = B9600; break;
+      case 9600: slip_config_baud_rate = B9600; break;
   #endif
   #ifdef B19200
-      case 19200: slip_config_b_rate = B19200; break;
+      case 19200: slip_config_baud_rate = B19200; break;
   #endif
   #ifdef B38400
-      case 38400: slip_config_b_rate = B38400; break;
+      case 38400: slip_config_baud_rate = B38400; break;
   #endif
   #ifdef B57600
-      case 57600: slip_config_b_rate = B57600; break;
+      case 57600: slip_config_baud_rate = B57600; break;
   #endif
   #ifdef B115200
-      case 115200: slip_config_b_rate = B115200; break;
+      case 115200: slip_config_baud_rate = B115200; break;
   #endif
   #ifdef B230400
-      case 230400: slip_config_b_rate = B230400; break;
+      case 230400: slip_config_baud_rate = B230400; break;
   #endif
   #ifdef B460800
-      case 460800: slip_config_b_rate = B460800; break;
+      case 460800: slip_config_baud_rate = B460800; break;
   #endif
   #ifdef B500000
-      case 500000: slip_config_b_rate = B500000; break;
+      case 500000: slip_config_baud_rate = B500000; break;
   #endif
   #ifdef B576000
-      case 576000: slip_config_b_rate = B576000; break;
+      case 576000: slip_config_baud_rate = B576000; break;
   #endif
   #ifdef B921600
-      case 921600: slip_config_b_rate = B921600; break;
+      case 921600: slip_config_baud_rate = B921600; break;
   #endif
   #ifdef B1000000
-      case 1000000: slip_config_b_rate = B1000000; break;
+      case 1000000: slip_config_baud_rate = B1000000; break;
   #endif
   #ifdef B1152000
-      case 1152000: slip_config_b_rate = B1152000; break;
+      case 1152000: slip_config_baud_rate = B1152000; break;
   #endif
   #ifdef B1500000
-      case 1500000: slip_config_b_rate = B1500000; break;
+      case 1500000: slip_config_baud_rate = B1500000; break;
   #endif
   #ifdef B2000000
-      case 2000000: slip_config_b_rate = B2000000; break;
+      case 2000000: slip_config_baud_rate = B2000000; break;
   #endif
   #ifdef B2500000
-      case 2500000: slip_config_b_rate = B2500000; break;
+      case 2500000: slip_config_baud_rate = B2500000; break;
   #endif
   #ifdef B3000000
-      case 3000000: slip_config_b_rate = B3000000; break;
+      case 3000000: slip_config_baud_rate = B3000000; break;
   #endif
   #ifdef B3500000
-      case 3500000: slip_config_b_rate = B3500000; break;
+      case 3500000: slip_config_baud_rate = B3500000; break;
   #endif
   #ifdef B4000000
-      case 4000000: slip_config_b_rate = B4000000; break;
+      case 4000000: slip_config_baud_rate = B4000000; break;
   #endif
   default:
     LOG6LBR_FATAL("unknown baudrate %d", baudrate);
@@ -391,7 +392,7 @@ slip_config_handle_arguments(int argc, char **argv)
   }
 
   if(nvm_file == NULL) {
-    nvm_file = default_nvm_file;
+    nvm_file = sixlbr_config_default_nvm_file;
   }
 
   return 1;

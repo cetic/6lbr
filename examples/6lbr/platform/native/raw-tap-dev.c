@@ -78,11 +78,11 @@ struct ifreq if_idx;
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "cetic-6lbr.h"
-#include "slip-config.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 
 //Temporary, should be removed
-#include "native-slip.h"
+#include "slip-dev.h"
 #include "native-rdc.h"
 extern int slipfd;
 extern void slip_flushbuf(int fd);
@@ -121,16 +121,16 @@ ssystem(const char *fmt, ...)
 void
 cleanup(void)
 {
-  if(slip_config_ifdown_script != NULL) {
-    if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
-      LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", slip_config_ifdown_script);
-      int status = ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
-              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+  if(sixlbr_config_ifdown_script != NULL) {
+    if(access(sixlbr_config_ifdown_script, R_OK | X_OK) == 0) {
+      LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", sixlbr_config_ifdown_script);
+      int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifdown_script,
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
       if(status != 0) {
         LOG6LBR_ERROR("6lbr-ifdown script returned an error\n");
       }
     } else {
-      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", sixlbr_config_ifdown_script,
               strerror(errno));
     }
   } else {
@@ -155,17 +155,17 @@ sigcleanup(int signo)
 void
 ifconf(const char *tundev)
 {
-  if(slip_config_ifup_script != NULL) {
-    if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
-      LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", slip_config_ifup_script);
-      int status = ssystem("%s %s %s 2>&1", slip_config_ifup_script,
-              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+  if(sixlbr_config_ifup_script != NULL) {
+    if(access(sixlbr_config_ifup_script, R_OK | X_OK) == 0) {
+      LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", sixlbr_config_ifup_script);
+      int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifup_script,
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
       if(status != 0) {
         LOG6LBR_FATAL("6lbr-ifup script returned an error, aborting...\n");
         exit(1);
       }
     } else {
-      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", sixlbr_config_ifup_script,
               strerror(errno));
     }
   } else {
@@ -321,7 +321,7 @@ tun_init()
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
-  if(use_raw_ethernet) {
+  if(sixlbr_config_use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
   } else {
     tunfd = tun_alloc(slip_config_tundev);
@@ -341,7 +341,7 @@ tun_init()
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev);
 #if !CETIC_6LBR_ONE_ITF
-  if(use_raw_ethernet) {
+  if(sixlbr_config_use_raw_ethernet) {
 #endif
     fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
     LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");

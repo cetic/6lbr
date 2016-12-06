@@ -56,21 +56,10 @@ node_info_route_notification_cb(int event,
                                 uip_ipaddr_t * route,
                                 uip_ipaddr_t * nexthop, int num_routes)
 {
-  node_info_t *node = NULL;
   if(event == UIP_DS6_NOTIFICATION_ROUTE_ADD) {
-    node = node_info_lookup(route);
-    if(node == NULL) {
-      node = node_info_add(route);
-    }
-    if(node != NULL) {
-      node->has_route = 1;
-      node->last_seen = clock_time();
-    }
- } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
-   node = node_info_lookup(route);
-   if(node != NULL) {
-     node->has_route = 0;
-   }
+    node_info_set_flags(route, NODE_INFO_HAS_ROUTE);
+  } else if(event == UIP_DS6_NOTIFICATION_ROUTE_RM) {
+    node_info_clear_flags(route, NODE_INFO_HAS_ROUTE);
   }
 }
 
@@ -126,6 +115,7 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
     if (sep != NULL) {
       node->messages_received++;
       up_sequence = atoi(info);
+      node->flags |= NODE_INFO_UPSTREAM_VALID;
       *sep = 0;
       info = sep + 1;
       if (*info == ' ') {
@@ -137,6 +127,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       }
       if (uiplib_ipaddrconv(info, &ip_parent) == 0) {
         uip_create_unspecified(&ip_parent);
+        node->flags &= ~NODE_INFO_PARENT_VALID;
+      } else {
+        node->flags |= NODE_INFO_PARENT_VALID;
       }
       if(!uip_ipaddr_cmp(&node->ip_parent, &ip_parent)) {
         uip_ipaddr_copy(&(node->ip_parent), &ip_parent);
@@ -147,13 +140,17 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       if (sep != NULL) {
         info = sep + 1;
         down_sequence = atoi(info);
+        node->flags |= NODE_INFO_DOWNSTREAM_VALID;
+      } else {
+        node->flags &= ~NODE_INFO_DOWNSTREAM_VALID;
       }
       if (node->messages_received > 1) {
         uint16_t up_delta = up_sequence - node->last_up_sequence;
         if (up_delta < 100) {
           node->messages_sent += up_delta;
           node->up_messages_lost += up_delta - 1;
-          if(down_sequence != node->last_down_sequence + 1) {
+          if((node->flags & NODE_INFO_DOWNSTREAM_VALID) != 0 &&
+              down_sequence != node->last_down_sequence + 1) {
             node->down_messages_lost += 1;
           }
         } else {
@@ -172,6 +169,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info)
       node->last_up_sequence = up_sequence;
       node->last_down_sequence = down_sequence;
     } else {
+      node->flags &= ~NODE_INFO_UPSTREAM_VALID;
+      node->flags &= ~NODE_INFO_DOWNSTREAM_VALID;
+      node->flags &= ~NODE_INFO_PARENT_VALID;
       node->last_up_sequence = 0;
       node->last_down_sequence = 0;
       uip_create_unspecified(&node->ip_parent);
@@ -189,6 +189,48 @@ node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
     node->last_seen = clock_time();
     if(hop_count != -1) {
       node->hop_count = hop_count;
+    }
+  }
+}
+
+void
+node_info_set_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
+{
+  node_info_t *node = NULL;
+  node = node_info_lookup(ipaddr);
+  if(node == NULL) {
+    node = node_info_add(ipaddr);
+  }
+  if ( node != NULL ) {
+    node->last_seen = clock_time();
+    node->flags |= flags;
+  }
+}
+
+void
+node_info_clear_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
+{
+  node_info_t *node = NULL;
+  node = node_info_lookup(ipaddr);
+  if(node == NULL) {
+    node = node_info_add(ipaddr);
+  }
+  if ( node != NULL ) {
+    node->last_seen = clock_time();
+    node->flags &= ~flags;
+  }
+}
+
+char const *
+node_info_flags_text(uint32_t flags)
+{
+  if((flags & NODE_INFO_REJECTED) != 0) {
+    return "REJECTED";
+  } else {
+    if((flags & NODE_INFO_HAS_ROUTE) != 0) {
+      return "OK";
+    } else {
+      return "NR";
     }
   }
 }

@@ -40,8 +40,20 @@
 
 extern int node_info_export_interval;
 extern char * node_info_export_file_name;
+extern char * node_info_export_path;
 extern int node_info_export_enable;
+extern int node_info_export_global;
 
 void node_info_export_init(void);
+
+void
+node_info_export_set_interval(int interval);
+
+void
+node_info_export_set_enable(int enable);
+
+void
+node_info_export_set_global(int global);
+
 
 #endif

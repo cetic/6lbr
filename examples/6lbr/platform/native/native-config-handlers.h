@@ -29,43 +29,14 @@
 
 /**
  * \file
- *         Header file for the native configuration
+ *         6LBR configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_CONFIG_H_
-#define NATIVE_CONFIG_H_
+#ifndef NATIVE_CONFIG_HANDLER_H_
+#define NATIVE_CONFIG_HANDLER_H_
 
-#include <stdint.h>
-#include <termios.h>
+void native_config_handlers_init(void);
 
-extern int slip_config_flowcontrol;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern speed_t slip_config_baud_rate;
-extern int slip_config_dtr_rts_set;
-
-extern char const *sixlbr_config_default_nvm_file;
-extern uint8_t sixlbr_config_use_raw_ethernet;
-extern uint8_t sixlbr_config_ethernet_has_fcs;
-extern char const *sixlbr_config_ifup_script;
-extern char const *sixlbr_config_ifdown_script;
-extern char const *sixlbr_config_www_root;
-extern char const *sixlbr_config_plugins;
-extern int sixlbr_config_watchdog_interval;
-extern char const * sixlbr_config_watchdog_file_name;
-extern char const * sixlbr_config_ip_file_name;
-extern char const *  sixlbr_config_config_file_name;
-extern char const *  sixlbr_config_node_config_file_name;
-
-extern int sixlbr_config_select_timeout;
-extern int sixlbr_config_slip_timeout;
-extern int sixlbr_config_slip_retransmit;
-extern int slip_config_serialize_tx_attrs;
-extern int slip_config_deserialize_rx_attrs;
-
-#endif
+#endif /* NATIVE_CONFIG_HANDLER_H_ */
