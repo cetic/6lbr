@@ -46,7 +46,7 @@ extern int sixlbr_config_slip_flowcontrol;
 extern const char *sixlbr_config_slip_device;
 extern const char *sixlbr_config_slip_host;
 extern const char *sixlbr_config_slip_port;
-extern uint16_t sixlbr_config_slip_basedelay;
+extern int sixlbr_config_slip_send_delay;
 extern speed_t sixlbr_config_slip_baud_rate;
 extern int sixlbr_config_slip_dtr_rts_set;
 
@@ -57,7 +57,7 @@ extern int sixlbr_config_slip_deserialize_rx_attrs;
 
 extern int sixlbr_config_select_timeout;
 extern char sixlbr_config_eth_device[32];
-extern uint16_t sixlbr_config_eth_basedelay;
+extern int sixlbr_config_eth_basedelay;
 extern uint8_t sixlbr_config_use_raw_ethernet;
 extern uint8_t sixlbr_config_ethernet_has_fcs;
 
@@ -84,7 +84,7 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_SLIP_DEVICE        NULL
 #define SIXLBR_CONFIG_DEFAULT_SLIP_HOST          NULL
 #define SIXLBR_CONFIG_DEFAULT_SLIP_PORT          NULL
-#define SIXLBR_CONFIG_DEFAULT_SLIP_BASE_DELAY    0
+#define SIXLBR_CONFIG_DEFAULT_SLIP_SEND_DELAY    0
 #define SIXLBR_CONFIG_DEFAULT_SLIP_BAUD_RATE     B115200
 #define SIXLBR_CONFIG_DEFAULT_SLIP_DTR_RTS_SET   1
 

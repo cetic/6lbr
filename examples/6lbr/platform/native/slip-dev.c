@@ -60,12 +60,6 @@
 #include "slip-cmds.h"
 #include "native-config.h"
 
-#ifdef SLIP_DEV_CONF_SEND_DELAY
-#define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY
-#else
-#define SEND_DELAY 0
-#endif
-
 static FILE *inslip;
 
 /* for statistics */
@@ -282,9 +276,6 @@ unsigned char slip_buf[2048];
 int slip_end, slip_begin, slip_packet_end, slip_packet_count;
 static struct timer send_delay_timer;
 
-/* delay between slip packets */
-static clock_time_t send_delay = SEND_DELAY;
-
 /*---------------------------------------------------------------------------*/
 static void
 slip_send(int fd, unsigned char c)
@@ -346,8 +337,8 @@ slip_flushbuf(int fd)
           }
         }
         /* a delay between slip packets to avoid losing data */
-        if(send_delay > 0) {
-          timer_set(&send_delay_timer, send_delay);
+        if(sixlbr_config_slip_send_delay > 0) {
+          timer_set(&send_delay_timer, (CLOCK_SECOND * sixlbr_config_slip_send_delay) / 1000);
         }
       }
     }
@@ -474,7 +465,7 @@ static int
 set_fd(fd_set * rset, fd_set * wset)
 {
   /* Anything to flush? */
-  if(!slip_empty() && (send_delay == 0 || timer_expired(&send_delay_timer))) {
+  if(!slip_empty() && (sixlbr_config_slip_send_delay == 0 || timer_expired(&send_delay_timer))) {
     FD_SET(slipfd, wset);
   }
 

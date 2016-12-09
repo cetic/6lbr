@@ -46,7 +46,7 @@ int sixlbr_config_slip_flowcontrol = SIXLBR_CONFIG_DEFAULT_SLIP_FLOW_CONTROL;
 const char *sixlbr_config_slip_device = SIXLBR_CONFIG_DEFAULT_SLIP_DEVICE;
 const char *sixlbr_config_slip_host = SIXLBR_CONFIG_DEFAULT_SLIP_HOST;
 const char *sixlbr_config_slip_port = SIXLBR_CONFIG_DEFAULT_SLIP_PORT;
-uint16_t sixlbr_config_slip_basedelay = SIXLBR_CONFIG_DEFAULT_SLIP_BASE_DELAY;
+int sixlbr_config_slip_send_delay = SIXLBR_CONFIG_DEFAULT_SLIP_SEND_DELAY;
 speed_t sixlbr_config_slip_baud_rate = SIXLBR_CONFIG_DEFAULT_SLIP_BAUD_RATE;
 
 int sixlbr_config_slip_dtr_rts_set = SIXLBR_CONFIG_DEFAULT_SLIP_DTR_RTS_SET;
@@ -57,7 +57,7 @@ int sixlbr_config_slip_deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIA
 
 int sixlbr_config_select_timeout = SIXLBR_CONFIG_DEFAULT_SELECT_TIMEOUT;
 char sixlbr_config_eth_device[32] = { SIXLBR_CONFIG_DEFAULT_ETH_DEVICE };
-uint16_t sixlbr_config_eth_basedelay = SIXLBR_CONFIG_DEFAULT_ETH_BASE_DELAY;
+int sixlbr_config_eth_basedelay = SIXLBR_CONFIG_DEFAULT_ETH_BASE_DELAY;
 uint8_t sixlbr_config_use_raw_ethernet = SIXLBR_CONFIG_DEFAULT_USE_RAW_ETH;
 uint8_t sixlbr_config_ethernet_has_fcs = SIXLBR_CONFIG_DEFAULT_ETH_HAS_FCS;
 

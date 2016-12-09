@@ -127,9 +127,9 @@ slip_config_handle_arguments(int argc, char **argv)
       break;
 
     case 'd':
-      sixlbr_config_slip_basedelay = 10;
+      sixlbr_config_eth_basedelay = 10;
       if(optarg)
-        sixlbr_config_slip_basedelay = atoi(optarg);
+        sixlbr_config_eth_basedelay = atoi(optarg);
       break;
 
     case 'r':
