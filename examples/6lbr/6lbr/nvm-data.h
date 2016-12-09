@@ -177,8 +177,8 @@ typedef struct {
 
 #define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_RA_DAEMON | CETIC_MODE_REWRITE_ADDR_MASK )
 #define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		RPL_LOLLIPOP_INIT
-#define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0)
-#define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100)
+#define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x0)
+#define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX(a)	uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_IP_ADDR(a)		uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_create_unspecified(a)
@@ -246,7 +246,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_MAC_LAYER CETIC_6LBR_MAC_LAYER_CSMA
 
 #define CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0 \
-  { 0xAA, 0xAA, 0x00, 0x00, \
+  { 0xFD, 0x00, 0x00, 0x00, \
     0x00, 0x00, 0x00, 0x00 }
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(a)    uip_create_unspecified(a)
