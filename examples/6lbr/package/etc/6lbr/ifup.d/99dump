@@ -10,7 +10,7 @@ DEV=$3
 OS=`uname`
 
 if [ $MODE_6LBR = "tap" -a "$BRIDGE" = "1" ]; then
-	ifconfig $DEV_BRIDGE
+	/sbin/ifconfig $DEV_BRIDGE
 fi
 
-ifconfig $DEV
+/sbin/ifconfig $DEV
