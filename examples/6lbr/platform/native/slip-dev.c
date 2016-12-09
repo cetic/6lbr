@@ -66,8 +66,6 @@
 #define SEND_DELAY 0
 #endif
 
-int devopen(const char *dev, int flags);
-
 static FILE *inslip;
 
 /* for statistics */
@@ -88,6 +86,16 @@ int slipfd = 0;
 
 #define DEBUG_LINE_MARKER '\r'
 
+/*---------------------------------------------------------------------------*/
+static int
+devopen(const char *dev, int flags)
+{
+  char t[32];
+
+  strcpy(t, "/dev/");
+  strncat(t, dev, sizeof(t) - 5);
+  return open(t, flags);
+}
 /*---------------------------------------------------------------------------*/
 static void *
 get_in_addr(struct sockaddr *sa)

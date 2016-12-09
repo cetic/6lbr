@@ -57,6 +57,7 @@ extern int sixlbr_config_slip_deserialize_rx_attrs;
 
 extern int sixlbr_config_select_timeout;
 extern char sixlbr_config_eth_device[32];
+extern uint16_t sixlbr_config_eth_basedelay;
 extern uint8_t sixlbr_config_use_raw_ethernet;
 extern uint8_t sixlbr_config_ethernet_has_fcs;
 
@@ -94,6 +95,7 @@ extern char const *sixlbr_config_node_config_file_name;
 
 #define SIXLBR_CONFIG_DEFAULT_SELECT_TIMEOUT     1000
 #define SIXLBR_CONFIG_DEFAULT_ETH_DEVICE         ""
+#define SIXLBR_CONFIG_DEFAULT_ETH_BASE_DELAY     0
 #define SIXLBR_CONFIG_DEFAULT_USE_RAW_ETH        1
 #define SIXLBR_CONFIG_DEFAULT_ETH_HAS_FCS        0
 

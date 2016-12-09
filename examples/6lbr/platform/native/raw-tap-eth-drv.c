@@ -65,7 +65,7 @@ eth_drv_send(uint8_t *packet, uint16_t len)
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
   LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
 
-  tun_output(packet, len);
+  eth_dev_output(packet, len);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -101,7 +101,7 @@ eth_drv_init(void)
   } else {
     LOG6LBR_INFO("TAP Ethernet interface init\n");
   }
-  tun_init();
+  eth_dev_init();
   process_start(&eth_drv_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
