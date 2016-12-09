@@ -38,17 +38,12 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
+#include "native-config.h"
 #include "native-config-file.h"
 #include "log-6lbr.h"
 #include "cetic-6lbr.h"
 
 #include <stdlib.h>
-
-int sixlbr_config_select_timeout = 1000;
-int sixlbr_config_slip_timeout = (CLOCK_SECOND / 5);
-int sixlbr_config_slip_retransmit = 0;
-int slip_config_serialize_tx_attrs = 1;
-int slip_config_deserialize_rx_attrs = 0;
 
 static native_config_callback_t global_config_cb;
 static native_config_callback_t native_config_cb;
@@ -84,10 +79,10 @@ static int native_config_native_handler(config_level_t level, void* user, const 
       sixlbr_config_slip_retransmit = atoi(value);
       return 0;
   } else if(strcmp(name, "slip.serialize_tx_attrs") == 0) {
-      slip_config_serialize_tx_attrs = atoi(value);
+      sixlbr_config_slip_serialize_tx_attrs = atoi(value);
       return 0;
   } else if(strcmp(name, "slip.deserialize_rx_attrs") == 0) {
-    slip_config_deserialize_rx_attrs = atoi(value);
+    sixlbr_config_slip_deserialize_rx_attrs = atoi(value);
       return 0;
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);

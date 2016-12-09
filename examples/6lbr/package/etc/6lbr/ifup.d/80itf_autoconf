@@ -19,6 +19,11 @@ if [ "$ITF_AUTOCONF" != "1" ]; then
 	exit
 fi
 
+
+if [ "$(id -u)" != "0" ]; then
+	exit
+fi
+
 case $OS in
 	Linux)
 		if [ "$BRIDGE" = "1" ]; then

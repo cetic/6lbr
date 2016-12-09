@@ -52,7 +52,8 @@
 
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "signal.h"
+#include <signal.h>
+#include <errno.h>
 
 static void
 reload_trigger(int signal)
@@ -124,19 +125,28 @@ cetic_6lbr_save_ip(void)
     inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
 #endif
     FILE *ip_config_file = fopen(sixlbr_config_ip_file_name, "w");
-    fprintf(ip_config_file, "%s\n", str);
-    fclose(ip_config_file);
+    if(ip_config_file) {
+      fprintf(ip_config_file, "%s\n", str);
+      fclose(ip_config_file);
+    } else {
+      LOG6LBR_ERROR("Cannot create ip log file '%s' : %s\n", sixlbr_config_ip_file_name, strerror(errno));
+    }
+
     char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
     strcpy(ip4_file_name, sixlbr_config_ip_file_name);
     strcat(ip4_file_name, "4");
     FILE *ip4_config_file = fopen(ip4_file_name, "w");
-    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-      inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
-      fprintf(ip4_config_file, "%s\n", str);
+    if(ip4_config_file) {
+      if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+        inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
+        fprintf(ip4_config_file, "%s\n", str);
+      } else {
+        fprintf(ip4_config_file, "0.0.0.0\n");
+      }
+      fclose(ip4_config_file);
     } else {
-      fprintf(ip4_config_file, "0.0.0.0\n");
+      LOG6LBR_ERROR("Cannot create ip4 log file '%s' : %s\n", ip4_file_name, strerror(errno));
     }
-    fclose(ip4_config_file);
   }
 }
 

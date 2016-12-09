@@ -196,7 +196,7 @@ send_packet(mac_callback_t sent, void *ptr)
   } else {
     /* here we send the data over SLIP to the radio-chip */
     size = 0;
-    if(slip_config_serialize_tx_attrs) {
+    if(sixlbr_config_slip_serialize_tx_attrs) {
       size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
     }
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {

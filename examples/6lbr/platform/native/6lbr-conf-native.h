@@ -79,8 +79,6 @@
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
 
-#define SLIP_DEV_CONF_SEND_DELAY 0
-
 /* Do not change lines below */
 
 #define SELECT_CALLBACK 1
