@@ -39,8 +39,6 @@
 
 #include "platform-init.h"
 
-extern char const *  sixlbr_config_config_file_name;
-
 typedef int (* config_callback)(config_level_t level, void* user, const char* section, const char* name,
     const char* value);
 

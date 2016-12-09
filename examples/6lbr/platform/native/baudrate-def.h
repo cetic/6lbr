@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,57 +29,52 @@
 
 /**
  * \file
- *         Basic watchdog for the native Linux platform
+ *         Header file for the native configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef BAUDRATE_DEF_H
+#define BAUDRATE_DEF_H
 
-#define LOG6LBR_MODULE "ETH"
+#include <termios.h>
 
-#include "contiki.h"
-#include "log-6lbr.h"
-#include <stdio.h>
-#include <time.h>
-#include <errno.h>
-#include <string.h>
+#if __APPLE__
+#ifndef B460800
+#define B460800 460800
+#endif
+#ifndef B500000
+#define B500000 500000
+#endif
+#ifndef B576000
+#define B576000 576000
+#endif
+#ifndef B921600
+#define B921600 921600
+#endif
+#ifndef B1000000
+#define B1000000 1000000
+#endif
+#ifndef B1152000
+#define B1152000 1152000
+#endif
+#ifndef B1500000
+#define B1500000 1500000
+#endif
+#ifndef B2000000
+#define B2000000 2000000
+#endif
+#ifndef B2500000
+#define B2500000 2500000
+#endif
+#ifndef B3000000
+#define B3000000 3000000
+#endif
+#ifndef B3500000
+#define B3500000 3500000
+#endif
+#ifndef B4000000
+#define B4000000 4000000
+#endif
+#endif
 
-#include "native-config.h"
-#include "6lbr-watchdog.h"
-
-PROCESS(native_6lbr_watchdog, "6LBR native watchdog");
-
-/*---------------------------------------------------------------------------*/
-static void
-reset_watchdog(void)
-{
-  FILE *watchdog_file = fopen(sixlbr_config_watchdog_file_name, "w");
-  if (watchdog_file != NULL) {
-    fclose(watchdog_file);
-  } else {
-	LOG6LBR_ERROR("Can not reset watchdog : %s\n", strerror(errno));
-  }
-}
-/*---------------------------------------------------------------------------*/
-
-PROCESS_THREAD(native_6lbr_watchdog, ev, data)
-{
-  static struct etimer et;
-
-  PROCESS_BEGIN();
-
-  LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", sixlbr_config_watchdog_interval);
-  reset_watchdog();
-  etimer_set(&et, sixlbr_config_watchdog_interval);
-  while(1) {
-    PROCESS_YIELD();
-    if(etimer_expired(&et)) {
-      reset_watchdog();
-      etimer_reset(&et);
-    }
-  }
-
-  PROCESS_END();
-}
-
-/*---------------------------------------------------------------------------*/
-
+#endif /* BAUDRATE_DEF_H */

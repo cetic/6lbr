@@ -131,7 +131,7 @@ connect_to_server(const char *host, const char *port)
   }
 
   if(p == NULL) {
-    LOG6LBR_ERROR("can't connect to %s:%s", host, port);
+    LOG6LBR_ERROR("can't connect to %s:%s\n", host, port);
     return -1;
   }
 
@@ -164,7 +164,7 @@ void
 slip_packet_input(unsigned char *data, int len)
 {
   packetbuf_clear();
-  if(slip_config_deserialize_rx_attrs) {
+  if(sixlbr_config_slip_deserialize_rx_attrs) {
     int pos = packetutils_deserialize_atts(data, len);
     if(pos < 0) {
       LOG6LBR_ERROR("illegal packet attributes\n");
@@ -394,7 +394,7 @@ static void
 stty_telos(int fd)
 {
   struct termios tty;
-  speed_t speed = slip_config_baud_rate;
+  speed_t speed = sixlbr_config_slip_baud_rate;
   int i;
 
   if(tcflush(fd, TCIOFLUSH) == -1) {
@@ -412,7 +412,7 @@ stty_telos(int fd)
   /* Nonblocking read. */
   tty.c_cc[VTIME] = 0;
   tty.c_cc[VMIN] = 0;
-  if(slip_config_flowcontrol) {
+  if(sixlbr_config_slip_flowcontrol) {
     tty.c_cflag |= CRTSCTS;
   } else {
     tty.c_cflag &= ~CRTSCTS;
@@ -438,7 +438,7 @@ stty_telos(int fd)
     exit(1);
   }
 
-  if(slip_config_dtr_rts_set) {
+  if(sixlbr_config_slip_dtr_rts_set) {
     i = TIOCM_DTR;
     if(ioctl(fd, TIOCMBIS, &i) == -1) {
       LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
@@ -493,25 +493,25 @@ slip_init(void)
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
-  if(slip_config_host != NULL) {
-    if(slip_config_port == NULL) {
-      slip_config_port = "60001";
+  if(sixlbr_config_slip_host != NULL) {
+    if(sixlbr_config_slip_port == NULL) {
+      sixlbr_config_slip_port = "60001";
     }
-    slipfd = connect_to_server(slip_config_host, slip_config_port);
+    slipfd = connect_to_server(sixlbr_config_slip_host, sixlbr_config_slip_port);
     if(slipfd == -1) {
-      LOG6LBR_FATAL("can't connect to %s:%s\n", slip_config_host,
-          slip_config_port);
+      LOG6LBR_FATAL("can't connect to %s:%s\n", sixlbr_config_slip_host,
+          sixlbr_config_slip_port);
       exit(1);
     }
 
-  } else if(slip_config_siodev != NULL) {
-    if(strcmp(slip_config_siodev, "null") == 0) {
+  } else if(sixlbr_config_slip_device != NULL) {
+    if(strcmp(sixlbr_config_slip_device, "null") == 0) {
       /* Disable slip */
       return;
     }
-    slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
+    slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
-      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", slip_config_siodev, strerror(errno));
+      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", sixlbr_config_slip_device, strerror(errno));
       exit(1);
     }
 
@@ -522,8 +522,8 @@ slip_init(void)
     int i;
 
     for(i = 0; i < 3; i++) {
-      slip_config_siodev = siodevs[i];
-      slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
+      sixlbr_config_slip_device = siodevs[i];
+      slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
       if(slipfd != -1) {
         break;
       }
@@ -536,11 +536,11 @@ slip_init(void)
 
   select_set_callback(slipfd, &slip_callback);
 
-  if(slip_config_host != NULL) {
-    LOG6LBR_INFO("SLIP opened to %s:%s\n", slip_config_host,
-           slip_config_port);
+  if(sixlbr_config_slip_host != NULL) {
+    LOG6LBR_INFO("SLIP opened to %s:%s\n", sixlbr_config_slip_host,
+           sixlbr_config_slip_port);
   } else {
-    LOG6LBR_INFO("SLIP started on /dev/%s\n", slip_config_siodev);
+    LOG6LBR_INFO("SLIP started on /dev/%s\n", sixlbr_config_slip_device);
     stty_telos(slipfd);
   }
 

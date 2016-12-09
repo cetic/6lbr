@@ -47,9 +47,6 @@
 #include "native-config-file.h"
 #include "ini.h"
 
-char const *  sixlbr_config_config_file_name = NULL;
-int sixlbr_config_select_timeout;
-
 LIST(callbacks);
 
 /*---------------------------------------------------------------------------*/

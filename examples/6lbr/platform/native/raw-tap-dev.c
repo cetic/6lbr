@@ -125,7 +125,7 @@ cleanup(void)
     if(access(sixlbr_config_ifdown_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", sixlbr_config_ifdown_script);
       int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifdown_script,
-              sixlbr_config_use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", sixlbr_config_eth_device);
       if(status != 0) {
         LOG6LBR_ERROR("6lbr-ifdown script returned an error\n");
       }
@@ -159,7 +159,7 @@ ifconf(const char *tundev)
     if(access(sixlbr_config_ifup_script, R_OK | X_OK) == 0) {
       LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", sixlbr_config_ifup_script);
       int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifup_script,
-              sixlbr_config_use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", sixlbr_config_eth_device);
       if(status != 0) {
         LOG6LBR_FATAL("6lbr-ifup script returned an error, aborting...\n");
         exit(1);
@@ -250,7 +250,7 @@ tun_alloc(char *dev)
 }
 
 void
-fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
+fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
 {
   struct ifreq buffer;
 
@@ -272,7 +272,7 @@ tun_alloc(char *dev)
   return devopen(dev, O_RDWR);
 }
 void
-fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
+fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
 {
   struct ifaddrs *ifap, *ifaptr;
   unsigned char *ptr;
@@ -322,9 +322,9 @@ tun_init()
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
   if(sixlbr_config_use_raw_ethernet) {
-    tunfd = eth_alloc(slip_config_tundev);
+    tunfd = eth_alloc(sixlbr_config_eth_device);
   } else {
-    tunfd = tun_alloc(slip_config_tundev);
+    tunfd = tun_alloc(sixlbr_config_eth_device);
   }
   if(tunfd == -1) {
     LOG6LBR_FATAL("tun_alloc() : %s\n", strerror(errno));
@@ -333,17 +333,17 @@ tun_init()
 
   select_set_callback(tunfd, &tun_select_callback);
 
-  LOG6LBR_INFO("opened device /dev/%s\n", slip_config_tundev);
+  LOG6LBR_INFO("opened device /dev/%s\n", sixlbr_config_eth_device);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
-  ifconf(slip_config_tundev);
+  ifconf(sixlbr_config_eth_device);
 #if !CETIC_6LBR_ONE_ITF
   if(sixlbr_config_use_raw_ethernet) {
 #endif
-    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+    fetch_mac(tunfd, sixlbr_config_eth_device, &eth_mac_addr);
     LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
 #if !CETIC_6LBR_ONE_ITF
@@ -413,11 +413,11 @@ handle_fd(fd_set * rset, fd_set * wset)
       size = tun_input(ethernet_tmp_buf, ETHERNET_TMP_BUF_SIZE);
       eth_drv_input(ethernet_tmp_buf, size);
 
-      if(slip_config_basedelay) {
+      if(sixlbr_config_slip_basedelay) {
         struct timeval tv;
 
         gettimeofday(&tv, NULL);
-        delaymsec = slip_config_basedelay;
+        delaymsec = sixlbr_config_slip_basedelay;
         delaystartsec = tv.tv_sec;
         delaystartmsec = tv.tv_usec / 1000;
       }
