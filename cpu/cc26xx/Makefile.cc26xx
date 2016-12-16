@@ -28,7 +28,7 @@ CFLAGS += -I$(TI_CC26XXWARE) -I$(CONTIKI)/$(TI_CC26XXWARE_SRC)
 CFLAGS += -I$(TI_CC26XXWARE)/inc
 MODULES += $(TI_CC26XXWARE_SRC)
 
-LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
+LDSCRIPT = $(realpath $(CONTIKI_CPU)/cc26xx.ld)
 
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
