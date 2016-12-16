@@ -57,10 +57,10 @@
 
 #else
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     100
+#define UIP_CONF_DS6_NBR_NBU     50
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   100
+#define UIP_CONF_MAX_ROUTES   50
 
 #endif
 
