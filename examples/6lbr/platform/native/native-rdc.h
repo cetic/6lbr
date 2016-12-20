@@ -48,7 +48,6 @@ extern void slip_reboot(void);
 extern void slip_request_mac(void);
 extern void slip_got_mac(const uint8_t * data);
 extern void slip_set_mac(linkaddr_t const * mac_addr);
-extern void slip_set_rf_channel(uint8_t channel);
 
 extern int callback_count;
 extern int native_rdc_ack_timeout;

@@ -313,15 +313,34 @@ slip_set_mac(linkaddr_t const * mac_addr)
     write_to_slip(buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_set_rf_channel(uint8_t channel)
+static void
+slip_set_rf_channel(uint8_t channel, uint8_t *msg, int *len)
 {
-  static uint8_t msg[3];
-
   msg[0] = '!';
   msg[1] = 'C';
   msg[2] = channel;
-  write_to_slip(msg, 3);
+  *len = 3;
+}
+/*---------------------------------------------------------------------------*/
+static void
+slip_set_pan_id(uint16_t pan_id, uint8_t *msg, int *len)
+{
+  msg[0] = '!';
+  msg[1] = 'P';
+  msg[2] = pan_id & 0xFF;
+  msg[3] = (pan_id >> 8) & 0xFF;
+  *len = 4;
+}
+/*---------------------------------------------------------------------------*/
+PT_THREAD(send_slip_cmd(struct pt * pt, process_event_t ev, uint8_t const *msg, int len, int reply, int *status))
+{
+  static struct etimer et;
+  PT_BEGIN(pt);
+  etimer_set(&et, NATIVE_RDC_SLIP_TIMEOUT);
+  write_to_slip(msg, len);
+  PT_YIELD_UNTIL(pt, etimer_expired(&et) || ev == PROCESS_EVENT_POLL);
+  *status = (ev == PROCESS_EVENT_POLL);
+  PT_END(pt);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -338,11 +357,21 @@ native_rdc_reset_slip(void)
   process_poll(&native_rdc_process);
 }
 /*---------------------------------------------------------------------------*/
+void
+slip_error_callback(const uint8_t * buf)
+{
+  process_poll(&native_rdc_process);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(native_rdc_process, ev, data)
 {
   PROCESS_BEGIN();
 
   static struct etimer et;
+  static struct pt pt;
+  static uint8_t buf[255];
+  static int len;
+  static int status;
   do
   {
     slip_reboot();
@@ -352,9 +381,17 @@ PROCESS_THREAD(native_rdc_process, ev, data)
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
     //Set radio channel and PAN-ID
-    slip_set_rf_channel(nvm_data.channel);
+    slip_set_rf_channel(nvm_data.channel, buf, &len);
+    PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, buf, len, 0, &status));
+    if(status != 0) {
+      LOG6LBR_ERROR("Set channel failed\n");
+    }
     frame802154_set_pan_id(nvm_data.pan_id);
-    //TODO: Add slip-radio command
+    slip_set_pan_id(nvm_data.pan_id, buf, &len);
+    PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, buf, len, 0, &status));
+    if(status != 0) {
+      LOG6LBR_ERROR("Set PAN-ID failed\n");
+    }
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);

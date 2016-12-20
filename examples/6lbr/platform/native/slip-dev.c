@@ -59,6 +59,7 @@
 #include "cmd.h"
 #include "slip-cmds.h"
 #include "native-config.h"
+#include "slip-dev.h"
 
 static FILE *inslip;
 
@@ -238,6 +239,7 @@ after_fread:
       } else if(inbuf[0] == 'E' && is_sensible_string(inbuf, inbufptr) ) {
         LOG6LBR_WRITE(ERROR, GLOBAL, inbuf + 1, inbufptr - 1);
         LOG6LBR_APPEND(ERROR, GLOBAL, "\n");
+        slip_error_callback(inbuf + 1);
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
