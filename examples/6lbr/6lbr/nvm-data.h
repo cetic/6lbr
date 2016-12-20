@@ -168,8 +168,10 @@ typedef struct {
 #define CETIC_6LBR_DNS_DNS_SD             0x01
 
 //MAC
-#define CETIC_6LBR_MAC_LAYER_NONE  0
-#define CETIC_6LBR_MAC_LAYER_CSMA  1
+#define CETIC_6LBR_MAC_LAYER_NONE     0
+#define CETIC_6LBR_MAC_LAYER_CSMA     1
+#define CETIC_6LBR_MAC_LAYER_NULLMAC  2
+#define CETIC_6LBR_MAC_LAYER_TSCH     3
 
 /*---------------------------------------------------------------------------*/
 

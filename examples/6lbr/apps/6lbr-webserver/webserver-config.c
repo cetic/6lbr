@@ -196,6 +196,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("MAC Layer : <select name=\"mac\">");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_CSMA, "CSMA");
+  SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NULLMAC, "NullMAC");
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
