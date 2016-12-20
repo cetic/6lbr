@@ -984,7 +984,7 @@ help(char const *name)
 
   //MAC
   printf("\nMAC :\n");
-  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA)\n");
+  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA, 2: NullMAC)\n");
   printf("\n");
 
   //Security
