@@ -351,8 +351,10 @@ PROCESS_THREAD(native_rdc_process, ev, data)
       slip_request_mac();
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
-    //Set radio channel
+    //Set radio channel and PAN-ID
     slip_set_rf_channel(nvm_data.channel);
+    frame802154_set_pan_id(nvm_data.pan_id);
+    //TODO: Add slip-radio command
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);

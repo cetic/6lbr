@@ -163,9 +163,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if !CETIC_6LBR_ONE_ITF
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
-#if !CONTIKI_TARGET_NATIVE
   INPUT_HEX("panid", pan_id, "PAN ID");
-#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
