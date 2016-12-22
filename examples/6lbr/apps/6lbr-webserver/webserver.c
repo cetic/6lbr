@@ -99,6 +99,9 @@ HTTPD_CGI_CMD_NAME(webserver_log_clear_log_cmd)
 void
 webserver_init(void)
 {
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WEBSERVER) != 0) {
+    return;
+  }
   httpd_init();
 
   httpd_group_add(&main_group);
