@@ -1,3 +1,29 @@
+cetic-6lbr (1.4.1) unstable; urgency=low
+
+  * Features
+    Node info export
+    Improved multi-dodag support
+    Better endianness detection
+    TinyDTLS stability fixes
+    Slip-radio configuration
+    Add Slip-radio retries
+    Non-root support
+    Improved plugin build and support
+  * Platform
+    CC26xx/CC13xx full support
+    Cooja support
+    OpenWRT feed
+  * Bugfixes
+    Fix anti-replay flag inversion
+    Fix max rank increase
+    Fix loss of address in SmartBridge mode
+    Fix route deletion after time update
+    Fix random crashes in udp-server
+    Fix uip_buf buffer overflow and packet with wrong size
+    Fix PAN-ID configuration on CC2538/CC26xx/CC13xx
+
+ -- 6lbr-team <6lbr@cetic.be>  Thu, 22 Dec 2016 13:15:40 +0100
+
 cetic-6lbr (1.4.0) unstable; urgency=low
 
   * Features
