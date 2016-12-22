@@ -96,6 +96,10 @@
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
+// Duplicate detection is either done in slip-radio RDC or within noncoresec
+#undef RDC_CONF_WITH_DUPLICATE_DETECTION
+#define RDC_CONF_WITH_DUPLICATE_DETECTION 1
+
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || \
     defined(__BIG_ENDIAN__) || \
