@@ -314,10 +314,6 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if CETIC_6LBR_ROUTER
-  add("<br /><h2>Packet filtering</h2>");
-  INPUT_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, "Address rewrite", "enabled", "disabled");
-#endif
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
   }
