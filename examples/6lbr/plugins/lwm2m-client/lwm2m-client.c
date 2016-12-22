@@ -40,7 +40,7 @@
 
 #include "log-6lbr.h"
 #include "plugin.h"
-#include "native-config.h"
+#include "native-config-file.h"
 #include "lwm2m.h"
 #include "lwm2m-device-object.h"
 #include "rd-client.h"

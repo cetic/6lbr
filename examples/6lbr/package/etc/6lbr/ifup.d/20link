@@ -19,6 +19,11 @@ if [ $MODE_6LBR != "tap" ]; then
 	exit
 fi
 
+if [ "$(id -u)" != "0" ]; then
+	echo "Running as non root, skipping interface configuration"
+	exit
+fi
+
 case $OS in
 	Linux)
 		if [ $DEV_TAP_MAC != "-" ]; then

@@ -72,8 +72,8 @@
 #undef RPL_CONF_MIN_HOPRANKINC
 #define RPL_CONF_MIN_HOPRANKINC    (nvm_data.rpl_min_hoprankinc)
 
-#undef RPL_CONF_MAX_HOPRANKINC
-#define RPL_CONF_MAX_HOPRANKINC    (nvm_data.rpl_max_rankinc)
+#undef RPL_CONF_MAX_RANKINC
+#define RPL_CONF_MAX_RANKINC    (nvm_data.rpl_max_rankinc)
 
 #undef RPL_CONF_DEFAULT_LIFETIME_UNIT
 #define RPL_CONF_DEFAULT_LIFETIME_UNIT    (nvm_data.rpl_lifetime_unit)
@@ -87,7 +87,22 @@
 #undef NONCORESEC_CONF_KEY_REF
 #define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)
 
-#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY) != 0)
+#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
+
+#if CONTIKI_TARGET_NATIVE
+
+extern int sixlbr_config_select_timeout;
+#undef SELECT_CONF_TIMEOUT
+#define SELECT_CONF_TIMEOUT sixlbr_config_select_timeout
+
+extern int sixlbr_config_slip_timeout;
+#undef NATIVE_RDC_CONF_SLIP_TIMEOUT
+#define NATIVE_RDC_CONF_SLIP_TIMEOUT sixlbr_config_slip_timeout
+
+extern int sixlbr_config_slip_retransmit;
+#undef NATIVE_RDC_CONF_SLIP_RETRANSMIT
+#define NATIVE_RDC_CONF_SLIP_RETRANSMIT sixlbr_config_slip_retransmit
+#endif
 
 #endif

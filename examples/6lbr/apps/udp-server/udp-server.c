@@ -41,6 +41,7 @@
 #include "node-info.h"
 #endif
 #include "log-6lbr.h"
+#include "udp-server.h"
 
 #include <string.h>
 
@@ -76,8 +77,12 @@ tcpip_handler(void)
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
 #if CETIC_NODE_INFO
-    node->replies_sent += 1;
-    sprintf(buf, "%d", node->last_down_sequence + 1);
+    if(node) {
+      node->replies_sent += 1;
+      sprintf(buf, "%d", node->last_down_sequence + 1);
+    } else {
+      sprintf(buf, "0");
+    }
 #else
     sprintf(buf, "Hello from the server! (%d)", ++seq_id);
 #endif
@@ -106,4 +111,12 @@ PROCESS_THREAD(udp_server_process, ev, data)
   }
 
   PROCESS_END();
+}
+
+void
+udp_server_init(void)
+{
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_UDP_SERVER) == 0) {
+    process_start(&udp_server_process, NULL);
+  }
 }

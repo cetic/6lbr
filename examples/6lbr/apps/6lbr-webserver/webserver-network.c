@@ -46,6 +46,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
+#include <stdlib.h>
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"

@@ -80,27 +80,37 @@ void
 slipnet_input(void)
 {
   int i;
+  int size = 0;
   /* radio should be configured for filtering so this should be simple */
   /* this should be sent over SLIP! */
   /* so just copy into uip-but and send!!! */
   /* Format: !R<data> ? */
-  uip_len = packetbuf_datalen();
-  i = packetbuf_copyto(uip_buf);
-
-  if(DEBUG) {
-    printf("Slipnet got input of len: %d, copied: %d\n",
-	   packetbuf_datalen(), i);
-
-    for(i = 0; i < uip_len; i++) {
-      printf("%02x", (unsigned char) uip_buf[i]);
-      if((i & 15) == 15) printf("\n");
-      else if((i & 7) == 7) printf(" ");
+#if SERIALIZE_ATTRIBUTES
+  size = packetutils_serialize_atts(uip_buf, sizeof(uip_buf));
+#endif
+  if(size < 0 || size + packetbuf_totlen() > sizeof(uip_buf)) {
+    if(DEBUG) {
+      printf("slipnet: send failed, too large header\n");
     }
-    printf("\n");
-  }
+  } else {
+    uip_len = packetbuf_datalen() + size;
+    i = packetbuf_copyto(uip_buf+ size);
 
-  /* printf("SUT: %u\n", uip_len); */
-  slip_send_packet(uip_buf, uip_len);
+    if(DEBUG) {
+      printf("Slipnet got input of len: %d, copied: %d\n",
+         packetbuf_datalen(), i);
+
+      for(i = 0; i < uip_len; i++) {
+        printf("%02x", (unsigned char) uip_buf[i]);
+        if((i & 15) == 15) printf("\n");
+        else if((i & 7) == 7) printf(" ");
+      }
+      printf("\n");
+    }
+
+    /* printf("SUT: %u\n", uip_len); */
+    slip_send_packet(uip_buf, uip_len);
+  }
 }
 /*---------------------------------------------------------------------------*/
 const struct network_driver slipnet_driver = {

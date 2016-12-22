@@ -43,7 +43,7 @@
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"
-#include "slip-config.h"
+#include "native-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-filter.h"
 #if CETIC_6LBR_IP64
@@ -65,7 +65,7 @@ eth_drv_send(uint8_t *packet, uint16_t len)
   LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
   LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
 
-  tun_output(packet, len);
+  eth_dev_output(packet, len);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -96,12 +96,12 @@ eth_drv_exit(void)
 void
 eth_drv_init(void)
 {
-  if(use_raw_ethernet) {
+  if(sixlbr_config_use_raw_ethernet) {
     LOG6LBR_INFO("RAW Ethernet interface init\n");
   } else {
     LOG6LBR_INFO("TAP Ethernet interface init\n");
   }
-  tun_init();
+  eth_dev_init();
   process_start(&eth_drv_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
@@ -110,7 +110,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
   PROCESS_BEGIN();
 
 #if !CETIC_6LBR_ONE_ITF
-  if(!use_raw_ethernet) {
+  if(!sixlbr_config_use_raw_ethernet) {
     //We must create our own Ethernet MAC address
     while(!radio_mac_addr_ready) {
       PROCESS_PAUSE();

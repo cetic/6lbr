@@ -81,9 +81,6 @@
 #undef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			2
 
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE				1280
-
 // Avoid 6lowpan fragmentation
 #define REST_MAX_CHUNK_SIZE                 64
 
@@ -99,6 +96,9 @@
 // Ethernet header is stored in uip_buf
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN 14
+
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE				1280 + UIP_CONF_LLH_LEN
 
 // Include Global addresses in mDNS
 #define RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS 1
@@ -284,5 +284,8 @@
 
 #define LLSEC802154_CONF_SECURITY 1
 #define LLSEC802154_CONF_USES_ENCRYPTION 1
+
+//IP64 DHCP is manually started in cetic-6lbr if needed
+#define IP64_CONF_DHCP 0
 
 #endif /* __PROJECT_6LBR_CONF_H__ */

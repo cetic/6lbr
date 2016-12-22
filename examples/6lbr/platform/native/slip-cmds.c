@@ -41,7 +41,7 @@
 
 #include "contiki.h"
 #include "cmd.h"
-#include "native-slip.h"
+#include "slip-dev.h"
 #include "native-rdc.h"
 #include "slip-cmds.h"
 #include "dev/serial-line.h"

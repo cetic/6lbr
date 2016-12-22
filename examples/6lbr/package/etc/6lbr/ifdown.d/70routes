@@ -15,6 +15,10 @@ if [ $MODE_6LBR != "tap" ]; then
 	exit
 fi
 
+if [ "$(id -u)" != "0" ]; then
+	exit
+fi
+
 case $OS in
 	Linux)
 		netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh

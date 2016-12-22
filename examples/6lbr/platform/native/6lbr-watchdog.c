@@ -43,18 +43,16 @@
 #include <errno.h>
 #include <string.h>
 
+#include "native-config.h"
 #include "6lbr-watchdog.h"
 
 PROCESS(native_6lbr_watchdog, "6LBR native watchdog");
-
-int watchdog_interval = 60;
-char const * watchdog_file_name = "/var/log/6lbr.timestamp";
 
 /*---------------------------------------------------------------------------*/
 static void
 reset_watchdog(void)
 {
-  FILE *watchdog_file = fopen(watchdog_file_name, "w");
+  FILE *watchdog_file = fopen(sixlbr_config_watchdog_file_name, "w");
   if (watchdog_file != NULL) {
     fclose(watchdog_file);
   } else {
@@ -69,9 +67,9 @@ PROCESS_THREAD(native_6lbr_watchdog, ev, data)
 
   PROCESS_BEGIN();
 
-  LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", watchdog_interval);
+  LOG6LBR_INFO("6LBR watchdog started (interval: %d)\n", sixlbr_config_watchdog_interval);
   reset_watchdog();
-  etimer_set(&et, watchdog_interval);
+  etimer_set(&et, sixlbr_config_watchdog_interval);
   while(1) {
     PROCESS_YIELD();
     if(etimer_expired(&et)) {

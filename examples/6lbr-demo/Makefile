@@ -179,6 +179,7 @@ endif
 ifeq ($(TARGET),srf06-cc26xx)
 ifeq ($(BOARD),sensortag)
 WITH_CETIC_6LN_NVM?=0
+CFLAGS+=-DWITH_CETIC_6LN_NVM=$(WITH_CETIC_6LN_NVM)
 ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += sensortag-nvm.c
 endif
@@ -226,20 +227,25 @@ endif
 
 ifneq ($(WITH_COAPSERVER),0)
 RESOURCE_FILES=$(addsuffix -resource.h,$(RESOURCES))
+FULL_RESOURCE_FILES=$(addprefix $(PROJECTDIR)/dyn_resources/,$(RESOURCE_FILES))
 
 RESOURCES_TEMPLATE?=$(PROJECTDIR)/tools/coap/resource-template.h
 
-dynamic-resources:
+$(FULL_RESOURCE_FILES): $(PROJECTDIR)/dynamic-resources.mk
+
+-include $(PROJECTDIR)/dynamic-resources.mk
+
+$(PROJECTDIR)/dynamic-resources.mk:
 	mkdir -p $(PROJECTDIR)/dyn_resources
 	$(PROJECTDIR)/tools/coap/mk_resource.sh $(RESOURCES_TEMPLATE) $(RESOURCES)
 	mv -f $(RESOURCE_FILES) $(PROJECTDIR)/dyn_resources/
+	@echo 'GEN_FILES+=$(FULL_RESOURCE_FILES)' > $(PROJECTDIR)/dynamic-resources.mk
 
 PROJECTDIRS+=$(PROJECTDIR)/dyn_resources
-
-CLEAN+=$(PROJECTDIR)/dyn_resources/*
-
-.PHONY: dynamic-resources
 endif
+
+CLEAN+=$(PROJECTDIR)/dyn_resources/* $(PROJECTDIR)/dynamic-resources.mk
+.PHONY: $(FULL_RESOURCE_FILES)
 
 all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
 all_z1: bin_z1/6lbr-demo-coapserver.z1

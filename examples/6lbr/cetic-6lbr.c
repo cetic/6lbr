@@ -80,6 +80,10 @@
 #include "webserver.h"
 #endif
 
+#if UDPSERVER
+#include "udp-server.h"
+#endif
+
 #if CETIC_NODE_INFO
 #include "node-info.h"
 #endif
@@ -147,7 +151,6 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
 
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
 
 process_event_t cetic_6lbr_restart_event;
@@ -373,6 +376,9 @@ cetic_6lbr_init_finalize(void)
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
 #endif
+  if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
+  }
 
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
@@ -507,8 +513,16 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   PROCESS_PAUSE();
 
+#if WEBSERVER
+  webserver_init();
+#endif
+
 #if CETIC_NODE_INFO
   node_info_init();
+#endif
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
 #endif
 
   packet_filter_init();
@@ -531,15 +545,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_init_finalize();
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
-#if CETIC_NODE_CONFIG
-  node_config_init();
-#endif
-
-#if WEBSERVER
-  webserver_init();
-#endif
 #if UDPSERVER
-  process_start(&udp_server_process, NULL);
+  udp_server_init();
 #endif
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
@@ -550,7 +557,9 @@ dtls_init();
 #endif
 
 #if WITH_COAPSERVER
-  coap_server_init();
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_COAP_SERVER) == 0) {
+    coap_server_init();
+  }
 #endif
 
 #if WITH_DTLS_ECHO
