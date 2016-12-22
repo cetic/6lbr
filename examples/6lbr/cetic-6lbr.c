@@ -80,6 +80,10 @@
 #include "webserver.h"
 #endif
 
+#if UDPSERVER
+#include "udp-server.h"
+#endif
+
 #if CETIC_NODE_INFO
 #include "node-info.h"
 #endif
@@ -147,7 +151,6 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
 
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(udp_server_process);
 PROCESS_NAME(udp_client_process);
 
 process_event_t cetic_6lbr_restart_event;
@@ -543,7 +546,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
 #if UDPSERVER
-  process_start(&udp_server_process, NULL);
+  udp_server_init();
 #endif
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
@@ -554,7 +557,9 @@ dtls_init();
 #endif
 
 #if WITH_COAPSERVER
-  coap_server_init();
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_COAP_SERVER) == 0) {
+    coap_server_init();
+  }
 #endif
 
 #if WITH_DTLS_ECHO

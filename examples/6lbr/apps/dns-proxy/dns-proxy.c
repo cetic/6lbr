@@ -97,5 +97,7 @@ PROCESS_THREAD(dns_proxy_process, ev, data)
 
 void dns_proxy_init(void)
 {
-  process_start(&dns_proxy_process, NULL);
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_DNS_PROXY) == 0) {
+    process_start(&dns_proxy_process, NULL);
+  }
 }

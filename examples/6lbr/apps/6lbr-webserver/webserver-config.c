@@ -314,6 +314,19 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
+  add("<br /><h2>Global configuration</h2>");
+  INPUT_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, "Webserver", "disabled", "enabled" );
+#if WITH_COAPSERVER
+  INPUT_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, "CoAP server", "disabled", "enabled" );
+#endif
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#if UDPSERVER
+  INPUT_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, "UDP server", "disabled", "enabled" );
+#endif
+#if WITH_DNS_PROXY
+  INPUT_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, "DNS Proxy", "disabled", "enabled" );
+#endif
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
   }
@@ -496,6 +509,11 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_min_hoprankinc", rpl_min_hoprankinc, 1)
     UPDATE_INT( "rpl_max_rankinc", rpl_max_rankinc, 1)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
+
+    UPDATE_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, 1)
+    UPDATE_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, 1)
+    UPDATE_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, 1)
+    UPDATE_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, 1)
 
 #if !LOG6LBR_STATIC
     UPDATE_INT( "log_level", log_level, 0)
