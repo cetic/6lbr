@@ -68,6 +68,10 @@
 
 #define CMD_CONF_OUTPUT slip_radio_cmd_output
 
+#ifndef RF_CHANNEL
+#define RF_CHANNEL 26
+#endif
+
 #if RADIO_DEVICE_cc2420
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
 #elif CONTIKI_TARGET_SKY
