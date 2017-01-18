@@ -130,6 +130,7 @@ typedef struct {
 #define CETIC_GLOBAL_DISABLE_COAP_SERVER  0x0020
 #define CETIC_GLOBAL_DISABLE_UDP_SERVER   0x0040
 #define CETIC_GLOBAL_DISABLE_DNS_PROXY    0x0080
+#define CETIC_GLOBAL_DISABLE_WSN_NUD      0x0100
 
 //RA Mode flags
 
@@ -198,7 +199,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(a)          uip_ipaddr(a, 172, 16, 0, 1)
 
 //Version 1 configuration data
-#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			0
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			(CETIC_GLOBAL_DISABLE_WSN_NUD)
 
 //WSN Configuration
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN	64
