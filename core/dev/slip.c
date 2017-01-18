@@ -116,12 +116,6 @@ crc8_add(uint8_t acc, uint8_t byte)
 
   return acc;
 }
-#else
-static uint8_t
-crc8_add(uint8_t acc, uint8_t byte)
-{
-  return 0;
-}
 #endif /* SLIP_CRC_ON */
 /*---------------------------------------------------------------------------*/
 /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
@@ -133,7 +127,9 @@ slip_send(void)
   uint16_t i;
   uint8_t *ptr;
   uint8_t c;
+#if SLIP_CRC_ON
   uint8_t crc = 0;
+#endif
 
   slip_arch_writeb(SLIP_END);
 
@@ -143,7 +139,9 @@ slip_send(void)
       ptr = (uint8_t *)uip_appdata;
     }
     c = *ptr++;
+#if SLIP_CRC_ON
     crc = crc8_add(crc, c);
+#endif
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);
       c = SLIP_ESC_END;
@@ -177,13 +175,17 @@ slip_write(const void *_ptr, int len)
   const uint8_t *ptr = _ptr;
   uint16_t i;
   uint8_t c;
+#if SLIP_CRC_ON
   uint8_t crc = 0;
+#endif
 
   slip_arch_writeb(SLIP_END);
 
   for(i = 0; i < len; ++i) {
     c = *ptr++;
+#if SLIP_CRC_ON
     crc = crc8_add(crc, c);
+#endif
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);
       c = SLIP_ESC_END;
