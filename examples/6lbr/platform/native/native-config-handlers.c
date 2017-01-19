@@ -84,6 +84,9 @@ static int native_config_native_handler(config_level_t level, void* user, const 
   } else if(strcmp(name, "slip.deserialize_rx_attrs") == 0) {
     sixlbr_config_slip_deserialize_rx_attrs = atoi(value);
       return 0;
+  } else if(strcmp(name, "slip.crc8") == 0) {
+    sixlbr_config_slip_crc8 = atoi(value);
+      return 0;
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);
     return 0;

@@ -68,6 +68,7 @@ uint32_t slip_sent = 0;
 uint32_t slip_received = 0;
 uint32_t slip_message_sent = 0;
 uint32_t slip_message_received = 0;
+uint32_t slip_crc_errors = 0;
 
 int slipfd = 0;
 
@@ -81,6 +82,23 @@ int slipfd = 0;
 
 #define DEBUG_LINE_MARKER '\r'
 
+/*---------------------------------------------------------------------------*/
+/* Polynomial ^8 + ^5 + ^4 + 1 */
+static uint8_t
+crc8_add(uint8_t acc, uint8_t byte)
+{
+  int i;
+  acc ^= byte;
+  for(i = 0; i < 8; i++) {
+    if(acc & 1) {
+      acc = (acc >> 1) ^ 0x8c;
+    } else {
+      acc >>= 1;
+    }
+  }
+
+  return acc;
+}
 /*---------------------------------------------------------------------------*/
 static int
 devopen(const char *dev, int flags)
@@ -230,6 +248,22 @@ after_fread:
       slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
+      if(sixlbr_config_slip_crc8) {
+        uint8_t crc = 0;
+        int i;
+        for(i = 0; i < inbufptr; i++) {
+          crc = crc8_add(crc, inbuf[i]);
+        }
+        if(crc) {
+          /* report error and ignore the packet */
+          slip_crc_errors++;
+          LOG6LBR_INFO("Packet received with invalid CRC\n");
+          inbufptr = 0;
+          return;
+        } else {
+          inbufptr--; /* remove the CRC byte */
+        }
+      }
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
         cmd_input(inbuf, inbufptr);
@@ -352,6 +386,7 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
 {
   const uint8_t *p = inbuf;
   int i;
+  uint8_t crc;
 
   slip_message_sent++;
 
@@ -363,7 +398,11 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
    */
   /* slip_send(outfd, SLIP_END); */
 
+  crc = 0;
   for(i = 0; i < len; i++) {
+    if(sixlbr_config_slip_crc8) {
+      crc = crc8_add(crc, p[i]);
+    }
     switch (p[i]) {
     case SLIP_END:
       slip_send(outfd, SLIP_ESC);
@@ -377,6 +416,17 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
+  }
+  if(sixlbr_config_slip_crc8) {
+    /* Write the checksum byte */
+    if(crc == SLIP_END) {
+      slip_send(outfd, SLIP_ESC);
+      crc = SLIP_ESC_END;
+    } else if (crc == SLIP_ESC)  {
+      slip_send(outfd, SLIP_ESC);
+      crc = SLIP_ESC_ESC;
+    }
+    slip_send(outfd, crc);
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");

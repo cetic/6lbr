@@ -49,6 +49,7 @@ extern const char *sixlbr_config_slip_port;
 extern int sixlbr_config_slip_send_delay;
 extern speed_t sixlbr_config_slip_baud_rate;
 extern int sixlbr_config_slip_dtr_rts_set;
+extern int sixlbr_config_slip_crc8;
 
 extern int sixlbr_config_slip_timeout;
 extern int sixlbr_config_slip_retransmit;
@@ -92,6 +93,7 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_SLIP_RETRANSMIT      0
 #define SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX    1
 #define SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX  0
+#define SIXLBR_CONFIG_DEFAULT_SLIP_CRC8            0
 
 #define SIXLBR_CONFIG_DEFAULT_SELECT_TIMEOUT     1000
 #define SIXLBR_CONFIG_DEFAULT_ETH_DEVICE         ""
