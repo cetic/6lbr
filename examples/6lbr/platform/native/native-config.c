@@ -54,6 +54,7 @@ int sixlbr_config_slip_timeout = SIXLBR_CONFIG_DEFAULT_SLIP_TIMEOUT;
 int sixlbr_config_slip_retransmit = SIXLBR_CONFIG_DEFAULT_SLIP_RETRANSMIT;
 int sixlbr_config_slip_serialize_tx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX;
 int sixlbr_config_slip_deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX;
+int sixlbr_config_slip_crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
 
 int sixlbr_config_select_timeout = SIXLBR_CONFIG_DEFAULT_SELECT_TIMEOUT;
 char sixlbr_config_eth_device[32] = { SIXLBR_CONFIG_DEFAULT_ETH_DEVICE };

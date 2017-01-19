@@ -43,6 +43,10 @@
 
 #include "dev/slip.h"
 
+#if CETIC_6LBR
+#include "native-config.h"
+#endif
+
 #define SLIP_END     0300
 #define SLIP_ESC     0333
 #define SLIP_ESC_END 0334
@@ -140,6 +144,9 @@ slip_send(void)
     }
     c = *ptr++;
 #if SLIP_CRC_ON
+#if CETIC_6LBR
+    if(sixlbr_config_slip_crc8)
+#endif
     crc = crc8_add(crc, c);
 #endif
     if(c == SLIP_END) {
@@ -154,6 +161,9 @@ slip_send(void)
 
 #if SLIP_CRC_ON
   /* Write the checksum byte */
+#if CETIC_6LBR
+    if(sixlbr_config_slip_crc8) {
+#endif
   if(crc == SLIP_END) {
      slip_arch_writeb(SLIP_ESC);
      crc = SLIP_ESC_END;
@@ -162,6 +172,9 @@ slip_send(void)
      crc = SLIP_ESC_ESC;
   }
   slip_arch_writeb(crc);
+#if CETIC_6LBR
+  }
+#endif
 #endif
 
   slip_arch_writeb(SLIP_END);
@@ -184,6 +197,9 @@ slip_write(const void *_ptr, int len)
   for(i = 0; i < len; ++i) {
     c = *ptr++;
 #if SLIP_CRC_ON
+#if CETIC_6LBR
+    if(sixlbr_config_slip_crc8)
+#endif
     crc = crc8_add(crc, c);
 #endif
     if(c == SLIP_END) {
@@ -197,6 +213,9 @@ slip_write(const void *_ptr, int len)
   }
 
 #if SLIP_CRC_ON
+#if CETIC_6LBR
+    if(sixlbr_config_slip_crc8) {
+#endif
   /* Write the checksum byte */
   if(crc == SLIP_END) {
      slip_arch_writeb(SLIP_ESC);
@@ -206,6 +225,9 @@ slip_write(const void *_ptr, int len)
      crc = SLIP_ESC_ESC;
   }
   slip_arch_writeb(crc);
+#if CETIC_6LBR
+  }
+#endif
 #endif
 
   slip_arch_writeb(SLIP_END);

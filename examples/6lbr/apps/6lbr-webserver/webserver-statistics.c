@@ -64,6 +64,7 @@ extern uint32_t slip_sent;
 extern uint32_t slip_received;
 extern uint32_t slip_message_sent;
 extern uint32_t slip_message_received;
+extern uint32_t slip_crc_errors;
 #endif
 
 #define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)
@@ -213,6 +214,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Messages received : %d<br />", slip_message_received);
   add("Bytes sent : %d<br />", slip_sent);
   add("Bytes received : %d<br />", slip_received);
+  add("CRC errors : %d<br />", slip_crc_errors);
   add("<br />");
 #endif
   SEND_STRING(&s->sout, buf);

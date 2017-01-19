@@ -81,6 +81,8 @@
 
 /* Do not change lines below */
 
+#define SLIP_CONF_CRC_ON 1
+
 #define SELECT_CALLBACK 1
 
 #define SELECT_CONF_MAX FD_SETSIZE
