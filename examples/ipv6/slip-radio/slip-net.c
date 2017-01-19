@@ -34,11 +34,6 @@
 #include "dev/slip.h"
 #include <stdio.h>
 
-#define SLIP_END     0300
-#define SLIP_ESC     0333
-#define SLIP_ESC_END 0334
-#define SLIP_ESC_ESC 0335
-
 #define DEBUG 0
 
 extern char slip_debug_frame;
@@ -61,19 +56,7 @@ slip_send_packet(const uint8_t *ptr, int len)
   }
 #endif
 
-  slip_arch_writeb(SLIP_END);
-  for(i = 0; i < len; ++i) {
-    c = *ptr++;
-    if(c == SLIP_END) {
-      slip_arch_writeb(SLIP_ESC);
-      c = SLIP_ESC_END;
-    } else if(c == SLIP_ESC) {
-      slip_arch_writeb(SLIP_ESC);
-      c = SLIP_ESC_ESC;
-    }
-    slip_arch_writeb(c);
-  }
-  slip_arch_writeb(SLIP_END);
+  slip_write(ptr, len);
 }
 /*---------------------------------------------------------------------------*/
 void
