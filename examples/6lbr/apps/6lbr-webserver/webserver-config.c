@@ -228,6 +228,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
+  INPUT_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, "NDP NUD", "disabled", "enabled");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -508,6 +509,7 @@ update_config(const char *name, uint8_t *reboot_needed)
 #if CETIC_NODE_CONFIG
     UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
 #endif
+    UPDATE_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, 1)
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)

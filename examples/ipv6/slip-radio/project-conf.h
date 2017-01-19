@@ -30,6 +30,9 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+/* Set to 1 if the SLIP packets contains a CRC8 checksum */
+#define SLIP_CONF_CRC_ON 0
+
 /* Set to 1 if the BR sends packet attributes along with the packet to the SLIP Radio */
 #define DESERIALIZE_ATTRIBUTES 1
 
