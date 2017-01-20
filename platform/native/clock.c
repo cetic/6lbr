@@ -60,7 +60,7 @@ clock_time(void)
   return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 #elif defined(__MACH__)
   static mach_timebase_info_data_t info = {0,0};
-  if (info.denom == 0) {
+  if(info.denom == 0) {
     mach_timebase_info(&info);
   }
   uint64_t elapsednano = mach_absolute_time() * (info.numer / info.denom);
@@ -83,6 +83,13 @@ clock_seconds(void)
   clock_gettime(CLOCK_MONOTONIC, &ts);
 
   return ts.tv_sec;
+#elif defined(__MACH__)
+  static mach_timebase_info_data_t info = {0,0};
+  if(info.denom == 0) {
+    mach_timebase_info(&info);
+  }
+  uint64_t elapsednano = mach_absolute_time() * (info.numer / info.denom);
+  return elapsednano / 1000000000;
 #else
   struct timeval tv;
 

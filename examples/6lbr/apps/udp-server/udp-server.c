@@ -41,6 +41,7 @@
 #include "node-info.h"
 #endif
 #include "log-6lbr.h"
+#include "udp-server.h"
 
 #include <string.h>
 
@@ -110,4 +111,12 @@ PROCESS_THREAD(udp_server_process, ev, data)
   }
 
   PROCESS_END();
+}
+
+void
+udp_server_init(void)
+{
+  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_UDP_SERVER) == 0) {
+    process_start(&udp_server_process, NULL);
+  }
 }
