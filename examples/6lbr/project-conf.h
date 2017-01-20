@@ -93,6 +93,9 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+// Activate support of DAO Ack
+#define RPL_CONF_WITH_DAO_ACK               1
+
 // Ethernet header is stored in uip_buf
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN 14

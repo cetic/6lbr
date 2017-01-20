@@ -81,8 +81,8 @@
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
-#undef RPL_CONF_WITH_DAO_ACK
-#define RPL_CONF_WITH_DAO_ACK       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
+#undef RPL_CONF_WITH_DAO_ACK_TEST
+#define RPL_CONF_WITH_DAO_ACK_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
 
 #undef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
 #define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)

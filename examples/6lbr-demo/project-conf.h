@@ -276,9 +276,6 @@
 #define UIP_CONF_MAX_ROUTES   24
 #endif
 
-#undef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA   0
-
 #endif
 
 /*---------------------------------------------------------------------------*/
