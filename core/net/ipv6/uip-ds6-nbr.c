@@ -141,6 +141,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 int
 uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
 {
+  uip_ds6_nbr_t *duplicated_nbr;
   uip_ds6_nbr_t *new_nbr;
   uip_ds6_nbr_t backup_nbr;
 
@@ -148,12 +149,17 @@ uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
     return 0;
   }
 
-  if(uip_ds6_nbr_ll_lookup(new_ll_addr) != NULL) {
+  duplicated_nbr = uip_ds6_nbr_ll_lookup(new_ll_addr);
+  if(duplicated_nbr != NULL) {
     /*
      * It seems new_ll_addr is associated with another IPv6 address. Currently,
-     * we have a single 'nbr' entry per link-layer address; give up the update.
+     * we have a single 'nbr' entry per link-layer address so remove the older
+     * entry.
      */
-    return 0;
+    if(uip_ds6_nbr_rm(duplicated_nbr) == 0) {
+      /* Unexpectedly failed to remove 'nbr'. */
+      return 0;
+    }
   }
 
   /* make room for a newly allocated nbr first */
