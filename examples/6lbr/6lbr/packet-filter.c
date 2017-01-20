@@ -49,6 +49,9 @@
 #if CETIC_6LBR_IP64
 #include "net/ip/ip64-addr.h"
 #endif
+#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+#include "link-stats.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
@@ -355,6 +358,16 @@ eth_input(void)
   //In this two modes RPL packets are incoming from Eth interface
   mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *) &srcAddr);
+  //The link stats must be manually populated for these nodes
+  //We set the link to perfect values as the Ethernet medium is assumed perfect
+  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, -60);
+  link_stats_input_callback((linkaddr_t *) &srcAddr);
+  struct link_stats * stats = (struct link_stats * )link_stats_from_lladdr((linkaddr_t *) &srcAddr);
+  if(stats) {
+    stats->etx = 1;
+    stats->freshness = 255;
+    stats->last_tx_time = clock_time();
+  }
 #endif
     send_to_uip();
   } else {
@@ -473,6 +486,19 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   }
   //Sending packet
   //--------------
+
+#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+//The link stats must be manually populated for these nodes
+//We set the link to perfect values as the Ethernet medium is assumed perfect
+  if(!IS_BROADCAST_ADDR(dest)) {
+    struct link_stats * stats = (struct link_stats * )link_stats_from_lladdr((linkaddr_t *) dest);
+    if(stats) {
+      stats->etx = 1;
+      stats->freshness = 255;
+      stats->last_tx_time = clock_time();
+    }
+  }
+#endif
   LOG6LBR_PRINTF(PACKET, PF_OUT, "eth_output: Sending packet to Ethernet\n");
   eth_drv_send(uip_buf, uip_len + UIP_LLH_LEN);
 
