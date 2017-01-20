@@ -93,6 +93,9 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+// Activate support of DAO Ack
+#define RPL_CONF_WITH_DAO_ACK               1
+
 // Ethernet header is stored in uip_buf
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN 14
@@ -255,7 +258,7 @@
 /*------------------------------------------------------------------*/
 
 /* Do not change lines below */
-#define CETIC_6LBR_VERSION		"1.4.x"
+#define CETIC_6LBR_VERSION		"1.5.x"
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF
 #define CETIC_6LBR_ETH_EXT_B	0xFF
@@ -288,5 +291,11 @@
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA        1
+
+//IP64 DHCP is manually started in cetic-6lbr if needed
+#define IP64_CONF_DHCP 0
+
+//IP64 DHCP is manually started in cetic-6lbr if needed
+#define IP64_CONF_DHCP 0
 
 #endif /* __PROJECT_6LBR_CONF_H__ */

@@ -46,9 +46,10 @@
 #include "net/netstack.h"
 #include "packetutils.h"
 #include "sys/ctimer.h"
-#include "native-slip.h"
+#include "slip-dev.h"
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 
 #include <string.h>
@@ -67,7 +68,13 @@ int native_rdc_parse_error;
 #ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
 #define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
 #else
-#define NATIVE_RDC_SLIP_TIMEOUT (2*CLOCK_SECOND)
+#define NATIVE_RDC_SLIP_TIMEOUT (CLOCK_SECOND / 5)
+#endif
+
+#ifdef NATIVE_RDC_CONF_SLIP_RETRANSMIT
+#define NATIVE_RDC_SLIP_RETRANSMIT NATIVE_RDC_CONF_SLIP_RETRANSMIT
+#else
+#define NATIVE_RDC_SLIP_RETRANSMIT 0
 #endif
 
 /* a structure for calling back when packet data is coming back
@@ -80,6 +87,10 @@ struct tx_callback {
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
   struct ctimer timeout;
   int sid;
+  int retransmit;
+  /* 3 bytes per packet attribute is required for serialization */
+  int buf_len;
+  uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
 };
 
 static struct tx_callback callbacks[MAX_CALLBACKS];
@@ -113,13 +124,19 @@ packet_timeout(void *ptr)
 {
   struct tx_callback *callback = ptr;
   if (callback->isused) {
-    callback_count--;
-    callback->isused = 0;
-    native_rdc_ack_timeout++;
-    LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
-    packetbuf_clear();
-    packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
-    mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+    if(callback->retransmit > 0) {
+      LOG6LBR_INFO("br-rdc: slip ack timeout, retransmit (%d)\n", callback->sid);
+      callback->retransmit--;
+      write_to_slip(callback->buf, callback->buf_len);
+    } else {
+      callback_count--;
+      callback->isused = 0;
+      native_rdc_ack_timeout++;
+      LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
+      packetbuf_clear();
+      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+      mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+    }
   } else {
     LOG6LBR_ERROR("br-rdc: ack timeout for already acked packet (%d)\n", callback->sid);
   }
@@ -147,6 +164,7 @@ setup_callback(mac_callback_t sent, void *ptr)
     callback->ptr = ptr;
     callback->sid = callback_pos;
     callback->isused = 1;
+    callback->retransmit = NATIVE_RDC_SLIP_RETRANSMIT;
     packetbuf_attr_copyto(callback->attrs, callback->addrs);
     ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
 
@@ -178,9 +196,9 @@ send_packet(mac_callback_t sent, void *ptr)
   } else {
     /* here we send the data over SLIP to the radio-chip */
     size = 0;
-#if SERIALIZE_ATTRIBUTES
-    size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
-#endif
+    if(sixlbr_config_slip_serialize_tx_attrs) {
+      size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
+    }
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
       LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
@@ -196,7 +214,9 @@ send_packet(mac_callback_t sent, void *ptr)
 
         /* Copy packet data */
         memcpy(&buf[3 + size], packetbuf_hdrptr(), packetbuf_totlen());
-        write_to_slip(buf, packetbuf_totlen() + size + 3);
+        callbacks[sid].buf_len = packetbuf_totlen() + size + 3;
+        memcpy(callbacks[sid].buf, buf, callbacks[sid].buf_len);
+        write_to_slip(buf, callbacks[sid].buf_len);
       } else {
         LOG6LBR_INFO("native-rdc queue full\n");
         mac_call_sent_callback(sent, ptr, MAC_TX_NOACK, 1);
@@ -293,15 +313,34 @@ slip_set_mac(linkaddr_t const * mac_addr)
     write_to_slip(buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_set_rf_channel(uint8_t channel)
+static void
+slip_set_rf_channel(uint8_t channel, uint8_t *msg, int *len)
 {
-  static uint8_t msg[3];
-
   msg[0] = '!';
   msg[1] = 'C';
   msg[2] = channel;
-  write_to_slip(msg, 3);
+  *len = 3;
+}
+/*---------------------------------------------------------------------------*/
+static void
+slip_set_pan_id(uint16_t pan_id, uint8_t *msg, int *len)
+{
+  msg[0] = '!';
+  msg[1] = 'P';
+  msg[2] = pan_id & 0xFF;
+  msg[3] = (pan_id >> 8) & 0xFF;
+  *len = 4;
+}
+/*---------------------------------------------------------------------------*/
+PT_THREAD(send_slip_cmd(struct pt * pt, process_event_t ev, uint8_t const *msg, int len, int reply, int *status))
+{
+  static struct etimer et;
+  PT_BEGIN(pt);
+  etimer_set(&et, NATIVE_RDC_SLIP_TIMEOUT);
+  write_to_slip(msg, len);
+  PT_YIELD_UNTIL(pt, etimer_expired(&et) || ev == PROCESS_EVENT_POLL);
+  *status = (ev == PROCESS_EVENT_POLL);
+  PT_END(pt);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -318,11 +357,21 @@ native_rdc_reset_slip(void)
   process_poll(&native_rdc_process);
 }
 /*---------------------------------------------------------------------------*/
+void
+slip_error_callback(const uint8_t * buf)
+{
+  process_poll(&native_rdc_process);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(native_rdc_process, ev, data)
 {
   PROCESS_BEGIN();
 
   static struct etimer et;
+  static struct pt pt;
+  static uint8_t buf[255];
+  static int len;
+  static int status;
   do
   {
     slip_reboot();
@@ -331,8 +380,18 @@ PROCESS_THREAD(native_rdc_process, ev, data)
       slip_request_mac();
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
-    //Set radio channel
-    slip_set_rf_channel(nvm_data.channel);
+    //Set radio channel and PAN-ID
+    slip_set_rf_channel(nvm_data.channel, buf, &len);
+    PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, buf, len, 0, &status));
+    if(status != 0) {
+      LOG6LBR_ERROR("Set channel failed\n");
+    }
+    frame802154_set_pan_id(nvm_data.pan_id);
+    slip_set_pan_id(nvm_data.pan_id, buf, &len);
+    PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, buf, len, 0, &status));
+    if(status != 0) {
+      LOG6LBR_ERROR("Set PAN-ID failed\n");
+    }
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);

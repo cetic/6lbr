@@ -81,10 +81,12 @@
 #define RF_CHANNEL 26
 #endif
 
+#undef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL RF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL RF_CHANNEL
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL RF_CHANNEL
+#undef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
 /* Security                                                                  */
@@ -225,14 +227,6 @@
 #define SKY_CONF_MAX_TX_POWER 	31
 #endif
 
-#if CONTIKI_TARGET_ECONOTAG
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK_HW     1
-#else
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK	1
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
@@ -246,6 +240,13 @@
 
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
+
+// Enable DAO-Ack
+#define RPL_CONF_WITH_DAO_ACK       1
+
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    0
+
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     0
 
 /* Z1 platform has limited RAM */
 
@@ -276,7 +277,7 @@
 #endif
 
 #undef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA   1
+#define UIP_CONF_ND6_SEND_NA   0
 
 #endif
 

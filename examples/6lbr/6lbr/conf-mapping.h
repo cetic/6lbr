@@ -81,13 +81,39 @@
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
+#undef RPL_CONF_WITH_DAO_ACK_TEST
+#define RPL_CONF_WITH_DAO_ACK_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
+
+#undef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)
+
+#undef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
+
+// Security configuration
+
 #undef NONCORESEC_CONF_SEC_LVL
 #define NONCORESEC_CONF_SEC_LVL     (nvm_data.security_level)
 
 #undef NONCORESEC_CONF_KEY_REF
 #define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)
 
-#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY) != 0)
+#define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
+
+#if CONTIKI_TARGET_NATIVE
+
+extern int sixlbr_config_select_timeout;
+#undef SELECT_CONF_TIMEOUT
+#define SELECT_CONF_TIMEOUT sixlbr_config_select_timeout
+
+extern int sixlbr_config_slip_timeout;
+#undef NATIVE_RDC_CONF_SLIP_TIMEOUT
+#define NATIVE_RDC_CONF_SLIP_TIMEOUT sixlbr_config_slip_timeout
+
+extern int sixlbr_config_slip_retransmit;
+#undef NATIVE_RDC_CONF_SLIP_RETRANSMIT
+#define NATIVE_RDC_CONF_SLIP_RETRANSMIT sixlbr_config_slip_retransmit
+#endif
 
 #endif

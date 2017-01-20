@@ -46,8 +46,10 @@
 int slip_config_handle_arguments(int argc, char **argv);
 void write_to_slip(const uint8_t * buf, int len);
 
-int slip_init(void);
+void slip_init(void);
 int slip_set_fd(int maxfd, fd_set * rset, fd_set * wset);
 void slip_handle_fd(fd_set * rset, fd_set * wset);
+
+void slip_error_callback(const uint8_t *buf);
 
 #endif /* NATIVE_SLIP_H_ */

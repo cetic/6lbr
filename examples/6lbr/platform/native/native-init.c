@@ -43,14 +43,17 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "native-rdc.h"
-#include "native-config.h"
+#include "native-config-file.h"
+#include "native-config-handlers.h"
 #include "plugin.h"
 #include "6lbr-watchdog.h"
-#include "slip-config.h"
+#include "native-config.h"
+#include "native-args.h"
 
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "signal.h"
+#include <signal.h>
+#include <errno.h>
 
 static void
 reload_trigger(int signal)
@@ -62,12 +65,13 @@ void
 platform_init(void)
 {
   slip_config_handle_arguments(contiki_argc, contiki_argv);
-  if (watchdog_interval) {
+  if (sixlbr_config_watchdog_interval) {
     process_start(&native_6lbr_watchdog, NULL);
   } else {
     LOG6LBR_WARN("6LBR Watchdog disabled\n");
   }
   native_config_init();
+  native_config_handlers_init();
   plugins_load();
 
   struct sigaction action;
@@ -113,40 +117,49 @@ platform_set_wsn_mac(linkaddr_t * mac_addr)
 void
 cetic_6lbr_save_ip(void)
 {
-  if (ip_config_file_name) {
+  if (sixlbr_config_ip_file_name) {
     char str[INET6_ADDRSTRLEN];
 #if CETIC_6LBR_SMARTBRIDGE
     inet_ntop(AF_INET6, (struct sockaddr_in6 *)&wsn_ip_addr, str, INET6_ADDRSTRLEN);
 #else
     inet_ntop(AF_INET6, (struct sockaddr_in6 *)&eth_ip_addr, str, INET6_ADDRSTRLEN);
 #endif
-    FILE *ip_config_file = fopen(ip_config_file_name, "w");
-    fprintf(ip_config_file, "%s\n", str);
-    fclose(ip_config_file);
-    char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
-    strcpy(ip4_file_name, ip_config_file_name);
+    FILE *ip_config_file = fopen(sixlbr_config_ip_file_name, "w");
+    if(ip_config_file) {
+      fprintf(ip_config_file, "%s\n", str);
+      fclose(ip_config_file);
+    } else {
+      LOG6LBR_ERROR("Cannot create ip log file '%s' : %s\n", sixlbr_config_ip_file_name, strerror(errno));
+    }
+
+    char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+    strcpy(ip4_file_name, sixlbr_config_ip_file_name);
     strcat(ip4_file_name, "4");
     FILE *ip4_config_file = fopen(ip4_file_name, "w");
-    if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-      inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
-      fprintf(ip4_config_file, "%s\n", str);
+    if(ip4_config_file) {
+      if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+        inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
+        fprintf(ip4_config_file, "%s\n", str);
+      } else {
+        fprintf(ip4_config_file, "0.0.0.0\n");
+      }
+      fclose(ip4_config_file);
     } else {
-      fprintf(ip4_config_file, "0.0.0.0\n");
+      LOG6LBR_ERROR("Cannot create ip4 log file '%s' : %s\n", ip4_file_name, strerror(errno));
     }
-    fclose(ip4_config_file);
   }
 }
 
 void
 cetic_6lbr_clear_ip(void)
 {
-  if (ip_config_file_name) {
-    FILE *ip_config_file = fopen(ip_config_file_name, "w");
+  if (sixlbr_config_ip_file_name) {
+    FILE *ip_config_file = fopen(sixlbr_config_ip_file_name, "w");
     fprintf(ip_config_file, "::\n");
     fclose(ip_config_file);
     if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-      char * ip4_file_name = (char *)malloc(strlen(ip_config_file_name + 1 + 1));
-      strcpy(ip4_file_name, ip_config_file_name);
+      char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+      strcpy(ip4_file_name, sixlbr_config_ip_file_name);
       strcat(ip4_file_name, "4");
       FILE *ip4_config_file = fopen(ip4_file_name, "w");
       fprintf(ip4_config_file, "0.0.0.0\n");

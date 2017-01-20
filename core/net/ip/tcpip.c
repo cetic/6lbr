@@ -568,6 +568,7 @@ tcpip_ipv6_output(void)
 {
   uip_ds6_nbr_t *nbr = NULL;
   uip_ipaddr_t *nexthop = NULL;
+  uip_ds6_route_t *route = NULL;
 
   if(uip_len == 0) {
     return;
@@ -729,6 +730,15 @@ tcpip_ipv6_output(void)
     nbr = uip_ds6_nbr_lookup(nexthop);
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
+#if CETIC_6LBR && UIP_CONF_IPV6_RPL
+      /* Don't perform NUD if it has been disabled for WSN */
+      if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) != 0 &&
+         uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64) &&
+         route != NULL) {
+        uip_clear_buf();
+        return;
+      }
+#endif
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) == NULL) {
         uip_clear_buf();
         PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
@@ -779,6 +789,12 @@ tcpip_ipv6_output(void)
       }
       /* Send in parallel if we are running NUD (nbc state is either STALE,
          DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
+#if CETIC_6LBR && UIP_CONF_IPV6_RPL
+      /* Don't update nbr state if we don't want to perform NUD for WSN */
+      if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) == 0 ||
+         !uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64) ||
+         route == NULL)
+#endif
       if(nbr->state == NBR_STALE) {
         nbr->state = NBR_DELAY;
         stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);

@@ -55,17 +55,11 @@
 #include "log-6lbr.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "packetutils.h"
 #include "cmd.h"
 #include "slip-cmds.h"
-#include "slip-config.h"
-
-#ifdef SLIP_DEV_CONF_SEND_DELAY
-#define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY
-#else
-#define SEND_DELAY 0
-#endif
-
-int devopen(const char *dev, int flags);
+#include "native-config.h"
+#include "slip-dev.h"
 
 static FILE *inslip;
 
@@ -74,6 +68,7 @@ uint32_t slip_sent = 0;
 uint32_t slip_received = 0;
 uint32_t slip_message_sent = 0;
 uint32_t slip_message_received = 0;
+uint32_t slip_crc_errors = 0;
 
 int slipfd = 0;
 
@@ -87,6 +82,33 @@ int slipfd = 0;
 
 #define DEBUG_LINE_MARKER '\r'
 
+/*---------------------------------------------------------------------------*/
+/* Polynomial ^8 + ^5 + ^4 + 1 */
+static uint8_t
+crc8_add(uint8_t acc, uint8_t byte)
+{
+  int i;
+  acc ^= byte;
+  for(i = 0; i < 8; i++) {
+    if(acc & 1) {
+      acc = (acc >> 1) ^ 0x8c;
+    } else {
+      acc >>= 1;
+    }
+  }
+
+  return acc;
+}
+/*---------------------------------------------------------------------------*/
+static int
+devopen(const char *dev, int flags)
+{
+  char t[32];
+
+  strcpy(t, "/dev/");
+  strncat(t, dev, sizeof(t) - 5);
+  return open(t, flags);
+}
 /*---------------------------------------------------------------------------*/
 static void *
 get_in_addr(struct sockaddr *sa)
@@ -130,7 +152,7 @@ connect_to_server(const char *host, const char *port)
   }
 
   if(p == NULL) {
-    LOG6LBR_ERROR("can't connect to %s:%s", host, port);
+    LOG6LBR_ERROR("can't connect to %s:%s\n", host, port);
     return -1;
   }
 
@@ -162,7 +184,22 @@ is_sensible_string(const unsigned char *s, int len)
 void
 slip_packet_input(unsigned char *data, int len)
 {
-  packetbuf_copyfrom(data, len);
+  packetbuf_clear();
+  if(sixlbr_config_slip_deserialize_rx_attrs) {
+    int pos = packetutils_deserialize_atts(data, len);
+    if(pos < 0) {
+      LOG6LBR_ERROR("illegal packet attributes\n");
+      return;
+    }
+    len -= pos;
+    if(len > PACKETBUF_SIZE) {
+      len = PACKETBUF_SIZE;
+    }
+    memcpy(packetbuf_dataptr(), &data[pos], len);
+    packetbuf_set_datalen(len);
+  } else {
+    packetbuf_copyfrom(data, len);
+  }
   NETSTACK_RDC.input();
 }
 /*---------------------------------------------------------------------------*/
@@ -211,6 +248,22 @@ after_fread:
       slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
+      if(sixlbr_config_slip_crc8) {
+        uint8_t crc = 0;
+        int i;
+        for(i = 0; i < inbufptr; i++) {
+          crc = crc8_add(crc, inbuf[i]);
+        }
+        if(crc) {
+          /* report error and ignore the packet */
+          slip_crc_errors++;
+          LOG6LBR_INFO("Packet received with invalid CRC\n");
+          inbufptr = 0;
+          return;
+        } else {
+          inbufptr--; /* remove the CRC byte */
+        }
+      }
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
         cmd_input(inbuf, inbufptr);
@@ -220,6 +273,7 @@ after_fread:
       } else if(inbuf[0] == 'E' && is_sensible_string(inbuf, inbufptr) ) {
         LOG6LBR_WRITE(ERROR, GLOBAL, inbuf + 1, inbufptr - 1);
         LOG6LBR_APPEND(ERROR, GLOBAL, "\n");
+        slip_error_callback(inbuf + 1);
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
@@ -257,9 +311,6 @@ after_fread:
 unsigned char slip_buf[2048];
 int slip_end, slip_begin, slip_packet_end, slip_packet_count;
 static struct timer send_delay_timer;
-
-/* delay between slip packets */
-static clock_time_t send_delay = SEND_DELAY;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -322,8 +373,8 @@ slip_flushbuf(int fd)
           }
         }
         /* a delay between slip packets to avoid losing data */
-        if(send_delay > 0) {
-          timer_set(&send_delay_timer, send_delay);
+        if(sixlbr_config_slip_send_delay > 0) {
+          timer_set(&send_delay_timer, (CLOCK_SECOND * sixlbr_config_slip_send_delay) / 1000);
         }
       }
     }
@@ -335,6 +386,7 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
 {
   const uint8_t *p = inbuf;
   int i;
+  uint8_t crc;
 
   slip_message_sent++;
 
@@ -346,7 +398,11 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
    */
   /* slip_send(outfd, SLIP_END); */
 
+  crc = 0;
   for(i = 0; i < len; i++) {
+    if(sixlbr_config_slip_crc8) {
+      crc = crc8_add(crc, p[i]);
+    }
     switch (p[i]) {
     case SLIP_END:
       slip_send(outfd, SLIP_ESC);
@@ -360,6 +416,17 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
+  }
+  if(sixlbr_config_slip_crc8) {
+    /* Write the checksum byte */
+    if(crc == SLIP_END) {
+      slip_send(outfd, SLIP_ESC);
+      crc = SLIP_ESC_END;
+    } else if (crc == SLIP_ESC)  {
+      slip_send(outfd, SLIP_ESC);
+      crc = SLIP_ESC_ESC;
+    }
+    slip_send(outfd, crc);
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");
@@ -378,7 +445,7 @@ static void
 stty_telos(int fd)
 {
   struct termios tty;
-  speed_t speed = slip_config_b_rate;
+  speed_t speed = sixlbr_config_slip_baud_rate;
   int i;
 
   if(tcflush(fd, TCIOFLUSH) == -1) {
@@ -396,7 +463,7 @@ stty_telos(int fd)
   /* Nonblocking read. */
   tty.c_cc[VTIME] = 0;
   tty.c_cc[VMIN] = 0;
-  if(slip_config_flowcontrol) {
+  if(sixlbr_config_slip_flowcontrol) {
     tty.c_cflag |= CRTSCTS;
   } else {
     tty.c_cflag &= ~CRTSCTS;
@@ -422,7 +489,7 @@ stty_telos(int fd)
     exit(1);
   }
 
-  if(slip_config_dtr_rts_set) {
+  if(sixlbr_config_slip_dtr_rts_set) {
     i = TIOCM_DTR;
     if(ioctl(fd, TIOCMBIS, &i) == -1) {
       LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
@@ -450,7 +517,7 @@ static int
 set_fd(fd_set * rset, fd_set * wset)
 {
   /* Anything to flush? */
-  if(!slip_empty() && (send_delay == 0 || timer_expired(&send_delay_timer))) {
+  if(!slip_empty() && (sixlbr_config_slip_send_delay == 0 || timer_expired(&send_delay_timer))) {
     FD_SET(slipfd, wset);
   }
 
@@ -477,25 +544,25 @@ slip_init(void)
 {
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
-  if(slip_config_host != NULL) {
-    if(slip_config_port == NULL) {
-      slip_config_port = "60001";
+  if(sixlbr_config_slip_host != NULL) {
+    if(sixlbr_config_slip_port == NULL) {
+      sixlbr_config_slip_port = "60001";
     }
-    slipfd = connect_to_server(slip_config_host, slip_config_port);
+    slipfd = connect_to_server(sixlbr_config_slip_host, sixlbr_config_slip_port);
     if(slipfd == -1) {
-      LOG6LBR_FATAL("can't connect to %s:%s\n", slip_config_host,
-          slip_config_port);
+      LOG6LBR_FATAL("can't connect to %s:%s\n", sixlbr_config_slip_host,
+          sixlbr_config_slip_port);
       exit(1);
     }
 
-  } else if(slip_config_siodev != NULL) {
-    if(strcmp(slip_config_siodev, "null") == 0) {
+  } else if(sixlbr_config_slip_device != NULL) {
+    if(strcmp(sixlbr_config_slip_device, "null") == 0) {
       /* Disable slip */
       return;
     }
-    slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
+    slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
-      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", slip_config_siodev, strerror(errno));
+      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", sixlbr_config_slip_device, strerror(errno));
       exit(1);
     }
 
@@ -506,8 +573,8 @@ slip_init(void)
     int i;
 
     for(i = 0; i < 3; i++) {
-      slip_config_siodev = siodevs[i];
-      slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
+      sixlbr_config_slip_device = siodevs[i];
+      slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
       if(slipfd != -1) {
         break;
       }
@@ -520,11 +587,11 @@ slip_init(void)
 
   select_set_callback(slipfd, &slip_callback);
 
-  if(slip_config_host != NULL) {
-    LOG6LBR_INFO("SLIP opened to %s:%s\n", slip_config_host,
-           slip_config_port);
+  if(sixlbr_config_slip_host != NULL) {
+    LOG6LBR_INFO("SLIP opened to %s:%s\n", sixlbr_config_slip_host,
+           sixlbr_config_slip_port);
   } else {
-    LOG6LBR_INFO("SLIP started on /dev/%s\n", slip_config_siodev);
+    LOG6LBR_INFO("SLIP started on /dev/%s\n", sixlbr_config_slip_device);
     stty_telos(slipfd);
   }
 

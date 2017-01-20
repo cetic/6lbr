@@ -43,6 +43,12 @@
 extern int core_itf_linked_batch_resource;
 // -------------------------------------
 
+#ifdef CORE_ITF_CONF_MAX_BATCH_BUFFER
+#define CORE_ITF_MAX_BATCH_BUFFER CORE_ITF_CONF_MAX_BATCH_BUFFER
+#else
+#define CORE_ITF_MAX_BATCH_BUFFER 2
+#endif
+
 #ifdef CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
 #define CORE_ITF_MAX_BATCH_BUFFER_SIZE CORE_ITF_CONF_MAX_BATCH_BUFFER_SIZE
 #else
@@ -71,7 +77,7 @@ extern int core_itf_linked_batch_resource;
 // Resource handlers
 
 extern void
-resource_batch_get_handler(uint8_t *batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+resource_batch_get_handler(void **batch_buffer, int *batch_buffer_size, resource_t const * batch_resource, resource_t * batch_resource_list[], int batch_resource_list_size, uint16_t flags, void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 extern void
 resource_linked_list_get_handler(resource_t const * linked_list_resource, resource_t * linked_resource_list[], int linked_resource_list_size, uint16_t flags,
@@ -91,9 +97,9 @@ resource_linked_list_get_handler(resource_t const * linked_list_resource, resour
   void \
   resource_##resource_name##_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) \
   { \
-    static uint8_t batch_buffer[CORE_ITF_MAX_BATCH_BUFFER_SIZE+1]; \
+    static void *batch_buffer = NULL; \
     static int batch_buffer_size = 0; \
-    resource_batch_get_handler(batch_buffer, &batch_buffer_size, &resource_##resource_name, resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), flags, request, response, buffer, preferred_size, offset); \
+    resource_batch_get_handler(&batch_buffer, &batch_buffer_size, &resource_##resource_name, resource_##resource_name##_batch_list, REST_RESOURCES_LIST_SIZE(resource_name), flags, request, response, buffer, preferred_size, offset); \
   }
 
 #define REST_RESOURCE_LINKED_LIST_HANDLER(resource_name, flags, ...) \

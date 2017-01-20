@@ -40,6 +40,9 @@
 #include "sys/clock.h"
 #include <time.h>
 #include <sys/time.h>
+#if defined(__MACH__)
+#include <mach/mach_time.h>
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -50,21 +53,43 @@ clock_init(void)
 clock_time_t
 clock_time(void)
 {
+#ifdef __linux
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+#elif defined(__MACH__)
+  static mach_timebase_info_data_t info = {0,0};
+  if (info.denom == 0) {
+    mach_timebase_info(&info);
+  }
+  uint64_t elapsednano = mach_absolute_time() * (info.numer / info.denom);
+  return elapsednano / 1000000;
+#else
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
 
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
+#ifdef __linux
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return ts.tv_sec;
+#else
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
 
   return tv.tv_sec;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void

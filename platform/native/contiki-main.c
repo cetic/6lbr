@@ -79,6 +79,12 @@
 #define SELECT_MAX 8
 #endif
 
+#ifdef SELECT_CONF_TIMEOUT
+#define SELECT_TIMEOUT SELECT_CONF_TIMEOUT
+#else
+#define SELECT_TIMEOUT 1000
+#endif
+
 static const struct select_callback *select_callback[SELECT_MAX];
 static int select_max = 0;
 
@@ -121,6 +127,7 @@ select_set_callback(int fd, const struct select_callback *callback)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if ! CETIC_6LBR
 static int
 stdin_set_fd(fd_set *rset, fd_set *wset)
 {
@@ -140,6 +147,7 @@ stdin_handle_fd(fd_set *rset, fd_set *wset)
 const static struct select_callback stdin_fd = {
   stdin_set_fd, stdin_handle_fd
 };
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
@@ -266,7 +274,7 @@ main(int argc, char **argv)
     retval = process_run();
 
     tv.tv_sec = 0;
-    tv.tv_usec = retval ? 1 : 1000;
+    tv.tv_usec = retval ? 1 : SELECT_TIMEOUT;
 
     FD_ZERO(&fdr);
     FD_ZERO(&fdw);

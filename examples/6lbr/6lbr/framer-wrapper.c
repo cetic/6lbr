@@ -37,6 +37,7 @@
 #include "contiki.h"
 #include "framer-wrapper.h"
 #include "net/mac/framer-802154.h"
+#include "net/mac/framer-nullmac.h"
 #include "noncoresec/noncoresec.h"
 
 #include "nvm-config.h"
@@ -49,7 +50,13 @@ void
 framer_wrapper_init(void)
 {
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONE) {
-    LOG6LBR_INFO("Using 802.15.4 framer\n");
+    if(nvm_data.mac_layer == CETIC_6LBR_MAC_LAYER_NULLMAC) {
+      LOG6LBR_INFO("Using 'nullmac' framer\n");
+      current_framer = &framer_nullmac;
+    } else {
+      LOG6LBR_INFO("Using 802.15.4 framer\n");
+      current_framer = &framer_802154;
+    }
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     LOG6LBR_INFO("Using 'noncoresec' framer\n");
     current_framer = &noncoresec_framer;

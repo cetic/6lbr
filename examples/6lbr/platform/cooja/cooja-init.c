@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,45 +28,62 @@
  */
 
 /**
- * \file
- *         Header file for the Slip configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef SLIP_CONFIG_H_
-#define SLIP_CONFIG_H_
+#define LOG6LBR_MODULE "CC2538"
 
-#include <stdint.h>
-#include <termios.h>
+#include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
+#include "watchdog.h"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "platform-init.h"
+#include "cetic-6lbr.h"
+#include "sicslow-ethernet.h"
+#include "nvm-config.h"
+#include "log-6lbr.h"
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+void
+platform_init(void)
+{
+}
 
-extern int slip_config_flowcontrol;
-extern int slip_config_timestamp;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern char const *default_nvm_file;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
-extern speed_t slip_config_b_rate;
-extern char const *slip_config_ifup_script;
-extern char const *slip_config_ifdown_script;
-extern char const *slip_config_www_root;
-extern char const *slip_config_plugins;
-extern int watchdog_interval;
-extern char const * watchdog_file_name;
-extern char const * ip_config_file_name;
-extern char const *  config_file_name;
-extern char const *  node_config_file_name;
-extern int slip_config_dtr_rts_set;
+void
+platform_finalize(void)
+{
+}
 
-#endif
+void
+platform_load_config(config_level_t level)
+{
+  switch(level) {
+  case CONFIG_LEVEL_LOAD:
+    load_nvm_config();
+    break;
+  default:
+    break;
+  }
+}
+
+void
+platform_radio_init(void)
+{
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
+  radio_ready = 1;
+  radio_mac_addr_ready = 1;
+}
+
+void
+platform_set_wsn_mac(linkaddr_t * mac_addr)
+{
+  linkaddr_set_node_addr(mac_addr);
+}
+
+void
+platform_restart(void)
+{
+  LOG6LBR_INFO("Rebooting...\n");
+  watchdog_reboot();
+}

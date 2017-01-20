@@ -571,6 +571,16 @@ print_bool(uint16_t value, uint16_t mask)
   }
 }
 
+void
+print_bool_inv(uint16_t value, uint16_t mask)
+{
+  if((value & mask) != 0) {
+    printf("False");
+  } else {
+    printf("True");
+  }
+}
+
 #define PRINT_INT(text, option) \
   printf(text " : "); \
   print_int(nvm_data->option); \
@@ -605,6 +615,11 @@ print_bool(uint16_t value, uint16_t mask)
 #define PRINT_BOOL(text, option, flag) \
   printf(text " : "); \
   print_bool(nvm_data->option, flag); \
+  printf("\n");
+
+#define PRINT_BOOL_INV(text, option, flag) \
+  printf(text " : "); \
+  print_bool_inv(nvm_data->option, flag); \
   printf("\n");
 
 void
@@ -644,7 +659,7 @@ print_nvm(void)
   PRINT_INT("RA RIO lifetime", ra_rio_lifetime);
   printf("\n");
 
-  //RPL Configuration
+  //DODAG Configuration
   PRINT_INT("RPL instance ID", rpl_instance_id);
   PRINT_BOOL("RPL DODAG ID manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG);
   PRINT_IP("RPL DODAG ID", rpl_dodag_id);
@@ -659,6 +674,10 @@ print_nvm(void)
   PRINT_INT("RPL minimum rank increment", rpl_min_hoprankinc);
   PRINT_INT("RPL lifetime unit", rpl_lifetime_unit);
   printf("\n");
+  //RPL Behavior
+  PRINT_BOOL("RPL DAO ACK", rpl_config, CETIC_6LBR_RPL_DAO_ACK);
+  PRINT_BOOL("RPL DAO ACK local repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR);
+  PRINT_BOOL_INV("DIO triggers route refresh", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH);
 
   //MAC Configuration
   PRINT_INT("MAC layer", mac_layer);
@@ -667,9 +686,10 @@ print_nvm(void)
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
   PRINT_KEY("Security key", noncoresec_key, 16);
-  PRINT_BOOL("Noncoresec anti-replay disabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY);
+  PRINT_BOOL("Noncoresec anti-replay enabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
   PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
   PRINT_BOOL("Filter unknown nodes", global_flags, CETIC_GLOBAL_FILTER_NODES);
+  PRINT_BOOL("Disable NUD", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD);
   printf("\n");
 
   //IP64
@@ -707,6 +727,7 @@ print_nvm(void)
 #define wsn_addr_autoconf_option 2106
 #define wsn_6lowpan_context_0_option 2107
 #define dns_server_option 2108
+#define wsn_disable_nud_option 2109
 
 #define eth_mac_option 3000
 #define eth_net_prefix_option 3001
@@ -739,7 +760,7 @@ print_nvm(void)
 #define ra_rio_en_option 9000
 #define ra_rio_lifetime_option 9001
 
-//RPL Configuration
+//DODAG Configuration
 #define rpl_instance_id_option 10000
 #define rpl_manual_dodag_id_option 10001
 #define rpl_dodag_id_option 10002
@@ -753,6 +774,11 @@ print_nvm(void)
 #define rpl_lifetime_unit_option 10010
 #define rpl_preference_option 10011
 
+//RPL Behavior
+#define rpl_dao_ack_option 10100
+#define rpl_dao_ack_repair_option 10101
+#define rpl_dio_refresh_routes_option 10102
+
 //Global flags
 #define disable_config_option 11001
 #define webserver_port_option 11002
@@ -761,7 +787,7 @@ print_nvm(void)
 #define security_layer_option 12000
 #define security_level_option 12001
 #define noncoresec_key_option 12002
-#define noncoresec_dis_ar_option 12003
+#define noncoresec_en_ar_option 12003
 #define noncoresec_ar_wa_option 12004
 #define security_filter_nodes_option 12005
 
@@ -793,6 +819,7 @@ static struct option long_options[] = {
   {"wsn-ip-autoconf", required_argument, 0, wsn_addr_autoconf_option},
   {"wsn-context-0", required_argument, 0, wsn_6lowpan_context_0_option},
   {"dns-server", required_argument, 0, dns_server_option},
+  {"wsn-disable-nud", required_argument, 0, wsn_disable_nud_option},
 
   {"eth-mac", required_argument, 0, eth_mac_option},
   {"eth-prefix", required_argument, 0, eth_net_prefix_option},
@@ -818,7 +845,7 @@ static struct option long_options[] = {
   {"ra-rio-en", required_argument, 0, ra_rio_en_option},
   {"ra-rio-lifetime", required_argument, 0, ra_rio_lifetime_option},
 
-  //RPL Configuration
+  //DODAG Configuration
   {"rpl-instance-id", required_argument, 0, rpl_instance_id_option},
   {"rpl-manual-dodag-id", required_argument, 0, rpl_manual_dodag_id_option},
   {"rpl-dodag-id", required_argument, 0, rpl_dodag_id_option},
@@ -833,11 +860,16 @@ static struct option long_options[] = {
   {"rpl-min-rank-inc", required_argument, 0, rpl_min_hoprankinc_option},
   {"rpl-lifetime-unit", required_argument, 0, rpl_lifetime_unit_option},
 
+  //RPL Behavior
+  {"rpl-dao-ack", required_argument, 0, rpl_dao_ack_option},
+  {"rpl-dao-ack-repair", required_argument, 0, rpl_dao_ack_repair_option},
+  {"rpl-dio-refresh-routes", required_argument, 0, rpl_dio_refresh_routes_option},
+
   //Security
   {"security-layer", required_argument, 0, security_layer_option},
   {"security-level", required_argument, 0, security_level_option},
   {"security-key", required_argument, 0, noncoresec_key_option},
-  {"noncoresec-dis-ar", required_argument, 0, noncoresec_dis_ar_option},
+  {"noncoresec-dis-ar", required_argument, 0, noncoresec_en_ar_option},
   {"noncoresec-ar-wa", required_argument, 0, noncoresec_ar_wa_option},
   {"filter-nodes", required_argument, 0, security_filter_nodes_option},
 
@@ -900,6 +932,8 @@ help(char const *name)
     ("\t--wsn-context-0 <IPv6 prefix>\t IPv6 prefix of 6LoWPAN context 0\n");
   printf
     ("\t--dns-server <IPv6 address>\t IPv6 address of DNS server\n");
+  printf
+    ("\t--wsn-disable-nud <0|1>\t\t Disable NDP NUD on the WSN subnet\n");
   printf("\n");
 
   printf("\nEthernet :\n");
@@ -949,10 +983,13 @@ help(char const *name)
   printf("\t--rpl-min-rank-inc <number> \t RPL Minimum Rank increment\n");
   printf("\t--rpl-lifetime-unit <seconds> \t RPL lifetime unit\n");
   printf("\n");
+  printf("\t--rpl-dao-ack <0|1>\t Enable DAO Acknowledgment\n");
+  printf("\t--rpl-dao-ack-repair <0|1>\t Trigger local repair when DAO NACK is received\n");
+  printf("\t--rpl-dio-refresh-routes <0|1>\t Enable DTSN increment in DIO\n");
 
   //MAC
   printf("\nMAC :\n");
-  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA)\n");
+  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA, 2: NullMAC)\n");
   printf("\n");
 
   //Security
@@ -1013,6 +1050,11 @@ help(char const *name)
 	  nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? mask : 0); \
     }
 
+#define UPDATE_FLAG_INV(arg_name, option, mode, mask) \
+    if(option) { \
+      nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? 0 : mask); \
+    }
+
 #define UPDATE_IP(arg_name, option) \
 	if(option) { \
 	  ipaddrconv(arg_name, option, nvm_data->option); \
@@ -1055,6 +1097,7 @@ main(int argc, char *argv[])
   char *wsn_addr_autoconf = NULL;
   char *wsn_6lowpan_context_0 = NULL;
   char *dns_server = NULL;
+  char *wsn_disable_nud = NULL;
 
   char *eth_net_prefix = NULL;
   char *eth_net_prefix_len = NULL;
@@ -1081,7 +1124,7 @@ main(int argc, char *argv[])
   char *ra_rio_en = NULL;
   char *ra_rio_lifetime = NULL;
 
-  //RPL Configuration
+  //DODAG Configuration
   char *rpl_instance_id = NULL;
   char *rpl_manual_dodag_id = NULL;
   char *rpl_dodag_id = NULL;
@@ -1096,6 +1139,11 @@ main(int argc, char *argv[])
   char *rpl_min_hoprankinc = NULL;
   char *rpl_lifetime_unit = NULL;
 
+  //RPL Behavior
+  char *rpl_dao_ack = NULL;
+  char *rpl_dao_ack_repair = NULL;
+  char *rpl_dio_refresh_routes = NULL;
+
   //MAC
   char *mac_layer = NULL;
 
@@ -1103,7 +1151,7 @@ main(int argc, char *argv[])
   char *security_layer = NULL;
   char *security_level = NULL;
   char *noncoresec_key = NULL;
-  char *noncoresec_dis_ar = NULL;
+  char *noncoresec_en_ar = NULL;
   char *noncoresec_ar_wa = NULL;
   char *security_filter_nodes = NULL;
 
@@ -1150,6 +1198,7 @@ main(int argc, char *argv[])
     CASE_OPTION(wsn_addr_autoconf)
     CASE_OPTION(wsn_6lowpan_context_0)
     CASE_OPTION(dns_server)
+    CASE_OPTION(wsn_disable_nud)
 
     CASE_OPTION(eth_net_prefix)
     CASE_OPTION(eth_net_prefix_len)
@@ -1177,7 +1226,7 @@ main(int argc, char *argv[])
     CASE_OPTION(ra_rio_en)
     CASE_OPTION(ra_rio_lifetime)
 
-    //RPL Configuration
+    //DODAG Configuration
     CASE_OPTION(rpl_instance_id)
     CASE_OPTION(rpl_manual_dodag_id)
     CASE_OPTION(rpl_dodag_id)
@@ -1192,6 +1241,11 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_min_hoprankinc)
     CASE_OPTION(rpl_lifetime_unit)
 
+    //RPL Behavior
+    CASE_OPTION(rpl_dao_ack)
+    CASE_OPTION(rpl_dao_ack_repair)
+    CASE_OPTION(rpl_dio_refresh_routes)
+
     //Security
     CASE_OPTION(mac_layer)
 
@@ -1199,7 +1253,7 @@ main(int argc, char *argv[])
     CASE_OPTION(security_layer)
     CASE_OPTION(security_level)
     CASE_OPTION(noncoresec_key)
-    CASE_OPTION(noncoresec_dis_ar)
+    CASE_OPTION(noncoresec_en_ar)
     CASE_OPTION(noncoresec_ar_wa)
     CASE_OPTION(security_filter_nodes)
 
@@ -1275,6 +1329,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("wsn-ip-autoconf", wsn_addr_autoconf, mode, CETIC_MODE_WSN_AUTOCONF)
     UPDATE_CONTEXT("wsn-context-0", wsn_6lowpan_context_0)
     UPDATE_IP("dns-server", dns_server)
+    UPDATE_FLAG("wsn-disable-nud", wsn_disable_nud, global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD)
 
     UPDATE_IP("eth-prefix", eth_net_prefix)
     UPDATE_INT("eth-prefix-len", eth_net_prefix_len)
@@ -1301,7 +1356,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("ra-rio-en", ra_rio_en, ra_rio_flags, CETIC_6LBR_MODE_SEND_RIO)
     UPDATE_INT("ra-rio-lifetime", ra_rio_lifetime)
 
-    //RPL Configuration
+    //DODAG Configuration
     UPDATE_INT("rpl-instance-id", rpl_instance_id)
     UPDATE_FLAG("rpl-manual-dodag-id", rpl_manual_dodag_id, rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG)
     UPDATE_IP("rpl-dodag-id", rpl_dodag_id)
@@ -1316,6 +1371,11 @@ main(int argc, char *argv[])
     UPDATE_INT("rpl-min-rank-inc", rpl_min_hoprankinc)
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
 
+    //RPL Behavior
+    UPDATE_FLAG("rpl-dao-ack", rpl_dao_ack, rpl_config, CETIC_6LBR_RPL_DAO_ACK)
+    UPDATE_FLAG("rpl-dao-ack-repair", rpl_dao_ack_repair, rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR)
+    UPDATE_FLAG_INV("rpl-dio-refresh-routes", rpl_dio_refresh_routes, rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)
+
     //Security
     UPDATE_INT("mac-layer", mac_layer)
 
@@ -1323,7 +1383,7 @@ main(int argc, char *argv[])
     UPDATE_INT("security-layer", security_layer)
     UPDATE_INT("security-level", security_level)
     UPDATE_KEY("security-key", noncoresec_key)
-    UPDATE_FLAG("noncoresec-dis-ar", noncoresec_dis_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY)
+    UPDATE_FLAG("noncoresec-en-ar", noncoresec_en_ar, noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY)
     UPDATE_FLAG("noncoresec-ar-wa", noncoresec_ar_wa, noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND)
     UPDATE_FLAG("filter-nodes", security_filter_nodes, global_flags, CETIC_GLOBAL_FILTER_NODES)
 

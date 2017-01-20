@@ -245,6 +245,12 @@
 #define RPL_WITH_DAO_ACK 0
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
+#ifdef RPL_CONF_WITH_DAO_ACK_TEST
+#define RPL_WITH_DAO_ACK_TEST RPL_CONF_WITH_DAO_ACK_TEST
+#else
+#define RPL_WITH_DAO_ACK_TEST RPL_WITH_DAO_ACK
+#endif /* RPL_CONF_WITH_DAO_ACK_TEST */
+
 /*
  * RPL REPAIR ON DAO NACK. When enabled, DAO NACK will trigger a local
  * repair in order to quickly find a new parent to send DAO's to.

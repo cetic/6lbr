@@ -35,7 +35,7 @@
 
 #include "uip-debug.h"
 
-#include "debug.h"
+#include "dtls_debug.h"
 #include "dtls.h"
 #include "dtls-echo.h"
 

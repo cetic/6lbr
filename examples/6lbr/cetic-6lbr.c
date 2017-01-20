@@ -373,6 +373,9 @@ cetic_6lbr_init_finalize(void)
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
 #endif
+  if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
+  }
 
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
@@ -498,8 +501,16 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   PROCESS_PAUSE();
 
+#if WEBSERVER
+  webserver_init();
+#endif
+
 #if CETIC_NODE_INFO
   node_info_init();
+#endif
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
 #endif
 
   packet_filter_init();
@@ -522,13 +533,6 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_init_finalize();
   platform_load_config(CONFIG_LEVEL_NETWORK);
 
-#if CETIC_NODE_CONFIG
-  node_config_init();
-#endif
-
-#if WEBSERVER
-  webserver_init();
-#endif
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
 #endif

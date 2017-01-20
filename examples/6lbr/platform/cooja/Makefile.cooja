@@ -1,0 +1,18 @@
+#Default configuration for COOJA
+
+WITH_UDPSERVER?=1
+WITH_UDPCLIENT?=1
+WITH_NODE_INFO?=1
+WITH_NODE_CONFIG?=1
+WITH_WEBSERVER?=1
+WITH_WEBSERVER_LITE?=0
+WITH_COAPSERVER?=0
+WITH_NVM_PROXY?=0
+WITH_DNS_PROXY?=1
+
+PROJECTDIRS += platform/cooja platform/native
+
+PROJECT_SOURCEFILES += cooja-init.c cooja-nvm.c cooja-eth-drv.c native-config.c
+
+PROJECTDIRS+= lib/inih
+PROJECT_SOURCEFILES += ini.c

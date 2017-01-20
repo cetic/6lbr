@@ -69,8 +69,12 @@ create(void)
 
   if(packetbuf_hdralloc(sizeof(struct nullmac_hdr))) {
     hdr = packetbuf_hdrptr();
-    linkaddr_copy(&(hdr->sender), &linkaddr_node_addr);
+    linkaddr_copy(&(hdr->sender), packetbuf_addr(PACKETBUF_ADDR_SENDER));
     linkaddr_copy(&(hdr->receiver), packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    PRINTF("PNULLMAC-UT: ");
+    PRINTADDR(&(hdr->sender));
+    PRINTADDR(&(hdr->receiver));
+    PRINTF("%u (%u)\n", packetbuf_datalen(), sizeof(struct nullmac_hdr));
     return sizeof(struct nullmac_hdr);
   }
   PRINTF("PNULLMAC-UT: too large header: %u\n", sizeof(struct nullmac_hdr));

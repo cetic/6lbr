@@ -177,8 +177,9 @@ endif
 endif
 
 ifeq ($(TARGET),srf06-cc26xx)
-ifeq ($(BOARD),sensortag)
+ifeq ($(BOARD),sensortag/cc2650)
 WITH_CETIC_6LN_NVM?=0
+CFLAGS+=-DWITH_CETIC_6LN_NVM=$(WITH_CETIC_6LN_NVM)
 ifeq ($(WITH_CETIC_6LN_NVM),1)
 PROJECT_SOURCEFILES += sensortag-nvm.c
 endif
@@ -241,11 +242,10 @@ $(PROJECTDIR)/dynamic-resources.mk:
 	@echo 'GEN_FILES+=$(FULL_RESOURCE_FILES)' > $(PROJECTDIR)/dynamic-resources.mk
 
 PROJECTDIRS+=$(PROJECTDIR)/dyn_resources
+endif
 
 CLEAN+=$(PROJECTDIR)/dyn_resources/* $(PROJECTDIR)/dynamic-resources.mk
-
 .PHONY: $(FULL_RESOURCE_FILES)
-endif
 
 all_sky: bin_sky/6lbr-demo.sky
 all_z1: bin_z1/6lbr-demo-webserver.z1 bin_z1/6lbr-demo-coapserver.z1

@@ -77,6 +77,17 @@ HTTPD_CGI_CALL_NAME(webserver_config)
     add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? "on" : "off" ); \
   }
 
+#define INPUT_FLAG_INV_CB(name, nvm_name, flag, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+      add(text " : <br />" \
+            "<input type=\"radio\" name=\""name"\" value=\"1\" %s> on ", \
+            (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
+          add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> off <br />", \
+        (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+  } else { \
+    add(text " : %s<br />", (nvm_data.nvm_name & (flag)) == 0 ? "on" : "off" ); \
+  }
+
 #define INPUT_IPADDR(name, nvm_name, text) \
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
     add(text " : <input type=\"text\" name=\""name"\" value=\""); \
@@ -152,9 +163,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if !CETIC_6LBR_ONE_ITF
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
-#if !CONTIKI_TARGET_NATIVE
   INPUT_HEX("panid", pan_id, "PAN ID");
-#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -178,7 +187,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
-  INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, "Disable anti-replay");
+  INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, "Enable anti-replay");
   INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -187,6 +196,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("MAC Layer : <select name=\"mac\">");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_CSMA, "CSMA");
+  SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NULLMAC, "NullMAC");
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -218,6 +228,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
+  INPUT_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, "NDP NUD", "disabled", "enabled");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -292,8 +303,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if UIP_CONF_IPV6_RPL && (CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE)
+#if UIP_CONF_IPV6_RPL
   add("<br /><h2>RPL Configuration</h2>");
+#if CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE
+  add("<br /><h3>DODAG Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
   INPUT_FLAG_CB( "dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, "Manual DODAG ID");
   INPUT_IPADDR("dodag_id", rpl_dodag_id, "DODAG ID");
@@ -310,6 +323,13 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_INT( "rpl_max_rankinc", rpl_max_rankinc, "Max rank increase");
   INPUT_INT( "rpl_default_lifetime", rpl_default_lifetime, "Route lifetime");
   INPUT_INT( "rpl_lifetime_unit", rpl_lifetime_unit, "Route lifetime unit");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+  add("<br /><h3>RPL Behavior</h2>");
+  INPUT_FLAG_CB( "dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, "DAO Ack");
+  INPUT_FLAG_CB( "dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, "DAO Ack local repair");
+  INPUT_FLAG_INV_CB( "dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, "Route refresh with DIO");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -341,6 +361,21 @@ else if(strcmp(param, name) == 0) { \
     do_update = 0; \
   } \
 }
+
+#define UPDATE_FLAG_INV(name, nvm_name, flag, reboot) \
+else if(strcmp(param, name) == 0) { \
+  if(strcmp(value, "0") == 0) { \
+    nvm_data.nvm_name |= (flag); \
+    *reboot_needed |= (reboot); \
+  } else if(strcmp(value, "1") == 0) { \
+    nvm_data.nvm_name &= ~(flag); \
+    *reboot_needed |= (reboot); \
+  } else { \
+        LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
+    do_update = 0; \
+  } \
+}
+
 #define UPDATE_INT(name, nvm_name, reboot) \
   else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name = atoi(value); \
@@ -440,7 +475,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT("llsec", security_layer, 1)
     UPDATE_INT("llsec_level", security_level, 1)
     UPDATE_KEY("psk", noncoresec_key, 16, 1)
-    UPDATE_FLAG( "sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_DISABLE_ANTIREPLAY, 1)
+    UPDATE_FLAG( "sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, 1)
     UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
@@ -474,6 +509,7 @@ update_config(const char *name, uint8_t *reboot_needed)
 #if CETIC_NODE_CONFIG
     UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
 #endif
+    UPDATE_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, 1)
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
@@ -491,6 +527,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
     UPDATE_FLAG("dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, 1)
     UPDATE_FLAG("dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, 1)
+    UPDATE_FLAG("dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, 1)
+    UPDATE_FLAG("dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, 1)
+    UPDATE_FLAG_INV("dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, 1)
     UPDATE_IPADDR("dodag_id", rpl_dodag_id, 1)
     UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)

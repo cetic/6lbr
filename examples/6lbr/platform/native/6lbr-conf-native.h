@@ -79,11 +79,9 @@
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
 
-#define SLIP_DEV_CONF_SEND_DELAY 0
-
 /* Do not change lines below */
 
-#define SERIALIZE_ATTRIBUTES 1
+#define SLIP_CONF_CRC_ON 1
 
 #define SELECT_CALLBACK 1
 
@@ -101,6 +99,7 @@
 #define NETSTACK_CONF_RADIO   nullradio_driver
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || \
     defined(__BIG_ENDIAN__) || \
     defined(__ARMEB__) || \
     defined(__THUMBEB__) || \
@@ -109,6 +108,7 @@
 #undef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
 #elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__ || \
     defined(__LITTLE_ENDIAN__) || \
     defined(__ARMEL__) || \
     defined(__THUMBEL__) || \

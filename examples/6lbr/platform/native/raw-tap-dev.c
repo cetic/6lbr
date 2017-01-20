@@ -78,11 +78,10 @@ struct ifreq if_idx;
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "cetic-6lbr.h"
-#include "slip-config.h"
+#include "native-config.h"
 #include "log-6lbr.h"
 
 //Temporary, should be removed
-#include "native-slip.h"
 #include "native-rdc.h"
 extern int slipfd;
 extern void slip_flushbuf(int fd);
@@ -90,21 +89,23 @@ extern void slip_flushbuf(int fd);
 
 extern void cetic_6lbr_clear_ip(void);
 
-#ifndef __CYGWIN__
-static int tunfd;
+static int eth_fd;
 
 static int set_fd(fd_set * rset, fd_set * wset);
 static void handle_fd(fd_set * rset, fd_set * wset);
-static const struct select_callback tun_select_callback = {
+static const struct select_callback eth_select_callback = {
   set_fd,
   handle_fd
 };
-#endif /* __CYGWIN__ */
 
-int ssystem(const char *fmt, ...)
+static uint16_t delaymsec = 0;
+static uint32_t delaystartsec, delaystartmsec;
+
+static int ssystem(const char *fmt, ...)
   __attribute__ ((__format__(__printf__, 1, 2)));
 
-int
+/*---------------------------------------------------------------------------*/
+static int
 ssystem(const char *fmt, ...)
 {
   char cmd[128];
@@ -116,21 +117,20 @@ ssystem(const char *fmt, ...)
   fflush(stdout);
   return system(cmd);
 }
-
 /*---------------------------------------------------------------------------*/
-void
+static void
 cleanup(void)
 {
-  if(slip_config_ifdown_script != NULL) {
-    if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
-      LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", slip_config_ifdown_script);
-      int status = ssystem("%s %s %s 2>&1", slip_config_ifdown_script,
-              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+  if(sixlbr_config_ifdown_script != NULL) {
+    if(access(sixlbr_config_ifdown_script, R_OK | X_OK) == 0) {
+      LOG6LBR_INFO("Running 6lbr-ifdown script '%s'\n", sixlbr_config_ifdown_script);
+      int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifdown_script,
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", sixlbr_config_eth_device);
       if(status != 0) {
         LOG6LBR_ERROR("6lbr-ifdown script returned an error\n");
       }
     } else {
-      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifdown_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", sixlbr_config_ifdown_script,
               strerror(errno));
     }
   } else {
@@ -142,30 +142,28 @@ cleanup(void)
   slip_flushbuf(slipfd);
 #endif
 }
-
 /*---------------------------------------------------------------------------*/
-void
+static void
 sigcleanup(int signo)
 {
   LOG6LBR_FATAL("signal %d\n", signo);
   exit(1);                      /* exit(0) will call cleanup() */
 }
-
 /*---------------------------------------------------------------------------*/
-void
-ifconf(const char *tundev)
+static void
+ifconf(const char *eth_dev)
 {
-  if(slip_config_ifup_script != NULL) {
-    if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
-      LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", slip_config_ifup_script);
-      int status = ssystem("%s %s %s 2>&1", slip_config_ifup_script,
-              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
+  if(sixlbr_config_ifup_script != NULL) {
+    if(access(sixlbr_config_ifup_script, R_OK | X_OK) == 0) {
+      LOG6LBR_INFO("Running 6lbr-ifup script '%s'\n", sixlbr_config_ifup_script);
+      int status = ssystem("%s %s %s 2>&1", sixlbr_config_ifup_script,
+              sixlbr_config_use_raw_ethernet ? "raw" : "tap", sixlbr_config_eth_device);
       if(status != 0) {
         LOG6LBR_FATAL("6lbr-ifup script returned an error, aborting...\n");
         exit(1);
       }
     } else {
-      LOG6LBR_ERROR("Could not access %s : %s\n", slip_config_ifup_script,
+      LOG6LBR_ERROR("Could not access %s : %s\n", sixlbr_config_ifup_script,
               strerror(errno));
     }
   } else {
@@ -173,20 +171,10 @@ ifconf(const char *tundev)
   }
 }
 /*---------------------------------------------------------------------------*/
-int
-devopen(const char *dev, int flags)
-{
-  char t[32];
-
-  strcpy(t, "/dev/");
-  strncat(t, dev, sizeof(t) - 5);
-  return open(t, flags);
-}
-/*---------------------------------------------------------------------------*/
-
 #ifdef linux
-int
-eth_alloc(const char *tundev)
+
+static int
+eth_alloc(const char *eth_dev)
 {
   int sockfd;
 
@@ -195,7 +183,7 @@ eth_alloc(const char *tundev)
     exit(1);
   }
   memset(&if_idx, 0, sizeof(struct ifreq));
-  strncpy(if_idx.ifr_name, tundev, IFNAMSIZ - 1);
+  strncpy(if_idx.ifr_name, eth_dev, IFNAMSIZ - 1);
   if(ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0) {
     LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
     exit(1);
@@ -221,9 +209,9 @@ eth_alloc(const char *tundev)
   }
   return sockfd;
 }
-
-int
-tun_alloc(char *dev)
+/*---------------------------------------------------------------------------*/
+static int
+tap_alloc(char *dev)
 {
   struct ifreq ifr;
   int fd, err;
@@ -234,7 +222,7 @@ tun_alloc(char *dev)
 
   memset(&ifr, 0, sizeof(ifr));
 
-  /* Flags: IFF_TUN   - TUN device (no Ethernet headers)
+  /* Flags: IFF_TAP   - TAP device (Ethernet headers)
    *        IFF_NO_PI - Do not provide packet information
    */
   ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -248,9 +236,9 @@ tun_alloc(char *dev)
   strcpy(dev, ifr.ifr_name);
   return fd;
 }
-
-void
-fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
+/*---------------------------------------------------------------------------*/
+static void
+fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
 {
   struct ifreq buffer;
 
@@ -259,20 +247,34 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
   ioctl(fd, SIOCGIFHWADDR, &buffer);
   memcpy(eth_mac_addr, buffer.ifr_hwaddr.sa_data, 6);
 }
-#else
-int
-eth_alloc(const char *tundev)
+/*---------------------------------------------------------------------------*/
+#else /* linux */
+/*---------------------------------------------------------------------------*/
+static int
+devopen(const char *dev, int flags)
+{
+  char t[32];
+
+  strcpy(t, "/dev/");
+  strncat(t, dev, sizeof(t) - 5);
+  return open(t, flags);
+}
+/*---------------------------------------------------------------------------*/
+static int
+eth_alloc(const char *eth_dev)
 {
   LOG6LBR_FATAL("RAW Ethernet mode not supported\n");
   exit(1);
 }
-int
-tun_alloc(char *dev)
+/*---------------------------------------------------------------------------*/
+static int
+tap_alloc(char *dev)
 {
   return devopen(dev, O_RDWR);
 }
-void
-fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
+/*---------------------------------------------------------------------------*/
+static void
+fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
 {
   struct ifaddrs *ifap, *ifaptr;
   unsigned char *ptr;
@@ -297,96 +299,71 @@ fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
     exit(1);
   }
 }
-#endif
-
-#ifdef __CYGWIN__
-/*wpcap process is used to connect to host interface */
-void
-tun_init()
-{
-  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
-
-  slip_init();
-}
-
-#else
-
-static uint16_t delaymsec = 0;
-static uint32_t delaystartsec, delaystartmsec;
-
+#endif /* linux */
 /*---------------------------------------------------------------------------*/
-
 void
-tun_init()
+eth_dev_init()
 {
-  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
-
-  if(use_raw_ethernet) {
-    tunfd = eth_alloc(slip_config_tundev);
+  if(sixlbr_config_use_raw_ethernet) {
+    eth_fd = eth_alloc(sixlbr_config_eth_device);
   } else {
-    tunfd = tun_alloc(slip_config_tundev);
+    eth_fd = tap_alloc(sixlbr_config_eth_device);
   }
-  if(tunfd == -1) {
-    LOG6LBR_FATAL("tun_alloc() : %s\n", strerror(errno));
+  if(eth_fd == -1) {
+    LOG6LBR_FATAL("eth_dev_init() : %s\n", strerror(errno));
     exit(1);
   }
 
-  select_set_callback(tunfd, &tun_select_callback);
+  select_set_callback(eth_fd, &eth_select_callback);
 
-  LOG6LBR_INFO("opened device /dev/%s\n", slip_config_tundev);
+  LOG6LBR_INFO("opened device /dev/%s\n", sixlbr_config_eth_device);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
-  ifconf(slip_config_tundev);
+  ifconf(sixlbr_config_eth_device);
 #if !CETIC_6LBR_ONE_ITF
-  if(use_raw_ethernet) {
+  if(sixlbr_config_use_raw_ethernet) {
 #endif
-    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+    fetch_mac(eth_fd, sixlbr_config_eth_device, &eth_mac_addr);
     LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
     eth_mac_addr_ready = 1;
 #if !CETIC_6LBR_ONE_ITF
   }
 #endif
 }
-
 /*---------------------------------------------------------------------------*/
 void
-tun_output(uint8_t * data, int len)
+eth_dev_output(uint8_t * data, int len)
 {
-  if(write(tunfd, data, len) != len) {
+  if(write(eth_fd, data, len) != len) {
     LOG6LBR_FATAL("write() : %s\n", strerror(errno));
     exit(1);
   }
   LOG6LBR_PRINTF(PACKET, TAP_OUT, "write: %d\n", len);
 }
 /*---------------------------------------------------------------------------*/
-int
-tun_input(unsigned char *data, int maxlen)
+static int
+eth_dev_input(unsigned char *data, int maxlen)
 {
   int size;
 
-  if((size = read(tunfd, data, maxlen)) == -1) {
+  if((size = read(eth_fd, data, maxlen)) == -1) {
     LOG6LBR_FATAL("read() : %s\n", strerror(errno));
     exit(1);
   }
   LOG6LBR_PRINTF(PACKET, TAP_IN, "read: %d\n", size);
   return size;
 }
-
-/*---------------------------------------------------------------------------*/
-/* tun and slip select callback                                              */
 /*---------------------------------------------------------------------------*/
 static int
 set_fd(fd_set * rset, fd_set * wset)
 {
-  FD_SET(tunfd, rset);
+  FD_SET(eth_fd, rset);
   return 1;
 }
-
 /*---------------------------------------------------------------------------*/
-
 static void
 handle_fd(fd_set * rset, fd_set * wset)
 {
@@ -409,21 +386,19 @@ handle_fd(fd_set * rset, fd_set * wset)
   if(delaymsec == 0) {
     int size;
 
-    if(FD_ISSET(tunfd, rset)) {
-      size = tun_input(ethernet_tmp_buf, ETHERNET_TMP_BUF_SIZE);
+    if(FD_ISSET(eth_fd, rset)) {
+      size = eth_dev_input(ethernet_tmp_buf, ETHERNET_TMP_BUF_SIZE);
       eth_drv_input(ethernet_tmp_buf, size);
 
-      if(slip_config_basedelay) {
+      if(sixlbr_config_eth_basedelay) {
         struct timeval tv;
 
         gettimeofday(&tv, NULL);
-        delaymsec = slip_config_basedelay;
+        delaymsec = sixlbr_config_eth_basedelay;
         delaystartsec = tv.tv_sec;
         delaystartmsec = tv.tv_usec / 1000;
       }
     }
   }
 }
-#endif /*  __CYGWIN_ */
-
 /*---------------------------------------------------------------------------*/

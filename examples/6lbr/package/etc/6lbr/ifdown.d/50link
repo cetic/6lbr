@@ -15,6 +15,11 @@ if [ $MODE_6LBR != "tap" ]; then
 	exit
 fi
 
+if [ "$(id -u)" != "0" ]; then
+	echo "Running as non root, skipping interface deconfiguration"
+	exit
+fi
+
 case $OS in
 	Linux)
 		ip link set $DEV down
