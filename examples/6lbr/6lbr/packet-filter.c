@@ -407,6 +407,12 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   }
 #endif
 
+  //IP header alteration
+  //--------------------
+#if UIP_CONF_IPV6_RPL
+  rpl_remove_header();
+#endif
+
   //IP packet alteration
   //--------------------
 #if CETIC_6LBR_ROUTER
@@ -454,12 +460,6 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 #endif
   //Some IP packets have link layer in them, need to change them around!
   mac_translateIPLinkLayer(ll_8023_type);
-
-  //IP header alteration
-  //--------------------
-#if UIP_CONF_IPV6_RPL
-  rpl_remove_header();
-#endif
 
   //Create packet header
   //--------------------

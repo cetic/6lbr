@@ -592,6 +592,15 @@ tcpip_ipv6_output(void)
     return;
   }
 
+#if UIP_CONF_IPV6_RPL
+  if(!rpl_update_header()) {
+    /* Packet can not be forwarded */
+    PRINTF("tcpip_ipv6_output: RPL header update error\n");
+    uip_clear_buf();
+    return;
+  }
+#endif /* UIP_CONF_IPV6_RPL */
+
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
 
@@ -613,7 +622,6 @@ tcpip_ipv6_output(void)
     }
 
     if(nexthop == NULL) {
-      uip_ds6_route_t *route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
 
@@ -721,15 +729,9 @@ tcpip_ipv6_output(void)
 
     /* End of next hop determination */
 
-#if UIP_CONF_IPV6_RPL
-    if(!rpl_finalize_header(nexthop)) {
-      uip_clear_buf();
-      return;
-    }
-#endif /* UIP_CONF_IPV6_RPL */
     nbr = uip_ds6_nbr_lookup(nexthop);
     if(nbr == NULL) {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
 #if CETIC_6LBR && UIP_CONF_IPV6_RPL
       /* Don't perform NUD if it has been disabled for WSN */
       if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) != 0 &&
@@ -767,13 +769,13 @@ tcpip_ipv6_output(void)
         nbr->nscount = 1;
         /* Send the first NS try from here (multicast destination IP address). */
       }
-#else /* UIP_ND6_SEND_NA */
+#else /* UIP_ND6_SEND_NS */
       PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
       uip_len = 0;
       return;  
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
     } else {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
       if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -801,7 +803,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
 

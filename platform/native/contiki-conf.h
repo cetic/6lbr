@@ -142,7 +142,9 @@ typedef unsigned int uip_stats_t;
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  48
+#endif
 #define UIP_CONF_TCP_MSS         48
 #define UIP_CONF_UDP_CONNS       12
 #define UIP_CONF_FWCACHE_SIZE    30

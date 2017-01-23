@@ -289,6 +289,9 @@
 
 #define LLSEC802154_CONF_ENABLED 1
 
+#undef UIP_CONF_ND6_SEND_NS
+#define UIP_CONF_ND6_SEND_NS        1
+
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA        1
 
