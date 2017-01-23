@@ -63,6 +63,8 @@ import org.contikios.cooja.avrmote.interfaces.MicaZLED;
 import org.contikios.cooja.avrmote.interfaces.MicaZRadio;
 import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListText;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.dialogs.MessageContainer;
 import org.contikios.cooja.interfaces.Mote2MoteRelations;
 import org.contikios.cooja.interfaces.MoteAttributes;
@@ -364,7 +366,7 @@ public class MicaZMoteType implements MoteType {
       throw new MoteTypeCreationException("No identifier");
     }
 
-    final MessageList compilationOutput = MessageContainer.createMessageList(visAvailable);
+    final MessageList compilationOutput = visAvailable ? new MessageListUI() : new MessageListText();
 
     if (getCompileCommands() != null) {
       /* Handle multiple compilation commands one by one */

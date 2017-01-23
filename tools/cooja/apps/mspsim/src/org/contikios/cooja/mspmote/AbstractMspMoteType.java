@@ -118,7 +118,7 @@ public abstract class AbstractMspMoteType extends MspMoteType {
             throw new MoteTypeCreationException("No identifier");
         }
 
-        final MessageList compilationOutput = MessageContainer.createMessageList(visAvailable);
+        final MessageList compilationOutput = visAvailable ? new MessageListUI() : new MessageListText();
 
         if (getCompileCommands() != null) {
             /* Handle multiple compilation commands one by one */
