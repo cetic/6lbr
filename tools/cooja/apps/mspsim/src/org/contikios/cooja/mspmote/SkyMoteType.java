@@ -98,7 +98,7 @@ public class SkyMoteType extends MspMoteType {
     }
 
     /* If visualized, show compile dialog and let user configure */
-    if (visAvailable && !simulation.isQuickSetup()) {
+    if (visAvailable) {
 
       /* Create unique identifier */
       if (getIdentifier() == null) {
