@@ -37,8 +37,6 @@
 #ifndef __PROJECT_6LBR_CONF_H__
 #define __PROJECT_6LBR_CONF_H__
 
-#include "conf-mapping.h"
-
 /* COAP content type definition */
 #ifndef COAP_CONF_DATA_FORMAT
 #define COAP_CONF_DATA_FORMAT coap_data_format_text
@@ -295,10 +293,23 @@
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA        1
 
+#if CETIC_6LBR_RPL_RUNTIME_MOP
+
+#undef RPL_CONF_WITH_STORING
+#define RPL_CONF_WITH_STORING 1
+
+#undef RPL_CONF_WITH_NON_STORING
+#define RPL_CONF_WITH_NON_STORING 1
+
+#endif
+
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
 
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
+
+//Map 6LBR configuration onto Contiki configuration parameters
+#include "conf-mapping.h"
 
 #endif /* __PROJECT_6LBR_CONF_H__ */

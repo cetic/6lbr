@@ -54,6 +54,13 @@
 #include "ip64-dhcpc.h"
 #endif
 
+#if UIP_CONF_IPV6_RPL
+#include "net/rpl/rpl-private.h"
+#if RPL_WITH_NON_STORING
+#include "net/rpl/rpl-ns.h"
+#endif
+#endif
+
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "rio.h"
@@ -78,6 +85,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
   static uip_ds6_nbr_t *nbr;
+#if RPL_WITH_NON_STORING
+  static rpl_ns_node_t *link;
+#endif
 
   PSOCK_BEGIN(&s->sout);
   add("<br /><h2>Addresses</h2><pre>");
@@ -229,6 +239,42 @@ PT_THREAD(generate_network(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
+#if RPL_WITH_NON_STORING
+  add("</pre><h2>Links</h2><pre>");
+  for(link = rpl_ns_node_head(); link != NULL; link = rpl_ns_node_next(link)) {
+    if(link->parent != NULL) {
+      uip_ipaddr_t child_ipaddr;
+      uip_ipaddr_t parent_ipaddr;
+
+      rpl_ns_get_node_global_addr(&child_ipaddr, link);
+      rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
+#if CETIC_NODE_CONFIG_HAS_NAME
+      if ( node_config_loaded ) {
+        add("%s (", node_config_get_name(node_config_find_by_ip(&child_ipaddr)));
+        ipaddr_add(&child_ipaddr);
+        add(") via ");
+      } else {
+        ipaddr_add(&child_ipaddr);
+        add(" via ");
+      }
+      if ( node_config_loaded ) {
+        add("%s (", node_config_get_name(node_config_find_by_ip(&parent_ipaddr)));
+        ipaddr_add(&parent_ipaddr);
+        add(")");
+      } else {
+        ipaddr_add(&parent_ipaddr);
+      }
+#else
+      ipaddr_add(&child_ipaddr);
+      add(" via ");
+      ipaddr_add(&parent_ipaddr);
+#endif
+      add(" %lu s\n", link->lifetime);
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+#endif
 
   add("</pre><h2>Default Routers</h2><pre>");
 

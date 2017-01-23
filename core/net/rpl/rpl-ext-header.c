@@ -349,7 +349,7 @@ insert_srh_header(void)
 
   if(dag == NULL) {
     PRINTF("RPL: SRH DAG not found\n");
-    return 0;
+    return 1;
   }
 
   dest_node = rpl_ns_get_node(dag, &UIP_IP_BUF->destipaddr);

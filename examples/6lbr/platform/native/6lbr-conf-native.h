@@ -47,12 +47,11 @@
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     200
 
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   200
-
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   200
+
+#undef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM  200
 
 #define WEBSERVER_CONF_CFS_PATHLEN 1000
 
@@ -78,6 +77,8 @@
 #define CETIC_6LBR_MAC_WRAPPER        1
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
+
+#define CETIC_6LBR_RPL_RUNTIME_MOP    1
 
 /* Do not change lines below */
 

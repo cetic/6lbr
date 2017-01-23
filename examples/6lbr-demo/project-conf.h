@@ -241,6 +241,10 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+//Select RPL MOP
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_NON_STORING
+
 // Enable DAO-Ack
 #define RPL_CONF_WITH_DAO_ACK       1
 
@@ -272,8 +276,18 @@
 #define UIP_CONF_DS6_NBR_NBU     24
 #endif
 
+#if RPL_CONF_MOP == RPL_MOP_NON_STORING
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES 0
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM   24
+#endif
+#else
+#undef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM   0
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
+#endif
 #endif
 
 #endif

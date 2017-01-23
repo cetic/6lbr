@@ -675,6 +675,7 @@ print_nvm(void)
   PRINT_INT("RPL lifetime unit", rpl_lifetime_unit);
   printf("\n");
   //RPL Behavior
+  PRINT_BOOL("RPL Non Storing", rpl_config, CETIC_6LBR_RPL_NON_STORING);
   PRINT_BOOL("RPL DAO ACK", rpl_config, CETIC_6LBR_RPL_DAO_ACK);
   PRINT_BOOL("RPL DAO ACK local repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR);
   PRINT_BOOL_INV("DIO triggers route refresh", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH);
@@ -778,6 +779,7 @@ print_nvm(void)
 #define rpl_dao_ack_option 10100
 #define rpl_dao_ack_repair_option 10101
 #define rpl_dio_refresh_routes_option 10102
+#define rpl_non_storing_option 10103
 
 //Global flags
 #define disable_config_option 11001
@@ -861,6 +863,7 @@ static struct option long_options[] = {
   {"rpl-lifetime-unit", required_argument, 0, rpl_lifetime_unit_option},
 
   //RPL Behavior
+  {"rpl-non-storing", required_argument, 0, rpl_non_storing_option},
   {"rpl-dao-ack", required_argument, 0, rpl_dao_ack_option},
   {"rpl-dao-ack-repair", required_argument, 0, rpl_dao_ack_repair_option},
   {"rpl-dio-refresh-routes", required_argument, 0, rpl_dio_refresh_routes_option},
@@ -983,7 +986,8 @@ help(char const *name)
   printf("\t--rpl-min-rank-inc <number> \t RPL Minimum Rank increment\n");
   printf("\t--rpl-lifetime-unit <seconds> \t RPL lifetime unit\n");
   printf("\n");
-  printf("\t--rpl-dao-ack <0|1>\t Enable DAO Acknowledgment\n");
+  printf("\t--rpl-non-storing <0|1>\t\t Enable Non Storing mode\n");
+  printf("\t--rpl-dao-ack <0|1>\t\t Enable DAO Acknowledgment\n");
   printf("\t--rpl-dao-ack-repair <0|1>\t Trigger local repair when DAO NACK is received\n");
   printf("\t--rpl-dio-refresh-routes <0|1>\t Enable DTSN increment in DIO\n");
 
@@ -1140,6 +1144,7 @@ main(int argc, char *argv[])
   char *rpl_lifetime_unit = NULL;
 
   //RPL Behavior
+  char *rpl_non_storing = NULL;
   char *rpl_dao_ack = NULL;
   char *rpl_dao_ack_repair = NULL;
   char *rpl_dio_refresh_routes = NULL;
@@ -1242,6 +1247,7 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_lifetime_unit)
 
     //RPL Behavior
+    CASE_OPTION(rpl_non_storing)
     CASE_OPTION(rpl_dao_ack)
     CASE_OPTION(rpl_dao_ack_repair)
     CASE_OPTION(rpl_dio_refresh_routes)
@@ -1372,6 +1378,7 @@ main(int argc, char *argv[])
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
 
     //RPL Behavior
+    UPDATE_FLAG("rpl-non-storing", rpl_non_storing, rpl_config, CETIC_6LBR_RPL_NON_STORING)
     UPDATE_FLAG("rpl-dao-ack", rpl_dao_ack, rpl_config, CETIC_6LBR_RPL_DAO_ACK)
     UPDATE_FLAG("rpl-dao-ack-repair", rpl_dao_ack_repair, rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR)
     UPDATE_FLAG_INV("rpl-dio-refresh-routes", rpl_dio_refresh_routes, rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)

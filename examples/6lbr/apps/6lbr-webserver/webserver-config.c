@@ -327,7 +327,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
   add("<br /><h3>RPL Behavior</h2>");
+  INPUT_FLAG( "non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, "RPL Mode", "Non storing", "Storing");
   INPUT_FLAG_CB( "dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, "DAO Ack");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   INPUT_FLAG_CB( "dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, "DAO Ack local repair");
   INPUT_FLAG_INV_CB( "dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, "Route refresh with DIO");
   SEND_STRING(&s->sout, buf);
@@ -536,6 +539,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
     UPDATE_FLAG("dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, 1)
     UPDATE_FLAG("dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, 1)
+    UPDATE_FLAG("non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, 1)
     UPDATE_FLAG("dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, 1)
     UPDATE_FLAG("dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, 1)
     UPDATE_FLAG_INV("dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, 1)

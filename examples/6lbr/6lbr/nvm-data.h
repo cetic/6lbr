@@ -168,6 +168,7 @@ typedef struct {
 #define CETIC_6LBR_RPL_DAO_ACK                      0x0004
 #define CETIC_6LBR_RPL_DAO_ACK_REPAIR               0x0008
 #define CETIC_6LBR_RPL_DAO_DISABLE_REFRESH          0x0010
+#define CETIC_6LBR_RPL_NON_STORING                  0x0020
 
 // DNS
 #define CETIC_6LBR_DNS_DNS_SD             0x01
