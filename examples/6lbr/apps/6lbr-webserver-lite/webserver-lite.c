@@ -640,7 +640,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("</pre><h2>Default Routers</h2><pre>");
 
-  for(dr = uip_ds6_defrt_list_head(); dr != NULL; dr = list_item_next(r)) {
+  for(dr = uip_ds6_defrt_head(); dr != NULL; dr = list_item_next(r)) {
     ipaddr_add(&dr->ipaddr);
     if(!dr->isinfinite) {
       add(" %u s", stimer_remaining(&dr->lifetime));
