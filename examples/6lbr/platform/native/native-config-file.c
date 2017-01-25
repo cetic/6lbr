@@ -83,7 +83,7 @@ void native_config_load(config_level_t config_level)
       exit(1);
     }
   } else {
-    LOG6LBR_WARN("No configuration file specified\n");
+    LOG6LBR_INFO("No configuration file specified\n");
   }
 }
 /*---------------------------------------------------------------------------*/

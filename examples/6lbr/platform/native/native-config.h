@@ -111,7 +111,11 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_WATCHDOG_FILENAME   "/var/log/6lbr.timestamp"
 
 #define SIXLBR_CONFIG_DEFAULT_IP_FILENAME            NULL
+#if CONTIKI_TARGET_COOJA
+#define SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME        "nvm.conf"
+#else
 #define SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME        NULL
+#endif
 #define SIXLBR_CONFIG_DEFAULT_NODE_CONFIG_FILENAME   NULL
 
 #endif
