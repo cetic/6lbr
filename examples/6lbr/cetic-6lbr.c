@@ -463,7 +463,18 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
 
+  /* Step 1: Platform specific initialization */
+
   platform_init();
+
+  /* Step 2: Register configuration hooks and set default configuration */
+
+#if CETIC_NODE_INFO
+  node_info_config();
+#endif
+
+  /* Step 3: Load configuration from NVM and configuration file */
+
   platform_load_config(CONFIG_LEVEL_LOAD);
 
 #if !LOG6LBR_STATIC
@@ -475,6 +486,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #else
   LOG6LBR_NOTICE("Log level: %d (services: %x)\n", LOG6LBR_LEVEL, LOG6LBR_SERVICE_DEFAULT);
 #endif
+
+  /* Step 4: Initialize radio and network interfaces */
 
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
@@ -496,6 +509,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   //Turn on radio and keep it always on
   NETSTACK_MAC.off(1);
 
+  /* Step 5: Initialize Network stack */
+
 #if CETIC_6LBR_LLSEC_WRAPPER
   llsec_wrapper_init();
 #endif
@@ -513,20 +528,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   PROCESS_PAUSE();
 
-#if WEBSERVER
-  webserver_init();
-#endif
-
-#if CETIC_NODE_INFO
-  node_info_init();
-#endif
-
-#if CETIC_NODE_CONFIG
-  node_config_init();
-#endif
+  /* Step 6: Configure network interfaces */
 
   packet_filter_init();
-
   cetic_6lbr_init();
 
   //Wait result of DAD on 6LBR addresses
@@ -542,8 +546,27 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     platform_restart();
   }
+
+  /* Step 7: Finalize configuration of network interfaces */
   cetic_6lbr_init_finalize();
+
+  /* Step 8: Initialize 6LBR core and base applications */
+
   platform_load_config(CONFIG_LEVEL_NETWORK);
+
+#if WEBSERVER
+  webserver_init();
+#endif
+
+#if CETIC_NODE_INFO
+  node_info_init();
+#endif
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
+#endif
+
+  /* Step 9: Initialize and configure 6LBR applications */
 
 #if UDPSERVER
   udp_server_init();
@@ -553,7 +576,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
 #if WITH_TINYDTLS
-dtls_init();
+  dtls_init();
 #endif
 
 #if WITH_COAPSERVER
@@ -574,6 +597,8 @@ dtls_init();
   dns_proxy_init();
 #endif
 
+  /* Step 10: Finalize platform configuration and load runtime configuration */
+
   platform_finalize();
   platform_load_config(CONFIG_LEVEL_APP);
 
@@ -583,6 +608,8 @@ dtls_init();
 
   etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+
+  /* Shutdown 6LBR */
 
   //Turn off radio
   NETSTACK_MAC.off(0);

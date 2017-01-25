@@ -64,6 +64,14 @@ node_info_route_notification_cb(int event,
 }
 
 void
+node_info_config(void)
+{
+#if CETIC_NODE_INFO_EXPORT
+  node_info_export_config();
+#endif
+}
+
+void
 node_info_init(void)
 {
   memset(node_info_table, 0, sizeof(node_info_table));
