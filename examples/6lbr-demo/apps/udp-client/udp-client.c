@@ -32,6 +32,7 @@
 #include "contiki-net.h"
 #include "net/rpl/rpl.h"
 #include "net/ip/uip.h"
+#include "lib/random.h"
 
 #if UDP_CLIENT_STORE_RADIO_INFO
 #include "dev/radio-sensor.h"
@@ -227,7 +228,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
 #if UDP_CLIENT_AUTOSTART
   udp_client_run=1;
 #endif
-  etimer_set(&et, udp_interval);
+  etimer_set(&et, random_rand() % udp_interval );
   while(1) {
     PROCESS_YIELD();
     if(etimer_expired(&et)) {

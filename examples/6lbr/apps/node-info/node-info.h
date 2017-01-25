@@ -73,6 +73,9 @@ extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node i
 void
 node_info_init(void);
 
+void
+node_info_config(void);
+
 node_info_t *node_info_add(uip_ipaddr_t * ipaddr);
 
 void
