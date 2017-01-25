@@ -62,7 +62,7 @@ static int native_config_global_handler(config_level_t level, void* user, const 
 /*---------------------------------------------------------------------------*/
 static int native_config_native_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
-  if(level != CONFIG_LEVEL_LOAD) {
+  if(level != CONFIG_LEVEL_BOOT) {
     return 1;
   }
   if(!name) {
@@ -101,7 +101,7 @@ static int native_config_network_route_handler(config_level_t level, void* user,
   static uint8_t length = 0;
   static uip_ipaddr_t next_hop;
 
-  if(level != CONFIG_LEVEL_NETWORK) {
+  if(level != CONFIG_LEVEL_CORE) {
     return 1;
   }
 

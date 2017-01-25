@@ -475,7 +475,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   /* Step 3: Load configuration from NVM and configuration file */
 
-  platform_load_config(CONFIG_LEVEL_LOAD);
+  platform_load_config(CONFIG_LEVEL_BOOT);
 
 #if !LOG6LBR_STATIC
   if(nvm_data.log_level != 0xFF) {
@@ -552,7 +552,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   /* Step 8: Initialize 6LBR core and base applications */
 
-  platform_load_config(CONFIG_LEVEL_NETWORK);
+  platform_load_config(CONFIG_LEVEL_CORE);
+  PROCESS_PAUSE();
 
 #if WEBSERVER
   webserver_init();
@@ -567,6 +568,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   /* Step 9: Initialize and configure 6LBR applications */
+
+  platform_load_config(CONFIG_LEVEL_BASE);
+  PROCESS_PAUSE();
 
 #if UDPSERVER
   udp_server_init();

@@ -73,7 +73,9 @@ void native_config_load(config_level_t config_level)
   int result;
 
   if (sixlbr_config_config_file_name) {
-    LOG6LBR_INFO("Loading configuration : %s\n",sixlbr_config_config_file_name);
+    if(config_level == CONFIG_LEVEL_BOOT) {
+      LOG6LBR_INFO("Loading configuration : %s\n",sixlbr_config_config_file_name);
+    }
     result = ini_parse(sixlbr_config_config_file_name, native_config_handler, &config_level);
     if (result < 0) {
       LOG6LBR_WARN("Can not open %s : %s\n", sixlbr_config_config_file_name, strerror(errno));
@@ -83,7 +85,9 @@ void native_config_load(config_level_t config_level)
       exit(1);
     }
   } else {
-    LOG6LBR_INFO("No configuration file specified\n");
+    if(config_level == CONFIG_LEVEL_BOOT) {
+      LOG6LBR_INFO("No configuration file specified\n");
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

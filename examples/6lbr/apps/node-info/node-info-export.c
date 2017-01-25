@@ -67,12 +67,13 @@ PROCESS(node_info_export_process, "Node info export");
 static int
 node_info_export_config_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
-  if(level != CONFIG_LEVEL_NETWORK) {
-    //Parse config only when in application init phase
+  if(level != CONFIG_LEVEL_BASE) {
+    //Parse config only when application has been started
     return 1;
   }
   if(!name) {
-    //ignore end of section
+    //End of section, apply configuration
+    process_poll(&node_info_export_process);
     return 1;
   }
   if(strcmp(name, "filename") == 0) {
