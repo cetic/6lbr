@@ -12,13 +12,20 @@ WITH_DNS_PROXY?=0
 WITH_IP64?=0
 SMALL=1
 
+#Define the interface used to connect the ENC28J60 : gpio, spi
+#Currently only gpio is supported on CC26xx/CC13xx
 CC26XX_ENC28J60_ARCH?=gpio
+
+#Define the location of the NVM configuration : int, ext
+#int is the embedded code flash
+#ext is the external flash, only present on Sensortag and Launchpad
+CC26XX_NVM?=int
 
 CC26XX_FW?=bin
 
 PROJECTDIRS += platform/srf06-cc26xx dev/enc28j60
 
-PROJECT_SOURCEFILES += cc26xx-init.c cc26xx-int-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-$(CC26XX_ENC28J60_ARCH).c
+PROJECT_SOURCEFILES += cc26xx-init.c cc26xx-$(CC26XX_NVM)-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-$(CC26XX_ENC28J60_ARCH).c
 
 CONF=WITH_UDPCLIENT=0
 CONF_6LR=WITH_UDPSERVER=0
