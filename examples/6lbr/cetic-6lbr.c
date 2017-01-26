@@ -200,6 +200,9 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
 {
   LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
+#if CONTIKI_TARGET_NATIVE
+  cetic_6lbr_save_ip();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
