@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A MAC framer for IEEE 802.15.4
+ *         Publish-Subscribe 802.15.4 MAC commmand frames.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_802154_H_
-#define FRAMER_802154_H_
+#ifndef CMD_BROKER_H
+#define CMD_BROKER_H
 
-#include "net/mac/framer.h"
+#include "contiki.h"
 
-void framer_802154_set_seqno(void);
+enum cmd_broker_result {
+  CMD_BROKER_UNCONSUMED = 0,
+  CMD_BROKER_CONSUMED,
+  CMD_BROKER_ERROR
+};
 
-extern const struct framer framer_802154;
+struct cmd_broker_subscription {
+  struct cmd_broker_subscription *next;
+  /** Returns 0 <-> not consumed */
+  enum cmd_broker_result (* on_command)(uint8_t cmd_id, uint8_t *payload);
+};
 
-#endif /* FRAMER_802154_H_ */
+/**
+ * \brief Subscribe to commands.
+ */
+void cmd_broker_subscribe(struct cmd_broker_subscription *subscription);
+
+/**
+ * \brief Cancel subscription (if any).
+ */
+void cmd_broker_unsubscribe(struct cmd_broker_subscription *subscription);
+
+/**
+ * \brief Called by NETSTACK_LLSEC upon receiving a command.
+ */
+enum cmd_broker_result cmd_broker_publish(void);
+
+/**
+ * \brief Called by NETSTACK_LLSEC.
+ */
+void cmd_broker_init(void);
+
+#endif /* CMD_BROKER_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A MAC framer for IEEE 802.15.4
+ *         Uses pairwise session keys for securing frames.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_802154_H_
-#define FRAMER_802154_H_
+#ifndef CORESEC_STRATEGY_H_
+#define CORESEC_STRATEGY_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/adaptivesec.h"
 
-void framer_802154_set_seqno(void);
+#define CORESEC_STRATEGY_ANNOUNCE_IDENTIFIER 0x0D
 
-extern const struct framer framer_802154;
+#if AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES
+extern const struct adaptivesec_strategy coresec_strategy;
+#endif /* AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES */
 
-#endif /* FRAMER_802154_H_ */
+#endif /* CORESEC_STRATEGY_H_ */

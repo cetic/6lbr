@@ -32,56 +32,57 @@
 
 /**
  * \file
- *         CCM* convenience functions for LLSEC use
+ *         An OFB-AES-128-based CSPRNG.
  * \author
- *         Justin King-Lacroix <justin.kinglacroix@gmail.com>
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#include "llsec/ccm-star-packetbuf.h"
-#include "net/llsec/anti-replay.h"
-#include "net/linkaddr.h"
-#include "net/packetbuf.h"
-#include "net/llsec/llsec802154.h"
+#include "lib/csprng.h"
+#include "lib/aes-128.h"
+#include "sys/cc.h"
 #include <string.h>
 
-#if LLSEC802154_USES_FRAME_COUNTER
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else /* DEBUG */
+#define PRINTF(...)
+#endif /* DEBUG */
+
+static struct csprng_seed seed;
 
 /*---------------------------------------------------------------------------*/
-static const uint8_t *
-get_extended_address(const linkaddr_t *addr)
-#if LINKADDR_SIZE == 2
+void
+csprng_rand(uint8_t *result, uint8_t len)
 {
-  /* workaround for short addresses: derive EUI64 as in RFC 6282 */
-  static linkaddr_extended_t template = { { 0x00 , 0x00 , 0x00 ,
-                                            0xFF , 0xFE , 0x00 , 0x00 , 0x00 } };
-  
-  template.u16[3] = LLSEC802154_HTONS(addr->u16);
-  
-  return template.u8;
+  uint16_t pos;
+
+  AES_128.set_key(seed.key);
+  for(pos = 0; pos < len; pos += 16) {
+    AES_128.encrypt(seed.state);
+    memcpy(result + pos, seed.state, MIN(len - pos, 16));
+  }
 }
-#else /* LINKADDR_SIZE == 2 */
-{
-  return addr->u8;
-}
-#endif /* LINKADDR_SIZE == 2 */
 /*---------------------------------------------------------------------------*/
 void
-ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
+csprng_init(void)
 {
-  const linkaddr_t *source_addr;
-  
-  source_addr = forward ? &linkaddr_node_addr : packetbuf_addr(PACKETBUF_ADDR_SENDER);
-  memcpy(nonce, get_extended_address(source_addr), 8);
-  nonce[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-#if LLSEC802154_USES_AUX_HEADER
-  nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-#else /* LLSEC802154_USES_AUX_HEADER */
-  nonce[12] = packetbuf_holds_broadcast() ? 0xFF : packetbuf_attr(PACKETBUF_ATTR_NEIGHBOR_INDEX);
-#endif /* LLSEC802154_USES_AUX_HEADER */
+  CSPRNG_SEEDER.generate_seed(&seed);
+#if DEBUG
+  uint8_t i;
+
+  PRINTF("csprng: seeder = %s\n", CSPRNG_SEEDER.name);
+  PRINTF("csprng: key = ");
+  for(i = 0; i < CSPRNG_KEY_LEN; i++) {
+    PRINTF("%02x", seed.key[i]);
+  }
+  PRINTF("\n");
+  PRINTF("csprng: state = ");
+  for(i = 0; i < CSPRNG_STATE_LEN; i++) {
+    PRINTF("%02x", seed.state[i]);
+  }
+  PRINTF("\n");
+#endif
 }
 /*---------------------------------------------------------------------------*/
-#endif /* LLSEC802154_USES_FRAME_COUNTER */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,72 +32,103 @@
 
 /**
  * \file
- *         Insecure link layer security driver.
+ *         Uses group session keys for securing frames.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-/**
- * \addtogroup nullsec
- * @{
- */
-
-#include "net/llsec/nullsec.h"
-#include "net/mac/frame802154.h"
+#include "net/llsec/adaptivesec/noncoresec-strategy.h"
+#include "net/llsec/adaptivesec/akes.h"
 #include "net/mac/framer-802154.h"
-#include "net/netstack.h"
+#include "net/llsec/anti-replay.h"
 #include "net/packetbuf.h"
-#include "net/mac/mac-sequence.h"
+#include "net/netstack.h"
+#include <string.h>
 
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#else
+#else /* DEBUG */
 #define PRINTF(...)
-#endif
+#endif /* DEBUG */
 
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-
-}
+#if AKES_NBR_WITH_GROUP_KEYS
 /*---------------------------------------------------------------------------*/
 static void
 send(mac_callback_t sent, void *ptr)
 {
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  framer_802154_set_seqno();
   NETSTACK_MAC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
-static void
-input(void)
+static int
+on_frame_created(void)
 {
-  int duplicate = 0;
-#if !RDC_WITH_DUPLICATE_DETECTION
-  /* Check for duplicate packet. */
-  duplicate = mac_sequence_is_duplicate();
-  if(duplicate) {
-    /* Drop the packet. */
-    PRINTF("nullsec: drop duplicate link layer packet %u\n",
-           packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
-  } else {
-    mac_sequence_register_seqno();
+  uint8_t sec_lvl;
+  struct akes_nbr_entry *entry;
+  uint8_t *key;
+  uint8_t *dataptr;
+  uint8_t datalen;
+
+  sec_lvl = adaptivesec_get_sec_lvl();
+  if(sec_lvl) {
+    if(akes_get_receiver_status() == AKES_NBR_TENTATIVE) {
+      entry = akes_nbr_get_receiver_entry();
+      if(!entry || !entry->tentative) {
+        return 0;
+      }
+      key = entry->tentative->tentative_pairwise_key;
+    } else {
+      key = adaptivesec_group_key;
+    }
+
+    dataptr = packetbuf_dataptr();
+    datalen = packetbuf_datalen();
+
+    adaptivesec_aead(key, sec_lvl & (1 << 2), dataptr + datalen, 1);
+    packetbuf_set_datalen(datalen + adaptivesec_mic_len());
   }
-#endif
-  if(!duplicate) {
-    NETSTACK_NETWORK.input();
-  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
-const struct llsec_driver nullsec_driver = {
-  "nullsec",
-  init,
+static enum adaptivesec_verify
+verify(struct akes_nbr *sender)
+{
+#if ANTI_REPLAY_WITH_SUPPRESSION
+  if(!packetbuf_holds_broadcast()) {
+    packetbuf_set_attr(PACKETBUF_ATTR_NEIGHBOR_INDEX, sender->foreign_index);
+  }
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
+  if(adaptivesec_verify(sender->group_key)) {
+    PRINTF("noncoresec-strategy: Inauthentic frame\n");
+    return ADAPTIVESEC_VERIFY_INAUTHENTIC;
+  }
+
+  if(anti_replay_was_replayed(&sender->anti_replay_info)) {
+    PRINTF("noncoresec-strategy: Replayed\n");
+    return ADAPTIVESEC_VERIFY_REPLAYED;
+  }
+
+  return ADAPTIVESEC_VERIFY_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+get_overhead(void)
+{
+  return adaptivesec_mic_len();
+}
+/*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+}
+/*---------------------------------------------------------------------------*/
+const struct adaptivesec_strategy noncoresec_strategy = {
   send,
-  input
+  on_frame_created,
+  verify,
+  get_overhead,
+  init
 };
 /*---------------------------------------------------------------------------*/
-
-/** @} */
+#endif /* AKES_NBR_WITH_GROUP_KEYS */
