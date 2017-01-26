@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A MAC framer for IEEE 802.15.4
+ *         Network-wide key scheme.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_802154_H_
-#define FRAMER_802154_H_
+#ifndef AKES_SINGLE_H_
+#define AKES_SINGLE_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/akes.h"
 
-void framer_802154_set_seqno(void);
+extern const struct akes_scheme akes_single_scheme;
 
-extern const struct framer framer_802154;
-
-#endif /* FRAMER_802154_H_ */
+#endif /* AKES_SINGLE_H_ */

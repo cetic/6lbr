@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,49 +32,46 @@
 
 /**
  * \file
- *         Insecure link layer security driver.
+ *         Autoconfigures the adaptivesec_driver.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-/**
- * \addtogroup nullsec
- * @{
- */
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC                   adaptivesec_driver
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER                  adaptivesec_framer
+#undef ADAPTIVESEC_CONF_STRATEGY
+#define ADAPTIVESEC_CONF_STRATEGY             noncoresec_strategy
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED              1
+#undef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#define PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES 1
 
-#include "net/llsec/nullsec.h"
-#include "net/mac/frame802154.h"
-#include "net/mac/framer-802154.h"
-#include "net/netstack.h"
-#include "net/packetbuf.h"
+#ifndef ADAPTIVESEC_CONF_UNICAST_SEC_LVL
+#define ADAPTIVESEC_CONF_UNICAST_SEC_LVL      6
+#endif /* ADAPTIVESEC_CONF_UNICAST_SEC_LVL */
 
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
+#if ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 1)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN      6
+#elif ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 2)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN      8
+#elif ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 3)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN      10
+#else
+#error "unsupported security level"
+#endif
 
-}
-/*---------------------------------------------------------------------------*/
-static void
-send(mac_callback_t sent, void *ptr)
-{
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  framer_802154_set_seqno();
-  NETSTACK_MAC.send(sent, ptr);
-}
-/*---------------------------------------------------------------------------*/
-static void
-input(void)
-{
-  NETSTACK_NETWORK.input();
-}
-/*---------------------------------------------------------------------------*/
-const struct llsec_driver nullsec_driver = {
-  "nullsec",
-  init,
-  send,
-  input
-};
-/*---------------------------------------------------------------------------*/
+#ifndef ADAPTIVESEC_CONF_BROADCAST_SEC_LVL
+#define ADAPTIVESEC_CONF_BROADCAST_SEC_LVL    ADAPTIVESEC_CONF_UNICAST_SEC_LVL
+#endif /* ADAPTIVESEC_CONF_BROADCAST_SEC_LVL */
 
-/** @} */
+#if ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 1)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN    6
+#elif ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 2)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN    8
+#elif ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 3)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN    10
+#else
+#error "unsupported security level"
+#endif

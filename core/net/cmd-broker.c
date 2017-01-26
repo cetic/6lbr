@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,56 +32,52 @@
 
 /**
  * \file
- *         CCM* convenience functions for LLSEC use
+ *         Publish-Subscribe 802.15.4 MAC commmand frames.
  * \author
- *         Justin King-Lacroix <justin.kinglacroix@gmail.com>
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#include "llsec/ccm-star-packetbuf.h"
-#include "net/llsec/anti-replay.h"
-#include "net/linkaddr.h"
+#include "net/cmd-broker.h"
+#include "lib/list.h"
 #include "net/packetbuf.h"
-#include "net/llsec/llsec802154.h"
-#include <string.h>
 
-#if LLSEC802154_USES_FRAME_COUNTER
+LIST(subscriptions_list);
 
-/*---------------------------------------------------------------------------*/
-static const uint8_t *
-get_extended_address(const linkaddr_t *addr)
-#if LINKADDR_SIZE == 2
-{
-  /* workaround for short addresses: derive EUI64 as in RFC 6282 */
-  static linkaddr_extended_t template = { { 0x00 , 0x00 , 0x00 ,
-                                            0xFF , 0xFE , 0x00 , 0x00 , 0x00 } };
-  
-  template.u16[3] = LLSEC802154_HTONS(addr->u16);
-  
-  return template.u8;
-}
-#else /* LINKADDR_SIZE == 2 */
-{
-  return addr->u8;
-}
-#endif /* LINKADDR_SIZE == 2 */
 /*---------------------------------------------------------------------------*/
 void
-ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
+cmd_broker_subscribe(struct cmd_broker_subscription *subscription)
 {
-  const linkaddr_t *source_addr;
-  
-  source_addr = forward ? &linkaddr_node_addr : packetbuf_addr(PACKETBUF_ADDR_SENDER);
-  memcpy(nonce, get_extended_address(source_addr), 8);
-  nonce[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-#if LLSEC802154_USES_AUX_HEADER
-  nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-#else /* LLSEC802154_USES_AUX_HEADER */
-  nonce[12] = packetbuf_holds_broadcast() ? 0xFF : packetbuf_attr(PACKETBUF_ATTR_NEIGHBOR_INDEX);
-#endif /* LLSEC802154_USES_AUX_HEADER */
+  list_add(subscriptions_list, subscription);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
+void
+cmd_broker_unsubscribe(struct cmd_broker_subscription *subscription)
+{
+  list_remove(subscriptions_list, subscription);
+}
+/*---------------------------------------------------------------------------*/
+enum cmd_broker_result
+cmd_broker_publish(void)
+{
+  enum cmd_broker_result result;
+  struct cmd_broker_subscription *subscription;
+  uint8_t *payload;
+
+  payload = (uint8_t *)packetbuf_dataptr();
+
+  subscription = list_head(subscriptions_list);
+  while(subscription) {
+    if(((result = subscription->on_command(payload[0], payload + 1)))) {
+      return result;
+    }
+    subscription = list_item_next(subscription);
+  }
+  return CMD_BROKER_UNCONSUMED;
+}
+/*---------------------------------------------------------------------------*/
+void
+cmd_broker_init(void)
+{
+  list_init(subscriptions_list);
+}
+/*---------------------------------------------------------------------------*/

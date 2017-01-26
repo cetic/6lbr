@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Hasso-Plattner-Institut.
+ * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,33 +32,57 @@
 
 /**
  * \file
- *         802.15.4 security implementation, which uses a network-wide key
+ *         An OFB-AES-128-based CSPRNG.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-/**
- * \addtogroup llsec
- * @{
- */
+#include "lib/csprng.h"
+#include "lib/aes-128.h"
+#include "sys/cc.h"
+#include <string.h>
 
-/**
- * \defgroup noncoresec LLSEC driver using a network-wide key (NONCORESEC)
- * 
- * Noncompromise-resilient 802.15.4 security
- * 
- * @{
- */
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else /* DEBUG */
+#define PRINTF(...)
+#endif /* DEBUG */
 
-#ifndef NONCORESEC_H_
-#define NONCORESEC_H_
+static struct csprng_seed seed;
 
-#include "net/llsec/llsec.h"
+/*---------------------------------------------------------------------------*/
+void
+csprng_rand(uint8_t *result, uint8_t len)
+{
+  uint16_t pos;
 
-extern const struct llsec_driver noncoresec_driver;
-extern const struct framer noncoresec_framer;
+  AES_128.set_key(seed.key);
+  for(pos = 0; pos < len; pos += 16) {
+    AES_128.encrypt(seed.state);
+    memcpy(result + pos, seed.state, MIN(len - pos, 16));
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+csprng_init(void)
+{
+  CSPRNG_SEEDER.generate_seed(&seed);
+#if DEBUG
+  uint8_t i;
 
-#endif /* NONCORESEC_H_ */
-
-/** @} */
-/** @} */
+  PRINTF("csprng: seeder = %s\n", CSPRNG_SEEDER.name);
+  PRINTF("csprng: key = ");
+  for(i = 0; i < CSPRNG_KEY_LEN; i++) {
+    PRINTF("%02x", seed.key[i]);
+  }
+  PRINTF("\n");
+  PRINTF("csprng: state = ");
+  for(i = 0; i < CSPRNG_STATE_LEN; i++) {
+    PRINTF("%02x", seed.state[i]);
+  }
+  PRINTF("\n");
+#endif
+}
+/*---------------------------------------------------------------------------*/

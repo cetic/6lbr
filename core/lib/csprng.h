@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,54 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A MAC framer for IEEE 802.15.4
+ *         An OFB-AES-128-based CSPRNG.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_802154_H_
-#define FRAMER_802154_H_
+#ifndef CSPRNG_H_
+#define CSPRNG_H_
 
-#include "net/mac/framer.h"
+#include "contiki.h"
 
-void framer_802154_set_seqno(void);
+#define CSPRNG_KEY_LEN 16
+#define CSPRNG_STATE_LEN 16
 
-extern const struct framer framer_802154;
+#ifdef CSPRNG_CONF_SEEDER
+#define CSPRNG_SEEDER CSPRNG_CONF_SEEDER
+#else /* CSPRNG_CONF_SEEDER */
+#define CSPRNG_SEEDER null_seeder
+#endif /* CSPRNG_CONF_SEEDER */
 
-#endif /* FRAMER_802154_H_ */
+struct csprng_seed {
+  uint8_t key[CSPRNG_KEY_LEN];
+  uint8_t state[CSPRNG_STATE_LEN];
+};
+
+/**
+ * The structure of a seeder.
+ */
+struct csprng_seeder {
+  char *name;
+  void (* generate_seed)(struct csprng_seed *result);
+};
+
+extern const struct csprng_seeder CSPRNG_SEEDER;
+
+/**
+ * \brief Initializes this CSPRNG.
+ */
+void csprng_init(void);
+
+/**
+ * \brief Generates a cryptographic random number of length len
+ */
+void csprng_rand(uint8_t *result, uint8_t len);
+
+#endif /* CSPRNG_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A MAC framer for IEEE 802.15.4
+ *         Trickles HELLOs.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_802154_H_
-#define FRAMER_802154_H_
+#ifndef AKES_TRICKLE_H_
+#define AKES_TRICKLE_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/akes-nbr.h"
+#include "net/llsec/llsec.h"
 
-void framer_802154_set_seqno(void);
+void akes_trickle_on_fresh_authentic_hello(struct akes_nbr *sender);
+void akes_trickle_on_new_nbr(void);
+void akes_trickle_stop(void);
+void akes_trickle_reset(void);
+void akes_trickle_start(void);
 
-extern const struct framer framer_802154;
-
-#endif /* FRAMER_802154_H_ */
+#endif /* AKES_TRICKLE_H_ */
