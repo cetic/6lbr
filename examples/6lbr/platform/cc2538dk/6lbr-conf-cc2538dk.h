@@ -50,7 +50,7 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     25
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   50
+#define UIP_CONF_MAX_ROUTES   40
 
 #else
 
