@@ -94,6 +94,12 @@
 
 #if WITH_LLSEC
 
+#if WITH_ADAPTIVESEC
+
+#include "noncoresec-autoconf.h"
+
+#else /* WITH_ADAPTIVESEC */
+
 #undef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER noncoresec_framer
 #undef NETSTACK_CONF_LLSEC
@@ -111,12 +117,14 @@
 #define LLSEC_ANTIREPLAY_ENABLED 1
 #define LLSEC_REBOOT_WORKAROUND_ENABLED 1
 
-#else
+#endif /* WITH_ADAPTIVESEC */
+
+#else /* WITH_LLSEC */
 
 #undef NETSTACK_CONF_LLSEC
 #define NETSTACK_CONF_LLSEC nullsec_driver
 
-#endif
+#endif /* WITH_LLSEC */
 
 /*---------------------------------------------------------------------------*/
 /* 6LoWPAN                                                                   */

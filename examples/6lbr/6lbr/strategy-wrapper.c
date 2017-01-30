@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, CETIC.
+ * Copyright (c) 2017, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,67 +34,62 @@
 
 #define LOG6LBR_MODULE "LLSEC"
 
-#include "contiki.h"
-#include "llsec-wrapper.h"
-#include "nullsec.h"
-#include "noncoresec/noncoresec.h"
-#include "adaptivesec/adaptivesec.h"
+#include "net/llsec/adaptivesec/adaptivesec.h"
+#include "net/llsec/adaptivesec/noncoresec-strategy.h"
 
 #include "nvm-config.h"
 
 #include "log-6lbr.h"
 
-static const struct llsec_driver *current_llsec_driver = &nullsec_driver;
+static const struct adaptivesec_strategy *current_strategy = &noncoresec_strategy;
 
 void
-llsec_wrapper_init(void)
+llsec_strategy_wrapper_init(void)
 {
-  if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONE) {
-    LOG6LBR_INFO("Using 'nullsec' llsec driver\n");
-    current_llsec_driver = &nullsec_driver;
-  } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
-    LOG6LBR_INFO("Using 'noncoresec' llsec driver\n");
-    current_llsec_driver = &noncoresec_driver;
-  } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC) {
-    LOG6LBR_INFO("Using 'adaptivesec (noncore)' llsec driver\n");
-    current_llsec_driver = &adaptivesec_driver;
+  if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC) {
+    LOG6LBR_INFO("Using 'adaptivesec (noncore)' llsec strategy\n");
+    current_strategy = &noncoresec_strategy;
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_CORESEC) {
-    LOG6LBR_INFO("Using 'adaptivesec (core)' llsec driver\n");
-    current_llsec_driver = &adaptivesec_driver;
-  } else {
-    LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
-    current_llsec_driver = &nullsec_driver;
+    LOG6LBR_ERROR("'adaptivesec (core)' llsec strategy not yet supported\n");
+    current_strategy = &noncoresec_strategy;
   }
-  current_llsec_driver->init();
-}
-/*---------------------------------------------------------------------------*/
-char const * llsec_wrapper_name(void)
-{
-  return current_llsec_driver->name;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  //init is deferred until 6lbr config is read
 }
 /*---------------------------------------------------------------------------*/
 static void
 send(mac_callback_t sent, void *ptr)
 {
-  current_llsec_driver->send(sent, ptr);
+  current_strategy->send(sent, ptr);
+}
+/*---------------------------------------------------------------------------*/
+static int
+on_frame_created(void)
+{
+  return current_strategy->on_frame_created();
+}
+/*---------------------------------------------------------------------------*/
+static enum adaptivesec_verify
+verify(struct akes_nbr *sender)
+{
+  return current_strategy->verify(sender);
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+get_overhead(void)
+{
+  return current_strategy->get_overhead();
 }
 /*---------------------------------------------------------------------------*/
 static void
-input(void)
+init(void)
 {
-  current_llsec_driver->input();
+  current_strategy->init();
 }
 /*---------------------------------------------------------------------------*/
-const struct llsec_driver llsec_wrapper_driver = {
-  "llsec-wrapper",
-  init,
+const struct adaptivesec_strategy strategy_wrapper = {
   send,
-  input,
+  on_frame_created,
+  verify,
+  get_overhead,
+  init
 };
 /*---------------------------------------------------------------------------*/

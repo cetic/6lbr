@@ -39,6 +39,7 @@
 #include "net/mac/framer-802154.h"
 #include "net/mac/framer-nullmac.h"
 #include "noncoresec/noncoresec.h"
+#include "adaptivesec/adaptivesec.h"
 
 #include "nvm-config.h"
 
@@ -60,6 +61,10 @@ framer_wrapper_init(void)
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     LOG6LBR_INFO("Using 'noncoresec' framer\n");
     current_framer = &noncoresec_framer;
+  } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC ||
+      nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_CORESEC) {
+    LOG6LBR_INFO("Using 'adaptivesec' framer\n");
+    current_framer = &adaptivesec_framer;
   } else {
     LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
     current_framer = &framer_802154;

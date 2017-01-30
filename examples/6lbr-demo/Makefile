@@ -14,6 +14,7 @@ WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
+WITH_ADAPTIVESEC?=1
 WITH_TCP?=0
 WITH_COAP_PROFILE?=IPSO_APP_FW
 
@@ -119,6 +120,7 @@ endif
 ifneq ($(WITH_LLSEC),0)
 CFLAGS += -DWITH_LLSEC=1
 MODULES += core/net/llsec/noncoresec
+MODULES += core/net/llsec/adaptivesec
 endif
 
 ifneq ($(WITH_TINYDTLS), 0)

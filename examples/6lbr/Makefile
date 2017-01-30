@@ -46,6 +46,7 @@ WITH_IP64?=1
 WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
+WITH_LLSEC?=1
 
 ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
 CONTIKI_WITH_RPL = 0
@@ -104,8 +105,14 @@ PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo
 PROJECT_SOURCEFILES += dtls-echo.c
 endif
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c llsec-wrapper.c framer-wrapper.c mac-wrapper.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c mac-wrapper.c
+
+ifeq ($(WITH_LLSEC),1)
+CFLAGS += -DWITH_LLSEC=1
+PROJECT_SOURCEFILES += llsec-wrapper.c framer-wrapper.c strategy-wrapper.c
 MODULES += core/net/llsec/noncoresec
+MODULES += core/net/llsec/adaptivesec
+endif
 
 ifeq ($(WITH_IP64),1)
 MODULES += core/net/ip64 core/net/ip64-addr
