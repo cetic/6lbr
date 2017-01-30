@@ -68,7 +68,11 @@
 #endif /* DEBUG */
 
 struct mic {
+#if CETIC_6LBR
+  uint8_t u8[ADAPTIVESEC_MIC_LEN(7)];
+#else
   uint8_t u8[ADAPTIVESEC_BROADCAST_MIC_LEN];
+#endif
 };
 
 #if AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES

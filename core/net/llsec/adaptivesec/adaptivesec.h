@@ -83,6 +83,8 @@
 #define ADAPTIVESEC_STRATEGY          noncoresec_strategy
 #endif /* ADAPTIVESEC_CONF_STRATEGY */
 
+#define ADAPTIVESEC_MIC_LEN(sec_lvl)   (4 + ((sec_lvl) & 3) * 2)
+
 enum adaptivesec_verify {
   ADAPTIVESEC_VERIFY_SUCCESS,
   ADAPTIVESEC_VERIFY_INAUTHENTIC,
