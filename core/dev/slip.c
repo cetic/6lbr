@@ -43,7 +43,7 @@
 
 #include "dev/slip.h"
 
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
 #include "native-config.h"
 #endif
 
@@ -144,7 +144,7 @@ slip_send(void)
     }
     c = *ptr++;
 #if SLIP_CRC_ON
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
     if(sixlbr_config_slip_crc8)
 #endif
     crc = crc8_add(crc, c);
@@ -161,7 +161,7 @@ slip_send(void)
 
 #if SLIP_CRC_ON
   /* Write the checksum byte */
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
     if(sixlbr_config_slip_crc8) {
 #endif
   if(crc == SLIP_END) {
@@ -172,7 +172,7 @@ slip_send(void)
      crc = SLIP_ESC_ESC;
   }
   slip_arch_writeb(crc);
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
   }
 #endif
 #endif
@@ -197,7 +197,7 @@ slip_write(const void *_ptr, int len)
   for(i = 0; i < len; ++i) {
     c = *ptr++;
 #if SLIP_CRC_ON
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
     if(sixlbr_config_slip_crc8)
 #endif
     crc = crc8_add(crc, c);
@@ -213,7 +213,7 @@ slip_write(const void *_ptr, int len)
   }
 
 #if SLIP_CRC_ON
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
     if(sixlbr_config_slip_crc8) {
 #endif
   /* Write the checksum byte */
@@ -225,7 +225,7 @@ slip_write(const void *_ptr, int len)
      crc = SLIP_ESC_ESC;
   }
   slip_arch_writeb(crc);
-#if CETIC_6LBR
+#if CETIC_6LBR && TARGET_CONTIKI_NATIVE
   }
 #endif
 #endif
