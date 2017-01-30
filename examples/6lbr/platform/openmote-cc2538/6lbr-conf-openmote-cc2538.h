@@ -37,68 +37,13 @@
 #ifndef SIXLBR_CONF_OPENMOTE_H
 #define SIXLBR_CONF_OPENMOTE_H
 
+#include "../cc2538dk/6lbr-conf-cc2538dk.h"
+
 /*------------------------------------------------------------------*/
 /* OpenMote 6LBR                                                    */
 /*------------------------------------------------------------------*/
 
-#define LOG6LBR_LEVEL_DEFAULT LOG6LBR_LEVEL_INFO
-
-#define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
-
-#if WEBSERVER
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     50
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   50
-
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   50
-
-#else
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     100
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   100
-
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   100
-
-#endif
-
-#define WEBSERVER_CONF_CFS_PATHLEN 1000
-
-#define WEBSERVER_CONF_CFS_URLCONV      1
-
-#define WEBSERVER_CONF_CFS_CONNS        1
-
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID   0xABCD
-
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
-#define CETIC_CSMA_STATS      0
-
-#define CETIC_6LBR_LLSEC_WRAPPER        1
-
-#undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      1
-
 /* Do not change lines below */
-
-// IP packet must be 4 bytes aligned
-#undef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN 16
-
-#define LOG6LBR_TIMESTAMP           0
-#define LOG6LBR_STATIC              1
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
 
 #define CC2538_ENC28J60_CONF_CLK_PORT GPIO_A_BASE
 #define CC2538_ENC28J60_CONF_CLK_PIN 2
