@@ -413,19 +413,30 @@ class CoojaWsn(Wsn):
             except IOError:
                 print "Could not open %s topology file" % config.topology_file
                 raise
-
+            mote_count = 0
+            motelist_file = open(simulation_path[:-4] + '.motes')
+            for line in motelist_file:
+                line = line.rstrip()
+                parts = line.split(';')
+                if parts[1] != 'slipradio':
+                    mote_count += 1
+            motelist_file.close()
         print >> sys.stderr, "Setting up Cooja, compiling node firmwares... %s" % simulation_path
         nogui = '-nogui=%s' % simulation_path
         self.err=open(os.path.join(config.test_report_path, 'COOJA.err'), "w")
         self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
                                        nogui], stdout=subprocess.PIPE, stderr=self.err)
         line = self.cooja.stdout.readline()
-        while 'Opened pcap file' not in line: # Wait for simulation to start
+        count = 0
+        while count < mote_count:
             if 'serialpty;open;' in line:
                 elems = line.split(";")
                 newmote = VirtualTelosMote(self)
                 newmote.setId(elems[-1].rstrip(), int(elems[-2]))
                 self.motelist.append(newmote)
+                count+=1
+            if count >= mote_count:
+                break
             line = self.cooja.stdout.readline()
         print >> sys.stderr, "Cooja simulation started"
         self.cooja.stdout.close()
