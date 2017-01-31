@@ -92,6 +92,10 @@
 /* Security                                                                  */
 /*---------------------------------------------------------------------------*/
 
+#ifndef WITH_ADAPTIVESEC
+#define WITH_ADAPTIVESEC 1
+#endif
+
 #if WITH_LLSEC
 
 #if WITH_ADAPTIVESEC
