@@ -170,7 +170,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h3>802.15.4 Security</h3>");
   add("Link-layer security : <select name=\"llsec\">");
   SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONE, "None");
-  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Pre-shared Key");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Legacy");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC, "AKES (noncore)");
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -186,7 +187,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
+  INPUT_KEY("psk", noncoresec_key, 16, "Network key");
   INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, "Enable anti-replay");
   INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);

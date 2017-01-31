@@ -686,9 +686,9 @@ print_nvm(void)
   //Security Configuration
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
-  PRINT_KEY("Security key", noncoresec_key, 16);
-  PRINT_BOOL("Noncoresec anti-replay enabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
-  PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
+  PRINT_KEY("Network key", noncoresec_key, 16);
+  PRINT_BOOL("Noncoresec anti-replay enabled (Legacy)", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
+  PRINT_BOOL("Noncoresec anti-replay workaround (Legacy)", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
   PRINT_BOOL("Filter unknown nodes", global_flags, CETIC_GLOBAL_FILTER_NODES);
   PRINT_BOOL("Disable NUD", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD);
   printf("\n");
@@ -998,11 +998,11 @@ help(char const *name)
 
   //Security
   printf("\nSecurity :\n");
-  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: Noncoresec security)\n");
+  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: Legacy noncoresec, 2: Adaptivesec (noncore))\n");
   printf("\t--security-level <0..7>\t\t Security level\n");
-  printf("\t--security-key <16 bytes key>\t Security key\n");
-  printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay\n");
-  printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround\n");
+  printf("\t--security-key <16 bytes key>\t Network key\n");
+  printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay (Legacy)\n");
+  printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround (Legacy)\n");
   printf("\t--filter-nodes <0|1>\t\t Filter unknown nodes\n");
   printf("\n");
 
