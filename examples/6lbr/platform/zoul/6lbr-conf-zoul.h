@@ -88,6 +88,12 @@
 #undef CETIC_6LBR_IP64
 #define CETIC_6LBR_IP64            1
 
+#define CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS (CETIC_6LBR_IP64_DHCP |           \
+                                           CETIC_6LBR_IP64_SPECIAL_PORTS)
+
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS (CETIC_GLOBAL_DISABLE_WSN_NUD | \
+                                             CETIC_GLOBAL_IP64)
+
 /* Do not change lines below */
 
 // IP packet must be 4 bytes aligned
