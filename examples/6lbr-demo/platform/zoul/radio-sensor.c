@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,51 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
+ *
  */
 
-/**
- * \file
- *      Example resource
- * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
- */
+#include "lib/sensors.h"
+#include "dev/radio-sensor.h"
 
-#include "contiki.h"
-#include <string.h>
-#include "contiki.h"
-#include "rest-engine.h"
-#include "dev/leds.h"
+const struct sensors_sensor radio_sensor;
+static int active;
 
-static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+extern int cc2538_last_correlation;
+extern int cc2538_last_rssi;
 
-/* A simple actuator example. Toggles the red led */
-RESOURCE(res_toggle,
-         "title=\"Red LED\";rt=\"Control\"",
-         NULL,
-         res_post_handler,
-         NULL,
-         NULL);
-
-static void
-res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
 {
-  leds_toggle(LEDS_RED);
+  switch(type) {
+  case RADIO_SENSOR_LAST_PACKET:
+    return cc2538_last_correlation;
+  case RADIO_SENSOR_LAST_VALUE:
+  default:
+    return cc2538_last_rssi;
+  }
 }
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  if(type == SENSORS_ACTIVE) {
+    active = c;
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
+               value, configure, status);

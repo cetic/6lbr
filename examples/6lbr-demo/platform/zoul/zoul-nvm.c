@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,69 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *         NVM Interface for the Zoul platform
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#define LOG6LBR_MODULE "NVM"
 
+#include "contiki.h"
+#include "contiki-lib.h"
 
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+#include "nvm-config.h"
+#include "nvm-itf.h"
 
-#undef  NETSTACK_CONF_RADIO
-#define NETSTACK_CONF_RADIO            cc2538_rf_driver
+//Temporarily
+//#include "log-6lbr.h"
+#include "stdio.h"
+#define LOG6LBR_INFO printf
+#define LOG6LBR_ERROR printf
+#define LOG6LBR_FATAL printf
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
+#include "rom-util.h"
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            48
+#define CETIC_6LBR_NVM_SIZE 2048
+// We use the penultimate flash page as our nvm
+#define CETIC_6LBR_NVM_ADDRESS (0x00280000 - (2*CETIC_6LBR_NVM_SIZE))
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
+void
+nvm_data_read(void)
+{
+  LOG6LBR_INFO("Reading 6LBR NVM\n");
+  rom_util_memcpy( (void *)&nvm_data,
+   (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t));
+}
 
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-/* Enable client-side support for COAP observe */
-#define COAP_OBSERVE_CLIENT 1
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+void
+nvm_data_write(void)
+{
+  long err;
+  int retry = 4;
+  while (retry > 0 ) {
+    LOG6LBR_INFO("Flashing 6LBR NVM\n");
+    err = rom_util_page_erase(CETIC_6LBR_NVM_ADDRESS, CETIC_6LBR_NVM_SIZE);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("erase error : %ld\n", err);
+    }
+    rom_util_program_flash( (uint32_t*)&nvm_data,
+     CETIC_6LBR_NVM_ADDRESS, (sizeof(nvm_data_t)/4+1)*4);
+    if ( err != 0 ) {
+      LOG6LBR_ERROR("write error : %ld\n", err);
+    }
+    if(rom_util_memcmp( (void *)&nvm_data, (void *)CETIC_6LBR_NVM_ADDRESS, sizeof(nvm_data_t)) == 0) {
+      break;
+    }
+    LOG6LBR_ERROR("verify NVM failed, retry\n");
+    retry--;
+  }
+  if(retry == 0) {
+    LOG6LBR_FATAL("Could not program 6LBR NVM !\n");
+  } else {
+    LOG6LBR_INFO("Flashing 6LBR NVM done\n");
+  }
+}

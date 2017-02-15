@@ -24,7 +24,7 @@ WITH_UDP_CLIENT_AUTOSTART?=1
 
 # Platform specific
 
-CC2538DK_FW=bin
+CC2538_FW=bin
 
 # End of user configuration section
 
@@ -177,6 +177,13 @@ PROJECT_SOURCEFILES += cc2538dk-nvm.c
 endif
 endif
 
+ifeq ($(TARGET),zoul)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
+PROJECT_SOURCEFILES += zoul-nvm.c
+endif
+endif
+
 ifeq ($(TARGET),srf06-cc26xx)
 ifeq ($(BOARD),sensortag/cc2650)
 WITH_CETIC_6LN_NVM?=0
@@ -252,6 +259,7 @@ all_sky: bin_sky/6lbr-demo.sky
 all_z1: bin_z1/6lbr-demo-webserver.z1 bin_z1/6lbr-demo-coapserver.z1
 all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
 all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+all_zoul: bin_zoul/6lbr-demo-coapserver.zoul bin_zoul/6lbr-demo-llsec-coapserver.zoul bin_zoul/6lbr-demo-dtls-coapserver.zoul
 
 bin_sky/6lbr-demo.sky:
 	mkdir -p bin_sky
@@ -293,20 +301,38 @@ bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_LLSEC=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-llsec-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-llsec-coapserver.$(CC2538_FW)
 
 bin_cc2538dk/6lbr-demo-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-coapserver.$(CC2538_FW)
 
 bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-llsec-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_LLSEC=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-llsec-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-dtls-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-dtls-coapserver.$(CC2538_FW)
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_sky all_z1 all_econotag all_cc2538dk bin_sky/* bin_z1/* bin_econotag/* bin_cc2538dk/*
+.PHONY: all_sky all_z1 all_econotag all_cc2538dk all_zoul bin_sky/* bin_z1/* bin_econotag/* bin_cc2538dk/* bin_zoul/*
