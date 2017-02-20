@@ -73,20 +73,20 @@ static int native_config_native_handler(config_level_t level, void* user, const 
     sixlbr_config_select_timeout = atoi(value);
     return 0;
   } else if(strcmp(name, "slip.timeout") == 0) {
-      sixlbr_config_slip_timeout = atoi(value);
-      return 0;
+    sixlbr_config_slip_timeout = atoi(value);
+    return 1;
   } else if(strcmp(name, "slip.retransmit") == 0) {
-      sixlbr_config_slip_retransmit = atoi(value);
-      return 0;
+    sixlbr_config_slip_retransmit = atoi(value);
+    return 1;
   } else if(strcmp(name, "slip.serialize_tx_attrs") == 0) {
-      sixlbr_config_slip_serialize_tx_attrs = atoi(value);
-      return 0;
+    sixlbr_config_slip_serialize_tx_attrs = atoi(value);
+    return 1;
   } else if(strcmp(name, "slip.deserialize_rx_attrs") == 0) {
     sixlbr_config_slip_deserialize_rx_attrs = atoi(value);
-      return 0;
+    return 1;
   } else if(strcmp(name, "slip.crc8") == 0) {
     sixlbr_config_slip_crc8 = atoi(value);
-      return 0;
+    return 1;
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);
     return 0;
