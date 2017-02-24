@@ -124,14 +124,15 @@ packet_timeout(void *ptr)
 {
   struct tx_callback *callback = ptr;
   if (callback->isused) {
+    native_rdc_ack_timeout++;
     if(callback->retransmit > 0) {
       LOG6LBR_INFO("br-rdc: slip ack timeout, retransmit (%d)\n", callback->sid);
       callback->retransmit--;
+      ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
       write_to_slip(callback->buf, callback->buf_len);
     } else {
       callback_count--;
       callback->isused = 0;
-      native_rdc_ack_timeout++;
       LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
       packetbuf_clear();
       packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
