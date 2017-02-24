@@ -248,7 +248,7 @@ after_fread:
       slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
-      if(sixlbr_config_slip_crc8) {
+      if(sixlbr_config_slip_crc8 && inbuf[0] != DEBUG_LINE_MARKER) {
         uint8_t crc = 0;
         int i;
         for(i = 0; i < inbufptr; i++) {
