@@ -70,16 +70,20 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("<br />");
       add("Model: -<br />");
       add("Parent: ");
+      if((node_info->flags & NODE_INFO_PARENT_VALID) != 0) {
 #if CETIC_NODE_CONFIG_HAS_NAME
-      if (node_config_loaded) {
-        add("%s (", node_config_get_name(node_config_find_by_ip(&node_info->ip_parent)));
-        ipaddr_add(&node_info->ip_parent);
-        add(")</a>");
-      } else
+        if (node_config_loaded) {
+          add("%s (", node_config_get_name(node_config_find_by_ip(&node_info->ip_parent)));
+          ipaddr_add(&node_info->ip_parent);
+          add(")</a>");
+        } else
 #endif
-      {
-        ipaddr_add(&node_info->ip_parent);
-        add("</a>");
+        {
+          ipaddr_add(&node_info->ip_parent);
+          add("</a>");
+        }
+      } else {
+        add("Unknown");
       }
       add("<br />");
       add("Downward route: %s<br />", node_info_flags_text(node_info->flags & NODE_INFO_HAS_ROUTE) != 0 ? "Yes" : "No");
@@ -93,23 +97,43 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
         (clock_time() - node_info->last_seen) / CLOCK_SECOND);
       add("Hop count: %d<br />", node_info->hop_count);
       add("Parent switch: %d<br />", node_info->parent_switch);
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
       add("<br /><h3>Upstream</h3>");
-      add("Last sequence number: %d<br />", node_info->last_up_sequence);
-      add("Messages sent: %d<br />", node_info->messages_sent);
-      add("Messages lost: %d<br />", node_info->up_messages_lost);
-      if(node_info->messages_sent > 0) {
-        add("PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
-      } else {
-        add("PRR: n/a<br />");
+#if NODE_INFO_PER_NODE_STATS
+      add("Size: %d<br />", node_info->sent.size);
+      add("TCP: %d<br />", node_info->sent.tcp);
+      add("UDP: %d<br />", node_info->sent.udp);
+      add("ICMP: %d<br />", node_info->sent.icmp);
+#endif
+      if((node_info->flags & NODE_INFO_UPSTREAM_VALID) != 0) {
+        add("Last sequence number: %d<br />", node_info->last_up_sequence);
+        add("Messages sent: %d<br />", node_info->messages_sent);
+        add("Messages lost: %d<br />", node_info->up_messages_lost);
+        if(node_info->messages_sent > 0) {
+          add("PRR: %.1f%%<br />", 100.0 * (node_info->messages_sent - node_info->up_messages_lost)/node_info->messages_sent);
+        } else {
+          add("PRR: n/a<br />");
+        }
       }
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
       add("<br /><h3>Downstream</h3>");
-      add("Last sequence number: %d<br />", node_info->last_down_sequence);
-      add("Messages sent: %d<br />", node_info->replies_sent);
-      add("Messages lost: %d<br />", node_info->down_messages_lost);
-      if(node_info->replies_sent > 0) {
-        add("PRR: %.1f%%<br />", 100.0 * (node_info->replies_sent - node_info->down_messages_lost)/node_info->replies_sent);
-      } else {
-        add("PRR: n/a<br />");
+#if NODE_INFO_PER_NODE_STATS
+      add("Size: %d<br />", node_info->recv.size);
+      add("TCP: %d<br />", node_info->recv.tcp);
+      add("UDP: %d<br />", node_info->recv.udp);
+      add("ICMP: %d<br />", node_info->recv.icmp);
+#endif
+      if((node_info->flags & NODE_INFO_DOWNSTREAM_VALID) != 0) {
+        add("Last sequence number: %d<br />", node_info->last_down_sequence);
+        add("Messages sent: %d<br />", node_info->replies_sent);
+        add("Messages lost: %d<br />", node_info->down_messages_lost);
+        if(node_info->replies_sent > 0) {
+          add("PRR: %.1f%%<br />", 100.0 * (node_info->replies_sent - node_info->down_messages_lost)/node_info->replies_sent);
+        } else {
+          add("PRR: n/a<br />");
+        }
       }
       SEND_STRING(&s->sout, buf);
       reset_buf();

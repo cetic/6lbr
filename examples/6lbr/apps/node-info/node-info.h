@@ -38,6 +38,16 @@
 #include <contiki.h>
 #include <contiki-net.h>
 
+typedef struct node_stat {
+  uint32_t size;
+  uint32_t tcp;
+  uint32_t udp;
+  uint32_t icmp;
+
+  uint32_t http;
+  uint32_t coap;
+} node_stat_t;
+
 /** \brief An entry in the node info table */
 typedef struct node_info {
   uint8_t isused;
@@ -60,6 +70,12 @@ typedef struct node_info {
   uint32_t up_messages_lost;
   uint32_t down_messages_lost;
   uint16_t parent_switch;
+
+#if NODE_INFO_PER_NODE_STATS
+  node_stat_t sent;
+  node_stat_t recv;
+#endif
+
 } node_info_t;
 
 #define NODE_INFO_HAS_ROUTE 1
@@ -91,6 +107,9 @@ node_info_update(uip_ipaddr_t * ipaddr, char * info);
 
 void
 node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count);
+
+void
+node_info_analyze_packet(void);
 
 void
 node_info_set_flags(uip_ipaddr_t * ipaddr, uint32_t flags);

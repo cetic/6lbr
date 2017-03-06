@@ -71,6 +71,8 @@
 #undef RPL_CONF_STATS
 #define RPL_CONF_STATS              1
 
+#define NODE_INFO_PER_NODE_STATS    1
+
 #define CETIC_6LBR_MAC_WRAPPER        1
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1

@@ -59,6 +59,10 @@
 #endif
 #include "6lbr-hooks.h"
 
+#if CETIC_NODE_INFO
+#include "node-info.h"
+#endif
+
 #include "eth-drv.h"
 
 extern const linkaddr_t linkaddr_null;
@@ -162,6 +166,10 @@ wireless_input(void)
     }
   }
 
+#if CETIC_NODE_INFO
+  node_info_analyze_packet();
+#endif
+
   //Packet forwarding
   //-----------------
   if(forwardFrame) {
@@ -203,6 +211,10 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     LOG6LBR_ERROR("wireless_output: sending to self\n");
     return 0;
   }
+
+#if CETIC_NODE_INFO
+  node_info_analyze_packet();
+#endif
 
 #if CETIC_6LBR_WSN_FILTER_RA
   //Filter out RA/RS towards WSN
