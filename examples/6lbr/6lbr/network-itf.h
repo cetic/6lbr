@@ -45,14 +45,14 @@
 
 typedef struct {
   uint8_t itf_type;
-  struct mac_driver *mac;
+  const struct mac_driver *mac;
 } network_itf_t;
 
 void
 network_itf_init(void);
 
 uint8_t
-network_itf_register(uint8_t itf_type, struct mac_driver *mac);
+network_itf_register(uint8_t itf_type, const struct mac_driver *mac);
 
 network_itf_t *
 network_itf_get_itf(uint8_t ifindex);

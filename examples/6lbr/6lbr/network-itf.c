@@ -45,10 +45,10 @@ network_itf_init(void)
 }
 
 uint8_t
-network_itf_register(uint8_t itf_type, struct mac_driver *mac)
+network_itf_register(uint8_t itf_type, const struct mac_driver *mac)
 {
   int i = 0;
-  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type == NETWORK_ITF_TYPE_NONE) {
+  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type != NETWORK_ITF_TYPE_NONE) {
     i++;
   }
   if(i < NETWORK_ITF_NBR) {
