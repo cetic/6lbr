@@ -495,6 +495,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
 #endif
+#if CETIC_6LBR_MULTI_RADIO
+  CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC.init();
+#endif
 
 #if !CETIC_6LBR_ONE_ITF
   platform_radio_init();
