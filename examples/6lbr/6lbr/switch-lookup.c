@@ -39,23 +39,30 @@
 void
 switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
 {
-  if(lladdr != NULL && linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null) != 0) {
+  if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
     uip_ds6_nbr_t *nbr;
     nbr = uip_ds6_nbr_ll_lookup(lladdr);
     if(nbr) {
       nbr->ifindex = ifindex;
+    } else {
+      printf("No neighbor found for ");
+      uip_debug_lladdr_print(lladdr);
+      printf(" of if %u\n", ifindex);
     }
+  } else {
+    printf("Can not learn broadcast or null addr\n");
   }
 }
 
 uint8_t
 switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
 {
-  uip_ds6_nbr_t *nbr;
-  nbr = uip_ds6_nbr_ll_lookup(lladdr);
-  if(nbr) {
-    return nbr->ifindex;
-  } else {
-    return SWITCH_LOOKUP_NO_ITF;
+  if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
+    uip_ds6_nbr_t *nbr;
+    nbr = uip_ds6_nbr_ll_lookup(lladdr);
+    if(nbr) {
+      return nbr->ifindex;
+    }
   }
+  return SWITCH_LOOKUP_NO_ITF;
 }

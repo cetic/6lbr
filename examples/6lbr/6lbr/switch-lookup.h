@@ -37,7 +37,7 @@
 
 #include "contiki-conf.h"
 
-#define SWITCH_LOOKUP_NO_ITF (-1)
+#define SWITCH_LOOKUP_NO_ITF ((uint8_t)-1)
 
 void
 switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex);

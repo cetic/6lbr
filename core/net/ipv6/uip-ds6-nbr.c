@@ -50,6 +50,9 @@
 #include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
+#if UIP_SWITCH_LOOKUP
+#include "switch-lookup.h"
+#endif
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -93,6 +96,10 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     stimer_set(&nbr->reachable, 0);
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
+#if UIP_SWITCH_LOOKUP
+    /* interface is not yet known */
+    nbr->ifindex = SWITCH_LOOKUP_NO_ITF;
+#endif
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");

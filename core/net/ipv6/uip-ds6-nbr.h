@@ -66,8 +66,6 @@
 
 NBR_TABLE_DECLARE(ds6_neighbors);
 
-#define UIP_SWITCH_LOOKUP 1
-
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {
   uip_ipaddr_t ipaddr;
