@@ -276,26 +276,27 @@ node_info_analyze_packet(void)
   stat->size += uip_len - UIP_LLH_LEN;
 
   while(!done) {
+    done = 1;
     switch(*uip_next_hdr) {
     case UIP_PROTO_UDP:
       stat->udp++;
-      done = 1;
       break;
     case UIP_PROTO_TCP:
       stat->tcp++;
-      done = 1;
       break;
     case UIP_PROTO_ICMP:
       stat->icmp++;
-      done = 1;
       break;
     case UIP_PROTO_HBHO:
     case UIP_PROTO_DESTO:
     case UIP_PROTO_ROUTING:
       uip_next_hdr = &UIP_EXT_BUF->next;
       uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
+      /* Parse next header */
+      done = 0;
       break;
     default:
+      /* Unknown header, bail out */
       break;
     }
   }
