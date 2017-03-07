@@ -71,7 +71,7 @@ static int native_config_native_handler(config_level_t level, void* user, const 
   }
   if(strcmp(name, "select.timeout") == 0) {
     sixlbr_config_select_timeout = atoi(value);
-    return 0;
+    return 1;
   } else if(strcmp(name, "slip.timeout") == 0) {
     sixlbr_config_slip_timeout = atoi(value);
     return 1;
