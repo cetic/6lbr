@@ -48,6 +48,22 @@
 uint8_t multi_radio_input_ifindex = -1;
 uint8_t multi_radio_output_ifindex = -1;
 
+static mac_callback_t upper_sent;
+
+/*---------------------------------------------------------------------------*/
+static void
+packet_sent(void *ptr, int status, int num_transmissions)
+{
+  if(multi_radio_input_ifindex != -1) {
+    if(status == MAC_TX_OK) {
+      switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), multi_radio_input_ifindex);
+    }
+    multi_radio_input_ifindex = -1;
+  } else {
+    printf("packet_sent: No source ifindex\n");
+  }
+  upper_sent(ptr, status, num_transmissions);
+}
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)
@@ -58,8 +74,10 @@ send_packet(mac_callback_t sent, void *ptr)
   network_itf = network_itf_get_itf(ifindex);
   if(network_itf != NULL) {
     multi_radio_output_ifindex = ifindex;
-    network_itf->mac->send(sent, ptr);
+    upper_sent = sent;
+    network_itf->mac->send(packet_sent, ptr);
   } else {
+    printf("Destination unknown, broadcast\n");
     for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
       network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
@@ -74,8 +92,12 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
-  switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
-  multi_radio_input_ifindex = -1;
+  if(multi_radio_input_ifindex != -1) {
+    switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
+    multi_radio_input_ifindex = -1;
+  } else {
+    printf("packet_input: No source ifindex\n");
+  }
   NETSTACK_LLSEC.input();
 }
 /*---------------------------------------------------------------------------*/
@@ -116,9 +138,10 @@ channel_check_interval(void)
 static void
 init(void)
 {
+  network_itf_init();
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver multiradio_driver = {
+const struct mac_driver multi_radio_driver = {
   "multi-radio",
   init,
   send_packet,

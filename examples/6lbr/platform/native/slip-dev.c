@@ -63,6 +63,8 @@
 #include "multi-radio.h"
 #include "slip-dev.h"
 
+//Temporary until proper multi mac layer configuration
+extern const struct mac_driver CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC;
 
 static int devopen(const char *dev, int flags);
 
@@ -232,6 +234,7 @@ slip_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
     }
     NETSTACK_RDC.input();
   }
+  multi_radio_input_ifindex = -1;
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -297,7 +300,9 @@ after_fread:
       }
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
+        multi_radio_input_ifindex = slip_device->ifindex;
         cmd_input(inbuf, inbufptr);
+        multi_radio_input_ifindex = -1;
       } else if(inbuf[0] == '?') {
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
@@ -645,7 +650,6 @@ slip_new_device(void)
     i++;
   }
   if(i < SLIP_MAX_DEVICE) {
-    LOG6LBR_INFO("Allocated slip device %d\n", i);
     memset(&slip_devices[i], 0, sizeof(slip_devices[i]));
     slip_devices[i].isused = 1;
     slip_devices[i].flowcontrol = SIXLBR_CONFIG_DEFAULT_SLIP_FLOW_CONTROL;
@@ -660,6 +664,9 @@ slip_new_device(void)
     slip_devices[i].serialize_tx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX;
     slip_devices[i].deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX;
     slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
+    //Temporary until proper multi mac layer configuration
+    slip_devices[i].ifindex = network_itf_register(NETWORK_ITF_TYPE_802154, &CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC);
+    LOG6LBR_INFO("Allocated slip device %d -> %d\n", i, slip_devices[i].ifindex);
 
     return &slip_devices[i];
   } else {
