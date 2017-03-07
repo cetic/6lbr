@@ -59,6 +59,7 @@ mac_wrapper_init(void)
     current_mac_driver = &csma_driver;
     nvm_data.mac_layer = CETIC_6LBR_MAC_LAYER_CSMA;
   }
+  current_mac_driver->init();
 }
 /*---------------------------------------------------------------------------*/
 char const * mac_wrapper_name(void)
