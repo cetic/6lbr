@@ -40,10 +40,11 @@
 #define NATIVE_SLIP_H_
 
 #include "contiki-conf.h"
+#include "network-itf.h"
 #include <stdio.h>
 #include <termios.h>
 
-#define SLIP_MAX_DEVICE 1
+#define SLIP_MAX_DEVICE NETWORK_ITF_NBR
 
 typedef struct {
   uint8_t isused;
@@ -78,5 +79,7 @@ void slip_close(void);
 slip_descr_t * slip_new_device(void);
 void slip_init_all_dev(void);
 void write_to_slip(const uint8_t * buf, int len);
+
+speed_t convert_baud_rate(int baudrate);
 
 #endif /* NATIVE_SLIP_H_ */

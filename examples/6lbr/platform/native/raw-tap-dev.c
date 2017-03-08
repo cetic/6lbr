@@ -83,8 +83,7 @@ struct ifreq if_idx;
 
 //Temporary, should be removed
 #include "native-rdc.h"
-extern int slipfd;
-extern void slip_flushbuf(int fd);
+#include "slip-dev.h"
 //End of temporary
 
 extern void cetic_6lbr_clear_ip(void);
