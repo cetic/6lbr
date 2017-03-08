@@ -78,6 +78,7 @@ send_packet(mac_callback_t sent, void *ptr)
   network_itf = network_itf_get_itf(ifindex);
   if(network_itf != NULL) {
     multi_radio_output_ifindex = ifindex;
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&network_itf->mac_addr);
     upper_sent = sent;
     network_itf->mac->send(packet_sent, ptr);
   } else {

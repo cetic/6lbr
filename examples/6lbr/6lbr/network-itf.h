@@ -36,6 +36,7 @@
 #define NETWORK_ITF_H_
 
 #include "contiki-conf.h"
+#include "net/ip/uip.h"
 
 #define NETWORK_ITF_TYPE_NONE 0
 #define NETWORK_ITF_TYPE_ETHERNET 1
@@ -46,6 +47,7 @@
 typedef struct {
   uint8_t itf_type;
   const struct mac_driver *mac;
+  uip_lladdr_t mac_addr;
 } network_itf_t;
 
 void
