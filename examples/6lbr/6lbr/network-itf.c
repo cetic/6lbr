@@ -32,9 +32,13 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "SWITCH"
+
 #include "contiki.h"
 #include "network-itf.h"
 #include <string.h>
+
+#include "log-6lbr.h"
 
 static network_itf_t network_itf_type_table[NETWORK_ITF_NBR];
 

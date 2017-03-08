@@ -32,9 +32,13 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "SWITCH"
+
 #include "contiki.h"
 #include "uip-ds6-nbr.h"
 #include "switch-lookup.h"
+
+#include "log-6lbr.h"
 
 void
 switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
@@ -45,12 +49,10 @@ switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
     if(nbr) {
       nbr->ifindex = ifindex;
     } else {
-      printf("No neighbor found for ");
-      uip_debug_lladdr_print(lladdr);
-      printf(" of if %u\n", ifindex);
+      LOG6LBR_LLADDR(PACKET, lladdr, "No neighbor found for ");
     }
   } else {
-    printf("Can not learn broadcast or null addr\n");
+    LOG6LBR_DEBUG("Can not learn broadcast or null addr\n");
   }
 }
 

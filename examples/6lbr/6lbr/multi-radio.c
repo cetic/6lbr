@@ -37,6 +37,8 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#define LOG6LBR_MODULE "SWITCH"
+
 #include "contiki.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
@@ -44,6 +46,8 @@
 #include "multi-radio.h"
 #include "network-itf.h"
 #include "switch-lookup.h"
+
+#include "log-6lbr.h"
 
 uint8_t multi_radio_input_ifindex = -1;
 uint8_t multi_radio_output_ifindex = -1;
@@ -60,7 +64,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
     }
     multi_radio_input_ifindex = -1;
   } else {
-    printf("packet_sent: No source ifindex\n");
+    LOG6LBR_DEBUG("packet_sent: No source ifindex\n");
   }
   upper_sent(ptr, status, num_transmissions);
 }
@@ -77,7 +81,7 @@ send_packet(mac_callback_t sent, void *ptr)
     upper_sent = sent;
     network_itf->mac->send(packet_sent, ptr);
   } else {
-    printf("Destination unknown, broadcast\n");
+    LOG6LBR_PACKET("Destination unknown, broadcast\n");
     for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
       network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
@@ -96,7 +100,7 @@ packet_input(void)
     switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
     multi_radio_input_ifindex = -1;
   } else {
-    printf("packet_input: No source ifindex\n");
+    LOG6LBR_DEBUG("packet_input: No source ifindex\n");
   }
   NETSTACK_LLSEC.input();
 }
