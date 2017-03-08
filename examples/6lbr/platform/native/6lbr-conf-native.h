@@ -74,6 +74,8 @@
 #undef RPL_CONF_STATS
 #define RPL_CONF_STATS              1
 
+#define NODE_INFO_PER_NODE_STATS    1
+
 #define CETIC_6LBR_MAC_WRAPPER        1
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
@@ -113,7 +115,7 @@
 #undef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
 #elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
-    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__ || \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ || \
     defined(__LITTLE_ENDIAN__) || \
     defined(__ARMEL__) || \
     defined(__THUMBEL__) || \

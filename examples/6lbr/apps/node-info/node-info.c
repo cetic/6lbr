@@ -47,6 +47,12 @@
 #include "node-info-export.h"
 #endif
 
+#define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_TCP_BUF                        ((struct uip_tcp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_EXT_BUF                        ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+
 node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
 static struct uip_ds6_notification node_info_route_notification;
@@ -244,6 +250,60 @@ node_info_flags_text(uint32_t flags)
 }
 
 void
+node_info_analyze_packet(void)
+{
+#if NODE_INFO_PER_NODE_STATS
+  node_info_t *node = NULL;
+  node_stat_t *stat = NULL;
+  uint8_t *uip_next_hdr;
+  uint8_t uip_ext_len = 0;
+  int done = 0;
+
+  node = node_info_lookup(&UIP_IP_BUF->srcipaddr);
+  if(node != NULL) {
+    stat = &node->sent;
+  } else {
+    node = node_info_lookup(&UIP_IP_BUF->destipaddr);
+    if(node != NULL) {
+      stat = &node->recv;
+    }
+  }
+  if(node == NULL) {
+    return;
+  }
+  uip_next_hdr = &UIP_IP_BUF->proto;
+  uip_ext_len = 0;
+  stat->size += uip_len - UIP_LLH_LEN;
+
+  while(!done) {
+    done = 1;
+    switch(*uip_next_hdr) {
+    case UIP_PROTO_UDP:
+      stat->udp++;
+      break;
+    case UIP_PROTO_TCP:
+      stat->tcp++;
+      break;
+    case UIP_PROTO_ICMP:
+      stat->icmp++;
+      break;
+    case UIP_PROTO_HBHO:
+    case UIP_PROTO_DESTO:
+    case UIP_PROTO_ROUTING:
+      uip_next_hdr = &UIP_EXT_BUF->next;
+      uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
+      /* Parse next header */
+      done = 0;
+      break;
+    default:
+      /* Unknown header, bail out */
+      break;
+    }
+  }
+#endif
+}
+
+void
 node_info_rm(node_info_t *node_info)
 {
   if(node_info != NULL) {
@@ -279,12 +339,18 @@ void
 node_info_reset_statistics(node_info_t * node_info)
 {
   node_info->stats_start = clock_time();
+  node_info->flags &= ~NODE_INFO_UPSTREAM_VALID;
+  node_info->flags &= ~NODE_INFO_DOWNSTREAM_VALID;
   node_info->messages_received = 0;
   node_info->messages_sent = 0;
   node_info->replies_sent = 0;
   node_info->up_messages_lost = 0;
   node_info->down_messages_lost = 0;
   node_info->parent_switch = 0;
+#if NODE_INFO_PER_NODE_STATS
+  memset(&node_info->sent, 0, sizeof(node_info->sent));
+  memset(&node_info->recv, 0, sizeof(node_info->recv));
+#endif
 }
 
 void
