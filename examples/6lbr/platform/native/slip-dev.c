@@ -677,10 +677,15 @@ handle_fd(fd_set * rset, fd_set * wset)
     if(slip_devices[i].isused) {
       if(FD_ISSET(slip_devices[i].slipfd, rset)) {
         serial_input(&slip_devices[i]);
+        // We must manually clear the flag as the main loop will call again
+        // this function for each file handle.
+        FD_CLR(slip_devices[i].slipfd, rset);
       }
 
       if(FD_ISSET(slip_devices[i].slipfd, wset)) {
         slip_flushbuf(&slip_devices[i]);
+        // Same problem as above
+        FD_CLR(slip_devices[i].slipfd, wset);
       }
     }
   }
