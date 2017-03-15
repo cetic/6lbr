@@ -59,8 +59,10 @@ static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
   if(multi_radio_input_ifindex != -1) {
-    if(status == MAC_TX_OK) {
-      switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), multi_radio_input_ifindex);
+    if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+      if(status == MAC_TX_OK) {
+        switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), multi_radio_input_ifindex);
+      }
     }
     multi_radio_input_ifindex = -1;
   } else {
