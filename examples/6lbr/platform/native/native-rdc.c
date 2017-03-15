@@ -138,6 +138,7 @@ packet_timeout(void *ptr)
       callback_count--;
       callback->isused = 0;
       LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
+      multi_radio_input_ifindex = callback->slip_device->ifindex;
       if(!sixlbr_config_slip_ip) {
         packetbuf_clear();
         packetbuf_attr_copyfrom(callback->attrs, callback->addrs);

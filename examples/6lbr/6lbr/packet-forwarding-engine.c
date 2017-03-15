@@ -208,7 +208,7 @@ wireless_input(void)
 uint8_t
 wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
-  int ret;
+  int ret = 0;
 
   //Packet filtering
   //----------------
