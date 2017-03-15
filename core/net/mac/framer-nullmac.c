@@ -69,7 +69,7 @@ create(void)
 
   if(packetbuf_hdralloc(sizeof(struct nullmac_hdr))) {
     hdr = packetbuf_hdrptr();
-    linkaddr_copy(&(hdr->sender), &linkaddr_node_addr);
+    linkaddr_copy(&(hdr->sender), packetbuf_addr(PACKETBUF_ADDR_SENDER));
     linkaddr_copy(&(hdr->receiver), packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     return sizeof(struct nullmac_hdr);
   }
