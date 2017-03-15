@@ -197,7 +197,7 @@ convert_baud_rate(int baudrate)
   return slip_config_baud_rate;
 }
 /*---------------------------------------------------------------------------*/
-static slip_descr_t *
+slip_descr_t *
 find_slip_dev(uint8_t ifindex)
 {
   int i;
@@ -518,12 +518,16 @@ slip_flushbuf(slip_descr_t *slip_device)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-write_to_serial(slip_descr_t *slip_device, const uint8_t * inbuf, int len)
+/* writes an 802.15.4 packet to slip-radio */
+void
+write_to_slip(slip_descr_t *slip_device, const uint8_t * inbuf, int len)
 {
   const uint8_t *p = inbuf;
   int i;
   uint8_t crc;
+  if(slip_device == NULL) {
+    return;
+  }
 
   slip_message_sent++;
 
@@ -567,18 +571,6 @@ write_to_serial(slip_descr_t *slip_device, const uint8_t * inbuf, int len)
   }
   slip_send(slip_device, SLIP_END);
   PROGRESS("t");
-}
-/*---------------------------------------------------------------------------*/
-/* writes an 802.15.4 packet to slip-radio */
-void
-write_to_slip(const uint8_t * buf, int len)
-{
-  slip_descr_t * slip_device = find_slip_dev(multi_radio_output_ifindex);
-  if(slip_device != NULL) {
-    write_to_serial(slip_device, buf, len);
-  } else {
-    LOG6LBR_INFO("No slip device found for %d\n", multi_radio_output_ifindex);
-  }
 }
 /*---------------------------------------------------------------------------*/
 static void

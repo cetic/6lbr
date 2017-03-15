@@ -76,9 +76,11 @@ extern slip_descr_t *slip_default_device;
 
 void slip_init(void);
 void slip_close(void);
-slip_descr_t * slip_new_device(void);
+slip_descr_t *slip_new_device(void);
+slip_descr_t *find_slip_dev(uint8_t ifindex);
+
 void slip_init_all_dev(void);
-void write_to_slip(const uint8_t * buf, int len);
+void write_to_slip(slip_descr_t * slip_device, const uint8_t * buf, int len);
 
 speed_t convert_baud_rate(int baudrate);
 

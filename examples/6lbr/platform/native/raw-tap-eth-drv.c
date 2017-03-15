@@ -112,7 +112,7 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 #if !CETIC_6LBR_ONE_ITF
   if(!sixlbr_config_use_raw_ethernet) {
     //We must create our own Ethernet MAC address
-    while(!radio_mac_addr_ready) {
+    while(!radio_ready) {
       PROCESS_PAUSE();
     }
     mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
