@@ -74,26 +74,16 @@ packet_sent(void *ptr, int status, int num_transmissions)
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
-  uint8_t ifindex;
   network_itf_t *network_itf;
-  ifindex = switch_lookup_get_itf_for((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-  network_itf = network_itf_get_itf(ifindex);
+  /* Currently we assume that the sent callback is always the same */
+  upper_sent = sent;
+  network_itf = network_itf_get_itf(multi_radio_output_ifindex);
   if(network_itf != NULL) {
-    multi_radio_output_ifindex = ifindex;
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&network_itf->mac_addr);
-    upper_sent = sent;
     network_itf->mac->send(packet_sent, ptr);
   } else {
-    LOG6LBR_PACKET("Destination unknown, broadcast\n");
-    for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
-      network_itf = network_itf_get_itf(ifindex);
-      if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
-        multi_radio_output_ifindex = ifindex;
-        network_itf->mac->send(NULL, NULL);
-      }
-    }
+    LOG6LBR_LLADDR(ERROR, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "Destination unknown : ");
   }
-  multi_radio_output_ifindex = -1;
 }
 /*---------------------------------------------------------------------------*/
 static void

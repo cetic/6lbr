@@ -36,6 +36,7 @@
 
 #include "contiki.h"
 #include "network-itf.h"
+#include "net/linkaddr.h"
 #include <string.h>
 
 #include "log-6lbr.h"
@@ -75,4 +76,26 @@ network_itf_get_itf(uint8_t ifindex)
   } else {
     return NULL;
   }
+}
+
+void
+network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address)
+{
+  network_itf_t *network_itf = network_itf_get_itf(ifindex);
+  if(network_itf != NULL) {
+    linkaddr_copy((linkaddr_t *)&network_itf->mac_addr, (linkaddr_t *)mac_address);
+  }
+}
+
+int
+network_itf_known_mac(uip_lladdr_t *mac_address)
+{
+  int i = 0;
+  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type != NETWORK_ITF_TYPE_NONE) {
+    if(linkaddr_cmp((linkaddr_t *)&network_itf_type_table[i].mac_addr, (linkaddr_t *)mac_address)) {
+      return 1;
+    }
+    i++;
+  }
+  return 0;
 }

@@ -59,4 +59,10 @@ network_itf_register(uint8_t itf_type, const struct mac_driver *mac);
 network_itf_t *
 network_itf_get_itf(uint8_t ifindex);
 
+void
+network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address);
+
+int
+network_itf_known_mac(uip_lladdr_t *mac_address);
+
 #endif
