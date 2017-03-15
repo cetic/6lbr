@@ -64,11 +64,11 @@ packet_sent(void *ptr, int status, int num_transmissions)
         switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), multi_radio_input_ifindex);
       }
     }
-    multi_radio_input_ifindex = -1;
   } else {
     LOG6LBR_DEBUG("packet_sent: No source ifindex\n");
   }
   upper_sent(ptr, status, num_transmissions);
+  multi_radio_input_ifindex = -1;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -83,6 +83,7 @@ send_packet(mac_callback_t sent, void *ptr)
     network_itf->mac->send(packet_sent, ptr);
   } else {
     LOG6LBR_LLADDR(ERROR, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "Destination unknown : ");
+    upper_sent(ptr, MAC_TX_ERR_FATAL, 1);
   }
 }
 /*---------------------------------------------------------------------------*/
