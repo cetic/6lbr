@@ -106,6 +106,9 @@ native_args_handle_arguments(int argc, char **argv)
 #endif
 
     case 's':
+      if(!slip_default_device) {
+        slip_default_device = slip_new_device();
+      }
       if(strncmp("/dev/", optarg, 5) == 0) {
         slip_default_device->siodev = optarg + 5;
       } else {
@@ -122,11 +125,15 @@ native_args_handle_arguments(int argc, char **argv)
       break;
 
     case 'a':
-      slip_default_device->host = optarg;
+      if(slip_default_device) {
+        slip_default_device->host = optarg;
+      }
       break;
 
     case 'p':
-      slip_default_device->port = optarg;
+      if(slip_default_device) {
+        slip_default_device->port = optarg;
+      }
       break;
 
     case 'd':
@@ -183,11 +190,15 @@ native_args_handle_arguments(int argc, char **argv)
       break;
 
     case 'y':
-      slip_default_device->dtr_rts_set = 0;
+      if(slip_default_device) {
+        slip_default_device->dtr_rts_set = 0;
+      }
       break;
 
     case 'Y':
-      slip_default_device->dtr_rts_set = 1;
+      if(slip_default_device) {
+        slip_default_device->dtr_rts_set = 1;
+      }
       break;
 
     case '?':
@@ -233,8 +244,9 @@ native_args_handle_arguments(int argc, char **argv)
     exit(1);
   }
 
-  slip_default_device->baud_rate = convert_baud_rate(baudrate);
-
+  if(slip_default_device) {
+    slip_default_device->baud_rate = convert_baud_rate(baudrate);
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/

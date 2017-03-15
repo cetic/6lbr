@@ -351,7 +351,8 @@ void
 slip_got_mac(const uint8_t * data)
 {
   LOG6LBR_LLADDR(INFO, (uip_lladdr_t *)data, "Got MAC %d : ", multi_radio_input_ifindex);
-  if(multi_radio_input_ifindex == slip_default_device->ifindex) {
+  //Temporary workaround, we always use the mac of the first radio
+  if(multi_radio_input_ifindex == 0) {
     memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
     linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
     linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);

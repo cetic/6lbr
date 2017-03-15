@@ -77,19 +77,29 @@ static int native_config_native_handler(config_level_t level, void* user, const 
     sixlbr_config_select_timeout = atoi(value);
     return 1;
   } else if(strcmp(name, "slip.timeout") == 0) {
-    slip_default_device->timeout = atoi(value);
+    if(slip_default_device) {
+      slip_default_device->timeout = atoi(value);
+    }
     return 1;
   } else if(strcmp(name, "slip.retransmit") == 0) {
-    slip_default_device->retransmit = atoi(value);
+    if(slip_default_device) {
+      slip_default_device->retransmit = atoi(value);
+    }
     return 1;
   } else if(strcmp(name, "slip.serialize_tx_attrs") == 0) {
-    slip_default_device->serialize_tx_attrs = atoi(value);
+    if(slip_default_device) {
+      slip_default_device->serialize_tx_attrs = atoi(value);
+    }
     return 1;
   } else if(strcmp(name, "slip.deserialize_rx_attrs") == 0) {
-    slip_default_device->deserialize_rx_attrs = atoi(value);
+    if(slip_default_device) {
+      slip_default_device->deserialize_rx_attrs = atoi(value);
+    }
     return 1;
   } else if(strcmp(name, "slip.crc8") == 0) {
-    slip_default_device->crc8 = atoi(value);
+    if(slip_default_device) {
+      slip_default_device->crc8 = atoi(value);
+    }
     return 1;
   } else if(strcmp(name, "slip.ip") == 0) {
     sixlbr_config_slip_ip = atoi(value);

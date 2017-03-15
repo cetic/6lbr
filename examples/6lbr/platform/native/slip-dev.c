@@ -782,7 +782,6 @@ slip_init(void)
 {
   memset(slip_devices, 0, sizeof(slip_devices));
   setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
-  slip_default_device = slip_new_device();
 }
 /*---------------------------------------------------------------------------*/
 void
