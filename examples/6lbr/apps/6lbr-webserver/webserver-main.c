@@ -50,6 +50,9 @@
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #endif
+#if CETIC_6LBR_MULTI_RADIO
+#include "network-itf.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
@@ -152,9 +155,21 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #else
   add("Security: %s<br />", NETSTACK_LLSEC.name);
 #endif
+#if CETIC_6LBR_MULTI_RADIO
+  uint8_t ifindex;
+  for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+    network_itf_t *network_itf = network_itf_get_itf(ifindex);
+    if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+      add("HW address %d : ", ifindex);
+      lladdr_add(&network_itf->mac_addr);
+      add("<br />");
+    }
+  }
+#else
   add("HW address : ");
   lladdr_add(&uip_lladdr);
   add("<br />");
+#endif
 #endif
   add("Address : ");
   ipaddr_add(&wsn_ip_addr);
