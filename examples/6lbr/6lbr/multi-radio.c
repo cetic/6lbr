@@ -143,7 +143,6 @@ channel_check_interval(void)
 static void
 init(void)
 {
-  network_itf_init();
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver multi_radio_driver = {

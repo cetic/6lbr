@@ -56,6 +56,7 @@
 #include "cetic-6lbr.h"
 #include "platform-init.h"
 #include "packet-forwarding-engine.h"
+#include "network-itf.h"
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"
@@ -457,6 +458,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   static int addr_number;
   PROCESS_BEGIN();
 
+  /* Step 0: Basic infrastructure initialization */
+
+  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+
   //Turn off radio until 6LBR is properly configured
   NETSTACK_MAC.off(0);
 
@@ -464,7 +469,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
-  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+  network_itf_init();
 
   /* Step 1: Platform specific initialization */
 
