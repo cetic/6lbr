@@ -52,6 +52,7 @@
 #include "native-config.h"
 #include "network-itf.h"
 #include "multi-radio.h"
+#include "native-rdc.h"
 #include "log-6lbr.h"
 
 #include <string.h>
@@ -332,14 +333,14 @@ init(void)
   callback_count = 0;
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 slip_reboot(slip_descr_t *slip_device)
 {
   LOG6LBR_INFO("Reset SLIP Radio\n");
   write_to_slip(slip_device, (uint8_t *) "!R", 2);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 slip_request_mac(slip_descr_t *slip_device)
 {
   LOG6LBR_INFO("Fetching MAC address\n");
@@ -362,12 +363,14 @@ slip_got_mac(const uint8_t * data)
 }
 /*---------------------------------------------------------------------------*/
 void
-slip_set_mac(slip_descr_t *slip_device, linkaddr_t const * mac_addr)
+slip_set_mac(linkaddr_t const * mac_addr)
 {
 	uint8_t buffer[10];
 	int i;
+    //Temporary workaround, we always use the mac of the first radio
+	slip_descr_t *slip_device = find_slip_dev(0);
 
-    LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC: ");
+    LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC %d : ", slip_device->ifindex);
 	buffer[0] = '!';
 	buffer[1] = 'M';
     for(i = 0; i < 8; i++) {
@@ -376,7 +379,7 @@ slip_set_mac(slip_descr_t *slip_device, linkaddr_t const * mac_addr)
     write_to_slip(slip_device, buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 slip_set_rf_channel(slip_descr_t *slip_device, uint8_t channel)
 {
   static uint8_t msg[3];
