@@ -125,6 +125,9 @@ native_args_handle_arguments(int argc, char **argv)
       break;
 
     case 'a':
+      if(!slip_default_device) {
+        slip_default_device = slip_new_device();
+      }
       if(slip_default_device) {
         slip_default_device->host = optarg;
       }
