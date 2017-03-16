@@ -290,6 +290,8 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
             (node_info_table[i].ip_parent.u8[14] << 8) +
             node_info_table[i].ip_parent.u8[15]);
 #endif
+        SEND_STRING(&s->sout, buf);
+        reset_buf();
       }
     }
   }
