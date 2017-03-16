@@ -43,6 +43,7 @@
 void
 switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
 {
+#if UIP_SWITCH_LOOKUP
   if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
     uip_ds6_nbr_t *nbr;
     nbr = uip_ds6_nbr_ll_lookup(lladdr);
@@ -54,11 +55,13 @@ switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
   } else {
     LOG6LBR_DEBUG("Can not learn broadcast or null addr\n");
   }
+#endif
 }
 
 uint8_t
 switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
 {
+#if UIP_SWITCH_LOOKUP
   if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
     uip_ds6_nbr_t *nbr;
     nbr = uip_ds6_nbr_ll_lookup(lladdr);
@@ -66,5 +69,6 @@ switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
       return nbr->ifindex;
     }
   }
+#endif
   return SWITCH_LOOKUP_NO_ITF;
 }
