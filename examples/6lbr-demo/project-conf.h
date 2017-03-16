@@ -173,11 +173,6 @@
 /* UIP Buffers                                                               */
 /*---------------------------------------------------------------------------*/
 
-#if !UIP_CONF_IPV6_RPL
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER            0
-#endif
-
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
 #endif
@@ -235,6 +230,21 @@
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
 
+#if UIP_CONF_IPV6_RPL
+
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA   0
+
+#else
+
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER        0
+
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA   1
+
+#endif
+
 #ifndef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			2
 #endif
@@ -272,9 +282,6 @@
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
 #endif
-
-#undef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA   0
 
 #endif
 
