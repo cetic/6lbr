@@ -826,6 +826,12 @@ dao_input_storing(void)
 
 #if CETIC_6LBR
   if(!cetic_6lbr_allowed_node_hook(dag, &prefix, prefixlen)) {
+    if(flags & RPL_DAO_K_FLAG) {
+      /* signal the failure to add the node */
+      dao_ack_output(instance, &dao_sender_addr, sequence,
+             is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
+             RPL_DAO_ACK_UNABLE_TO_ACCEPT);
+    }
     return;
   }
 #endif
