@@ -10,6 +10,8 @@ WITH_COAPSERVER?=0
 WITH_NVM_PROXY?=0
 WITH_DNS_PROXY?=0
 WITH_IP64?=0
+WITH_LLSEC?=0
+
 SMALL=1
 
 #Define the interface used to connect the ENC28J60 : gpio, spi
