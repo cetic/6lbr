@@ -57,7 +57,11 @@
 
 #undef SPI_CS_PORT
 #ifndef CC26XX_ENC28J60_CONF_CS_PORT
+#ifdef BOARD_SENSORTAG
+#define SPI_CS_PORT   BOARD_IOID_DEVPACK_CS
+#else
 #define SPI_CS_PORT   IOID_14
+#endif
 #else
 #define SPI_CS_PORT   CC26XX_ENC28J60_CONF_CS_PORT
 #endif

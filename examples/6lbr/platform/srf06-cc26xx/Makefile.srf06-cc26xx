@@ -18,10 +18,19 @@ SMALL=1
 #Currently only gpio is supported on CC26xx/CC13xx
 CC26XX_ENC28J60_ARCH?=gpio
 
+#Configure ENC28J60 Chip Select (CS) pin for Sensortag or Launchpad
+#For Lauchpad it is IOID_14, for Sensortag it is IOID_20
+ifeq ($(BOARD),sensortag/cc2650)
+CFLAGS += -DBOARD_SENSORTAG
+else
+CFLAGS += -DBOARD_LAUNCHPAD
+endif
+
 #Define the location of the NVM configuration : int, ext
 #int is the embedded code flash
 #ext is the external flash, only present on Sensortag and Launchpad
 CC26XX_NVM?=int
+
 
 CC26XX_FW?=bin
 
