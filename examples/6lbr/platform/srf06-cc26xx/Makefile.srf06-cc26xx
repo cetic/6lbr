@@ -31,7 +31,6 @@ endif
 #ext is the external flash, only present on Sensortag and Launchpad
 CC26XX_NVM?=int
 
-
 CC26XX_FW?=bin
 
 PROJECTDIRS += platform/srf06-cc26xx dev/enc28j60
