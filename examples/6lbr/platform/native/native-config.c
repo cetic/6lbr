@@ -48,6 +48,7 @@ const char *sixlbr_config_slip_host = SIXLBR_CONFIG_DEFAULT_SLIP_HOST;
 const char *sixlbr_config_slip_port = SIXLBR_CONFIG_DEFAULT_SLIP_PORT;
 int sixlbr_config_slip_send_delay = SIXLBR_CONFIG_DEFAULT_SLIP_SEND_DELAY;
 speed_t sixlbr_config_slip_baud_rate = SIXLBR_CONFIG_DEFAULT_SLIP_BAUD_RATE;
+int sixlbr_config_slip_ip = SIXLBR_CONFIG_DEFAULT_SLIP_IP;
 
 int sixlbr_config_slip_dtr_rts_set = SIXLBR_CONFIG_DEFAULT_SLIP_DTR_RTS_SET;
 int sixlbr_config_slip_timeout = SIXLBR_CONFIG_DEFAULT_SLIP_TIMEOUT;
