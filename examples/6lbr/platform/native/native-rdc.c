@@ -88,9 +88,8 @@ struct tx_callback {
   struct ctimer timeout;
   int sid;
   int retransmit;
-  /* 3 bytes per packet attribute is required for serialization */
   int buf_len;
-  uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
+  uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t) * 2];
 };
 
 static struct tx_callback callbacks[MAX_CALLBACKS];
@@ -107,10 +106,14 @@ packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
     if (callback->isused) {
       callback_count--;
       callback->isused = 0;
-      packetbuf_clear();
-      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
       ctimer_stop(&callback->timeout);
-      mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+      if(!sixlbr_config_slip_ip) {
+        packetbuf_clear();
+        packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+        if(callback->cback != NULL) {
+          mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+        }
+      }
     } else {
       LOG6LBR_ERROR("br-rdc: ack received for unknown packet (%d)\n", callback->sid);
     }
@@ -134,9 +137,13 @@ packet_timeout(void *ptr)
       callback_count--;
       callback->isused = 0;
       LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
-      packetbuf_clear();
-      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
-      mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+      if(!sixlbr_config_slip_ip) {
+        packetbuf_clear();
+        packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+        if(callback->cback != NULL) {
+          mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+        }
+      }
     }
   } else {
     LOG6LBR_ERROR("br-rdc: ack timeout for already acked packet (%d)\n", callback->sid);
@@ -166,12 +173,49 @@ setup_callback(mac_callback_t sent, void *ptr)
     callback->sid = callback_pos;
     callback->isused = 1;
     callback->retransmit = NATIVE_RDC_SLIP_RETRANSMIT;
-    packetbuf_attr_copyto(callback->attrs, callback->addrs);
+    if(!sixlbr_config_slip_ip) {
+      packetbuf_attr_copyto(callback->attrs, callback->addrs);
+    }
     ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
-
     return callback_pos;
   } else {
     return -1;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+send_ip_packet(const uip_lladdr_t *localdest)
+{
+  uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t)];
+  int sid;
+  int size = 0;
+  sid = setup_callback(NULL, NULL);
+  if (sid != -1) {
+    LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d, cb: %d)\n", uip_len, sid, callback_count);
+    LOG6LBR_DUMP_PACKET(RADIO_OUT, uip_buf, uip_len);
+
+    size = 0;
+    buf[size++] = '!';
+    buf[size++] = 'S';
+    buf[size++] = sid;             /* sequence or session number for this packet */
+
+    if(localdest != NULL) {
+      memcpy(&buf[size], localdest, sizeof(uip_lladdr_t));
+    } else {
+      memcpy(&buf[size], &linkaddr_null, sizeof(uip_lladdr_t));
+    }
+    size += sizeof(uip_lladdr_t);
+    /* Copy packet data */
+    memcpy(&buf[size], &uip_buf[UIP_LLH_LEN], uip_len);
+    size += uip_len;
+
+    callbacks[sid].buf_len = size;
+    memcpy(callbacks[sid].buf, buf, size);
+    write_to_slip(buf, callbacks[sid].buf_len);
+    return 1;
+  } else {
+    LOG6LBR_INFO("native-rdc queue full\n");
+    return 0;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -375,6 +419,12 @@ PROCESS_THREAD(native_rdc_process, ev, data)
   static int status;
   do
   {
+    if(sixlbr_config_slip_ip) {
+      LOG6LBR_INFO("SLIP RADIO configured as IP\n");
+      tcpip_set_outputfunc(send_ip_packet);
+    } else {
+      LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
+    }
     slip_reboot();
     while(!radio_mac_addr_ready) {
       etimer_set(&et, CLOCK_SECOND);

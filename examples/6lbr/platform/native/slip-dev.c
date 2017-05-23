@@ -185,22 +185,34 @@ void
 slip_packet_input(unsigned char *data, int len)
 {
   packetbuf_clear();
-  if(sixlbr_config_slip_deserialize_rx_attrs) {
-    int pos = packetutils_deserialize_atts(data, len);
-    if(pos < 0) {
-      LOG6LBR_ERROR("illegal packet attributes\n");
-      return;
-    }
-    len -= pos;
-    if(len > PACKETBUF_SIZE) {
-      len = PACKETBUF_SIZE;
-    }
-    memcpy(packetbuf_dataptr(), &data[pos], len);
-    packetbuf_set_datalen(len);
+  if(sixlbr_config_slip_ip) {
+    uip_lladdr_t src;
+    uip_lladdr_t dest;
+    memcpy(&src, data, sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &src);
+    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
+    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
+    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
+    tcpip_input();
   } else {
-    packetbuf_copyfrom(data, len);
+    if(sixlbr_config_slip_deserialize_rx_attrs) {
+      int pos = packetutils_deserialize_atts(data, len);
+      if(pos < 0) {
+        LOG6LBR_ERROR("illegal packet attributes\n");
+        return;
+      }
+      len -= pos;
+      if(len > PACKETBUF_SIZE) {
+        len = PACKETBUF_SIZE;
+      }
+      memcpy(packetbuf_dataptr(), &data[pos], len);
+      packetbuf_set_datalen(len);
+    } else {
+      packetbuf_copyfrom(data, len);
+    }
+    NETSTACK_RDC.input();
   }
-  NETSTACK_RDC.input();
 }
 /*---------------------------------------------------------------------------*/
 /*

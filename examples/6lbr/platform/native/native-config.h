@@ -75,6 +75,7 @@ extern char const *sixlbr_config_ip_file_name;
 extern char const *sixlbr_config_config_file_name;
 extern char const *sixlbr_config_node_config_file_name;
 
+extern int sixlbr_config_slip_ip;
 
 /*---------------------------------------------------------------------------*/
 
@@ -117,5 +118,7 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME        NULL
 #endif
 #define SIXLBR_CONFIG_DEFAULT_NODE_CONFIG_FILENAME   NULL
+
+#define SIXLBR_CONFIG_DEFAULT_SLIP_IP   0
 
 #endif
