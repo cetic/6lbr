@@ -91,6 +91,7 @@ slip_config_handle_arguments(int argc, char **argv)
       } else {
         Log6lbr_level = Log6lbr_Level_DEFAULT;
       }
+      sixlbr_config_log_level = Log6lbr_level;
       break;
 
     case 'S':
@@ -99,6 +100,7 @@ slip_config_handle_arguments(int argc, char **argv)
       } else {
         Log6lbr_services = Log6lbr_Service_DEFAULT;
       }
+      sixlbr_config_log_services = Log6lbr_services;
       break;
 #endif
 

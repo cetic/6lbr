@@ -76,6 +76,9 @@ extern char const *sixlbr_config_config_file_name;
 extern char const *sixlbr_config_node_config_file_name;
 
 
+extern int sixlbr_config_log_level;
+extern int sixlbr_config_log_services;
+
 /*---------------------------------------------------------------------------*/
 
 //Default values
