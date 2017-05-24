@@ -75,3 +75,5 @@ char const *sixlbr_config_ip_file_name = SIXLBR_CONFIG_DEFAULT_IP_FILENAME;
 char const *sixlbr_config_config_file_name = SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME;
 char const *sixlbr_config_node_config_file_name = SIXLBR_CONFIG_DEFAULT_NODE_CONFIG_FILENAME;
 
+int sixlbr_config_log_level = Log6lbr_Level_DEFAULT;
+int sixlbr_config_log_services = Log6lbr_Service_DEFAULT;

@@ -189,11 +189,6 @@
 /* UIP Buffers                                                               */
 /*---------------------------------------------------------------------------*/
 
-#if !UIP_CONF_IPV6_RPL
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER            0
-#endif
-
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
 #endif
@@ -243,6 +238,21 @@
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
 
+#if UIP_CONF_IPV6_RPL
+
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA   0
+
+#else
+
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER        0
+
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA   1
+
+#endif
+
 #ifndef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC			2
 #endif
@@ -283,7 +293,7 @@
 #define UIP_CONF_MAX_ROUTES   12
 #endif
 
-#else
+#else /* CONTIKI_TARGET_Z1 */
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    24
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     24
@@ -292,21 +302,25 @@
 #define UIP_CONF_DS6_NBR_NBU     24
 #endif
 
+#endif /* CONTIKI_TARGET_Z1 */
+
 #if RPL_NON_STORING
+
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES 0
 #ifndef RPL_NS_CONF_LINK_NUM
 #define RPL_NS_CONF_LINK_NUM   24
 #endif
-#else
+
+#else /* RPL_NON_STORING */
+
 #undef RPL_NS_CONF_LINK_NUM
 #define RPL_NS_CONF_LINK_NUM   0
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
 #endif
-#endif
 
-#endif
+#endif /* RPL_NON_STORING */
 
 /*---------------------------------------------------------------------------*/
 /* Init                                                                      */

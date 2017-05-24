@@ -49,6 +49,10 @@
 #include "node-config.h"
 #endif
 
+#if CONTIKI_TARGET_NATIVE
+#include "native-config.h"
+#endif
+
 #include <stdlib.h>
 
 HTTPD_CGI_CALL_NAME(webserver_config)
@@ -571,7 +575,12 @@ update_config(const char *name, uint8_t *reboot_needed)
   if(do_update) {
     store_nvm_config();
 #if !LOG6LBR_STATIC
-    if(nvm_data.log_level != 0xFF) {
+    if(nvm_data.log_level == 0xFF) {
+#if CONTIKI_TARGET_NATIVE
+      Log6lbr_level = sixlbr_config_log_level;
+      Log6lbr_services = sixlbr_config_log_services;
+#endif
+    } else {
       Log6lbr_level = nvm_data.log_level;
       Log6lbr_services = nvm_data.log_services;
     }

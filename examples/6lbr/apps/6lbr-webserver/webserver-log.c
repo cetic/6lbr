@@ -93,7 +93,9 @@ PT_THREAD(generate_logs(struct httpd_state *s))
   SELECT_OPTION(log_level, 50, "Packet");
   SELECT_OPTION(log_level, 60, "Dump");
   SELECT_OPTION(log_level, 70, "Trace");
+#if CONTIKI_TARGET_NATIVE
   SELECT_OPTION(log_level, 0xFF, "-");
+#endif
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

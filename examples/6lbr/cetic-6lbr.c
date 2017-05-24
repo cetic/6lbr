@@ -220,6 +220,15 @@ cetic_6lbr_init(void)
 
   LOG6LBR_6ADDR(INFO, &wsn_ip_local_addr, "Tentative local IPv6 address ");
 
+  eth_mac64_addr.addr[0] = eth_mac_addr[0];
+  eth_mac64_addr.addr[1] = eth_mac_addr[1];
+  eth_mac64_addr.addr[2] = eth_mac_addr[2];
+  eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
+  eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
+  eth_mac64_addr.addr[5] = eth_mac_addr[3];
+  eth_mac64_addr.addr[6] = eth_mac_addr[4];
+  eth_mac64_addr.addr[7] = eth_mac_addr[5];
+
 #if CETIC_6LBR_SMARTBRIDGE
 
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0)    //Manual configuration
@@ -284,15 +293,6 @@ cetic_6lbr_init(void)
   if ( !uip_is_addr_unspecified(&eth_dft_router) ) {
     uip_ds6_defrt_add(&eth_dft_router, 0);
   }
-
-  eth_mac64_addr.addr[0] = eth_mac_addr[0];
-  eth_mac64_addr.addr[1] = eth_mac_addr[1];
-  eth_mac64_addr.addr[2] = eth_mac_addr[2];
-  eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
-  eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
-  eth_mac64_addr.addr[5] = eth_mac_addr[3];
-  eth_mac64_addr.addr[6] = eth_mac_addr[4];
-  eth_mac64_addr.addr[7] = eth_mac_addr[5];
 
   if((nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) != 0)    //Address auto configuration
   {
