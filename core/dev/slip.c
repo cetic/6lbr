@@ -401,6 +401,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
     }
 
 #if SLIP_CRC_ON
+    if(len > 0)
     {
       /* Check if the CRC is as expected */
       uint8_t crc = 0;
