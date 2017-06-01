@@ -31,6 +31,10 @@
 #ifndef SLIP_RADIO_H_
 #define SLIP_RADIO_H_
 
+/*---------------------------------------------------------------------------*/
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
+/*---------------------------------------------------------------------------*/
 struct slip_radio_sensors {
   /** Initialize the driver */
   void (* init)(void);

@@ -156,7 +156,17 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       PRINTF("CMD: setting pan-id: %x\n", pan_id);
       frame802154_set_pan_id(pan_id);
       return 1;
-    }
+    } else if(data[1] == 'C' && len == 3) {
+		uint8_t channel = data[2];
+		int rv = NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
+		if(rv == RADIO_RESULT_OK) {
+			uint8_t temp[3];
+			temp[0] = '!'; temp[1] = 'C';
+			temp[2] = channel;
+			cmd_send(temp, ARRAY_SIZE(temp));
+		}
+		return 1;
+	}
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
     if(data[1] == 'M' && len == 2) {
