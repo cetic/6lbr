@@ -68,13 +68,6 @@ extern const struct mac_driver CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC;
 
 static int devopen(const char *dev, int flags);
 
-/* for statistics */
-uint32_t slip_sent = 0;
-uint32_t slip_received = 0;
-uint32_t slip_message_sent = 0;
-uint32_t slip_message_received = 0;
-uint32_t slip_crc_errors = 0;
-
 
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while(0)
@@ -381,11 +374,11 @@ after_fread:
     clearerr(slip_device->inslip);
     return;
   }
-  slip_received++;
+  slip_device->bytes_received++;
   switch (c) {
   case SLIP_END:
     if(inbufptr > 0) {
-      slip_message_received++;
+      slip_device->message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
       if(slip_device->crc8 && inbuf[0] != DEBUG_LINE_MARKER) {
@@ -396,7 +389,7 @@ after_fread:
         }
         if(crc) {
           /* report error and ignore the packet */
-          slip_crc_errors++;
+          slip_device->crc_errors++;
           LOG6LBR_INFO("Packet received with invalid CRC\n");
           inbufptr = 0;
           return;
@@ -458,7 +451,7 @@ slip_send(slip_descr_t *slip_device, unsigned char c)
   }
   slip_device->slip_buf[slip_device->slip_end] = c;
   slip_device->slip_end++;
-  slip_sent++;
+  slip_devices->bytes_sent++;
   if(c == SLIP_END) {
     /* Full packet received. */
     slip_device->slip_packet_count++;
@@ -529,7 +522,7 @@ write_to_slip(slip_descr_t *slip_device, const uint8_t * inbuf, int len)
     return;
   }
 
-  slip_message_sent++;
+  slip_device->message_sent++;
 
   LOG6LBR_PRINTF(PACKET, SLIP_OUT, "write: %d\n", len);
   LOG6LBR_DUMP_PACKET(SLIP_OUT, inbuf, len);

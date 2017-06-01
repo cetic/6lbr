@@ -70,6 +70,13 @@ typedef struct {
   unsigned char slip_buf[2048];
   int slip_end, slip_begin, slip_packet_end, slip_packet_count;
   struct timer send_delay_timer;
+
+  /* for statistics */
+  uint32_t bytes_sent;
+  uint32_t bytes_received;
+  uint32_t message_sent;
+  uint32_t message_received;
+  uint32_t crc_errors;
 } slip_descr_t;
 
 extern slip_descr_t *slip_default_device;
