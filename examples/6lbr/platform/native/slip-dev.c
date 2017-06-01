@@ -760,6 +760,7 @@ slip_new_device(void)
     slip_devices[i].serialize_tx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX;
     slip_devices[i].deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX;
     slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
+    slip_devices[i].features = SIXLBR_CONFIG_DEFAULT_SLIP_FEATURES;
     //Temporary until proper multi mac layer configuration
     slip_devices[i].ifindex = network_itf_register(NETWORK_ITF_TYPE_802154, &CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC);
     LOG6LBR_INFO("Allocated slip device %d -> %d\n", i, slip_devices[i].ifindex);

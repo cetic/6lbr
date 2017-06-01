@@ -63,6 +63,9 @@ typedef struct {
   int deserialize_rx_attrs;
   int crc8;
 
+  /* Device function support */
+  uint32_t features;
+
   /* Device runtime */
   uint8_t ifindex;
   int slipfd;
@@ -78,6 +81,11 @@ typedef struct {
   uint32_t message_received;
   uint32_t crc_errors;
 } slip_descr_t;
+
+#define SLIP_RADIO_FEATURE_REBOOT 1
+#define SLIP_RADIO_FEATURE_NULL_MAC 2
+#define SLIP_RADIO_FEATURE_CHANNEL 4
+#define SLIP_RADIO_FEATURE_PAN_ID 8
 
 extern slip_descr_t *slip_default_device;
 

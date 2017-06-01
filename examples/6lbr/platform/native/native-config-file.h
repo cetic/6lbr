@@ -49,6 +49,8 @@ typedef struct native_config_callback {
   void * user;
 } native_config_callback_t;
 
+#define SET_FLAG(value, flag, state) { if(state) {value |= flag;} else {value &= ~(flag);} }
+
 void native_config_add_callback(native_config_callback_t *cb_info,
     char const * section, config_callback c, void *user);
 
