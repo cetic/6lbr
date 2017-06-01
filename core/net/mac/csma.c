@@ -48,6 +48,10 @@
 
 #include "net/netstack.h"
 
+#if CETIC_6LBR_MULTI_RADIO
+#include "multi-radio.h"
+#endif
+
 #include "lib/list.h"
 #include "lib/memb.h"
 
@@ -98,6 +102,9 @@ struct qbuf_metadata {
   mac_callback_t sent;
   void *cptr;
   uint8_t max_transmissions;
+#if CETIC_6LBR_MULTI_RADIO
+  uint8_t ifindex;
+#endif
 };
 
 /* Every neighbor has its own packet queue */
@@ -192,6 +199,11 @@ transmit_packet_list(void *ptr)
     if(q != NULL) {
       PRINTF("csma: preparing number %d %p, queue len %d\n", n->transmissions, q,
           list_length(n->queued_packet_list));
+#if CETIC_6LBR_MULTI_RADIO
+      /* Find out what interface we should use... */
+      struct qbuf_metadata *metadata = (struct qbuf_metadata *)q->ptr;
+      multi_radio_output_ifindex = metadata->ifindex;
+#endif
       /* Send packets in the neighbor's list */
       NETSTACK_RDC.send_list(packet_sent, n, q);
     }
@@ -355,8 +367,15 @@ packet_sent(void *ptr, int status, int num_transmissions)
   /* Find out what packet this callback refers to */
   for(q = list_head(n->queued_packet_list);
       q != NULL; q = list_item_next(q)) {
+#if CETIC_6LBR_MULTI_RADIO
+    if(queuebuf_attr(q->buf, PACKETBUF_ATTR_MAC_SEQNO) ==
+       packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) &&
+       (q->ptr == NULL ||
+        ((struct qbuf_metadata *)q->ptr)->ifindex == multi_radio_input_ifindex)) {
+#else
     if(queuebuf_attr(q->buf, PACKETBUF_ATTR_MAC_SEQNO) ==
        packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
+#endif
       break;
     }
   }
@@ -432,6 +451,9 @@ send_packet(mac_callback_t sent, void *ptr)
             }
             metadata->sent = sent;
             metadata->cptr = ptr;
+#if CETIC_6LBR_MULTI_RADIO
+            metadata->ifindex = multi_radio_output_ifindex;
+#endif
 #if PACKETBUF_WITH_PACKET_TYPE
             if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
                PACKETBUF_ATTR_PACKET_TYPE_ACK) {

@@ -92,7 +92,7 @@
 #include <string.h>
 
 #if CETIC_NODE_INFO
-#include "packet-filter.h"
+#include "packet-forwarding-engine.h"
 #include "node-info.h"
 #endif
 

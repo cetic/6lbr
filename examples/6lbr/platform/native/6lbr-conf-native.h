@@ -41,6 +41,8 @@
 /* NATIVE 6LBR                                                      */
 /*------------------------------------------------------------------*/
 
+#define UIP_MULTI_RADIO 1
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM         256
 
@@ -75,6 +77,8 @@
 #define RPL_CONF_STATS              1
 
 #define NODE_INFO_PER_NODE_STATS    1
+
+#define CETIC_6LBR_MULTI_RADIO        1
 
 #define CETIC_6LBR_MAC_WRAPPER        1
 

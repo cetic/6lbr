@@ -29,8 +29,8 @@
 
 /**
  * \file
- *         Packet Filter for 6LBR.
- *         Enables dual-interfaces (IEEE802.15.4 and Ethernet) under the
+ *         Packet Forwarding Engine for 6LBR.
+ *         Enables multi-interfaces (IEEE802.15.4 and Ethernet) under the
  *         single-interface uIP stack.
  *         More information:
  *           https://github.com/cetic/6lbr/wiki/Implementation-Details
@@ -38,7 +38,7 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "PF"
+#define LOG6LBR_MODULE "PFE"
 
 #include "contiki-net.h"
 #include "net/ipv6/uip-ds6.h"
@@ -64,6 +64,12 @@
 
 #if CETIC_NODE_INFO
 #include "node-info.h"
+#endif
+
+#if CETIC_6LBR_MULTI_RADIO
+#include "switch-lookup.h"
+#include "network-itf.h"
+#include "multi-radio.h"
 #endif
 
 #include "eth-drv.h"
@@ -156,9 +162,13 @@ wireless_input(void)
     processFrame = 1;
   } else {                      //unicast
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_IN, (uip_lladdr_t *) packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "wireless_input: dest: ");
+#if CETIC_6LBR_MULTI_RADIO
+    if(network_itf_known_mac((uip_lladdr_t *) packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
+#else
     if(linkaddr_cmp
        (packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
         (linkaddr_t *) & wsn_mac_addr) != 0) {
+#endif
       processFrame = 1;         //For us
     } else {                    //For another host
 #if CETIC_6LBR_TRANSPARENTBRIDGE
@@ -201,7 +211,7 @@ wireless_input(void)
 uint8_t
 wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
-  int ret;
+  int ret = 0;
 
   //Packet filtering
   //----------------
@@ -230,18 +240,44 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   //Packet sending
   //--------------
   if(wireless_outputfunc != NULL) {
+    LOG6LBR_PRINTF(PACKET, PF_OUT, "wireless_output: sending packet\n");
+#if CETIC_6LBR_MULTI_RADIO
+    uint8_t ifindex;
+    network_itf_t *network_itf;
+    /* Currently we assume that the sent callback is always the same */
+    ifindex = switch_lookup_get_itf_for(dest);
+    network_itf = network_itf_get_itf(ifindex);
+    if(network_itf != NULL) {
+      multi_radio_output_ifindex = ifindex;
+      memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
+      ret = wireless_outputfunc(dest);
+      memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
+    } else {
+      LOG6LBR_PRINTF(PACKET, PF_OUT, "Destination unknown or broadcast\n");
+      for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+        network_itf = network_itf_get_itf(ifindex);
+        if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+          multi_radio_output_ifindex = ifindex;
+          memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
+          ret = wireless_outputfunc(dest);
+        }
+      }
+      memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
+    }
+    multi_radio_output_ifindex = -1;
+#else
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
       platform_set_wsn_mac((linkaddr_t *)src);
 	}
 #endif
-	LOG6LBR_PRINTF(PACKET, PF_OUT, "wireless_output: sending packet\n");
     ret = wireless_outputfunc(dest);
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {
       //Restore node address
 	  platform_set_wsn_mac((linkaddr_t *) & wsn_mac_addr);
 	}
+#endif
 #endif
   } else {
     ret = 0;

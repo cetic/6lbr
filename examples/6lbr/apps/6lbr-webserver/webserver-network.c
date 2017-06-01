@@ -65,6 +65,9 @@
 #include "nvm-config.h"
 #include "rio.h"
 #include "log-6lbr.h"
+#if UIP_SWITCH_LOOKUP
+#include "switch-lookup.h"
+#endif
 
 #if CETIC_NODE_INFO
 #include "node-info.h"
@@ -195,6 +198,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
     lladdr_add(uip_ds6_nbr_get_ll(nbr));
     add(" ");
     add_network_cases(nbr->state);
+#if UIP_SWITCH_LOOKUP
+    if(nbr->ifindex != SWITCH_LOOKUP_NO_ITF) {
+      add(" if:%u", nbr->ifindex);
+    }
+#endif
     add("\n");
     SEND_STRING(&s->sout, buf);
     reset_buf();

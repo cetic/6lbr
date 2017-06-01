@@ -276,6 +276,20 @@
 #if CETIC_6LBR_MAC_WRAPPER
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     mac_wrapper_driver
+#undef CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC
+#define CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC     mac_wrapper_driver
+#endif
+
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+/* Currently we can not have multi-radio with transparent bridge */
+#undef CETIC_6LBR_MULTI_RADIO
+#define CETIC_6LBR_MULTI_RADIO        0
+#endif
+
+#if CETIC_6LBR_MULTI_RADIO
+#define UIP_SWITCH_LOOKUP 1
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     multi_radio_driver
 #endif
 
 #if WITH_LLSEC

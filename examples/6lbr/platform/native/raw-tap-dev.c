@@ -83,8 +83,7 @@ struct ifreq if_idx;
 
 //Temporary, should be removed
 #include "native-rdc.h"
-extern int slipfd;
-extern void slip_flushbuf(int fd);
+#include "slip-dev.h"
 //End of temporary
 
 extern void cetic_6lbr_clear_ip(void);
@@ -139,7 +138,7 @@ cleanup(void)
   cetic_6lbr_clear_ip();
 #if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&linkaddr_null);
-  slip_flushbuf(slipfd);
+  slip_close();
 #endif
 }
 /*---------------------------------------------------------------------------*/

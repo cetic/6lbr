@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,74 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#define LOG6LBR_MODULE "SWITCH"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "contiki.h"
+#include "network-itf.h"
+#include "net/linkaddr.h"
+#include <string.h>
 
-extern int native_args_handle_arguments(int argc, char **argv);
+#include "log-6lbr.h"
 
-#endif
+static network_itf_t network_itf_type_table[NETWORK_ITF_NBR];
+
+void
+network_itf_init(void)
+{
+  memset(network_itf_type_table, 0, sizeof(network_itf_type_table));
+}
+
+uint8_t
+network_itf_register(uint8_t itf_type, const struct mac_driver *mac)
+{
+  int i = 0;
+  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type != NETWORK_ITF_TYPE_NONE) {
+    i++;
+  }
+  if(i < NETWORK_ITF_NBR) {
+    network_itf_type_table[i].itf_type = itf_type;
+    network_itf_type_table[i].mac = mac;
+    return i;
+  } else {
+    return -1;
+  }
+}
+
+network_itf_t *
+network_itf_get_itf(uint8_t ifindex)
+{
+  if(ifindex == -1) {
+    return NULL;
+  }
+  if(ifindex < NETWORK_ITF_NBR) {
+    return &network_itf_type_table[ifindex];
+  } else {
+    return NULL;
+  }
+}
+
+void
+network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address)
+{
+  network_itf_t *network_itf = network_itf_get_itf(ifindex);
+  if(network_itf != NULL) {
+    linkaddr_copy((linkaddr_t *)&network_itf->mac_addr, (linkaddr_t *)mac_address);
+  }
+}
+
+int
+network_itf_known_mac(uip_lladdr_t *mac_address)
+{
+  int i = 0;
+  while(i < NETWORK_ITF_NBR && network_itf_type_table[i].itf_type != NETWORK_ITF_TYPE_NONE) {
+    if(linkaddr_cmp((linkaddr_t *)&network_itf_type_table[i].mac_addr, (linkaddr_t *)mac_address)) {
+      return 1;
+    }
+    i++;
+  }
+  return 0;
+}

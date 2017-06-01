@@ -59,9 +59,14 @@
 #include "cmd.h"
 #include "slip-cmds.h"
 #include "native-config.h"
+#include "network-itf.h"
+#include "multi-radio.h"
 #include "slip-dev.h"
 
-static FILE *inslip;
+//Temporary until proper multi mac layer configuration
+extern const struct mac_driver CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC;
+
+static int devopen(const char *dev, int flags);
 
 /* for statistics */
 uint32_t slip_sent = 0;
@@ -70,7 +75,6 @@ uint32_t slip_message_sent = 0;
 uint32_t slip_message_received = 0;
 uint32_t slip_crc_errors = 0;
 
-int slipfd = 0;
 
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while(0)
@@ -82,6 +86,128 @@ int slipfd = 0;
 
 #define DEBUG_LINE_MARKER '\r'
 
+static slip_descr_t slip_devices[SLIP_MAX_DEVICE];
+
+slip_descr_t * slip_default_device;
+
+/*---------------------------------------------------------------------------*/
+speed_t
+convert_baud_rate(int baudrate)
+{
+  speed_t slip_config_baud_rate;
+  switch (baudrate) {
+  case -2:
+    slip_config_baud_rate = SIXLBR_CONFIG_DEFAULT_SLIP_BAUD_RATE;
+    break;                      /* Use default. */
+  #ifdef B50
+      case 50: slip_config_baud_rate = B50; break;
+  #endif
+  #ifdef B75
+      case 75: slip_config_baud_rate = B75; break;
+  #endif
+  #ifdef B110
+      case 110: slip_config_baud_rate = B110; break;
+  #endif
+  #ifdef B134
+      case 134: slip_config_baud_rate = B134; break;
+  #endif
+  #ifdef B150
+      case 150: slip_config_baud_rate = B150; break;
+  #endif
+  #ifdef B200
+      case 200: slip_config_baud_rate = B200; break;
+  #endif
+  #ifdef B300
+      case 300: slip_config_baud_rate = B300; break;
+  #endif
+  #ifdef B600
+      case 600: slip_config_baud_rate = B600; break;
+  #endif
+  #ifdef B1200
+      case 1200: slip_config_baud_rate = B1200; break;
+  #endif
+  #ifdef B1800
+      case 1800: slip_config_baud_rate = B1800; break;
+  #endif
+  #ifdef B2400
+      case 2400: slip_config_baud_rate = B2400; break;
+  #endif
+  #ifdef B4800
+      case 4800: slip_config_baud_rate = B4800; break;
+  #endif
+  #ifdef B9600
+      case 9600: slip_config_baud_rate = B9600; break;
+  #endif
+  #ifdef B19200
+      case 19200: slip_config_baud_rate = B19200; break;
+  #endif
+  #ifdef B38400
+      case 38400: slip_config_baud_rate = B38400; break;
+  #endif
+  #ifdef B57600
+      case 57600: slip_config_baud_rate = B57600; break;
+  #endif
+  #ifdef B115200
+      case 115200: slip_config_baud_rate = B115200; break;
+  #endif
+  #ifdef B230400
+      case 230400: slip_config_baud_rate = B230400; break;
+  #endif
+  #ifdef B460800
+      case 460800: slip_config_baud_rate = B460800; break;
+  #endif
+  #ifdef B500000
+      case 500000: slip_config_baud_rate = B500000; break;
+  #endif
+  #ifdef B576000
+      case 576000: slip_config_baud_rate = B576000; break;
+  #endif
+  #ifdef B921600
+      case 921600: slip_config_baud_rate = B921600; break;
+  #endif
+  #ifdef B1000000
+      case 1000000: slip_config_baud_rate = B1000000; break;
+  #endif
+  #ifdef B1152000
+      case 1152000: slip_config_baud_rate = B1152000; break;
+  #endif
+  #ifdef B1500000
+      case 1500000: slip_config_baud_rate = B1500000; break;
+  #endif
+  #ifdef B2000000
+      case 2000000: slip_config_baud_rate = B2000000; break;
+  #endif
+  #ifdef B2500000
+      case 2500000: slip_config_baud_rate = B2500000; break;
+  #endif
+  #ifdef B3000000
+      case 3000000: slip_config_baud_rate = B3000000; break;
+  #endif
+  #ifdef B3500000
+      case 3500000: slip_config_baud_rate = B3500000; break;
+  #endif
+  #ifdef B4000000
+      case 4000000: slip_config_baud_rate = B4000000; break;
+  #endif
+  default:
+    LOG6LBR_FATAL("unknown baudrate %d", baudrate);
+    exit(1);
+    break;
+  }
+  return slip_config_baud_rate;
+}
+/*---------------------------------------------------------------------------*/
+slip_descr_t *
+find_slip_dev(uint8_t ifindex)
+{
+  int i;
+  for(i = 0; i < SLIP_MAX_DEVICE; ++i) {
+    if(slip_devices[i].isused && (slip_devices[i].ifindex == ifindex || ifindex == 255)) {
+      return &slip_devices[i];
+    }
+  }
+  return NULL;
+}
 /*---------------------------------------------------------------------------*/
 /* Polynomial ^8 + ^5 + ^4 + 1 */
 static uint8_t
@@ -166,7 +292,7 @@ connect_to_server(const char *host, const char *port)
   return fd;
 }
 /*---------------------------------------------------------------------------*/
-int
+static int
 is_sensible_string(const unsigned char *s, int len)
 {
   int i;
@@ -181,34 +307,48 @@ is_sensible_string(const unsigned char *s, int len)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_packet_input(unsigned char *data, int len)
+static void
+slip_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
 {
+  multi_radio_input_ifindex = slip_device->ifindex;
   packetbuf_clear();
-  if(sixlbr_config_slip_deserialize_rx_attrs) {
-    int pos = packetutils_deserialize_atts(data, len);
-    if(pos < 0) {
-      LOG6LBR_ERROR("illegal packet attributes\n");
-      return;
-    }
-    len -= pos;
-    if(len > PACKETBUF_SIZE) {
-      len = PACKETBUF_SIZE;
-    }
-    memcpy(packetbuf_dataptr(), &data[pos], len);
-    packetbuf_set_datalen(len);
+  if(sixlbr_config_slip_ip) {
+    uip_lladdr_t src;
+    uip_lladdr_t dest;
+    memcpy(&src, data, sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&src);
+    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&dest);
+    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
+    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
+    tcpip_input();
   } else {
-    packetbuf_copyfrom(data, len);
+    if(slip_device->deserialize_rx_attrs) {
+      int pos = packetutils_deserialize_atts(data, len);
+      if(pos < 0) {
+        LOG6LBR_ERROR("illegal packet attributes\n");
+        return;
+      }
+      len -= pos;
+      if(len > PACKETBUF_SIZE) {
+        len = PACKETBUF_SIZE;
+      }
+      memcpy(packetbuf_dataptr(), &data[pos], len);
+      packetbuf_set_datalen(len);
+    } else {
+      packetbuf_copyfrom(data, len);
+    }
+    NETSTACK_RDC.input();
   }
-  NETSTACK_RDC.input();
+  multi_radio_input_ifindex = -1;
 }
 /*---------------------------------------------------------------------------*/
 /*
  * Read from serial, when we have a packet call slip_packet_input. No output
  * buffering, input buffered by stdio.
  */
-void
-serial_input(FILE * inslip)
+static void
+serial_input(slip_descr_t *slip_device)
 {
   static unsigned char inbuf[2048];
   static int inbufptr = 0;
@@ -216,7 +356,7 @@ serial_input(FILE * inslip)
   unsigned char c;
 
 #ifdef linux
-  ret = fread(&c, 1, 1, inslip);
+  ret = fread(&c, 1, 1, slip_device->inslip);
   if(ret == -1 || ret == 0) {
     LOG6LBR_FATAL("read() : %s\n", strerror(errno));
     exit(1);
@@ -229,7 +369,7 @@ read_more:
     LOG6LBR_ERROR("*** dropping large %d byte packet\n", inbufptr);
     inbufptr = 0;
   }
-  ret = fread(&c, 1, 1, inslip);
+  ret = fread(&c, 1, 1, slip_device->inslip);
 #ifdef linux
 after_fread:
 #endif
@@ -238,7 +378,7 @@ after_fread:
     exit(1);
   }
   if(ret == 0) {
-    clearerr(inslip);
+    clearerr(slip_device->inslip);
     return;
   }
   slip_received++;
@@ -248,7 +388,7 @@ after_fread:
       slip_message_received++;
       LOG6LBR_PRINTF(PACKET, SLIP_IN, "read: %d\n", inbufptr);
       LOG6LBR_DUMP_PACKET(SLIP_IN, inbuf, inbufptr);
-      if(sixlbr_config_slip_crc8 && inbuf[0] != DEBUG_LINE_MARKER) {
+      if(slip_device->crc8 && inbuf[0] != DEBUG_LINE_MARKER) {
         uint8_t crc = 0;
         int i;
         for(i = 0; i < inbufptr; i++) {
@@ -266,7 +406,9 @@ after_fread:
       }
       if(inbuf[0] == '!') {
         command_context = CMD_CONTEXT_RADIO;
+        multi_radio_input_ifindex = slip_device->ifindex;
         cmd_input(inbuf, inbufptr);
+        multi_radio_input_ifindex = -1;
       } else if(inbuf[0] == '?') {
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);
@@ -277,17 +419,17 @@ after_fread:
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
-        slip_packet_input(inbuf, inbufptr);
+        slip_packet_input(slip_device, inbuf, inbufptr);
       }
       inbufptr = 0;
     }
     break;
 
   case SLIP_ESC:
-    if(fread(&c, 1, 1, inslip) != 1) {
-      clearerr(inslip);
+    if(fread(&c, 1, 1, slip_device->inslip) != 1) {
+      clearerr(slip_device->inslip);
       /* Put ESC back and give up! */
-      ungetc(SLIP_ESC, inslip);
+      ungetc(SLIP_ESC, slip_device->inslip);
       return;
     }
 
@@ -307,47 +449,43 @@ after_fread:
 
   goto read_more;
 }
-
-unsigned char slip_buf[2048];
-int slip_end, slip_begin, slip_packet_end, slip_packet_count;
-static struct timer send_delay_timer;
-
 /*---------------------------------------------------------------------------*/
 static void
-slip_send(int fd, unsigned char c)
+slip_send(slip_descr_t *slip_device, unsigned char c)
 {
-  if(slip_end >= sizeof(slip_buf)) {
+  if(slip_device->slip_end >= sizeof(slip_device->slip_buf)) {
     LOG6LBR_FATAL("slip_send overflow\n");
     exit(1);
   }
-  slip_buf[slip_end] = c;
-  slip_end++;
+  slip_device->slip_buf[slip_device->slip_end] = c;
+  slip_device->slip_end++;
   slip_sent++;
   if(c == SLIP_END) {
     /* Full packet received. */
-    slip_packet_count++;
-    if(slip_packet_end == 0) {
-      slip_packet_end = slip_end;
+    slip_device->slip_packet_count++;
+    if(slip_device->slip_packet_end == 0) {
+      slip_device->slip_packet_end = slip_device->slip_end;
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-int
-slip_empty()
+static int
+slip_empty(slip_descr_t *slip_device)
 {
-  return slip_packet_end == 0;
+  return slip_device->slip_packet_end == 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_flushbuf(int fd)
+static void
+slip_flushbuf(slip_descr_t *slip_device)
 {
   int n;
 
-  if(slip_empty()) {
+  if(slip_empty(slip_device)) {
     return;
   }
 
-  n = write(fd, slip_buf + slip_begin, slip_packet_end - slip_begin);
+  n = write(slip_device->slipfd, slip_device->slip_buf + slip_device->slip_begin,
+      slip_device->slip_packet_end - slip_device->slip_begin);
 
   if(n == -1 && errno != EAGAIN) {
     LOG6LBR_FATAL("slip_flushbuf::write() : %s\n", strerror(errno));
@@ -355,38 +493,42 @@ slip_flushbuf(int fd)
   } else if(n == -1) {
     PROGRESS("Q");              /* Outqueue is full! */
   } else {
-    slip_begin += n;
-    if(slip_begin == slip_packet_end) {
-      slip_packet_count--;
-      if(slip_end > slip_packet_end) {
-        memcpy(slip_buf, slip_buf + slip_packet_end,
-               slip_end - slip_packet_end);
+    slip_device->slip_begin += n;
+    if(slip_device->slip_begin == slip_device->slip_packet_end) {
+      slip_device->slip_packet_count--;
+      if(slip_device->slip_end > slip_device->slip_packet_end) {
+        memcpy(slip_device->slip_buf, slip_device->slip_buf + slip_device->slip_packet_end,
+            slip_device->slip_end - slip_device->slip_packet_end);
       }
-      slip_end -= slip_packet_end;
-      slip_begin = slip_packet_end = 0;
-      if(slip_end > 0) {
+      slip_device->slip_end -= slip_device->slip_packet_end;
+      slip_device->slip_begin = slip_device->slip_packet_end = 0;
+      if(slip_device->slip_end > 0) {
         /* Find end of next slip packet */
-        for(n = 1; n < slip_end; n++) {
-          if(slip_buf[n] == SLIP_END) {
-            slip_packet_end = n + 1;
+        for(n = 1; n < slip_device->slip_end; n++) {
+          if(slip_device->slip_buf[n] == SLIP_END) {
+            slip_device->slip_packet_end = n + 1;
             break;
           }
         }
         /* a delay between slip packets to avoid losing data */
-        if(sixlbr_config_slip_send_delay > 0) {
-          timer_set(&send_delay_timer, (CLOCK_SECOND * sixlbr_config_slip_send_delay) / 1000);
+        if(slip_device->send_delay > 0) {
+          timer_set(&slip_device->send_delay_timer, (CLOCK_SECOND * slip_device->send_delay) / 1000);
         }
       }
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-write_to_serial(int outfd, const uint8_t * inbuf, int len)
+/* writes an 802.15.4 packet to slip-radio */
+void
+write_to_slip(slip_descr_t *slip_device, const uint8_t * inbuf, int len)
 {
   const uint8_t *p = inbuf;
   int i;
   uint8_t crc;
+  if(slip_device == NULL) {
+    return;
+  }
 
   slip_message_sent++;
 
@@ -400,60 +542,51 @@ write_to_serial(int outfd, const uint8_t * inbuf, int len)
 
   crc = 0;
   for(i = 0; i < len; i++) {
-    if(sixlbr_config_slip_crc8) {
+    if(slip_device->crc8) {
       crc = crc8_add(crc, p[i]);
     }
     switch (p[i]) {
     case SLIP_END:
-      slip_send(outfd, SLIP_ESC);
-      slip_send(outfd, SLIP_ESC_END);
+      slip_send(slip_device, SLIP_ESC);
+      slip_send(slip_device, SLIP_ESC_END);
       break;
     case SLIP_ESC:
-      slip_send(outfd, SLIP_ESC);
-      slip_send(outfd, SLIP_ESC_ESC);
+      slip_send(slip_device, SLIP_ESC);
+      slip_send(slip_device, SLIP_ESC_ESC);
       break;
     default:
-      slip_send(outfd, p[i]);
+      slip_send(slip_device, p[i]);
       break;
     }
   }
-  if(sixlbr_config_slip_crc8) {
+  if(slip_device->crc8) {
     /* Write the checksum byte */
     if(crc == SLIP_END) {
-      slip_send(outfd, SLIP_ESC);
+      slip_send(slip_device, SLIP_ESC);
       crc = SLIP_ESC_END;
     } else if (crc == SLIP_ESC)  {
-      slip_send(outfd, SLIP_ESC);
+      slip_send(slip_device, SLIP_ESC);
       crc = SLIP_ESC_ESC;
     }
-    slip_send(outfd, crc);
+    slip_send(slip_device, crc);
   }
-  slip_send(outfd, SLIP_END);
+  slip_send(slip_device, SLIP_END);
   PROGRESS("t");
 }
 /*---------------------------------------------------------------------------*/
-/* writes an 802.15.4 packet to slip-radio */
-void
-write_to_slip(const uint8_t * buf, int len)
-{
-  if(slipfd > 0) {
-    write_to_serial(slipfd, buf, len);
-  }
-}
-/*---------------------------------------------------------------------------*/
 static void
-stty_telos(int fd)
+stty_telos(slip_descr_t *slip_device)
 {
   struct termios tty;
-  speed_t speed = sixlbr_config_slip_baud_rate;
+  speed_t speed = slip_device->baud_rate;
   int i;
 
-  if(tcflush(fd, TCIOFLUSH) == -1) {
+  if(tcflush(slip_device->slipfd, TCIOFLUSH) == -1) {
     LOG6LBR_FATAL("tcflush() : %s\n", strerror(errno));
     exit(1);
   }
 
-  if(tcgetattr(fd, &tty) == -1) {
+  if(tcgetattr(slip_device->slipfd, &tty) == -1) {
     LOG6LBR_FATAL("tcgetattr() : %s\n", strerror(errno));
     exit(1);
   }
@@ -463,7 +596,7 @@ stty_telos(int fd)
   /* Nonblocking read. */
   tty.c_cc[VTIME] = 0;
   tty.c_cc[VMIN] = 0;
-  if(sixlbr_config_slip_flowcontrol) {
+  if(slip_device->flowcontrol) {
     tty.c_cflag |= CRTSCTS;
   } else {
     tty.c_cflag &= ~CRTSCTS;
@@ -474,7 +607,7 @@ stty_telos(int fd)
   cfsetispeed(&tty, speed);
   cfsetospeed(&tty, speed);
 
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) {
+  if(tcsetattr(slip_device->slipfd, TCSAFLUSH, &tty) == -1) {
     LOG6LBR_FATAL("tcsetattr() : %s\n", strerror(errno));
     exit(1);
   }
@@ -484,20 +617,20 @@ stty_telos(int fd)
   /* if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) err(1, "fcntl"); */
 
   tty.c_cflag |= CLOCAL;
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) {
+  if(tcsetattr(slip_device->slipfd, TCSAFLUSH, &tty) == -1) {
     LOG6LBR_FATAL("tcsetattr() : %s\n", strerror(errno));
     exit(1);
   }
 
-  if(sixlbr_config_slip_dtr_rts_set) {
+  if(slip_device->dtr_rts_set) {
     i = TIOCM_DTR;
-    if(ioctl(fd, TIOCMBIS, &i) == -1) {
+    if(ioctl(slip_device->slipfd, TIOCMBIS, &i) == -1) {
       LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
       exit(1);
     }
   } else {
     i = TIOCM_DTR | TIOCM_RTS;
-    if(ioctl(fd, TIOCMBIC, &i) == -1) {
+    if(ioctl(slip_device->slipfd, TIOCMBIC, &i) == -1) {
       LOG6LBR_FATAL("ioctl() : %s\n", strerror(errno));
       exit(1);
     }
@@ -507,7 +640,7 @@ stty_telos(int fd)
   usleep(10 * 1000);            /* Wait for hardware 10ms. */
 
   /* Flush input and output buffers. */
-  if(tcflush(fd, TCIOFLUSH) == -1) {
+  if(tcflush(slip_device->slipfd, TCIOFLUSH) == -1) {
     LOG6LBR_FATAL("tcflush() : %s\n", strerror(errno));
     exit(1);
   }
@@ -516,91 +649,150 @@ stty_telos(int fd)
 static int
 set_fd(fd_set * rset, fd_set * wset)
 {
-  /* Anything to flush? */
-  if(!slip_empty() && (sixlbr_config_slip_send_delay == 0 || timer_expired(&send_delay_timer))) {
-    FD_SET(slipfd, wset);
+  int i;
+  for(i = 0; i < SLIP_MAX_DEVICE; ++i) {
+    if(slip_devices[i].isused) {
+      /* Anything to flush? */
+      if(!slip_empty(&slip_devices[i]) && (slip_devices[i].send_delay == 0 || timer_expired(&slip_devices[i].send_delay_timer))) {
+        FD_SET(slip_devices[i].slipfd, wset);
+      }
+      FD_SET(slip_devices[i].slipfd, rset);         /* Read from slip ASAP! */
+    }
   }
-
-  FD_SET(slipfd, rset);         /* Read from slip ASAP! */
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
 handle_fd(fd_set * rset, fd_set * wset)
 {
-  if(FD_ISSET(slipfd, rset)) {
-    serial_input(inslip);
-  }
+  int i;
+  for(i = 0; i < SLIP_MAX_DEVICE; ++i) {
+    if(slip_devices[i].isused) {
+      if(FD_ISSET(slip_devices[i].slipfd, rset)) {
+        serial_input(&slip_devices[i]);
+        // We must manually clear the flag as the main loop will call again
+        // this function for each file handle.
+        FD_CLR(slip_devices[i].slipfd, rset);
+      }
 
-  if(FD_ISSET(slipfd, wset)) {
-    slip_flushbuf(slipfd);
+      if(FD_ISSET(slip_devices[i].slipfd, wset)) {
+        slip_flushbuf(&slip_devices[i]);
+        // Same problem as above
+        FD_CLR(slip_devices[i].slipfd, wset);
+      }
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
 static const struct select_callback slip_callback = { set_fd, handle_fd };
 /*---------------------------------------------------------------------------*/
 void
-slip_init(void)
+slip_init_dev(slip_descr_t *slip_device)
 {
-  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
-
-  if(sixlbr_config_slip_host != NULL) {
-    if(sixlbr_config_slip_port == NULL) {
-      sixlbr_config_slip_port = "60001";
+  if(slip_device->host != NULL) {
+    if(slip_device->port == NULL) {
+      slip_device->port = "60001";
     }
-    slipfd = connect_to_server(sixlbr_config_slip_host, sixlbr_config_slip_port);
-    if(slipfd == -1) {
-      LOG6LBR_FATAL("can't connect to %s:%s\n", sixlbr_config_slip_host,
-          sixlbr_config_slip_port);
+    slip_device->slipfd = connect_to_server(slip_device->host, slip_device->port);
+    if(slip_device->slipfd == -1) {
+      LOG6LBR_FATAL("can't connect to %s:%s\n", slip_device->host,
+          slip_device->port);
       exit(1);
     }
 
-  } else if(sixlbr_config_slip_device != NULL) {
-    if(strcmp(sixlbr_config_slip_device, "null") == 0) {
+  } else if(slip_device->siodev != NULL) {
+    if(strcmp(slip_device->siodev, "null") == 0) {
       /* Disable slip */
       return;
     }
-    slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
-    if(slipfd == -1) {
-      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", sixlbr_config_slip_device, strerror(errno));
+    slip_device->slipfd = devopen(slip_device->siodev, O_RDWR | O_NONBLOCK);
+    if(slip_device->slipfd == -1) {
+      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", slip_device->siodev, strerror(errno));
       exit(1);
     }
 
   } else {
-    static const char *siodevs[] = {
-      "ttyUSB0", "cuaU0", "ucom0"       /* linux, fbsd6, fbsd5 */
-    };
-    int i;
-
-    for(i = 0; i < 3; i++) {
-      sixlbr_config_slip_device = siodevs[i];
-      slipfd = devopen(sixlbr_config_slip_device, O_RDWR | O_NONBLOCK);
-      if(slipfd != -1) {
-        break;
-      }
-    }
-    if(slipfd == -1) {
-      LOG6LBR_FATAL("can't open siodev : %s\n", strerror(errno));
-      exit(1);
-    }
+    LOG6LBR_FATAL("No slip device defined");
+    exit(1);
   }
 
-  select_set_callback(slipfd, &slip_callback);
+  select_set_callback(slip_device->slipfd, &slip_callback);
 
-  if(sixlbr_config_slip_host != NULL) {
-    LOG6LBR_INFO("SLIP opened to %s:%s\n", sixlbr_config_slip_host,
-           sixlbr_config_slip_port);
+  if(slip_device->host != NULL) {
+    LOG6LBR_INFO("SLIP opened to %s:%s\n", slip_device->host,
+           slip_device->port);
   } else {
-    LOG6LBR_INFO("SLIP started on /dev/%s\n", sixlbr_config_slip_device);
-    stty_telos(slipfd);
+    LOG6LBR_INFO("SLIP started on /dev/%s\n", slip_device->siodev);
+    stty_telos(slip_device);
   }
 
-  timer_set(&send_delay_timer, 0);
-  slip_send(slipfd, SLIP_END);
-  inslip = fdopen(slipfd, "r");
-  if(inslip == NULL) {
+  timer_set(&slip_device->send_delay_timer, 0);
+  slip_send(slip_device, SLIP_END);
+  slip_device->inslip = fdopen(slip_device->slipfd, "r");
+  if(slip_device->inslip == NULL) {
     LOG6LBR_FATAL("main: fdopen: %s\n", strerror(errno));
     exit(1);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+slip_init_all_dev(void)
+{
+  int i;
+  for(i = 0; i < SLIP_MAX_DEVICE; ++i) {
+    if(slip_devices[i].isused) {
+      slip_init_dev(&slip_devices[i]);
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+slip_descr_t *
+slip_new_device(void)
+{
+  int i = 0;
+  while(i < SLIP_MAX_DEVICE && slip_devices[i].isused == 1) {
+    i++;
+  }
+  if(i < SLIP_MAX_DEVICE) {
+    memset(&slip_devices[i], 0, sizeof(slip_devices[i]));
+    slip_devices[i].isused = 1;
+    slip_devices[i].flowcontrol = SIXLBR_CONFIG_DEFAULT_SLIP_FLOW_CONTROL;
+    slip_devices[i].siodev = SIXLBR_CONFIG_DEFAULT_SLIP_DEVICE;
+    slip_devices[i].host = SIXLBR_CONFIG_DEFAULT_SLIP_HOST;
+    slip_devices[i].port = SIXLBR_CONFIG_DEFAULT_SLIP_PORT;
+    slip_devices[i].baud_rate = SIXLBR_CONFIG_DEFAULT_SLIP_BAUD_RATE;
+    slip_devices[i].dtr_rts_set = SIXLBR_CONFIG_DEFAULT_SLIP_DTR_RTS_SET;
+    slip_devices[i].send_delay = SIXLBR_CONFIG_DEFAULT_SLIP_SEND_DELAY;
+    slip_devices[i].timeout = SIXLBR_CONFIG_DEFAULT_SLIP_TIMEOUT;
+    slip_devices[i].retransmit = SIXLBR_CONFIG_DEFAULT_SLIP_RETRANSMIT;
+    slip_devices[i].serialize_tx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX;
+    slip_devices[i].deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX;
+    slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
+    //Temporary until proper multi mac layer configuration
+    slip_devices[i].ifindex = network_itf_register(NETWORK_ITF_TYPE_802154, &CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC);
+    LOG6LBR_INFO("Allocated slip device %d -> %d\n", i, slip_devices[i].ifindex);
+
+    return &slip_devices[i];
+  } else {
+    return NULL;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+slip_init(void)
+{
+  memset(slip_devices, 0, sizeof(slip_devices));
+  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
+}
+/*---------------------------------------------------------------------------*/
+void
+slip_close(void)
+{
+  int i;
+  for(i = 0; i < SLIP_MAX_DEVICE; ++i) {
+    if(slip_devices[i].isused) {
+      slip_flushbuf(&slip_devices[i]);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

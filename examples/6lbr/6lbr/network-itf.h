@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,41 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#ifndef NETWORK_ITF_H_
+#define NETWORK_ITF_H_
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "contiki-conf.h"
+#include "net/ip/uip.h"
 
-extern int native_args_handle_arguments(int argc, char **argv);
+#define NETWORK_ITF_TYPE_NONE 0
+#define NETWORK_ITF_TYPE_ETHERNET 1
+#define NETWORK_ITF_TYPE_802154 2
+
+#define NETWORK_ITF_NBR 3
+
+typedef struct {
+  uint8_t itf_type;
+  const struct mac_driver *mac;
+  uip_lladdr_t mac_addr;
+} network_itf_t;
+
+void
+network_itf_init(void);
+
+uint8_t
+network_itf_register(uint8_t itf_type, const struct mac_driver *mac);
+
+network_itf_t *
+network_itf_get_itf(uint8_t ifindex);
+
+void
+network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address);
+
+int
+network_itf_known_mac(uip_lladdr_t *mac_address);
 
 #endif

@@ -105,7 +105,7 @@ PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo
 PROJECT_SOURCEFILES += dtls-echo.c
 endif
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-filter.c sicslow-ethernet.c nvm-config.c mac-wrapper.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-forwarding-engine.c sicslow-ethernet.c nvm-config.c mac-wrapper.c switch-lookup.c network-itf.c multi-radio.c
 
 ifeq ($(WITH_LLSEC),1)
 CFLAGS += -DWITH_LLSEC=1

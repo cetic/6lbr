@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,47 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#define LOG6LBR_MODULE "SWITCH"
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "contiki.h"
+#include "uip-ds6-nbr.h"
+#include "switch-lookup.h"
 
-extern int native_args_handle_arguments(int argc, char **argv);
+#include "log-6lbr.h"
 
+void
+switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex)
+{
+#if UIP_SWITCH_LOOKUP
+  if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
+    uip_ds6_nbr_t *nbr;
+    nbr = uip_ds6_nbr_ll_lookup(lladdr);
+    if(nbr) {
+      nbr->ifindex = ifindex;
+    } else {
+      LOG6LBR_LLADDR(PACKET, lladdr, "No neighbor found for ");
+    }
+  } else {
+    LOG6LBR_DEBUG("Can not learn broadcast or null addr\n");
+  }
 #endif
+}
+
+uint8_t
+switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
+{
+#if UIP_SWITCH_LOOKUP
+  if(lladdr != NULL && !linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null)) {
+    uip_ds6_nbr_t *nbr;
+    nbr = uip_ds6_nbr_ll_lookup(lladdr);
+    if(nbr) {
+      return nbr->ifindex;
+    }
+  }
+#endif
+  return SWITCH_LOOKUP_NO_ITF;
+}

@@ -42,6 +42,7 @@
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "slip-dev.h"
 #include "native-rdc.h"
 #include "native-config-file.h"
 #include "native-config-handlers.h"
@@ -64,7 +65,9 @@ reload_trigger(int signal)
 void
 platform_init(void)
 {
-  slip_config_handle_arguments(contiki_argc, contiki_argv);
+  //Must be initialized first to allocate the slip config structures
+  slip_init();
+  native_args_handle_arguments(contiki_argc, contiki_argv);
   if (sixlbr_config_watchdog_interval) {
     process_start(&native_6lbr_watchdog, NULL);
   } else {

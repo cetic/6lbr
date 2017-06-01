@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +28,21 @@
  */
 
 /**
- * \file
- *         Header file for the native configuration
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef NATIVE_ARGS_H_
-#define NATIVE_ARGS_H_
+#ifndef SWITCH_LOOKUP_H_
+#define SWITCH_LOOKUP_H_
 
-extern int contiki_argc;
-extern char **contiki_argv;
+#include "contiki-conf.h"
 
-extern int native_args_handle_arguments(int argc, char **argv);
+#define SWITCH_LOOKUP_NO_ITF ((uint8_t)-1)
+
+void
+switch_lookup_learn_addr(const uip_lladdr_t *lladdr, uint8_t ifindex);
+
+uint8_t
+switch_lookup_get_itf_for(const uip_lladdr_t *lladdr);
 
 #endif
