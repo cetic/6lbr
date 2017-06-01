@@ -256,7 +256,6 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
         if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
           multi_radio_output_ifindex = ifindex;
           memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
-          LOG6LBR_LLADDR(INFO, &network_itf->mac_addr, "Broadcast to %d ", multi_radio_output_ifindex);
           ret = wireless_outputfunc(dest);
         }
       }
