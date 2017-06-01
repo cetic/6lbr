@@ -151,6 +151,11 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       watchdog_reboot();
 #endif
       return 1;
+    } else if(data[1] == 'P' && len == 4) {
+      uint16_t pan_id = data[2] + (data[3] << 8);
+      PRINTF("CMD: setting pan-id: %x\n", pan_id);
+      frame802154_set_pan_id(pan_id);
+      return 1;
     }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
@@ -164,7 +169,15 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 10;
       cmd_send(uip_buf, uip_len);
       return 1;
-    }
+    } else if(data[1] == 'P' && len == 2) {
+		uint16_t pan_id = frame802154_get_pan_id();
+		uip_buf[0] = '!'; uip_buf[1] = 'P';
+		uip_buf[2] = pan_id & 0xFF;
+		uip_buf[3] = (pan_id >> 8) & 0xFF;
+		uip_len = 4;
+		cmd_send(uip_buf, uip_len);
+		return 1;
+	}
   }
   return 0;
 }
