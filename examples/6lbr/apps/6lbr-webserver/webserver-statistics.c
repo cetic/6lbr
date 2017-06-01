@@ -44,17 +44,14 @@
 #include "webserver-utils.h"
 
 #if CONTIKI_TARGET_NATIVE
+#include "native-config.h"
+#include "native-rdc.h"
 #include "network-itf.h"
 #include "slip-dev.h"
 #endif
 
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
-
-
-#if CONTIKI_TARGET_NATIVE
-#include "native-rdc.h"
-#endif
 
 #if CETIC_CSMA_STATS
 #include "csma.h"
@@ -167,8 +164,11 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<h3>RPL statistics are deactivated</h3>");
 #endif
 #endif /* UIP_CONF_IPV6_RPL */
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
 #if CETIC_CSMA_STATS
-
   add("<h2>CSMA</h2>");
   add("Allocated packets : %d<br />", csma_allocated_packets());
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
@@ -188,6 +188,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+  }
 #if CETIC_6LBR_LLSEC_STATS
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     add("<h2>LLSEC</h2>");
