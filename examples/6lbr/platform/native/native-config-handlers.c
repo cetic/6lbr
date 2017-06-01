@@ -101,6 +101,18 @@ static int native_config_native_handler(config_level_t level, void* user, const 
       slip_default_device->crc8 = atoi(value);
     }
     return 1;
+  } else if(strcmp(name, "slip.reboot") == 0) {
+    SET_FLAG(slip_default_device->features, SLIP_RADIO_FEATURE_REBOOT, atoi(value));
+    return 1;
+  } else if(strcmp(name, "slip.channel") == 0) {
+    SET_FLAG(slip_default_device->features, SLIP_RADIO_FEATURE_CHANNEL, atoi(value));
+    return 1;
+  } else if(strcmp(name, "slip.pan_id") == 0) {
+    SET_FLAG(slip_default_device->features, SLIP_RADIO_FEATURE_PAN_ID, atoi(value));
+    return 1;
+  } else if(strcmp(name, "slip.null_mac") == 0) {
+    SET_FLAG(slip_default_device->features, SLIP_RADIO_FEATURE_NULL_MAC, atoi(value));
+    return 1;
   } else if(strcmp(name, "slip.ip") == 0) {
     sixlbr_config_slip_ip = atoi(value);
     return 1;
@@ -170,6 +182,18 @@ static int native_config_slip_radio_handler(config_level_t level, void* user, co
     return 1;
   } else if(strcmp(name, "crc8") == 0) {
     slip_device->crc8 = atoi(value);
+    return 1;
+  } else if(strcmp(name, "reboot") == 0) {
+    SET_FLAG(slip_device->features, SLIP_RADIO_FEATURE_REBOOT, atoi(value));
+    return 1;
+  } else if(strcmp(name, "channel") == 0) {
+    SET_FLAG(slip_device->features, SLIP_RADIO_FEATURE_CHANNEL, atoi(value));
+    return 1;
+  } else if(strcmp(name, "pan_id") == 0) {
+    SET_FLAG(slip_device->features, SLIP_RADIO_FEATURE_PAN_ID, atoi(value));
+    return 1;
+  } else if(strcmp(name, "null_mac") == 0) {
+    SET_FLAG(slip_device->features, SLIP_RADIO_FEATURE_NULL_MAC, atoi(value));
     return 1;
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);

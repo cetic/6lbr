@@ -369,14 +369,15 @@ slip_set_mac(linkaddr_t const * mac_addr)
 	int i;
     //Temporary workaround, we always use the mac of the first radio
 	slip_descr_t *slip_device = find_slip_dev(0);
-
-    LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC %d : ", slip_device->ifindex);
-	buffer[0] = '!';
-	buffer[1] = 'M';
-    for(i = 0; i < 8; i++) {
-    	buffer[2 + i] = mac_addr->u8[i];
+    if(mac_addr != &linkaddr_null || (slip_device->features & SLIP_RADIO_FEATURE_NULL_MAC) != 0) {
+      LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC %d : ", slip_device->ifindex);
+      buffer[0] = '!';
+      buffer[1] = 'M';
+      for(i = 0; i < 8; i++) {
+          buffer[2 + i] = mac_addr->u8[i];
+      }
+      write_to_slip(slip_device, buffer, 10);
     }
-    write_to_slip(slip_device, buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -452,7 +453,9 @@ PROCESS_THREAD(native_rdc_process, ev, data)
       network_itf_t *network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
         slip_device = get_slip_device(ifindex);
-        slip_reboot(slip_device);
+        if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
+          slip_reboot(slip_device);
+        }
         radio_mac_addr_ready = 0;
         while(!radio_mac_addr_ready) {
           etimer_set(&et, CLOCK_SECOND);
@@ -460,16 +463,20 @@ PROCESS_THREAD(native_rdc_process, ev, data)
           PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
         }
         //Set radio channel and PAN-ID
-        slip_set_rf_channel(nvm_data.channel, buf, &len);
-        PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
-        if(status != 0) {
-          LOG6LBR_ERROR("Set channel failed\n");
+        if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
+          slip_set_rf_channel(nvm_data.channel, buf, &len);
+          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          if(status != 0) {
+            LOG6LBR_ERROR("Set channel failed\n");
+          }
         }
-        frame802154_set_pan_id(nvm_data.pan_id);
-        slip_set_pan_id(nvm_data.pan_id, buf, &len);
-        PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
-        if(status != 0) {
-          LOG6LBR_ERROR("Set PAN-ID failed\n");
+        if((slip_device->features & SLIP_RADIO_FEATURE_PAN_ID) != 0) {
+          frame802154_set_pan_id(nvm_data.pan_id);
+          slip_set_pan_id(nvm_data.pan_id, buf, &len);
+          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          if(status != 0) {
+            LOG6LBR_ERROR("Set PAN-ID failed\n");
+          }
         }
       }
     }

@@ -47,9 +47,6 @@ slipnet_init(void)
 void
 slip_send_packet(const uint8_t *ptr, int len)
 {
-  uint16_t i;
-  uint8_t c;
-
 #if !SLIP_RADIO_CONF_NO_PUTCHAR
   if(slip_debug_frame) {
     slip_debug_frame = 0;

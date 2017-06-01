@@ -43,13 +43,15 @@
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 
+#if CONTIKI_TARGET_NATIVE
+#include "native-config.h"
+#include "native-rdc.h"
+#include "network-itf.h"
+#include "slip-dev.h"
+#endif
+
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
-
-
-#if CONTIKI_TARGET_NATIVE
-#include "native-rdc.h"
-#endif
 
 #if CETIC_CSMA_STATS
 #include "csma.h"
@@ -59,14 +61,6 @@
 #include "net/llsec/noncoresec/noncoresec.h"
 #endif
 
-#if CONTIKI_TARGET_NATIVE
-extern uint32_t slip_sent;
-extern uint32_t slip_received;
-extern uint32_t slip_message_sent;
-extern uint32_t slip_message_received;
-extern uint32_t slip_crc_errors;
-#endif
-
 #define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)
 
 #define PRINT_RPL_STAT(name, text) add(text " : %d<br />", rpl_stats.name)
@@ -74,6 +68,10 @@ extern uint32_t slip_crc_errors;
 static
 PT_THREAD(generate_statistics(struct httpd_state *s))
 {
+#if CONTIKI_TARGET_NATIVE
+  static uint8_t ifindex;
+  static slip_descr_t *slip_device;
+#endif
   PSOCK_BEGIN(&s->sout);
 
   add("<h2>IP</h2>");
@@ -166,8 +164,11 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<h3>RPL statistics are deactivated</h3>");
 #endif
 #endif /* UIP_CONF_IPV6_RPL */
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
 #if CETIC_CSMA_STATS
-
   add("<h2>CSMA</h2>");
   add("Allocated packets : %d<br />", csma_allocated_packets());
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
@@ -186,6 +187,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+  }
 #if CETIC_6LBR_LLSEC_STATS
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     add("<h2>LLSEC</h2>");
@@ -198,26 +200,37 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
     reset_buf();
   }
 #endif
-  add("<h2>RDC</h2>");
 #if CONTIKI_TARGET_NATIVE
+  add("<h2>RDC</h2>");
   add("Callback count : %d<br />", callback_count);
   add("Ack timeout : %d<br />", native_rdc_ack_timeout);
   add("Parse error : %d<br />", native_rdc_parse_error);
-#endif
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");
-  add("Messages sent : %d<br />", slip_message_sent);
-  add("Messages received : %d<br />", slip_message_received);
-  add("Bytes sent : %d<br />", slip_sent);
-  add("Bytes received : %d<br />", slip_received);
-  add("CRC errors : %d<br />", slip_crc_errors);
-  add("<br />");
+  for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+    network_itf_t *network_itf = network_itf_get_itf(ifindex);
+    if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+      slip_device = find_slip_dev(ifindex);
+      if(slip_device != NULL) {
+        add("<h3>slip-%d</h3>", ifindex);
+        add("Messages sent : %d<br />", slip_device->message_sent);
+        add("Messages received : %d<br />", slip_device->message_received);
+        add("Bytes sent : %d<br />", slip_device->bytes_sent);
+        add("Bytes received : %d<br />", slip_device->bytes_received);
+        if(slip_device->crc8) {
+          add("CRC errors : %d<br />", slip_device->crc_errors);
+        }
+        add("<br />");
+        SEND_STRING(&s->sout, buf);
+        reset_buf();
+      }
+    }
+  }
 #endif
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
 
   PSOCK_END(&s->sout);
 }
