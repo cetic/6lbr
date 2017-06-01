@@ -154,6 +154,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<form action=\"config\" method=\"get\">");
   add("<h2>WSN Network</h2>");
 #if !CETIC_6LBR_ONE_ITF
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
 #if !CONTIKI_TARGET_NATIVE
@@ -195,8 +199,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#endif
-
+  }
+#endif /* CETIC_6LBR_ONE_ITF */
   add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   INPUT_FLAG_CB("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network autoconfiguration");
@@ -209,11 +213,19 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
 #endif
-  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context 0");
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
+  add("<br /><h3>6LoWPAN configuration</h3>");
+  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context 0");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  }
   add("<h3>Extra configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");

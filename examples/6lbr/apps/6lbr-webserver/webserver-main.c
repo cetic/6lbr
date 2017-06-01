@@ -53,6 +53,9 @@
 #if CETIC_6LBR_MULTI_RADIO
 #include "network-itf.h"
 #endif
+#if CONTIKI_TARGET_NATIVE
+#include "native-config.h"
+#endif
 
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
@@ -141,6 +144,10 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("<br /><h2>WSN</h2>");
 #if !CETIC_6LBR_ONE_ITF
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip) //Temporary until slip-ip is merged into network-itf
+#endif
+  {
 #if CETIC_6LBR_MAC_WRAPPER
   add("MAC: %s<br />", mac_wrapper_name());
 #else
@@ -155,6 +162,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #else
   add("Security: %s<br />", NETSTACK_LLSEC.name);
 #endif
+  }
 #if CETIC_6LBR_MULTI_RADIO
   uint8_t ifindex;
   for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
