@@ -29,8 +29,8 @@
 
 /**
  * \file
- *         Packet Filter for 6LBR.
- *         Enables dual-interfaces (IEEE802.15.4 and Ethernet) under the
+ *         Packet Forwarding Engine for 6LBR.
+ *         Enables multi-interfaces (IEEE802.15.4 and Ethernet) under the
  *         single-interface uIP stack.
  *         More information:
  *           https://github.com/cetic/6lbr/wiki/Implementation-Details
@@ -38,7 +38,7 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "PF"
+#define LOG6LBR_MODULE "PFE"
 
 #include "contiki-net.h"
 #include "net/ipv6/uip-ds6.h"
