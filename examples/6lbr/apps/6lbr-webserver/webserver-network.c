@@ -301,7 +301,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 #endif
 
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
-  add("<pre><h2>6LoWPAN Prefix contexts</h2><pre>");
+  add("</pre><h2>6LoWPAN Prefix contexts</h2><pre>");
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if(addr_contexts[i].used == 1) {
       add("%d : ", addr_contexts[i].number);
