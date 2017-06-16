@@ -63,6 +63,21 @@ static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
  */
 static const uint16_t mac_src_pan_id = IEEE802154_PANID;
 /*---------------------------------------------------------------------------*/
+/* Get current PAN ID */
+uint16_t
+no_framer_get_pan_id(void)
+{
+  return mac_src_pan_id;
+}
+/*---------------------------------------------------------------------------*/
+/* Set current PAN ID */
+void
+no_framer_set_pan_id(uint16_t pan_id)
+{
+  mac_dst_pan_id = pan_id;
+  mac_src_pan_id = pan_id;
+}
+/*---------------------------------------------------------------------------*/
 static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr)
 {

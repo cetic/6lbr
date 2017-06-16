@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2017, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,13 @@
  *
  */
 
-#ifndef SLIP_RADIO_H_
-#define SLIP_RADIO_H_
+#ifndef NO_FRAMER_H_
+#define NO_FRAMER_H_
 
-/*---------------------------------------------------------------------------*/
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+/* Get current PAN ID */
+uint16_t no_framer_get_pan_id(void);
 
-/*---------------------------------------------------------------------------*/
-struct slip_radio_sensors {
-  /** Initialize the driver */
-  void (* init)(void);
-  /** Send the sensor data packet via the command send */
-  void (* send)(void);
-};
+/* Set current PAN ID */
+void no_framer_set_pan_id(uint16_t pan_id);
 
-#endif /* SLIP_RADIO_H_ */
+#endif /* NO_FRAMER_H_ */
