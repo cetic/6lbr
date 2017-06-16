@@ -150,6 +150,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       watchdog_reboot();
 #endif
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
     } else if(data[1] == 'P' && len == 4) {
       uint16_t pan_id = data[2] + (data[3] << 8);
       PRINTF("CMD: setting pan-id: %x\n", pan_id);
@@ -161,6 +162,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uint8_t channel = data[2];
       NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
       return 1;
+#endif
     }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
@@ -174,6 +176,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 10;
       cmd_send(uip_buf, uip_len);
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
     } else if(data[1] == 'P' && len == 2) {
       uint16_t pan_id = no_framer_get_pan_id();
       uip_buf[0] = '!'; uip_buf[1] = 'P';
@@ -191,6 +194,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 3;
       cmd_send(uip_buf, uip_len);
       return 1;
+#endif
     }
   }
   return 0;
