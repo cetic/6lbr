@@ -50,11 +50,6 @@ cmd_handler_cooja(const uint8_t *data, int len)
       //Enable radio
       NETSTACK_RDC.off(1);
       return 1;
-    } else if(data[1] == 'P' && len == 4) {
-      uint16_t pan_id = data[2] + (data[3] << 8);
-      printf("cooja_cmd: setting pan-id: %x\n", pan_id);
-      frame802154_set_pan_id(pan_id);
-      return 1;
     } else if(data[1] == 'M' && len == 10) {
         if(!linkaddr_cmp((linkaddr_t *)(data+2), &linkaddr_null)) {
           printf("cooja_cmd: Got MAC\n");
