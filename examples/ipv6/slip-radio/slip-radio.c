@@ -182,6 +182,15 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 4;
       cmd_send(uip_buf, uip_len);
       return 1;
+    } else if(data[1] == 'C' && len == 2) {
+      radio_value_t value = 0;
+      NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &value);
+      uip_buf[0] = '!';
+      uip_buf[1] = 'C';
+      uip_buf[2] = value;
+      uip_len = 3;
+      cmd_send(uip_buf, uip_len);
+      return 1;
     }
   }
   return 0;
