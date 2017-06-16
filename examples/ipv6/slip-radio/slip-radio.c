@@ -48,6 +48,7 @@
 #include "cmd.h"
 #include "slip-radio.h"
 #include "packetutils.h"
+#include "no-framer.h"
 
 #ifdef SLIP_RADIO_CONF_SENSORS
 extern const struct slip_radio_sensors SLIP_RADIO_CONF_SENSORS;
@@ -67,8 +68,6 @@ int cmd_handler_cc2420(const uint8_t *data, int len);
 int cmd_handler_rf230(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_ECONOTAG
 int cmd_handler_mc1322x(const uint8_t *data, int len);
-#elif CONTIKI_TARGET_CC2538DK
-int cmd_handler_cc2538(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_COOJA
 int cmd_handler_cooja(const uint8_t *data, int len);
 #else /* Leave CC2420 as default */
@@ -151,13 +150,20 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       watchdog_reboot();
 #endif
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
     } else if(data[1] == 'P' && len == 4) {
       uint16_t pan_id = data[2] + (data[3] << 8);
-      PRINTF("setting pan-id: %x\n", pan_id);
+      PRINTF("CMD: setting pan-id: %x\n", pan_id);
       frame802154_set_pan_id(pan_id);
+      no_framer_set_pan_id(pan_id);
       NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, pan_id);
       return 1;
-     }
+    } else if(data[1] == 'C' && len == 3) {
+      uint8_t channel = data[2];
+      NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
+      return 1;
+#endif
+    }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
     if(data[1] == 'M' && len == 2) {
@@ -170,6 +176,25 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 10;
       cmd_send(uip_buf, uip_len);
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
+    } else if(data[1] == 'P' && len == 2) {
+      uint16_t pan_id = no_framer_get_pan_id();
+      uip_buf[0] = '!'; uip_buf[1] = 'P';
+      uip_buf[2] = pan_id & 0xFF;
+      uip_buf[3] = (pan_id >> 8) & 0xFF;
+      uip_len = 4;
+      cmd_send(uip_buf, uip_len);
+      return 1;
+    } else if(data[1] == 'C' && len == 2) {
+      radio_value_t value = 0;
+      NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &value);
+      uip_buf[0] = '!';
+      uip_buf[1] = 'C';
+      uip_buf[2] = value;
+      uip_len = 3;
+      cmd_send(uip_buf, uip_len);
+      return 1;
+#endif
     }
   }
   return 0;

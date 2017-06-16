@@ -80,9 +80,6 @@
 #elif CONTIKI_TARGET_Z1
 /* add the cmd_handler_cc2420 */
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
-#elif CONTIKI_TARGET_CC2538DK
-/* add the cmd_handler_cc2538 */
-#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2538
 #elif CONTIKI_TARGET_NOOLIBERRY
 /* add the cmd_handler_rf230 if TARGET_NOOLIBERRY. Other RF230 platforms can be added */
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_rf230
