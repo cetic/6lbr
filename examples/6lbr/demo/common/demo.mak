@@ -12,10 +12,10 @@ TARGET?=cooja
 SIXLBR_BIN=bin/cetic_6lbr_router
 
 clean-cooja:
-	pushd ${COOJA}; ant clean; popd
+	cd ${COOJA} && ant clean
 
 build-cooja:
-	pushd ${COOJA}; ant jar; popd
+	cd ${COOJA} && ant jar
 
 clean-6lbr:
 	cd $(SIXLBR) && make clean
