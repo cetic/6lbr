@@ -1,6 +1,9 @@
-export CONTIKI=../../../..
-export SIXLBR=${CONTIKI}/examples/6lbr
-export COOJA=${CONTIKI}/tools/cooja
+CONTIKI?=../../../..
+SIXLBR?=${CONTIKI}/examples/6lbr
+COOJA?=${CONTIKI}/tools/cooja
+DEMO=$(SIXLBR)/demo
+
+export CONTIKI SIXLBR COOJA
 
 #export JAVA_HOME=/usr/lib/jvm/default-java
 
@@ -8,8 +11,13 @@ ifeq ($(CSC),)
 	$(error "No CSC configuration file specified")
 endif
 
+SIXLBR_LIST?=6lbr
+
 TARGET?=cooja
 SIXLBR_BIN=bin/cetic_6lbr_router
+
+help:
+	@echo "usage: "
 
 clean-cooja:
 	cd ${COOJA} && ant clean
@@ -24,16 +32,16 @@ build-6lbr:
 	cd $(SIXLBR) && make $(SIXLBR_BIN)
 
 clean-firmwares:
-	cd ../firmwares/slip-radio && $(MAKE) TARGET=$(TARGET) clean
-	cd ../firmwares/node && $(MAKE) TARGET=$(TARGET) clean
+	cd $(DEMO)/firmwares/slip-radio && $(MAKE) TARGET=$(TARGET) clean
+	cd $(DEMO)/firmwares/node && $(MAKE) TARGET=$(TARGET) clean
 	
 clean:
-	rm -f 6lbr/6lbr.ip* 6lbr/6lbr.timestamp 6lbr/nvm.dat
+	for SIXLBR in $(SIXLBR_LIST); do rm -f $$SIXLBR/6lbr.ip* $$SIXLBR/6lbr.timestamp $$SIXLBR/nvm.dat $$SIXLBR/*.so; done
 	rm -rf org
 	rm -f COOJA.*
 
 run:
-	../common/sim.sh $(CSC)
+	$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
 
 clean-all: clean clean-firmwares
 

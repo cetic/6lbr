@@ -2,15 +2,23 @@
 
 # General environment variables
 
-export CONTIKI=../../../..
-export SIXLBR=${CONTIKI}/examples/6lbr
-export COOJA=${CONTIKI}/tools/cooja
+#export CONTIKI=../../../..
+#export SIXLBR=${CONTIKI}/examples/6lbr
+#export COOJA=${CONTIKI}/tools/cooja
 
 #export JAVA_HOME=/usr/lib/jvm/default-java
 
 # Simulation configuration
 
 SETUP=$1
+shift
+
+SIXLBR_LIST=$@
+
+if [ "$SIXLBR_LIST" == "" ]; then
+	SIXLBR_LIST="6lbr"
+fi
+
 DEV_TAP_MAC=02:a:b:c:d:e
 
 function find_xterm() {
@@ -31,12 +39,24 @@ function create-tap() {
 function remove-tap() {
 	sudo tunctl -d $1
 }
+
+function create-bridge() {
+  echo
+}
+
+function remove-bridge() {
+  echo
+}
 	
 function launch-6lbr() {
 	if [[ ! -e $1/nvm.dat && -e $1/nvm.init ]]; then
 		params=`cat $1/nvm.init`
 		${SIXLBR}/tools/nvm_tool --new $1/nvm.dat $params
-	fi 
+	fi
+	for plugin in $SIXLBR_PLUGINS; do
+		cp $plugin $1/
+	done
+	export RUN_6LBR=$1
 	$XTERM -T $1 -e "${SIXLBR}/package/usr/bin/6lbr $1/6lbr.conf" &
 }
 
@@ -50,24 +70,41 @@ function launch-cooja() {
 
 find_xterm
 
-create-tap tap0
+
+TAP_ID=0
+for sixlbr in $SIXLBR_LIST; do
+	create-tap "tap$TAP_ID"
+	TAP_ID=$((TAP_ID + 1))
+done
 
 build-cooja
 launch-cooja
 PID_COOJA=$!
 
-launch-6lbr 6lbr
-PID_6LBR=$!
+TAP_ID=0
+for sixlbr in $SIXLBR_LIST; do
+	echo "Launching '$sixlbr'"
+	launch-6lbr $sixlbr
+	#PID_6LBR=$!
+	TAP_ID=$((TAP_ID + 1))
+done
 
 echo Press enter to close simulation...
 read dummy
 
-kill $PID_6LBR
-wait $PID_6LBR > /dev/null
+#kill $PID_6LBR
+#wait $PID_6LBR > /dev/null
+
 killall 6lbr
 
 kill $PID_COOJA
 wait $PID_COOJA > /dev/null
 
 sleep 1
-remove-tap tap0
+
+TAP_ID=0
+
+for sixlbr in $SIXLBR_LIST; do
+	remove-tap "tap$TAP_ID"
+	TAP_ID=$((TAP_ID + 1))
+done
