@@ -513,7 +513,7 @@ update_hbh_header(void)
           PRINTF("RPL generate No-Path DAO\n");
           parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
           if(parent != NULL) {
-            dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
+            dao_output_target(parent, &UIP_IP_BUF->destipaddr, 128, RPL_ZERO_LIFETIME);
           }
           /* Drop packet */
           return 0;

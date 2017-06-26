@@ -350,7 +350,7 @@ extern rpl_instance_t *default_instance;
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
-void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
+void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t prefixlen, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
 void rpl_icmp6_register_handlers(void);
 uip_ds6_nbr_t *rpl_icmp6_update_nbr_table(uip_ipaddr_t *from,

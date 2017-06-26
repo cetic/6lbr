@@ -83,7 +83,7 @@ static void dao_input(void);
 static void dao_ack_input(void);
 
 static void dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
-				  uint8_t lifetime, uint8_t seq_no);
+				  uint8_t prefixlen, uint8_t lifetime, uint8_t seq_no);
 
 /* some debug callbacks useful when debugging RPL networks */
 #ifdef RPL_DEBUG_DIO_INPUT
@@ -1088,7 +1088,7 @@ handle_dao_retransmission(void *ptr)
 	     handle_dao_retransmission, parent);
 
   instance->my_dao_transmissions++;
-  dao_output_target_seq(parent, &prefix,
+  dao_output_target_seq(parent, &prefix, 128,
 			instance->default_lifetime, instance->my_dao_seqno);
 }
 #endif /* RPL_WITH_DAO_ACK */
@@ -1128,23 +1128,22 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   parent->dag->instance->has_downward_route = lifetime != RPL_ZERO_LIFETIME;
   }
   /* Sending a DAO with own prefix as target */
-  dao_output_target(parent, &prefix, lifetime);
+  dao_output_target(parent, &prefix, 128, lifetime);
 }
 /*---------------------------------------------------------------------------*/
 void
-dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
+dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t prefixlen, uint8_t lifetime)
 {
-  dao_output_target_seq(parent, prefix, lifetime, dao_sequence);
+  dao_output_target_seq(parent, prefix, prefixlen, lifetime, dao_sequence);
 }
 /*---------------------------------------------------------------------------*/
 static void
 dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
-		      uint8_t lifetime, uint8_t seq_no)
+    uint8_t prefixlen, uint8_t lifetime, uint8_t seq_no)
 {
   rpl_dag_t *dag;
   rpl_instance_t *instance;
   unsigned char *buffer;
-  uint8_t prefixlen;
   int pos;
   uip_ipaddr_t *parent_ipaddr = NULL;
   uip_ipaddr_t *dest_ipaddr = NULL;
@@ -1209,7 +1208,6 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 #endif /* RPL_DAO_SPECIFY_DAG */
 
   /* create target subopt */
-  prefixlen = sizeof(*prefix) * CHAR_BIT;
   buffer[pos++] = RPL_OPTION_TARGET;
   buffer[pos++] = 2 + ((prefixlen + 7) / CHAR_BIT);
   buffer[pos++] = 0; /* reserved */
