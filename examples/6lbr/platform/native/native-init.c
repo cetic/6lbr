@@ -135,7 +135,7 @@ cetic_6lbr_save_ip(void)
       LOG6LBR_ERROR("Cannot create ip log file '%s' : %s\n", sixlbr_config_ip_file_name, strerror(errno));
     }
 
-    char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+    char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name) + 1 + 1);
     strcpy(ip4_file_name, sixlbr_config_ip_file_name);
     strcat(ip4_file_name, "4");
     FILE *ip4_config_file = fopen(ip4_file_name, "w");
@@ -161,7 +161,7 @@ cetic_6lbr_clear_ip(void)
     fprintf(ip_config_file, "::\n");
     fclose(ip_config_file);
     if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-      char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+      char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name) + 1 + 1);
       strcpy(ip4_file_name, sixlbr_config_ip_file_name);
       strcat(ip4_file_name, "4");
       FILE *ip4_config_file = fopen(ip4_file_name, "w");
