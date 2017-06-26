@@ -54,6 +54,10 @@
 #include "lib/memb.h"
 #include "sys/ctimer.h"
 
+#if CETIC_6LBR
+#include "6lbr-hooks.h"
+#endif
+
 #include <limits.h>
 #include <string.h>
 
@@ -1288,6 +1292,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   dag = get_dag(dio->instance_id, &dio->dag_id);
   instance = rpl_get_instance(dio->instance_id);
+
+#if CETIC_6LBR
+  if(!cetic_6lbr_dio_input_hook(from, instance, dag, dio)) {
+    return;
+  }
+#endif
 
   if(dag != NULL && instance != NULL) {
     if(lollipop_greater_than(dio->version, dag->version)) {

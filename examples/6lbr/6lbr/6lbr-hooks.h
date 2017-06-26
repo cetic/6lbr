@@ -37,9 +37,32 @@
 #ifndef SIXLBR_HOOKS_H_
 #define SIXLBR_HOOKS_H_
 
+#include "core/net/rpl/rpl-private.h"
+
+/*---------------------------------------------------------------------------*/
+
 typedef int (*cetic_6lbr_allowed_node_hook_t) (rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len);
 
 extern cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook;
 
 extern int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len);
+
+/*---------------------------------------------------------------------------*/
+
+typedef int(*cetic_6lbr_dis_input_hook_t)(void);
+
+extern cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook;
+
+extern int cetic_6lbr_dis_input_default_hook(void);
+
+/*---------------------------------------------------------------------------*/
+
+typedef int (*cetic_6lbr_dio_input_hook_t)(uip_ipaddr_t *from, rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio);
+
+extern cetic_6lbr_dio_input_hook_t cetic_6lbr_dio_input_hook;
+
+extern int cetic_6lbr_dio_input_default_hook(uip_ipaddr_t *from, rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio);
+
+/*---------------------------------------------------------------------------*/
+
 #endif

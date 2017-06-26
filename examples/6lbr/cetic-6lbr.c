@@ -45,6 +45,7 @@
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -130,6 +131,9 @@ uint8_t wsn_net_prefix_len;
 uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 rpl_dag_t *cetic_dag;
+int rpl_fast_startup = 1;
+int rpl_wait_delay = 10 * CLOCK_SECOND;
+int rpl_ignore_other_dodags = 1;
 
 // Eth
 ethaddr_t eth_mac_addr;
@@ -148,8 +152,17 @@ static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
+/*---------------------------------------------------------------------------*/
 //Hooks
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
+cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook = cetic_6lbr_dis_input_default_hook;
+cetic_6lbr_dio_input_hook_t cetic_6lbr_dio_input_hook = cetic_6lbr_dio_input_default_hook;
+
+/*---------------------------------------------------------------------------*/
+static struct ctimer create_dodag_root_timer;
+static struct uip_ds6_notification create_dodag_root_route_callback;
+static clock_time_t dodag_root_check_interval;
+#define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_client_process);
@@ -344,7 +357,7 @@ cetic_6lbr_init(void)
 }
 
 void
-cetic_6lbr_init_finalize(void)
+cetic_6lbr_start_dodag_root(void)
 {
 #if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
   if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
@@ -383,7 +396,121 @@ cetic_6lbr_init_finalize(void)
   if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
     uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
   }
+}
 
+void
+cetic_6lbr_end_dodag_root(rpl_instance_t *instance)
+{
+  LOG6LBR_INFO("Leaving DODAG root\n");
+  rpl_local_repair(instance);
+  dio_output(instance, NULL);
+  rpl_free_dag(instance->current_dag);
+  rpl_free_instance(instance);
+}
+
+int
+is_dodag_available(void)
+{
+  rpl_dag_t *dag;
+  dag = rpl_get_any_dag();
+  if(dag != NULL) {
+    if(dag->rank != INFINITE_RANK) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+int
+is_own_dodag(void)
+{
+  rpl_dag_t *dag;
+
+  dag = rpl_get_any_dag();
+  if(dag != NULL) {
+    if(dag->rank != INFINITE_RANK && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+static void
+check_dodag_creation(void *data)
+{
+  if(!is_dodag_available()) {
+    LOG6LBR_INFO("No DODAGs found\n");
+    uip_ds6_notification_rm(&create_dodag_root_route_callback);
+    cetic_6lbr_start_dodag_root();
+  } else if(is_own_dodag()) {
+    LOG6LBR_INFO("Own DODAG already existing\n");
+    uip_ds6_notification_rm(&create_dodag_root_route_callback);
+    cetic_6lbr_start_dodag_root();
+  } else if(rpl_ignore_other_dodags) {
+    LOG6LBR_INFO("Ignoring other DODAGs\n");
+    uip_ds6_notification_rm(&create_dodag_root_route_callback);
+    cetic_6lbr_start_dodag_root();
+  } else {
+    //Another DODAG is present on the network, stay as simple router
+    ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+  }
+}
+
+static void
+route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr, int numroutes)
+{
+  if(event == UIP_DS6_NOTIFICATION_DEFRT_ADD) {
+    if(route != NULL && ipaddr != NULL &&
+       !uip_is_addr_unspecified(route) &&
+       !uip_is_addr_unspecified(ipaddr)) {
+      check_dodag_creation(NULL);
+    }
+  }
+}
+
+int
+cetic_6lbr_dis_input_default_hook(void)
+{
+  return 1;
+}
+
+int
+cetic_6lbr_dio_input_default_hook(uip_ipaddr_t *from, rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio)
+{
+  return 1;
+}
+
+void
+cetic_6lbr_start_delayed_dodag_root(int send_dis)
+{
+  if(is_own_dodag()) {
+    LOG6LBR_INFO("Own DODAG already existing\n");
+    cetic_6lbr_start_dodag_root();
+  } else {
+    dodag_root_check_interval = rpl_wait_delay / 2 + random_rand() % (rpl_wait_delay / 2);
+    LOG6LBR_INFO("Wait for potential DODAGs\n");
+    ctimer_set(&create_dodag_root_timer, dodag_root_check_interval, check_dodag_creation, NULL);
+    uip_ds6_notification_add(&create_dodag_root_route_callback, route_callback);
+    if(send_dis) {
+      dis_output(NULL);
+    }
+  }
+}
+
+void
+cetic_6lbr_init_finalize(void)
+{
+  if(rpl_fast_startup) {
+    cetic_6lbr_start_dodag_root();
+  } else {
+    cetic_6lbr_start_delayed_dodag_root(1);
+  }
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");

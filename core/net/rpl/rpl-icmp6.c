@@ -162,6 +162,13 @@ dis_input(void)
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
 
+#if CETIC_6LBR
+  if(!cetic_6lbr_dis_input_hook()) {
+    uip_clear_buf();
+    return;
+  }
+#endif
+
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
       instance < end; ++instance) {
     if(instance->used == 1) {
