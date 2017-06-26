@@ -67,6 +67,9 @@ extern uip_ip6addr_t wsn_net_prefix;
 extern uint8_t wsn_net_prefix_len;
 
 extern rpl_dag_t *cetic_dag;
+extern int rpl_fast_startup;
+extern int rpl_wait_delay;
+int rpl_ignore_other_dodags;
 
 // Ethernet side
 extern ethaddr_t eth_mac_addr;
