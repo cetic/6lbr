@@ -44,6 +44,8 @@
 
 #define NETWORK_ITF_NBR 3
 
+#define NETWORK_ITF_UNKNOWN 255
+
 typedef struct {
   uint8_t itf_type;
   const struct mac_driver *mac;

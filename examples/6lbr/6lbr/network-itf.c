@@ -68,7 +68,7 @@ network_itf_register(uint8_t itf_type, const struct mac_driver *mac)
 network_itf_t *
 network_itf_get_itf(uint8_t ifindex)
 {
-  if(ifindex == -1) {
+  if(ifindex == NETWORK_ITF_UNKNOWN) {
     return NULL;
   }
   if(ifindex < NETWORK_ITF_NBR) {

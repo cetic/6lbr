@@ -58,7 +58,7 @@ static mac_callback_t upper_sent;
 static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
-  if(multi_radio_input_ifindex != -1) {
+  if(multi_radio_input_ifindex != NETWORK_ITF_UNKNOWN) {
     if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
       if(status == MAC_TX_OK) {
         switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), multi_radio_input_ifindex);
@@ -90,7 +90,7 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
-  if(multi_radio_input_ifindex != -1) {
+  if(multi_radio_input_ifindex != NETWORK_ITF_UNKNOWN) {
     switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
     multi_radio_input_ifindex = -1;
   } else {
