@@ -155,14 +155,18 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 /*---------------------------------------------------------------------------*/
 //Hooks
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
+#if UIP_CONF_IPV6_RPL
 cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook = cetic_6lbr_dis_input_default_hook;
 cetic_6lbr_dio_input_hook_t cetic_6lbr_dio_input_hook = cetic_6lbr_dio_input_default_hook;
+#endif
 
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6_RPL
 static struct ctimer create_dodag_root_timer;
 static struct uip_ds6_notification create_dodag_root_route_callback;
 static clock_time_t dodag_root_check_interval;
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_client_process);
@@ -356,10 +360,11 @@ cetic_6lbr_init(void)
 #endif
 }
 
+#if UIP_CONF_IPV6_RPL
 void
 cetic_6lbr_start_dodag_root(void)
 {
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+#if CETIC_6LBR_DODAG_ROOT
   if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
     //Manual DODAG ID
     cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.rpl_dodag_id);
@@ -392,10 +397,10 @@ cetic_6lbr_start_dodag_root(void)
   if(cetic_dag) {
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
-#endif
   if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
     uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
   }
+#endif /* CETIC_6LBR_DODAG_ROOT */
 }
 
 void
@@ -502,15 +507,18 @@ cetic_6lbr_start_delayed_dodag_root(int send_dis)
     }
   }
 }
+#endif /*UIP_CONF_IPV6_RPL*/
 
 void
 cetic_6lbr_init_finalize(void)
 {
+#if UIP_CONF_IPV6_RPL
   if(rpl_fast_startup) {
     cetic_6lbr_start_dodag_root();
   } else {
     cetic_6lbr_start_delayed_dodag_root(1);
   }
+#endif
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
