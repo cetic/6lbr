@@ -615,6 +615,11 @@ na_input(void)
       if(!is_solicited) {
         nbr->state = NBR_STALE;
       }
+      else {
+        nbr->state = NBR_REACHABLE;
+        nbr->nscount = 0;
+        stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+      }
       nbr->isrouter = is_router;
     } else { /* NBR is not INCOMPLETE */
       if(!is_override && is_llchange) {
