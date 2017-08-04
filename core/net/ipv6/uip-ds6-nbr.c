@@ -167,8 +167,16 @@ uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
      * we have a single 'nbr' entry per link-layer address so remove the older
      * entry.
      */
+    PRINTF("Duplicated address for ");
+    PRINTLLADDR((uip_lladdr_t *)new_ll_addr);
+    PRINTF(" ");
+    PRINT6ADDR(&(*nbr)->ipaddr);
+    PRINTF(" removing ");
+    PRINT6ADDR(&duplicated_nbr->ipaddr);
+    PRINTF("\n");
     if(uip_ds6_nbr_rm(duplicated_nbr) == 0) {
       /* Unexpectedly failed to remove 'nbr'. */
+      PRINTF("Could not remove\n");
       return 0;
     }
   }
@@ -310,6 +318,16 @@ uip_ds6_neighbor_periodic(void)
 {
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
+    const uip_lladdr_t * lladdr = uip_ds6_nbr_get_ll(nbr);
+    if(nbr->state != NBR_INCOMPLETE && (lladdr == NULL || linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null))) {
+      PRINTF("Invalid NBR entry found, removing\n");
+      if(uip_ds6_nbr_rm(nbr) == 0) {
+        /* Unexpectedly failed to remove 'nbr'. */
+        PRINTF("Could not remove\n");
+      }
+      nbr = nbr_table_next(ds6_neighbors, nbr);
+      continue;
+    }
     switch(nbr->state) {
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
@@ -388,7 +406,7 @@ uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr;
   nbr = uip_ds6_nbr_lookup(ipaddr);
-  if(nbr != NULL) {
+  if(nbr != NULL && nbr-> state != NBR_INCOMPLETE) {
     nbr->state = NBR_REACHABLE;
     nbr->nscount = 0;
     stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
