@@ -447,6 +447,23 @@ is_own_dodag(void)
   }
 }
 
+int
+is_dodag_root(void)
+{
+  rpl_dag_t *dag;
+
+  dag = rpl_get_any_dag();
+  if(dag != NULL) {
+    if(dag->rank == ROOT_RANK(dag->instance) && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
 static void
 check_dodag_creation(void *data)
 {
