@@ -52,13 +52,6 @@ void ctk_dialog_close() {}
 #endif
 #ifdef __UCLIBC__
 #ifndef __UCLIBC_HAS_CONTEXT_FUNCS__
-#include <ucontext.h>
-int getcontext (ucontext_t *__ucp) {return 0;}
-int setcontext (const ucontext_t *__ucp) {return 0;}
 
-int swapcontext (ucontext_t *__restrict __oucp,
-                        const ucontext_t *__restrict __ucp) {return 0;}
-void makecontext (ucontext_t *__ucp, void (*__func) (void),
-                         int __argc, ...) {}
 #endif /* __UCLIBC_HAS_CONTEXT_FUNCS__ */
 #endif /* __UCLIBC__ */
