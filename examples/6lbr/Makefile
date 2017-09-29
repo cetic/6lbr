@@ -112,6 +112,11 @@ MODULES += core/net/ip64 core/net/ip64-addr
 PROJECT_SOURCEFILES += ip64-eth-driver.c
 endif
 
+ifeq ($(CONTIKI_WITH_RPL),1)
+PROJECT_SOURCEFILES += rpl-utils.c
+endif
+
+
 tools:
 	cd tools && $(MAKE)
 

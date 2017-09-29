@@ -50,6 +50,7 @@
 
 #if CETIC_6LBR
 #include "cetic-6lbr.h"
+#include "rpl-utils.h"
 #endif
 #if CETIC_6LBR_IP64
 #include "ip64.h"

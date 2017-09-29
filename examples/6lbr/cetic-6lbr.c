@@ -62,6 +62,7 @@
 #include "nvm-config.h"
 #include "rio.h"
 #include "6lbr-hooks.h"
+#include "rpl-utils.h"
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"
@@ -411,56 +412,6 @@ cetic_6lbr_end_dodag_root(rpl_instance_t *instance)
   dio_output(instance, NULL);
   rpl_free_dag(instance->current_dag);
   rpl_free_instance(instance);
-}
-
-int
-is_dodag_available(void)
-{
-  rpl_dag_t *dag;
-  dag = rpl_get_any_dag();
-  if(dag != NULL) {
-    if(dag->rank != INFINITE_RANK) {
-      return 1;
-    } else {
-      return 0;
-    }
-  } else {
-    return 0;
-  }
-}
-
-int
-is_own_dodag(void)
-{
-  rpl_dag_t *dag;
-
-  dag = rpl_get_any_dag();
-  if(dag != NULL) {
-    if(dag->rank != INFINITE_RANK && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
-      return 1;
-    } else {
-      return 0;
-    }
-  } else {
-    return 0;
-  }
-}
-
-int
-is_dodag_root(void)
-{
-  rpl_dag_t *dag;
-
-  dag = rpl_get_any_dag();
-  if(dag != NULL) {
-    if(dag->rank == ROOT_RANK(dag->instance) && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
-      return 1;
-    } else {
-      return 0;
-    }
-  } else {
-    return 0;
-  }
 }
 
 static void
