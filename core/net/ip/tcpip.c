@@ -49,6 +49,7 @@
 
 #if CETIC_6LBR
 #include "cetic-6lbr.h"
+#include "rpl-utils.h"
 #endif
 #if CETIC_6LBR_IP64
 #include "ip64.h"
@@ -634,7 +635,7 @@ tcpip_ipv6_output(void)
           nexthop = &UIP_IP_BUF->destipaddr;
         } else
 #endif
-#if CETIC_6LBR_ROUTER
+#if CETIC_6LBR_ROUTER && UIP_CONF_IPV6_RPL
         if (is_dodag_root() && uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
           //In router mode, we drop packets towards unknown mote
           PRINTF("Dropping wsn packet with no route\n");

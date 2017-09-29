@@ -53,6 +53,7 @@
 #if CETIC_6LBR
 #define LOG6LBR_MODULE "DS6"
 #include "log-6lbr.h"
+#include "cetic-6lbr.h"
 #endif
 
 #define DEBUG DEBUG_NONE
@@ -532,6 +533,18 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uip_ds6_addr_t *matchaddr = NULL;
 
   if(!uip_is_addr_linklocal(dst) && !uip_is_addr_mcast(dst)) {
+#if CETIC_6LBR_ROUTER
+    //When using multiple interface, the address selection should first
+    //check on which interface the packet will be sent (RFC-6724, Rule 5)
+    //However in Contiki, the source address selection is performed before
+    //the interface is known, so we have to cheat and assume that we use
+    //the WSN address only when communicating with a WSN node
+    //Otherwise we use the Ethernet interface address.
+    if (!uip_ipaddr_prefixcmp(&wsn_net_prefix, dst, 64)) {
+      uip_ipaddr_copy(src, &eth_ip_addr);
+      return;
+    }
+#endif
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
