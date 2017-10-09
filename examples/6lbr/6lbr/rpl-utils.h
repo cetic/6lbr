@@ -46,4 +46,7 @@ is_own_dodag(void);
 int
 is_dodag_root(void);
 
+int
+cetic_6lbr_config_rpl_mop(void);
+
 #endif

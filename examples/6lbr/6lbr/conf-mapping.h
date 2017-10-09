@@ -91,8 +91,9 @@
 #define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
 
 #if CETIC_6LBR_RPL_RUNTIME_MOP
+extern int cetic_6lbr_config_rpl_mop(void);
 #undef RPL_CONF_MOP
-#define RPL_CONF_MOP (((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) ? RPL_MOP_NON_STORING : RPL_MOP_STORING_NO_MULTICAST)
+#define RPL_CONF_MOP (cetic_6lbr_config_rpl_mop())
 #endif
 
 // Security configuration

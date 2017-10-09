@@ -90,6 +90,7 @@ static inputfunc_t tcpip_inputfunc;
 #define BUF ((struct uip_eth_hdr *)uip_buf)
 
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_EXT_BUF               ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ND6_NS_BUF            ((uip_nd6_ns *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 #define UIP_ND6_NA_BUF            ((uip_nd6_na *)&uip_buf[uip_l2_l3_icmp_hdr_len])
@@ -468,26 +469,35 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   if((nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0
      && uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)
      && uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &wsn_ip_local_addr)) {
+    int last_uip_ext_len = uip_ext_len;
+    uint8_t nexthdr = UIP_IP_BUF->proto;
+    int done;
     LOG6LBR_PRINTF(PACKET, PF_OUT, "eth_output: Update src address\n");
     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &eth_ip_local_addr);
-    if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
-#if UIP_UDP_CHECKSUMS
-      /* Calculate UDP checksum. */
-      UIP_UDP_BUF->udpchksum = 0;
-      UIP_UDP_BUF->udpchksum = ~(uip_udpchksum());
-      if(UIP_UDP_BUF->udpchksum == 0) {
-        UIP_UDP_BUF->udpchksum = 0xffff;
+    uip_ext_len = 0;
+    do {
+      done = 1;
+      if(nexthdr == UIP_PROTO_HBHO) {
+        nexthdr = UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
+        done = 0;
+      } else if(nexthdr == UIP_PROTO_UDP) {
+  #if UIP_UDP_CHECKSUMS
+        /* Calculate UDP checksum. */
+        UIP_UDP_BUF->udpchksum = 0;
+        UIP_UDP_BUF->udpchksum = ~(uip_udpchksum());
+  #endif /* UIP_UDP_CHECKSUMS */
+      } else if(nexthdr == UIP_PROTO_TCP) {
+        /* Calculate TCP checksum. */
+        UIP_TCP_BUF->tcpchksum = 0;
+        UIP_TCP_BUF->tcpchksum = ~(uip_tcpchksum());
+      } else if(nexthdr == UIP_PROTO_ICMP6) {
+        /* Calculate ICMP checksum. */
+        UIP_ICMP_BUF->icmpchksum = 0;
+        UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
       }
-#endif /* UIP_UDP_CHECKSUMS */
-    } else if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
-      /* Calculate TCP checksum. */
-      UIP_TCP_BUF->tcpchksum = 0;
-      UIP_TCP_BUF->tcpchksum = ~(uip_tcpchksum());
-    } else if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6) {
-      /* Calculate ICMP checksum. */
-      UIP_ICMP_BUF->icmpchksum = 0;
-      UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
-    }
+    } while(!done);
+    uip_ext_len = last_uip_ext_len;
   }
 #endif
 #if CETIC_6LBR_SMARTBRIDGE
@@ -595,6 +605,7 @@ bridge_output(const uip_lladdr_t * dest)
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_OUT, dest, "bridge_output: Sending packet to ");
   } else {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "dest : ");
   }
 
   if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
@@ -642,6 +653,16 @@ bridge_output(const uip_lladdr_t * dest)
         UIP_ICMP_BUF->type == ICMP6_RPL) {
       //RPL packets are always for WSN subnet
       wsnDest = 1;
+#if UIP_IPV6_MULTICAST
+    } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
+      //The destination is a known multicast group
+      if(UIP_IP_BUF->proto == UIP_PROTO_HBHO) {
+        //This is not a multicast packet but a MLDv1 message related to the group
+        ethernetDest = 1;
+      } else {
+        wsnDest = 1;
+      }
+#endif
     } else if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->srcipaddr, 64)) {
       //Packet type unknown, but source is from Ethernet subnet
       ethernetDest = 1;

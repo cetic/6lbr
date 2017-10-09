@@ -47,6 +47,7 @@ WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_LLSEC?=1
+WITH_MULTICAST?=0
 
 ifeq ($(CETIC_6LBR_TRANSPARENTBRIDGE),1)
 CONTIKI_WITH_RPL = 0
@@ -121,6 +122,13 @@ endif
 
 ifeq ($(CONTIKI_WITH_RPL),1)
 PROJECT_SOURCEFILES += rpl-utils.c
+endif
+
+ifeq ($(WITH_MULTICAST),1)
+ifeq ($(CONTIKI_WITH_RPL),1)
+#Multicast is only supported in RPL mode yet
+MODULES += core/net/ipv6/multicast
+endif
 endif
 
 LDGENFLAGS += $(CFLAGS)
