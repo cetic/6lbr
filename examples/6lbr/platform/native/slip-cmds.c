@@ -110,7 +110,7 @@ PROCESS_THREAD(border_router_cmd_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     if(ev == serial_line_event_message && data != NULL) {
-      LOG6LBR_TRACE("Got serial data!!! %s of len: %lu\n",
+      LOG6LBR_TRACE("Got serial data!!! %s of len: %zu\n",
              (char *)data, strlen((char *)data));
       command_context = CMD_CONTEXT_STDIO;
       cmd_input(data, strlen((char *)data));
