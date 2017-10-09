@@ -49,6 +49,7 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/ipv6/multicast/uip-mld.h"
 #include "net/ip/uip-packetqueue.h"
 #if CETIC_6LBR
 #define LOG6LBR_MODULE "DS6"
@@ -202,6 +203,11 @@ uip_ds6_periodic(void)
     uip_ds6_send_ra_periodic();
   }
 #endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
+
+#if UIP_CONF_MLD
+  uip_mld_periodic();
+#endif
+
   etimer_reset(&uip_ds6_timer_periodic);
   return;
 }
@@ -454,6 +460,9 @@ uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
       (uip_ds6_element_t **)&locmaddr) == FREESPACE) {
     locmaddr->isused = 1;
     uip_ipaddr_copy(&locmaddr->ipaddr, ipaddr);
+#if UIP_CONF_MLD
+    uip_icmp6_mldv1_schedule_report(locmaddr);
+#endif
     return locmaddr;
   }
   return NULL;
@@ -465,6 +474,9 @@ uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr)
 {
   if(maddr != NULL) {
     maddr->isused = 0;
+#if UIP_CONF_MLD
+    uip_icmp6_mldv1_done(&maddr->ipaddr);
+#endif
   }
   return;
 }

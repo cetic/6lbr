@@ -231,6 +231,10 @@ typedef struct uip_ds6_aaddr {
 typedef struct uip_ds6_maddr {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
+#if UIP_CONF_MLD
+  struct stimer report_timeout;
+  uint8_t report_count;
+#endif
 } uip_ds6_maddr_t;
 
 /* only define the callback if RPL is active */
