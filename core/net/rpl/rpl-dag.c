@@ -688,6 +688,8 @@ rpl_free_dag(rpl_dag_t *dag)
     if(RPL_IS_STORING(dag->instance)) {
       rpl_remove_routes(dag);
     }
+    /* Stop the DAO retransmit timer */
+    ctimer_stop(&dag->instance->dao_retransmit_timer);
 
    /* Remove autoconfigured address */
     if((dag->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
@@ -1349,6 +1351,7 @@ rpl_local_repair(rpl_instance_t *instance)
 
   /* no downward route anymore */
   instance->has_downward_route = 0;
+  ctimer_stop(&instance->dao_retransmit_timer);
 
   rpl_reset_dio_timer(instance);
   if(RPL_IS_STORING(instance)) {
