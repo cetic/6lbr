@@ -604,8 +604,7 @@ bridge_output(const uip_lladdr_t * dest)
   if(!IS_BROADCAST_ADDR(dest)) {
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_OUT, dest, "bridge_output: Sending packet to ");
   } else {
-    LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
-    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "dest : ");
+    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "bridge_output: Sending broadcast packet to");
   }
 
   if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {

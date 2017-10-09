@@ -168,7 +168,7 @@ rpl_purge_routes(void)
   mcast_route = uip_mcast6_route_list_head();
 
   while(mcast_route != NULL) {
-    if(mcast_route->lifetime <= 1) {
+    if(mcast_route->dag != NULL && mcast_route->lifetime <= 1) {
       uip_mcast6_route_rm(mcast_route);
       mcast_route = uip_mcast6_route_list_head();
     } else {

@@ -277,6 +277,7 @@ handle_dao_timer(void *ptr)
 
 #if RPL_WITH_MULTICAST
     /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
+#if RPL_SEND_DAO_FOR_MULTICAST_ADDRESS
     if(instance->mop == RPL_MOP_STORING_MULTICAST) {
       /* Send a DAO for own multicast addresses */
       for(i = 0; i < UIP_DS6_MADDR_NB; i++) {
@@ -286,10 +287,10 @@ handle_dao_timer(void *ptr)
               &uip_ds6_if.maddr_list[i].ipaddr, 128, instance->default_lifetime);
         }
       }
-
+#endif
       /* Iterate over multicast routes and send DAOs */
       mcast_route = uip_mcast6_route_list_head();
-      while(mcast_route != NULL) {
+      while(mcast_route != NULL && mcast_route->dag != NULL) {
         /* Don't send if it's also our own address, done that already */
         if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
           dao_output_target(instance->current_dag->preferred_parent,

@@ -171,6 +171,12 @@ struct uip_mcast6_driver {
 #endif
 #endif /* UIP_MCAST6_ENGINE */
 
+#ifdef RPL_CONF_SEND_DAO_FOR_MULTICAST_ADDRESS
+#define RPL_SEND_DAO_FOR_MULTICAST_ADDRESS RPL_CONF_SEND_DAO_FOR_MULTICAST_ADDRESS
+#else
+#define RPL_SEND_DAO_FOR_MULTICAST_ADDRESS 1
+#endif
+
 extern const struct uip_mcast6_driver UIP_MCAST6;
 /*---------------------------------------------------------------------------*/
 /* Configuration Checks */
