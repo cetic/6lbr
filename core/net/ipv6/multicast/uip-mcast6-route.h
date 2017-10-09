@@ -44,6 +44,7 @@
 
 #include "contiki.h"
 #include "net/ip/uip.h"
+#include "sys/stimer.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -53,6 +54,10 @@ typedef struct uip_mcast6_route {
   uip_ipaddr_t group; /**< The multicast group */
   uint32_t lifetime; /**< Entry lifetime seconds */
   void *dag; /**< Pointer to an rpl_dag_t struct */
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+  struct stimer report_timeout;
+  uint8_t report_count;
+#endif
 } uip_mcast6_route_t;
 /*---------------------------------------------------------------------------*/
 /** \name Multicast Routing Table Manipulation */

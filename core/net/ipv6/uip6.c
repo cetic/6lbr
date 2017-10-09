@@ -79,6 +79,7 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/ipv6/multicast/uip-mld.h"
 
 #if UIP_CONF_IPV6_RPL
 #include "rpl/rpl.h"
@@ -463,6 +464,9 @@ uip_init(void)
 
 #if UIP_IPV6_MULTICAST
   UIP_MCAST6.init();
+#endif
+#if UIP_CONF_MLD
+  uip_mld_init();
 #endif
 }
 /*---------------------------------------------------------------------------*/
