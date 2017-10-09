@@ -38,7 +38,7 @@ clean-firmwares:
 clean:
 	for SIXLBR in $(SIXLBR_LIST); do rm -f $$SIXLBR/6lbr.ip* $$SIXLBR/6lbr.timestamp $$SIXLBR/nvm.dat $$SIXLBR/*.so; done
 	rm -rf org
-	rm -f COOJA.*
+	rm -f COOJA.* *.pcap *.log
 
 run:
 	$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
