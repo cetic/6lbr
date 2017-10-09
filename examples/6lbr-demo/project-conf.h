@@ -169,6 +169,22 @@
 #define UDP_CLIENT_STORE_RADIO_INFO 1
 
 /*---------------------------------------------------------------------------*/
+/* MULTICAST-CLIENT                                                          */
+/*---------------------------------------------------------------------------*/
+
+#if MULTICAST_CLIENT
+
+#define MCAST_SINK_UDP_PORT 3001
+
+#undef UIP_MCAST6_CONF_ENGINE
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_ESMRF
+
+#undef UIP_MCAST6_ROUTE_CONF_ROUTES
+#define UIP_MCAST6_ROUTE_CONF_ROUTES    1
+
+#endif
+
+/*---------------------------------------------------------------------------*/
 /* DTLS                                                                      */
 /*---------------------------------------------------------------------------*/
 
@@ -266,7 +282,9 @@
 //Select RPL MOP
 #undef RPL_CONF_MOP
 #if RPL_NON_STORING
-#define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
+#define RPL_CONF_MOP RPL_MOP_NON_STORING
+#elif MULTICAST_CLIENT
+#define RPL_CONF_MOP RPL_MOP_STORING_MULTICAST
 #else
 #define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
 #endif

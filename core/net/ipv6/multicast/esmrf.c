@@ -262,8 +262,10 @@ static uint8_t
 in()
 {
   rpl_dag_t *d;                 /* Our DODAG */
+#if !CETIC_6LBR_ROUTER
   uip_ipaddr_t *parent_ipaddr;  /* Our pref. parent's IPv6 address */
   const uip_lladdr_t *parent_lladdr;  /* Our pref. parent's LL address */
+#endif
 
   /*
    * Fetch a pointer to the LL address of our preferred parent
@@ -280,6 +282,7 @@ in()
     return UIP_MCAST6_DROP;
   }
 
+#if !CETIC_6LBR_ROUTER
   /* Retrieve our preferred parent's LL address */
   parent_ipaddr = rpl_get_parent_ipaddr(d->preferred_parent);
   parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
@@ -300,6 +303,7 @@ in()
     UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
+#endif /* !CETIC_6LBR_ROUTER */
 
   if(UIP_IP_BUF->ttl <= 1) {
     UIP_MCAST6_STATS_ADD(mcast_dropped);

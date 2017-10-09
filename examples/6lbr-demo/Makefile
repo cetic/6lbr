@@ -16,6 +16,7 @@ WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
 WITH_TCP?=0
 WITH_COAP_PROFILE?=IPSO_APP_FW
+WITH_MULTICAST_CLIENT?=0
 
 # UDP client configuration
 
@@ -98,6 +99,15 @@ endif
 ifneq ($(VALID_COAP_PROFILE),1)
 $(error Invalid CoAP Profile)
 endif
+endif
+
+ifneq ($(WITH_MULTICAST_CLIENT),0)
+CFLAGS += -DMULTICAST_CLIENT=1
+PROJECTDIRS += $(PROJECTDIR)/apps/multicast-client
+PROJECT_SOURCEFILES += multicast-client.c
+MODULES += core/net/ipv6/multicast
+else
+CFLAGS += -DMULTICAST_CLIENT=0
 endif
 
 ifneq ($(WITH_TCP),1)

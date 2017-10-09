@@ -37,6 +37,7 @@
 #include "contiki.h"
 #include "net/rpl/rpl.h"
 #include "net/rpl/rpl-private.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #include "rpl-utils.h"
 #include "cetic-6lbr.h"
@@ -88,5 +89,19 @@ is_dodag_root(void)
     }
   } else {
     return 0;
+  }
+}
+
+int
+cetic_6lbr_config_rpl_mop(void)
+{
+  if ((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
+    return RPL_MOP_NON_STORING;
+#if UIP_IPV6_MULTICAST
+  } else if (RPL_WITH_MULTICAST) {
+    return RPL_MOP_STORING_MULTICAST;
+#endif
+  } else {
+    return RPL_MOP_STORING_NO_MULTICAST;
   }
 }

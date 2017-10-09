@@ -42,6 +42,8 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 #include "net/ipv6/uip-ds6-route.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/ipv6/multicast/uip-mcast6-route.h"
 #include "sicslow-ethernet.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
@@ -88,6 +90,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
   static uip_ds6_nbr_t *nbr;
+#if UIP_IPV6_MULTICAST
+  static uip_mcast6_route_t *mcast_route;
+#endif
 #if RPL_WITH_NON_STORING
   static rpl_ns_node_t *link;
 #endif
@@ -123,6 +128,16 @@ PT_THREAD(generate_network(struct httpd_state *s))
       if(!uip_ds6_if.addr_list[i].isinfinite) {
         add(" %u s", stimer_remaining(&uip_ds6_if.addr_list[i].vlifetime));
       }
+      add("\n");
+      SEND_STRING(&s->sout, buf);
+      reset_buf();
+    }
+  }
+
+  add("</pre><h2>Multicast groups</h2><pre>");
+  for(i = 0; i < UIP_DS6_MADDR_NB; i++) {
+    if(uip_ds6_if.maddr_list[i].isused) {
+      ipaddr_add(&uip_ds6_if.maddr_list[i].ipaddr);
       add("\n");
       SEND_STRING(&s->sout, buf);
       reset_buf();
@@ -281,6 +296,22 @@ PT_THREAD(generate_network(struct httpd_state *s))
       SEND_STRING(&s->sout, buf);
       reset_buf();
     }
+  }
+#endif
+
+#if UIP_IPV6_MULTICAST
+  add("</pre><h2>Routed multicast groups</h2><pre>");
+  for(mcast_route = uip_mcast6_route_list_head(), i = 0; mcast_route != NULL;
+      mcast_route = list_item_next(mcast_route), ++i) {
+    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+      add("[<a href=\"mcast-rm?");
+      ipaddr_add(&mcast_route->group);
+      add("\">del</a>] ");
+    }
+    ipaddr_add(&mcast_route->group);
+    add(" %lu s\n", mcast_route->lifetime);
+    SEND_STRING(&s->sout, buf);
+    reset_buf();
   }
 #endif
 

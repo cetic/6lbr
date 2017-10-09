@@ -112,6 +112,9 @@
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 5
 
+//all routers + all nodes + solicited are already reserved
+#define UIP_CONF_DS6_MADDR_NBU 5
+
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
 #define UIP_CONF_ND6_RA_RDNSS 1
@@ -141,6 +144,9 @@
 
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 5
+
+//all routers + all nodes + solicited are already reserved
+#define UIP_CONF_DS6_MADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
@@ -182,6 +188,9 @@
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 5
 
+//all routers + all nodes + solicited are already reserved
+#define UIP_CONF_DS6_MADDR_NBU 5
+
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
 #define UIP_CONF_ND6_RA_RDNSS 1
@@ -222,6 +231,9 @@
 
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 5
+
+//all routers + all nodes + solicited are already reserved
+#define UIP_CONF_DS6_MADDR_NBU 5
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 

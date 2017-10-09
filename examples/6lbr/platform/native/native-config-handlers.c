@@ -38,6 +38,8 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/ipv6/multicast/uip-mcast6-route.h"
 #include "native-config.h"
 #include "native-config-file.h"
 #include "slip-dev.h"
@@ -53,6 +55,9 @@ static native_config_callback_t slip_radio_config_cb;
 #endif
 #if UIP_DS6_STATIC_ROUTES
 static native_config_callback_t network_route_config_cb;
+#endif
+#if UIP_IPV6_MULTICAST
+static native_config_callback_t network_multicast_config_cb;
 #endif
 /*---------------------------------------------------------------------------*/
 static int native_config_global_handler(config_level_t level, void* user, const char* section, const char* name,
@@ -247,6 +252,40 @@ static int native_config_network_route_handler(config_level_t level, void* user,
 }
 #endif
 /*---------------------------------------------------------------------------*/
+#if UIP_IPV6_MULTICAST
+static int native_config_network_multicast_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  static uip_ipaddr_t group;
+
+  if(level != CONFIG_LEVEL_CORE) {
+    return 1;
+  }
+
+  if(!name) {
+    if(!uip_is_addr_unspecified(&group)) {
+      uip_mcast6_route_add(&group);
+    } else {
+      LOG6LBR_ERROR("Missing parameters for multicast group creation\n");
+      return 0;
+    }
+    //Reset parameters
+    uip_create_unspecified(&group);
+    return 1;
+  }
+
+  if(strcmp(name, "group") == 0) {
+    if(uiplib_ipaddrconv(value, &group) == 0) {
+      LOG6LBR_ERROR("Invalid ip address : %s\n", value);
+      return 0;
+    }
+  } else {
+    LOG6LBR_ERROR("Invalid parameter : %s\n", name);
+    return 0;
+  }
+  return 1;
+}
+#endif
+/*---------------------------------------------------------------------------*/
 void native_config_handlers_init(void)
 {
   native_config_add_callback(&global_config_cb, "", native_config_global_handler, NULL);
@@ -256,5 +295,8 @@ void native_config_handlers_init(void)
 #endif
 #if UIP_DS6_STATIC_ROUTES
   native_config_add_callback(&network_route_config_cb, "network.route", native_config_network_route_handler, NULL);
+#endif
+#if UIP_IPV6_MULTICAST
+  native_config_add_callback(&network_multicast_config_cb, "network.multicast", native_config_network_multicast_handler, NULL);
 #endif
 }
