@@ -223,7 +223,7 @@ icmp_input()
 
   uip_process(UIP_UDP_SEND_CONN);
 
-  memcpy(&mcast_buf, uip_buf, uip_len);
+  memcpy(&mcast_buf, &uip_buf[UIP_LLH_LEN], uip_len);
   mcast_len = uip_len;
   /* pass the packet to our uip_process to check if it is allowed to 
    * accept this packet or not */
@@ -233,7 +233,7 @@ icmp_input()
   
   uip_process(UIP_DATA);
 
-  memcpy(uip_buf, &mcast_buf, mcast_len);
+  memcpy(&uip_buf[UIP_LLH_LEN], &mcast_buf, mcast_len);
   uip_len = mcast_len;
   /* Return the IP of the original Multicast sender */
   uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &src_ip);
@@ -251,7 +251,7 @@ icmp_input()
 static void
 mcast_fwd(void *p)
 {
-  memcpy(uip_buf, &mcast_buf, mcast_len);
+  memcpy(&uip_buf[UIP_LLH_LEN], &mcast_buf, mcast_len);
   uip_len = mcast_len;
   UIP_IP_BUF->ttl--;
   tcpip_output(NULL);
@@ -303,6 +303,7 @@ in()
 
   if(UIP_IP_BUF->ttl <= 1) {
     UIP_MCAST6_STATS_ADD(mcast_dropped);
+    PRINTF("ESMRF: TTL too low\n");
     return UIP_MCAST6_DROP;
   }
 
@@ -344,12 +345,14 @@ in()
         fwd_delay = fwd_delay * (1 + ((random_rand() >> 11) % fwd_spread));
       }
 
-      memcpy(&mcast_buf, uip_buf, uip_len);
+      memcpy(&mcast_buf, &uip_buf[UIP_LLH_LEN], uip_len);
       mcast_len = uip_len;
       ctimer_set(&mcast_periodic, fwd_delay, mcast_fwd, NULL);
     }
     PRINTF("ESMRF: %u bytes: fwd in %u [%u]\n",
            uip_len, fwd_delay, fwd_spread);
+  } else {
+    PRINTF("ESMRF: Group unknown, dropping\n");
   }
 
   /* Done with this packet unless we are a member of the mcast group */
