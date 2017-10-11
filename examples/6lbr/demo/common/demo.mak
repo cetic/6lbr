@@ -10,6 +10,11 @@ SIXLBR_BIN=bin/cetic_6lbr_router
 
 export CONTIKI SIXLBR COOJA
 
+DEV_TAP_IP6?=
+DEV_TAP_IP4?=
+
+export DEV_TAP_IP6 DEV_TAP_IP4
+
 help:
 	@echo "usage: make <target>"
 	@echo
