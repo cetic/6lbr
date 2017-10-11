@@ -34,6 +34,8 @@ function find_xterm() {
 function create-tap() {
 	sudo tunctl -t $1 -g netdev
 	sudo ip link set $1 address $DEV_TAP_MAC up
+	sudo sysctl -w net.ipv6.conf.$1.accept_ra=2
+	sudo sysctl -w net.ipv6.conf.$1.accept_ra_rt_info_max_plen=64
 	if [ "$DEV_TAP_IP6" != "" ]; then
 		sudo ip addr add $DEV_TAP_IP6 dev $1
 	fi
