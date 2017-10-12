@@ -3,6 +3,7 @@ PROJECT?=6lbr-demo
 # Configuration
 
 WITH_RPL?=1
+RPL_NON_STORING?=0
 WITH_LLSEC?=0
 WITH_TCP?=0
 
@@ -49,6 +50,7 @@ endif
 
 ifeq ($(WITH_RPL),1)
 CONTIKI_WITH_RPL = 1
+CFLAGS += -DRPL_NON_STORING=$(RPL_NON_STORING)
 else
 CONTIKI_WITH_RPL = 0
 endif
