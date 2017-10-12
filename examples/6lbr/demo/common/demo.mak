@@ -64,11 +64,7 @@ ifneq ($(SIXLBR_LIST),-)
 	for SIXLBR in $(SIXLBR_LIST); do rm -f $$SIXLBR/6lbr.ip* $$SIXLBR/6lbr.timestamp $$SIXLBR/nvm.dat $$SIXLBR/*.so; done
 endif
 	rm -rf org
-<<<<<<< HEAD
-	rm -f COOJA.* *.pcap *.log
-=======
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
->>>>>>> dev-1.4.x
 
 run: $(CSC)
 	$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
