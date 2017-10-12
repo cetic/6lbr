@@ -333,7 +333,7 @@ slip_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
     }
     NETSTACK_RDC.input();
   }
-  multi_radio_input_ifindex = -1;
+  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -401,7 +401,7 @@ after_fread:
         command_context = CMD_CONTEXT_RADIO;
         multi_radio_input_ifindex = slip_device->ifindex;
         cmd_input(inbuf, inbufptr);
-        multi_radio_input_ifindex = -1;
+        multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
       } else if(inbuf[0] == '?') {
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf + 1, inbufptr - 1);

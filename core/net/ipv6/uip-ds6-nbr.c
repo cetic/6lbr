@@ -53,6 +53,7 @@
 #include "net/ipv6/uip-ds6-nbr.h"
 #if UIP_SWITCH_LOOKUP
 #include "switch-lookup.h"
+#include "network-itf.h"
 #endif
 
 #define DEBUG DEBUG_NONE
@@ -110,7 +111,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 #endif /* UIP_ND6_SEND_NS */
 #if UIP_SWITCH_LOOKUP
     /* interface is not yet known */
-    nbr->ifindex = SWITCH_LOOKUP_NO_ITF;
+    nbr->ifindex = NETWORK_ITF_UNKNOWN;
 #endif
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);

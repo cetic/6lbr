@@ -67,6 +67,7 @@
 #include "log-6lbr.h"
 #if UIP_SWITCH_LOOKUP
 #include "switch-lookup.h"
+#include "network-itf.h"
 #endif
 
 #if CETIC_NODE_INFO
@@ -220,7 +221,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
     add(" ");
     add_network_cases(nbr->state);
 #if UIP_SWITCH_LOOKUP
-    if(nbr->ifindex != SWITCH_LOOKUP_NO_ITF) {
+    if(nbr->ifindex != NETWORK_ITF_UNKNOWN) {
       add(" if:%u", nbr->ifindex);
     }
 #endif
