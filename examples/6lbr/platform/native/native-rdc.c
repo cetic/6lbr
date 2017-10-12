@@ -113,6 +113,7 @@ packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
         packetbuf_clear();
         packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
         if(callback->cback != NULL) {
+          //multi_radio_input_ifindex is set by the slip layer
           mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
         }
       }
@@ -139,11 +140,11 @@ packet_timeout(void *ptr)
       callback_count--;
       callback->isused = 0;
       LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
-      multi_radio_input_ifindex = callback->slip_device->ifindex;
       if(!sixlbr_config_slip_ip) {
         packetbuf_clear();
         packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
         if(callback->cback != NULL) {
+          multi_radio_input_ifindex = callback->slip_device->ifindex;
           mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
         }
       }
@@ -197,6 +198,7 @@ send_ip_packet(const uip_lladdr_t *localdest)
   slip_descr_t *slip_device = get_slip_device(multi_radio_output_ifindex);
 
   if(slip_device == NULL) {
+    LOG6LBR_ERROR("Can not find slip device of interface %d\n", multi_radio_output_ifindex);
     return 0;
   }
   sid = setup_callback(slip_device, NULL, NULL);
@@ -240,6 +242,7 @@ send_packet(mac_callback_t sent, void *ptr)
   slip_descr_t *slip_device = get_slip_device(multi_radio_output_ifindex);
 
   if(slip_device == NULL) {
+    LOG6LBR_ERROR("Can not find slip device of interface %d\n", multi_radio_output_ifindex);
     mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
     return;
   }

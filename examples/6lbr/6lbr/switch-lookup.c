@@ -36,6 +36,7 @@
 
 #include "contiki.h"
 #include "uip-ds6-nbr.h"
+#include "network-itf.h"
 #include "switch-lookup.h"
 
 #include "log-6lbr.h"
@@ -70,5 +71,5 @@ switch_lookup_get_itf_for(const uip_lladdr_t *lladdr)
     }
   }
 #endif
-  return SWITCH_LOOKUP_NO_ITF;
+  return NETWORK_ITF_UNKNOWN;
 }

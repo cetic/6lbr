@@ -261,7 +261,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
       }
       memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
     }
-    multi_radio_output_ifindex = -1;
+    multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
 #else
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	if ( src != NULL ) {

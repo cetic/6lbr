@@ -49,15 +49,16 @@
 
 #include "log-6lbr.h"
 
-uint8_t multi_radio_input_ifindex = -1;
-uint8_t multi_radio_output_ifindex = -1;
+uint8_t multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
+uint8_t multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
 
-static mac_callback_t upper_sent;
+static mac_callback_t upper_sent = NULL;
 
 /*---------------------------------------------------------------------------*/
 static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
+  //The Ack packet is an incoming packet, so the infindex is stored in multi_radio_input_ifindex
   if(multi_radio_input_ifindex != NETWORK_ITF_UNKNOWN) {
     if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
       if(status == MAC_TX_OK) {
@@ -67,8 +68,10 @@ packet_sent(void *ptr, int status, int num_transmissions)
   } else {
     LOG6LBR_DEBUG("packet_sent: No source ifindex\n");
   }
-  upper_sent(ptr, status, num_transmissions);
-  multi_radio_input_ifindex = -1;
+  if(upper_sent != NULL) {
+    upper_sent(ptr, status, num_transmissions);
+  }
+  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -77,13 +80,25 @@ send_packet(mac_callback_t sent, void *ptr)
   network_itf_t *network_itf;
   /* Currently we assume that the sent callback is always the same */
   upper_sent = sent;
+  if(multi_radio_output_ifindex == NETWORK_ITF_UNKNOWN) {
+    multi_radio_output_ifindex = switch_lookup_get_itf_for((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+  }
   network_itf = network_itf_get_itf(multi_radio_output_ifindex);
   if(network_itf != NULL) {
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&network_itf->mac_addr);
     network_itf->mac->send(packet_sent, ptr);
   } else {
-    LOG6LBR_LLADDR(ERROR, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "Destination unknown : ");
-    upper_sent(ptr, MAC_TX_ERR_FATAL, 1);
+    LOG6LBR_LLADDR(PACKET, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), "Destination unknown : ");
+    uint8_t ifindex;
+    network_itf_t *network_itf;
+    for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+      network_itf = network_itf_get_itf(ifindex);
+      if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+        multi_radio_output_ifindex = ifindex;
+        network_itf->mac->send(packet_sent, ptr);
+        multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
+      }
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -92,7 +107,7 @@ packet_input(void)
 {
   if(multi_radio_input_ifindex != NETWORK_ITF_UNKNOWN) {
     switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
-    multi_radio_input_ifindex = -1;
+    multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
   } else {
     LOG6LBR_DEBUG("packet_input: No source ifindex\n");
   }
