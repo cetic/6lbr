@@ -22,6 +22,7 @@
       <logoutput>1000000</logoutput>
     </events>
     <motetype>
+
 	  org.contikios.cooja.contikimote.ContikiMoteType
 	  <identifier>slipradio</identifier>
 	  <description>6LBR Slip Radio</description>
@@ -46,6 +47,7 @@
 	  <symbols>false</symbols>
     </motetype>
     <motetype>
+
 	  org.contikios.cooja.contikimote.ContikiMoteType
 	  <identifier>node</identifier>
 	  <description>6LBR Demo</description>
@@ -91,6 +93,20 @@
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
+	<x>-54.0000000000000</x>
+	<y>-72.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>slipradio</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>3</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
 	<x>105.0000000000000</x>
 	<y>-32.0000000000000</y>
 	<z>0.0000000000000</z>
@@ -101,7 +117,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>3</id>
+	<id>4</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -115,7 +131,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>4</id>
+	<id>5</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -129,7 +145,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>5</id>
+	<id>6</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -143,7 +159,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>6</id>
+	<id>7</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -157,7 +173,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>7</id>
+	<id>8</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -171,7 +187,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>8</id>
+	<id>9</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -185,7 +201,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>9</id>
+	<id>10</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -199,7 +215,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>10</id>
+	<id>11</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -213,7 +229,7 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>11</id>
+	<id>12</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -227,7 +243,147 @@
       <breakpoints />
       <interface_config>
 	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-	<id>12</id>
+	<id>13</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-66.0000000000000</x>
+	<y>38.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>14</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-56.0000000000000</x>
+	<y>4.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>15</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-45.0000000000000</x>
+	<y>-24.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>16</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-85.0000000000000</x>
+	<y>7.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>17</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-115.0000000000000</x>
+	<y>4.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>18</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-62.0000000000000</x>
+	<y>-45.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>19</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-86.0000000000000</x>
+	<y>-21.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>20</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-25.0000000000000</x>
+	<y>2.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>21</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-95.0000000000000</x>
+	<y>31.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>22</id>
+      </interface_config>
+      <interface_config>
+	org.contikios.cooja.interfaces.Position
+	<x>-46.0000000000000</x>
+	<y>18.0000000000000</y>
+	<z>0.0000000000000</z>
+      </interface_config>
+      <motetype_identifier>node</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+	org.contikios.cooja.contikimote.interfaces.ContikiMoteID
+	<id>23</id>
       </interface_config>
       <interface_config>
 	org.contikios.cooja.interfaces.Position
@@ -306,9 +462,23 @@ sim.setSpeedLimit(1);&#xD;
     org.contikios.cooja.serialsocket.SerialSocketServer
     <mote_arg>0</mote_arg>
     <plugin_config>
-      <port>60001</port>
-      <bound>true</bound>
-    </plugin_config>
+	  <port>60001</port>
+	  <bound>true</bound>
+	</plugin_config>
+    <width>459</width>
+    <z>-1</z>
+    <height>119</height>
+    <location_x>5</location_x>
+    <location_y>525</location_y>
+    <minimized>true</minimized>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.serialsocket.SerialSocketServer
+    <mote_arg>1</mote_arg>
+    <plugin_config>
+	  <port>60002</port>
+	  <bound>true</bound>
+	</plugin_config>
     <width>459</width>
     <z>-1</z>
     <height>119</height>

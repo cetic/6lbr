@@ -76,6 +76,7 @@ static int native_config_native_handler(config_level_t level, void* user, const 
   if(strcmp(name, "select.timeout") == 0) {
     sixlbr_config_select_timeout = atoi(value);
     return 1;
+#if !CONTIKI_TARGET_COOJA
   } else if(strcmp(name, "slip.timeout") == 0) {
     if(slip_default_device) {
       slip_default_device->timeout = atoi(value);
@@ -116,6 +117,7 @@ static int native_config_native_handler(config_level_t level, void* user, const 
   } else if(strcmp(name, "slip.ip") == 0) {
     sixlbr_config_slip_ip = atoi(value);
     return 1;
+#endif
   } else {
     LOG6LBR_ERROR("Invalid parameter : %s\n", name);
     return 0;

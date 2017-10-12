@@ -49,6 +49,41 @@
 
 extern rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 
+static void
+add_rpl_mop(uint8_t mop)
+{
+  switch(mop) {
+  case RPL_MOP_NO_DOWNWARD_ROUTES:
+    add("No downward routes");
+    break;
+  case RPL_MOP_NON_STORING:
+    add("Non storing");
+    break;
+  case RPL_MOP_STORING_NO_MULTICAST:
+    add("Storing");
+    break;
+  case RPL_MOP_STORING_MULTICAST:
+    add("Storing + multicast");
+    break;
+  default:
+    add("Unknown (%u)", mop);
+  }
+}
+
+static void
+add_rpl_ocp(uint8_t ocp)
+{
+  switch(ocp) {
+  case RPL_OCP_OF0:
+    add("OF0");
+    break;
+  case RPL_OCP_MRHOF:
+    add("MRHOF");
+    break;
+  default:
+    add("Unknown (%u)", ocp);
+  }
+}
 static
 PT_THREAD(generate_rpl(struct httpd_state *s))
 {
@@ -56,13 +91,6 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   static int j;
 
   PSOCK_BEGIN(&s->sout);
-  add("<h2>Configuration</h2>");
-  add("Lifetime : %d (%d x %d s)<br />",
-      RPL_CONF_DEFAULT_LIFETIME * RPL_CONF_DEFAULT_LIFETIME_UNIT,
-      RPL_CONF_DEFAULT_LIFETIME, RPL_CONF_DEFAULT_LIFETIME_UNIT);
-  add("<br />");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
   for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
     if(instance_table[i].used) {
       add("<h2>Instance %d</h2>", instance_table[i].instance_id);
@@ -78,15 +106,24 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
               instance_table[i].dag_table[j].grounded ? "Yes" : "No");
           add("<br />Preference : %d",
               instance_table[i].dag_table[j].preference);
-          add("<br />Mode of Operation : %u", instance_table[i].mop);
-          add("<br />Objective Function Code Point : %u",
-              instance_table[i].of->ocp);
-          add("<br />Joined : %s",
-              instance_table[i].dag_table[j].joined ? "Yes" : "No");
-          add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
+          add("<br />Mode of Operation : ");
+          add_rpl_mop(instance_table[i].mop);
+          add("<br />Objective Function Code Point : ");
+          add_rpl_ocp(instance_table[i].of->ocp);
+          add("<br />Lifetime : %d (%d x %d s)",
+              instance_table[i].default_lifetime * instance_table[i].lifetime_unit,
+              instance_table[i].default_lifetime, instance_table[i].lifetime_unit);
+          if (instance_table[i].dio_redundancy > 0) {
+            add("<br />DIO suppression : %s (%u >= %u)", (instance_table[i].dio_counter >= instance_table[i].dio_redundancy ? "Yes" : "No"), instance_table[i].dio_counter, instance_table[i].dio_redundancy);
+          } else {
+            add("<br />DIO suppression : Disabled");
+          }
           add("<br />");
           SEND_STRING(&s->sout, buf);
           reset_buf();
+          add("<br />Joined : %s",
+              instance_table[i].dag_table[j].joined ? "Yes" : "No");
+          add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
           add("<br />Current DIO Interval [%u-%u] : %u",
               instance_table[i].dio_intmin,
               instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
@@ -98,20 +135,17 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
             add("<br />Next DIO : -");
             add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND);
           }
-          if (instance_table[i].dio_redundancy > 0) {
-            add("<br />DIO suppression : %s (%u >= %u)", (instance_table[i].dio_counter >= instance_table[i].dio_redundancy ? "Yes" : "No"), instance_table[i].dio_counter, instance_table[i].dio_redundancy);
-          } else {
-            add("<br />DIO suppression : Disabled");
-          }
           add("<br />");
+          SEND_STRING(&s->sout, buf);
+          reset_buf();
 #if RPL_CONF_STATS
           add("DIO intervals : %d<br />", instance_table[i].dio_totint);
           add("Sent DIO : %d<br />", instance_table[i].dio_totsend);
           add("Received DIO : %d<br />", instance_table[i].dio_totrecv);
           add("<br />");
-#endif
           SEND_STRING(&s->sout, buf);
           reset_buf();
+#endif
         }
       }
     }
