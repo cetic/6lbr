@@ -60,7 +60,9 @@ clean-firmwares:
 	cd $(DEMO)/firmwares/$(NODE_FIRMWARE)/ && $(MAKE) TARGET=$(TARGET) clean
 	
 clean:
+ifneq ($(SIXLBR_LIST),-)
 	for SIXLBR in $(SIXLBR_LIST); do rm -f $$SIXLBR/6lbr.ip* $$SIXLBR/6lbr.timestamp $$SIXLBR/nvm.dat $$SIXLBR/*.so; done
+endif
 	rm -rf org
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
 

@@ -15,7 +15,9 @@ shift
 
 SIXLBR_LIST=$@
 
-if [ "$SIXLBR_LIST" == "" ]; then
+if [ "$SIXLBR_LIST" == "-" ]; then
+	SIXLBR_LIST=
+elif [ "$SIXLBR_LIST" == "" ]; then
 	SIXLBR_LIST="6lbr"
 fi
 
