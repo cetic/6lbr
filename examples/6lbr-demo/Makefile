@@ -5,6 +5,7 @@ PROJECT?=6lbr-demo
 WITH_RPL?=1
 RPL_NON_STORING?=0
 WITH_LLSEC?=0
+WITH_ADAPTIVESEC?=0
 WITH_TCP?=0
 
 # Applications
@@ -119,7 +120,7 @@ CFLAGS += -DUDP_CLIENT_AUTOSTART=1
 endif
 
 ifneq ($(WITH_LLSEC),0)
-CFLAGS += -DWITH_LLSEC=1
+CFLAGS += -DWITH_LLSEC=1 -DWITH_ADAPTIVESEC=$(WITH_ADAPTIVESEC)
 MODULES += core/net/llsec/noncoresec
 MODULES += core/net/llsec/adaptivesec
 endif
