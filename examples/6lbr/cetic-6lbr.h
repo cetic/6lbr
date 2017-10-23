@@ -50,6 +50,12 @@ extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 
 extern void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
 
+extern void
+cetic_6lbr_end_dodag_root(rpl_instance_t *instance);
+
+extern void
+cetic_6lbr_set_rpl_can_become_root(int can_become_root);
+
 typedef uint8_t ethaddr_t[6];
 
 //Initialisation flags
@@ -67,6 +73,7 @@ extern uip_ip6addr_t wsn_net_prefix;
 extern uint8_t wsn_net_prefix_len;
 
 extern rpl_dag_t *cetic_dag;
+
 extern int rpl_fast_startup;
 extern int rpl_wait_delay;
 int rpl_ignore_other_dodags;

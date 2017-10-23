@@ -132,6 +132,8 @@ uint8_t wsn_net_prefix_len;
 uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 rpl_dag_t *cetic_dag;
+
+int rpl_can_become_root = 1;
 int rpl_fast_startup = 1;
 int rpl_wait_delay = 10 * CLOCK_SECOND;
 int rpl_ignore_other_dodags = 1;
@@ -362,6 +364,10 @@ cetic_6lbr_init(void)
 }
 
 #if UIP_CONF_IPV6_RPL
+
+static void
+check_dodag_creation(void *data);
+
 void
 cetic_6lbr_start_dodag_root(void)
 {
@@ -407,31 +413,42 @@ cetic_6lbr_start_dodag_root(void)
 void
 cetic_6lbr_end_dodag_root(rpl_instance_t *instance)
 {
-  LOG6LBR_INFO("Leaving DODAG root\n");
-  rpl_local_repair(instance);
-  dio_output(instance, NULL);
-  rpl_free_dag(instance->current_dag);
-  rpl_free_instance(instance);
+  if(is_dodag_root()) {
+    LOG6LBR_INFO("Leaving DODAG root\n");
+    rpl_local_repair(instance);
+    dio_output(instance, NULL);
+    rpl_free_dag(instance->current_dag);
+    rpl_free_instance(instance);
+    if(!rpl_fast_startup) {
+      //Restart DODAG creation check
+      ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+    }
+  }
 }
 
 static void
 check_dodag_creation(void *data)
 {
-  if(!is_dodag_available()) {
-    LOG6LBR_INFO("No DODAGs found\n");
-    uip_ds6_notification_rm(&create_dodag_root_route_callback);
-    cetic_6lbr_start_dodag_root();
-  } else if(is_own_dodag()) {
-    LOG6LBR_INFO("Own DODAG already existing\n");
-    uip_ds6_notification_rm(&create_dodag_root_route_callback);
-    cetic_6lbr_start_dodag_root();
-  } else if(rpl_ignore_other_dodags) {
-    LOG6LBR_INFO("Ignoring other DODAGs\n");
-    uip_ds6_notification_rm(&create_dodag_root_route_callback);
-    cetic_6lbr_start_dodag_root();
-  } else {
-    //Another DODAG is present on the network, stay as simple router
+  if(!rpl_can_become_root) {
+    //It's forbidden to become DODAG root right now, skipping checks
     ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+  } else {
+    if(!is_dodag_available()) {
+      LOG6LBR_INFO("No DODAGs found\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else if(is_own_dodag()) {
+      LOG6LBR_INFO("Own DODAG already existing\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else if(rpl_ignore_other_dodags) {
+      LOG6LBR_INFO("Ignoring other DODAGs\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else {
+      //Another DODAG is present on the network, stay as simple router
+      ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+    }
   }
 }
 
@@ -462,7 +479,7 @@ cetic_6lbr_dio_input_default_hook(uip_ipaddr_t *from, rpl_instance_t *instance, 
 void
 cetic_6lbr_start_delayed_dodag_root(int send_dis)
 {
-  if(is_own_dodag()) {
+  if(rpl_can_become_root && is_own_dodag()) {
     LOG6LBR_INFO("Own DODAG already existing\n");
     cetic_6lbr_start_dodag_root();
   } else {
@@ -474,6 +491,12 @@ cetic_6lbr_start_delayed_dodag_root(int send_dis)
       dis_output(NULL);
     }
   }
+}
+
+void
+cetic_6lbr_set_rpl_can_become_root(int can_become_root)
+{
+  rpl_can_become_root = can_become_root;
 }
 #endif /*UIP_CONF_IPV6_RPL*/
 
