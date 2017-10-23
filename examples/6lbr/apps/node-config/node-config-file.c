@@ -217,10 +217,12 @@ PROCESS_THREAD(node_config_process, ev, data)
     PROCESS_YIELD();
     if(etimer_expired(&et)) {
 #if INOTIFY
-      char buf[INBUFLEN] __attribute__ ((aligned(8)));
-      ssize_t nr = read(infd, buf, INBUFLEN);
-      if(nr > 0) {
-        node_config_reload();
+      if(infd != -1) {
+        char buf[INBUFLEN] __attribute__ ((aligned(8)));
+        ssize_t nr = read(infd, buf, INBUFLEN);
+        if(nr > 0) {
+          node_config_reload();
+        }
       }
       etimer_set(&et, CLOCK_SECOND);
 #endif
@@ -246,6 +248,8 @@ void node_config_impl_init(void) {
     int mode = fcntl(infd, F_GETFL, 0);
     mode |= O_NONBLOCK;
     fcntl(infd, F_SETFL, mode);
+  } else {
+    infd = -1;
   }
 #endif
   process_start(&node_config_process, NULL);
