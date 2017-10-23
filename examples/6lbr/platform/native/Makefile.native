@@ -175,7 +175,8 @@ endif
 
 .SECONDEXPANSION:
 %.so: $$(PLUGIN_OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(PLUGIN_LDFLAGS)
+	$(TRACE_LD)
+	$(Q) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(PLUGIN_LDFLAGS)
 
 CLEAN += *.so obj_$(TARGET)/*.so
 
