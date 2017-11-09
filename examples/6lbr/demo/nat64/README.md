@@ -18,6 +18,6 @@ The nodes are using the standard 6lbr-demo firmware
 
 Once started, the BR can be reached using its IPv4 address at [http://172.16.0.2/](http://172.16.0.2/) (The demo scripts assign 172.16.0.1 to the tap interface)
 
-The nodes can be reached using the same IPv4 address as the BR, the port number is used to select the right node. For example, you can reach the node aaaa::202:2:2:2 using port [25000](http://172.16.0.2:25000/) in TCP and [20000](coap://172.16.0.2:20000/) in CoAP
+The nodes can be reached using the same IPv4 address as the BR, the port number is used to select the right node. For example, you can reach the node fd00::202:2:2:2 using port [25000](http://172.16.0.2:25000/) in TCP and [20000](coap://172.16.0.2:20000/) in CoAP
 
 

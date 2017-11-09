@@ -37,6 +37,10 @@ The [Simple Router](simple-router/README.md) demo is the simplest configuration 
 
 The [Simple Smart-Bridge](simple-smartbridge/README.md) demo is the simplest configuration of 6LBR in SmartBridge mode.
 
+### Non-Storing
+
+The [Non-Storing](non-storing/README.md) demo creates a WSN network using the Non-Storing mode of RPL.
+
 ### NAT-64
 
 The [NAT-64](nat64/README.md) demo activates the NAT-64 support in 6LBR, allowing to reach the BR and the nodes using IPv4.
@@ -44,6 +48,10 @@ The [NAT-64](nat64/README.md) demo activates the NAT-64 support in 6LBR, allowin
 ### LLSEC
 
 The [LLSEC](llsec/README.md) demo enables Link-Layer Security in the WSN using NonCoresec engine.
+
+### AdaptiveSec
+
+The [AdaptiveSec](adaptivesec/README.md) demo enables Link-Layer Security in the WSN using AdaptiveSec engine.
 
 ### Multi-Radio
 

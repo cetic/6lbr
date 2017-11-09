@@ -20,15 +20,15 @@ The nodes are using the standard 6lbr-demo firmware
 
 ## Demo
 
-Once started, the BR can be reached at [http://[aaaa::201:1:1:1]/](http://[aaaa::201:1:1:1]/)
+Once started, the BR can be reached at [http://[fd00::201:1:1:1]/](http://[aaaa::201:1:1:1]/)
 
-The nodes can be reached in the same aaaa:: subnet, for example : aaaa::202:2:2:2
+The nodes can be reached in the same fd00:: subnet, for example : fd00::202:2:2:2
 
 You can test the connectivity with the node using ping :
 
-    ping6 aaaa::202:2:2:2
+    ping6 fd00::202:2:2:2
 
-You can reach the node using CoAP : [coap://[aaaa::202:2:2:2/]/](coap://[aaaa::202:2:2:2/]/)
+You can reach the node using CoAP : [coap://[fd00::202:2:2:2/]/](coap://[fd00::202:2:2:2/]/)
 
-Or via HTTP : [http://[aaaa::202:2:2:2/]/](http://[aaaa::202:2:2:2/]/)
+Or via HTTP : [http://[fd00::202:2:2:2/]/](http://[fd00::202:2:2:2/]/)
 
