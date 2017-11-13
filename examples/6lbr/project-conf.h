@@ -218,6 +218,11 @@
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
+#if WITH_MULTICAST
+#define UIP_CONF_MLD 1
+#define UIP_CONF_MLD_PUBLISH_ROUTES 1
+#endif
+
 /*------------------------------------------------------------------*/
 #endif
 
@@ -343,8 +348,9 @@
 
 #endif
 
-//IP64 DHCP is manually started in cetic-6lbr if needed
-#define IP64_CONF_DHCP 0
+#if CETIC_6LBR_MULTICAST_WRAPPER
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_WRAPPER
+#endif
 
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0

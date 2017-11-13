@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Loughborough University - Computer Science
+ * Copyright (c) 2017, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,21 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
- * \addtogroup uip6-multicast
- * @{
- */
-/**
- * \file
- * Header file with definition of multicast engine constants
- *
- * When writing a new engine, add it here with a unique number and
- * then modify uip-mcast6.h accordingly
- *
  * \author
- *     George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef UIP_MCAST6_ENGINES_H_
-#define UIP_MCAST6_ENGINES_H_
+#ifndef MULTICAST_WRAPPER_H_
+#define MULTICAST_WRAPPER_H_
 
-#define UIP_MCAST6_ENGINE_NONE        0 /**< Selecting this disables mcast */
-#define UIP_MCAST6_ENGINE_SMRF        1 /**< The SMRF engine */
-#define UIP_MCAST6_ENGINE_ROLL_TM     2 /**< The ROLL TM engine */
-#define UIP_MCAST6_ENGINE_ESMRF       3 /**< The ESMRF engine */
+#include "net/ipv6/multicast/uip-mcast6.h"
 
-#define UIP_MCAST6_ENGINE_WRAPPER     255 /**< The multicast wrapper */
+extern const struct uip_mcast6_driver mcast_wrapper_driver;
 
-#endif /* UIP_MCAST6_ENGINES_H_ */
-/** @} */
+void multicast_wrapper_init(void);
+char const * multicast_wrapper_name(void);
+
+#endif /* MULTICAST_WRAPPER_H_ */

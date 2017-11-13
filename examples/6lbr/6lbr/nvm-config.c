@@ -175,6 +175,17 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_3)
+  {
+    if (!reset) {
+      LOG6LBR_WARN("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_3);
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_3;
+
+    nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
+
+    flash = 1;
+  }
 
   if(flash) {
     nvm_data_write();

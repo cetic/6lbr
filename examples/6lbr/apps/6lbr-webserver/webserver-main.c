@@ -40,6 +40,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"
@@ -52,6 +53,9 @@
 #endif
 #if CETIC_6LBR_MULTI_RADIO
 #include "network-itf.h"
+#endif
+#if CETIC_6LBR_MULTICAST_WRAPPER
+#include "multicast-wrapper.h"
 #endif
 #if CONTIKI_TARGET_NATIVE
 #include "native-config.h"
@@ -148,6 +152,13 @@ PT_THREAD(generate_index(struct httpd_state *s))
   if(!sixlbr_config_slip_ip) //Temporary until slip-ip is merged into network-itf
 #endif
   {
+#if UIP_MCAST6_ENGINE
+#if CETIC_6LBR_MULTICAST_WRAPPER
+  add("Multicast: %s<br />", multicast_wrapper_name());
+#else
+  add("Multicast: %s<br />", UIP_MCAST6.name);
+#endif
+#endif
 #if CETIC_6LBR_MAC_WRAPPER
   add("MAC: %s<br />", mac_wrapper_name());
 #else

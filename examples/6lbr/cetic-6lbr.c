@@ -81,6 +81,10 @@
 #include "strategy-wrapper.h"
 #endif
 
+#if CETIC_6LBR_MULTICAST_WRAPPER
+#include "multicast-wrapper.h"
+#endif
+
 #if WEBSERVER
 #include "webserver.h"
 #endif
@@ -649,6 +653,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   llsec_wrapper_init();
 #endif
 
+#if CETIC_6LBR_MULTICAST_WRAPPER
+  multicast_wrapper_init();
+#endif
   //6LoWPAN init
   memcpy(addr_contexts[0].prefix, nvm_data.wsn_6lowpan_context_0, sizeof(addr_contexts[0].prefix));
 

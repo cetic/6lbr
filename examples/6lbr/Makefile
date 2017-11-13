@@ -127,7 +127,9 @@ endif
 ifeq ($(WITH_MULTICAST),1)
 ifeq ($(CONTIKI_WITH_RPL),1)
 #Multicast is only supported in RPL mode yet
+CFLAGS += -DWITH_MULTICAST=1
 MODULES += core/net/ipv6/multicast
+PROJECT_SOURCEFILES += multicast-wrapper.c
 endif
 endif
 

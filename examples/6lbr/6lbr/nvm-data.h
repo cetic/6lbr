@@ -100,6 +100,11 @@ typedef struct {
   //Log
   uint8_t log_level;
   uint32_t log_services;
+
+  //Version 3 configuration data
+  //Multicast
+  uint8_t multicast_engine;
+
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -110,8 +115,9 @@ typedef struct {
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
 #define CETIC_6LBR_NVM_VERSION_2    5
+#define CETIC_6LBR_NVM_VERSION_3    6
 
-#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
+#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_3
 
 //Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
@@ -180,6 +186,12 @@ typedef struct {
 #define CETIC_6LBR_MAC_LAYER_CSMA     1
 #define CETIC_6LBR_MAC_LAYER_NULLMAC  2
 #define CETIC_6LBR_MAC_LAYER_TSCH     3
+
+//MULTICAST
+#define CETIC_6LBR_MULTICAST_NONE     0
+#define CETIC_6LBR_MULTICAST_SMRF     1
+#define CETIC_6LBR_MULTICAST_ROLL_TM  2
+#define CETIC_6LBR_MULTICAST_ESMRF    3
 
 /*---------------------------------------------------------------------------*/
 

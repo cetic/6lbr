@@ -228,6 +228,16 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CETIC_6LBR_MULTICAST_WRAPPER
+  add("Multicast engine : <select name=\"mcast\">");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_NONE, "None");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_SMRF, "SMRF");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_ROLL_TM, "ROLL-TM");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_ESMRF, "ESMRF");
+  add("</select><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
 #if CONTIKI_TARGET_NATIVE
   if(!sixlbr_config_slip_ip)
 #endif
@@ -508,6 +518,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
+#if CETIC_6LBR_MULTICAST_WRAPPER
+    UPDATE_INT("mcast", multicast_engine, 1)
+#endif
     UPDATE_IPADDR("wsn_context_0", wsn_6lowpan_context_0, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
     UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)

@@ -165,6 +165,10 @@ struct uip_mcast6_driver {
 #define RPL_WITH_MULTICAST     1
 #define UIP_MCAST6             esmrf_driver
 
+#elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_WRAPPER
+#define RPL_WITH_MULTICAST     1
+#define UIP_MCAST6             multicast_wrapper_driver
+
 #else
 #error "Multicast Enabled with an Unknown Engine."
 #error "Check the value of UIP_MCAST6_CONF_ENGINE in conf files."
