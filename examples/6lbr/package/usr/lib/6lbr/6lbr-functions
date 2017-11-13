@@ -36,6 +36,10 @@ if [ "$NVM" = "" ]; then
 	NVM=$ETC_6LBR/nvm.dat
 fi
 
+if [ "$FACTORY_NVM" = "" ]; then
+	FACTORY_NVM=$ETC_6LBR/factory.dat
+fi
+
 if [ "$CONFIG" = "" ]; then
 	CONFIG=$ETC_6LBR/nvm.conf
 fi

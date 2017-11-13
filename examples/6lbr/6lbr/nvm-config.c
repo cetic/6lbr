@@ -197,3 +197,14 @@ store_nvm_config(void)
 {
   nvm_data_write();
 }
+
+void
+reset_nvm_config(void)
+{
+  int force_reset;
+
+  LOG6LBR_INFO("Reseting NVM...\n");
+  force_reset = nvm_data_reset();
+
+  check_nvm(&nvm_data, force_reset);
+}

@@ -81,3 +81,9 @@ nvm_data_write(void)
     LOG6LBR_ERROR("write error : %d\n", err);
   }
 }
+
+int
+nvm_data_reset(void)
+{
+  return 1;
+}

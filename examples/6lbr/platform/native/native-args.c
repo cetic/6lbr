@@ -67,10 +67,14 @@ native_args_handle_arguments(int argc, char **argv)
   int baudrate = -2;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:HD:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:o:m:yY")) != -1) {
+  while((c = getopt(argc, argv, "c:F:B:HD:L:S:hs:t:v::d::a:p:rRfU:D:w:W:P:C:n:o:m:yY")) != -1) {
     switch (c) {
     case 'c':
       sixlbr_config_nvm_file = optarg;
+      break;
+
+    case 'F':
+      sixlbr_config_factory_nvm_file = optarg;
       break;
 
     case 'o':

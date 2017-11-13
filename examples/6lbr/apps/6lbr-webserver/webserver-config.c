@@ -623,7 +623,7 @@ webserver_config_set(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_config_reset(struct httpd_state *s)
 {
-  check_nvm(&nvm_data, 1);
+  reset_nvm_config();
   cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
   webserver_result_title = "Configuration";
   webserver_result_text = "Configuration reset, restarting BR...";

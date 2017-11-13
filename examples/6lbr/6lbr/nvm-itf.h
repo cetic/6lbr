@@ -38,9 +38,12 @@
 #define NVM_ITF_H_
 
 void
-  nvm_data_read(void);
+nvm_data_read(void);
 
 void
-  nvm_data_write(void);
+nvm_data_write(void);
+
+int
+nvm_data_reset(void);
 
 #endif

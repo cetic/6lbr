@@ -59,6 +59,7 @@ int sixlbr_config_watchdog_interval = SIXLBR_CONFIG_DEFAULT_WATCHDOG_INTERVAL;
 char const * sixlbr_config_watchdog_file_name = SIXLBR_CONFIG_DEFAULT_WATCHDOG_FILENAME;
 
 char const *sixlbr_config_nvm_file = SIXLBR_CONFIG_DEFAULT_NVM_FILE;
+char const *sixlbr_config_factory_nvm_file = SIXLBR_CONFIG_DEFAULT_FACTORY_NVM_FILE;
 char const *sixlbr_config_ip_file_name = SIXLBR_CONFIG_DEFAULT_IP_FILENAME;
 char const *sixlbr_config_config_file_name = SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME;
 char const *sixlbr_config_node_config_file_name = SIXLBR_CONFIG_DEFAULT_NODE_CONFIG_FILENAME;

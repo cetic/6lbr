@@ -54,18 +54,25 @@ static uint8_t nvm_mem[NVM_SIZE];
 void
 nvm_data_read(void)
 {
+  int valid = 1;
   LOG6LBR_DEBUG("Opening nvm file '%s'\n", sixlbr_config_nvm_file);
   memset(nvm_mem, 0xff, NVM_SIZE);
   int s = open(sixlbr_config_nvm_file, O_RDONLY);
   if(s > 0) {
     if(read(s, nvm_mem, NVM_SIZE) < 0) {
       LOG6LBR_ERROR("Failed to read NVM");
+      valid = 0;
     }
     close(s);
   } else {
     LOG6LBR_ERROR("Could not open nvm file\n");
+    valid = 0;
   }
-  memcpy((uint8_t *) & nvm_data, nvm_mem, sizeof(nvm_data));
+  if(valid) {
+    memcpy((uint8_t *) & nvm_data, nvm_mem, sizeof(nvm_data));
+  } else {
+    nvm_data_reset();
+  }
 }
 
 void
@@ -83,4 +90,26 @@ nvm_data_write(void)
   } else {
     LOG6LBR_ERROR("Could not open nvm file\n");
   }
+}
+
+int
+nvm_data_reset(void)
+{
+  int force_reset = 0;
+  LOG6LBR_DEBUG("Opening nvm factory file '%s'\n", sixlbr_config_factory_nvm_file);
+  memset(nvm_mem, 0xff, NVM_SIZE);
+  int s = open(sixlbr_config_factory_nvm_file, O_RDONLY);
+  if(s > 0) {
+    if(read(s, nvm_mem, NVM_SIZE) < 0) {
+      LOG6LBR_INFO("Could not read factory NVM");
+      force_reset = 1;
+    }
+    close(s);
+  } else {
+    LOG6LBR_INFO("Could not open factory nvm file\n");
+    force_reset = 1;
+  }
+  memcpy((uint8_t *) & nvm_data, nvm_mem, sizeof(nvm_data));
+  nvm_data_write();
+  return force_reset;
 }

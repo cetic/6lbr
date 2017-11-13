@@ -84,3 +84,9 @@ nvm_data_write(void)
     LOG6LBR_FATAL("Could not program 6LBR NVM !\n");
   }
 }
+
+int
+nvm_data_reset(void)
+{
+  return 1;
+}
