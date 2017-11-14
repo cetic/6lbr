@@ -4,6 +4,7 @@ COOJA?=${CONTIKI}/tools/cooja
 DEMO=$(SIXLBR)/demo
 
 NODE_FIRMWARE?=node
+SLIP_FIRMWARE?=slip-radio
 SIXLBR_LIST?=6lbr
 TARGET?=cooja
 SIXLBR_BIN=bin/cetic_6lbr_router
@@ -12,8 +13,10 @@ export CONTIKI SIXLBR COOJA
 
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
+ROUTE?=
+GW?=bbbb::100
 
-export DEV_TAP_IP6 DEV_TAP_IP4
+export DEV_TAP_IP6 DEV_TAP_IP4 ROUTE GW
 
 help:
 	@echo "usage: make <target>"
@@ -34,7 +37,7 @@ ifneq ($(SOURCE_CSC),)
 CSC?=gensetup.csc
 GEN_CSC=$(CSC)
 $(CSC): $(SOURCE_CSC)
-	sed "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" $(SOURCE_CSC) > $(CSC)
+	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" -e "/\/firmwares\/slip-radio\/slip-radio.c/ s/\/slip-radio\//\/$(SLIP_FIRMWARE)\//" $(SOURCE_CSC) > $(CSC)
 endif
 
 ifeq ($(CSC),)

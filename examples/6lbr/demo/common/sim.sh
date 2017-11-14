@@ -44,6 +44,9 @@ function create-tap() {
 	if [ "$DEV_TAP_IP4" != "" ]; then
 		sudo ip addr add $DEV_TAP_IP4 dev $1
 	fi
+	if [ "$ROUTE" != "" ]; then
+		sudo ip route add $ROUTE via $GW
+	fi
 }
 	
 function remove-tap() {
