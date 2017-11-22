@@ -108,11 +108,26 @@ packet_sent(void *ptr, int status, int transmissions)
 static int
 slip_radio_cmd_handler(const uint8_t *data, int len)
 {
+#if SLIP_RADIO_IP
+  linkaddr_t dest;
+#endif
   int i;
   if(data[0] == '!') {
     /* should send out stuff to the radio - ignore it as IP */
     /* --- s e n d --- */
     if(data[1] == 'S') {
+#if SLIP_RADIO_IP
+      uint8_t sid = data[2];
+      memcpy(&dest, &data[3], sizeof(uip_lladdr_t));
+      memmove(&uip_buf[UIP_LLH_LEN], &data[3 + sizeof(uip_lladdr_t)], len - 3 - sizeof(uip_lladdr_t));
+      uip_len = len - 3 - sizeof(uip_lladdr_t);
+      if(linkaddr_cmp(&dest, &linkaddr_null)) {
+        tcpip_output(NULL);
+      } else {
+        tcpip_output((uip_lladdr_t *)&dest);
+      }
+      packet_sent((void *)&sid, 0, 1);
+#else /* SLIP_RADIO_IP */
       int pos = 0;
       packet_ids[packet_pos] = data[2];
 
@@ -143,6 +158,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       if(packet_pos >= sizeof(packet_ids)) {
 	packet_pos = 0;
       }
+#endif /* SLIP_RADIO_IP */
       return 1;
     } else if(data[1] == 'R' && len == 2) {
 #if !CONTIKI_TARGET_CC2538DK
@@ -221,6 +237,19 @@ slip_input_callback(void)
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
+#if SLIP_RADIO_IP
+static void
+slip_output()
+{
+  if(uip_len > 0) {
+    memmove(&uip_buf[UIP_LLH_LEN + sizeof(uip_lladdr_t) * 2], &uip_buf[UIP_LLH_LEN], uip_len);
+    memcpy(&uip_buf[UIP_LLH_LEN], packetbuf_addr(PACKETBUF_ADDR_SENDER), sizeof(uip_lladdr_t));
+    memcpy(&uip_buf[UIP_LLH_LEN + sizeof(uip_lladdr_t)], packetbuf_addr(PACKETBUF_ADDR_RECEIVER), sizeof(uip_lladdr_t));
+    slip_send_packet(&uip_buf[UIP_LLH_LEN], uip_len + sizeof(uip_lladdr_t) * 2);
+  }
+}
+#endif
+/*---------------------------------------------------------------------------*/
 static void
 init(void)
 {
@@ -231,6 +260,9 @@ init(void)
   process_start(&slip_process, NULL);
   slip_set_input_callback(slip_input_callback);
   packet_pos = 0;
+#if SLIP_RADIO_IP
+  tcpip_set_inputfunc(slip_output);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 #if !SLIP_RADIO_CONF_NO_PUTCHAR

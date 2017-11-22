@@ -31,22 +31,37 @@
 #define PROJECT_CONF_H_
 
 /* Set to 1 if the SLIP packets contains a CRC8 checksum */
+#ifndef SLIP_CONF_CRC_ON
 #define SLIP_CONF_CRC_ON 0
+#endif
 
 /* Set to 1 if the BR sends packet attributes along with the packet to the SLIP Radio */
+#ifndef DESERIALIZE_ATTRIBUTES
 #define DESERIALIZE_ATTRIBUTES 1
+#endif
 
 /* Set to 1 if the SLIP Radio sends packet attributes along with the packet to the BR */
+#ifndef SERIALIZE_ATTRIBUTES
 #define SERIALIZE_ATTRIBUTES 0
+#endif
+
+/* Set to 1 if the packets contains IP packets and not 802.15.4 packets */
+#ifndef SLIP_RADIO_IP
+#define SLIP_RADIO_IP 0
+#endif
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          16
 
 #define SLIP_CONF_BUF_NB        16
 
-/* Support one 802.15.4 packet plus 20 packet attributes plus slip command overhead */
 #undef UIP_CONF_BUFFER_SIZE
+#if SLIP_RADIO_IP
+#define UIP_CONF_BUFFER_SIZE    240
+#else
+/* Support one 802.15.4 packet plus 20 packet attributes plus slip command overhead */
 #define UIP_CONF_BUFFER_SIZE    (127+20*3+3)
+#endif
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
@@ -91,10 +106,27 @@
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler
 #endif
 
+#if SLIP_RADIO_IP
+
+#undef NETSTACK_CONF_NETWORK
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     csma_driver
+
+#else /* SLIP_RADIO_IP */
+
+#undef NETSTACK_CONF_NETWORK
+#define NETSTACK_CONF_NETWORK slipnet_driver
 
 /* configuration for the slipradio/network driver */
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
+
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER no_framer
+
+#endif /* SLIP_RADIO_IP */
 
 /* NETSTACK_CONF_RDC is defined in Makefile */
 
@@ -105,12 +137,6 @@
 #undef NULLRDC_CONF_802154_AUTOACK
 #define NULLRDC_CONF_802154_AUTOACK     1
 #endif
-
-#undef NETSTACK_CONF_NETWORK
-#define NETSTACK_CONF_NETWORK slipnet_driver
-
-#undef NETSTACK_CONF_FRAMER
-#define NETSTACK_CONF_FRAMER no_framer
 
 #undef CC2420_CONF_AUTOACK
 #define CC2420_CONF_AUTOACK              1
