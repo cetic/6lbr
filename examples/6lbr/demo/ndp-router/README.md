@@ -1,30 +1,23 @@
-# Simple Router Demo
+# NDP-Router Demo
 
-The Simple Router demo is the simplest configuration of 6LBR in Router mode.
+The NDP-Router demo creates a WSN network using pure IPv6 network control protocol, NDP. This demo is based on the [Simple Router](../simple-router/README.md) demo, only the specific configuration is documented here.
 
 ## Configuration
 
-### 6LBR Configuration
+### 6LBR configuration
 
 The mode is enabled by setting in [6lbr.conf](6lbr/6lbr.conf):
 
-    MODE=ROUTER
+    MODE=NDP-ROUTER
+
+The default Router Lifetime is 0, for a working network, it must be set to a value greater than 0. This can be modified in the configuration page of the webserver or in the nvm.dat file using nvm_tool with the following option :
+
+    --ra-router-lifetime 1800
 
 ### Node configuration
 
-The nodes are using the standard 6lbr-demo firmware
+The NDP mode can be enabled in 6lbr-demo by setting the following flag in the [Makefile](../firmwares/non-storing/Makefile) :
 
-## Demo
+    WITH_RPL=0
 
-Once started, the BR can be reached at [http://[bbbb::100]/](http://[bbbb::100]/)
-
-The nodes can be reached in the fd00:: subnet, for example : fd00::202:2:2:2
-
-You can test the connectivity with the node using ping :
-
-    ping6 fd00::202:2:2:2
-
-You can reach the node using CoAP : [coap://[fd00::202:2:2:2/]/](coap://[fd00::202:2:2:2/]/)
-
-Or via HTTP : [http://[fd00::202:2:2:2/]/](http://[fd00::202:2:2:2/]/)
-
+It can also be enabled in the project-conf.h file.
