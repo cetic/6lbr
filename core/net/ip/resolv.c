@@ -1599,7 +1599,7 @@ resolv_set_hostname(const char *hostname)
   /* Add the .local suffix if it isn't already there */
   if(strlen(resolv_hostname) < 7 ||
      strcasecmp(resolv_hostname + strlen(resolv_hostname) - 6, ".local") != 0) {
-    strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
+    strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE - strlen(resolv_hostname));
   }
 
   PRINTF("resolver: hostname changed to \"%s\"\n", resolv_hostname);
@@ -1785,8 +1785,8 @@ remove_trailing_dots(const char *name) {
   static char dns_name_without_dots[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
   size_t len = strlen(name);
 
-  if(name[len - 1] == '.') {
-    strncpy(dns_name_without_dots, name, sizeof(dns_name_without_dots));
+  if(len && name[len - 1] == '.') {
+    strncpy(dns_name_without_dots, name, RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
     while(len && (dns_name_without_dots[len - 1] == '.')) {
       dns_name_without_dots[--len] = 0;
     }
@@ -1847,7 +1847,7 @@ resolv_query(const char *name)
 
   memset(nameptr, 0, sizeof(*nameptr));
 
-  strncpy(nameptr->name, name, sizeof(nameptr->name));
+  strncpy(nameptr->name, name, sizeof(nameptr->name) - 1);
   nameptr->state = STATE_NEW;
   nameptr->seqno = seqno;
   ++seqno;
@@ -2018,7 +2018,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
       }
 
       /* Re-add the .local suffix */
-      strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
+      strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE - strlen(resolv_hostname));
 
       start_name_collision_check(CLOCK_SECOND * 5);
     } else if(mdns_state == MDNS_STATE_READY) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Loughborough University - Computer Science
+ * Copyright (c) 2017, Peter Sjodin, KTH Royal Institute of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,26 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- */
-
-/**
- * \file
- *         Project specific configuration defines for the sniffer example.
  *
- * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
- *         Robert Olsson - <robert@radio.sensors.com>
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Peter Sjodin, KTH Royal Institute of Technology
+ * Created : 2017-04-21
  */
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+#ifndef PMS5003_SENSOR_H_
+#define PMS5003_SENSOR_H_
 
+#include "lib/sensors.h"
 
-#define NETSTACK_CONF_MAC      nullmac_driver
-/* Can see other channels. Interesting. */
-/* #define NETSTACK_CONF_MAC      csma_driver */
-#define NETSTACK_CONF_RDC      stub_rdc_driver
+extern const struct sensors_sensor pms5003_sensor;
 
+#define PMS5003_SENSOR_PM1           0
+#define PMS5003_SENSOR_PM2_5         1
+#define PMS5003_SENSOR_PM10          2
+#define PMS5003_SENSOR_PM1_ATM       3
+#define PMS5003_SENSOR_PM2_5_ATM     4
+#define PMS5003_SENSOR_PM10_ATM      5
+#define PMS5003_SENSOR_DB0_3         6
+#define PMS5003_SENSOR_DB0_5         7
+#define PMS5003_SENSOR_DB1            8
+#define PMS5003_SENSOR_DB2_5         9
+#define PMS5003_SENSOR_DB5          10
+#define PMS5003_SENSOR_DB10          11
+#define PMS5003_SENSOR_TIMESTAMP    12
 
-#endif /* PROJECT_CONF_H_ */
+#endif /* PMS5003_SENSOR_H_ */

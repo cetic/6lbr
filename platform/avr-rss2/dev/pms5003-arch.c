@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Loughborough University - Computer Science
+ * Copyright (c) 2017, Peter Sjodin, KTH Royal Institute of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,74 +27,54 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- */
-
-/**
- * \file
- *         Definition of a fake RDC driver to be used with passive
- *         examples. The sniffer will never send packets and it will never
- *         push incoming packets up the stack. We do this by defining this
- *         driver as our RDC. We then drop everything
  *
- * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *
+ * Author  : Peter Sjodin psj@kth.se
+ * Created : 2017-01-06
  */
 
-#include "net/mac/mac.h"
-#include "net/mac/rdc.h"
+#include "contiki.h"
+#include "i2c.h"
+#include "watchdog.h"
+#include "dev/pms5003/pms5003.h"
+#include "pms5003-arch.h"
+
+static uint8_t standbymode;
 /*---------------------------------------------------------------------------*/
-static void
-send(mac_callback_t sent, void *ptr)
-{
-  if(sent) {
-    sent(ptr, MAC_TX_OK, 1);
+/* 
+ * Configure low power standby mode (PIN3, SET)
+ */
+void
+pms5003_set_standby_mode(uint8_t mode) {
+  SET_PMS_DDR |= (1 << PMS_SET);
+  if (mode == STANDBY_MODE_OFF)
+    SET_PMS_PORT |= (1 << PMS_SET);
+  else if (mode == STANDBY_MODE_ON)
+    SET_PMS_PORT &= ~(1 << PMS_SET);
+  standbymode = mode;
+}
+/*---------------------------------------------------------------------------*/
+/*
+ * Return current standby mode
+ */
+uint8_t
+pms5003_get_standby_mode(void) {
+  return standbymode;
+}
+/*---------------------------------------------------------------------------*/
+/*
+ * Probe I2C bus for PMS5003 device 
+ */
+uint8_t
+pms5003_i2c_probe(void) {
+  watchdog_periodic();
+  if(!i2c_start(I2C_PMS5003_ADDR)) {
+    i2c_stop();
+    i2c_probed |= I2C_PMS5003;
+    return 1;
+
   }
-}
-/*---------------------------------------------------------------------------*/
-static void
-send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *list)
-{
-  if(sent) {
-    sent(ptr, MAC_TX_OK, 1);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
-input(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-static int
-on(void)
-{
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static int
-off(int keep_radio_on)
-{
-  return keep_radio_on;
-}
-/*---------------------------------------------------------------------------*/
-static unsigned short
-cca(void)
-{
+  i2c_probed &= ~I2C_PMS5003;
   return 0;
 }
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-const struct rdc_driver stub_rdc_driver = {
-  "stub-rdc",
-  init,
-  send,
-  send_list,
-  input,
-  on,
-  off,
-  cca,
-};
 /*---------------------------------------------------------------------------*/
