@@ -7,6 +7,7 @@ RPL_NON_STORING?=0
 WITH_LLSEC?=0
 WITH_ADAPTIVESEC?=0
 WITH_TCP?=0
+WITH_TSCH?=0
 
 # Applications
 
@@ -47,6 +48,11 @@ CONTIKI_WITH_IPV6 = 1
 
 ifneq ($(RF_CHANNEL),)
 CFLAGS +=-DRF_CHANNEL=$(RF_CHANNEL) -DUSER_RF_CHANNEL
+endif
+
+ifeq ($(WITH_TSCH),1)
+CFLAGS +=-DWITH_TSCH=1
+MODULES+=core/net/mac/tsch
 endif
 
 ifeq ($(WITH_RPL),1)
