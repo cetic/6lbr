@@ -42,6 +42,15 @@ ifeq ($(TARGET),cooja)
 endif
 endif
 
+ifeq ($(WITH_SLIP_IP),1)
+    CFLAGS+=-DSLIP_RADIO_IP=1
+endif
+
+ifeq ($(WITH_TSCH),1)
+    MODULES+=core/net/mac/tsch
+    CFLAGS+=-DWITH_TSCH=1
+endif
+
 CONTIKI_WITH_RPL = 0
 CONTIKI_WITH_IPV6 = 1
 

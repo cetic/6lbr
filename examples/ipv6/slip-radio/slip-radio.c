@@ -50,6 +50,14 @@
 #include "packetutils.h"
 #include "no-framer.h"
 
+#if WITH_TSCH
+#include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-private.h"
+#include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-log.h"
+#include "tsch-rpl.h"
+#endif
+
 #ifdef SLIP_RADIO_CONF_SENSORS
 extern const struct slip_radio_sensors SLIP_RADIO_CONF_SENSORS;
 #endif
@@ -306,6 +314,13 @@ PROCESS_THREAD(slip_radio_process, ev, data)
   SLIP_RADIO_CONF_SENSORS.init();
 #endif
   printf("Slip Radio started...\n");
+
+#if WITH_TSCH
+  tsch_set_coordinator(1);
+  tsch_set_eb_period(TSCH_EB_PERIOD);
+  tsch_set_join_priority(0);
+  NETSTACK_MAC.on();
+#endif
 
   etimer_set(&et, CLOCK_SECOND * 3);
 
