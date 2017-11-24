@@ -72,7 +72,7 @@ typedef uip_ip6addr_t uip_ipaddr_t;
 
 /*---------------------------------------------------------------------------*/
 
-#define NVM_SIZE 0x100
+#define NVM_SIZE 0x800
 static uint8_t nvm_mem[NVM_SIZE];
 
 nvm_data_t *nvm_data = (nvm_data_t *) nvm_mem;
@@ -486,6 +486,12 @@ migrate_nvm(uint8_t print_info)
     nvm_data->version = CETIC_6LBR_NVM_VERSION_3;
 
     nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
+
+    nvm_data->udp_server_port = CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT;
+    nvm_data->nvm_proxy_port = CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT;
+
+    nvm_data->node_config_first_coap_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP;
+    nvm_data->node_config_first_http_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP;
   }
 }
 
@@ -716,13 +722,21 @@ print_nvm(void)
   PRINT_IP4("NAT 64 address", eth_ip64_addr);
   PRINT_IP4("NAT 64 netmask", eth_ip64_netmask);
   PRINT_IP4("NAT 64 gateway", eth_ip64_gateway);
+  PRINT_INT("First CoAP port", node_config_first_coap_port);
+  PRINT_INT("First HTTP port", node_config_first_http_port);
   printf("\n");
 
   //Misc
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
   PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
   PRINT_BOOL("Webserver configuration page disabled", global_flags, CETIC_GLOBAL_DISABLE_CONFIG);
+  PRINT_BOOL_INV("Webserver enabled", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER);
   PRINT_INT("Webserver port", webserver_port);
+  PRINT_BOOL_INV("UDP Server enabled", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER);
+  PRINT_INT("UDP Server port", udp_server_port);
+  PRINT_BOOL_INV("CoAP server enabled", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER);
+  PRINT_BOOL_INV("DNS Proxy enabled", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY);
+  PRINT_INT("NVM Proxy port", nvm_proxy_port);
   printf("\n");
 }
 
@@ -797,7 +811,13 @@ print_nvm(void)
 
 //Global flags
 #define disable_config_option 11001
-#define webserver_port_option 11002
+#define webserver_enable_option 11002
+#define webserver_port_option 11003
+#define udp_server_enable_option 11004
+#define udp_server_port_option 11005
+#define coap_server_enable_option 11006
+#define dns_proxy_enable_option 11007
+#define nvm_proxy_port_option 11008
 
 //Security
 #define security_layer_option 12000
@@ -815,6 +835,8 @@ print_nvm(void)
 #define eth_ip64_netmask_option 13004
 #define eth_ip64_gateway_option 13005
 #define nat64_rfc_6052_option 13006
+#define node_config_first_coap_port_option 13007
+#define node_config_first_http_port_option 13008
 
 //MAC
 #define mac_layer_option 14000
@@ -907,12 +929,20 @@ static struct option long_options[] = {
   {"nat64-netmask", required_argument, 0, eth_ip64_netmask_option},
   {"nat64-gateway", required_argument, 0, eth_ip64_gateway_option},
   {"nat64-rfc-6052", required_argument, 0, nat64_rfc_6052_option},
+  {"nat64-first-coap-port", required_argument, 0, node_config_first_coap_port_option},
+  {"nat64-first-http-port", required_argument, 0, node_config_first_http_port_option},
 
   //Global flags
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
   {"smart-multi-br", required_argument, 0, smart_multi_br_option},
   {"disable-config", required_argument, 0, disable_config_option},
+  {"webserver-enable", required_argument, 0, webserver_enable_option},
   {"webserver-port", required_argument, 0, webserver_port_option},
+  {"udp-server-enable", required_argument, 0, udp_server_enable_option},
+  {"udp-server-port", required_argument, 0, udp_server_port_option},
+  {"coap-server-enable", required_argument, 0, coap_server_enable_option},
+  {"dns-proxy-enable", required_argument, 0, dns_proxy_enable_option},
+  {"nvm-proxy-port", required_argument, 0, nvm_proxy_port_option},
 
   {"fit", no_argument, 0, fit_option},
 };
@@ -1040,6 +1070,8 @@ help(char const *name)
   printf("\t--nat64-addr <ipv4 address>\t NAT64 ip address\n");
   printf("\t--nat64-netmask <ipv4 netmask>\t NAT64 netmask\n");
   printf("\t--nat64-gateway <ipv4 address>\t NAT64 gateway\n");
+  printf("\t--nat64-first-coap-port <port>\t NAT64 first CoAP port for static mapping\n");
+  printf("\t--nat64-first-http-port <port>\t NAT64 first HTTP port for static mapping\n");
   printf("\n");
 
   printf("\nMisc :\n");
@@ -1048,7 +1080,13 @@ help(char const *name)
   printf("\n");
   //Global flags
   printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
+  printf("\t--webserver-enable <0|1> \t Enable webserver\n");
   printf("\t--webserver-port <port> \t Configure Webserver port\n");
+  printf("\t--udp-server-enable <0|1> \t Enable UDP server\n");
+  printf("\t--udp-server-port <port> \t Configure UDP server port\n");
+  printf("\t--coap-server-enable <0|1> \t Enable CoAP server\n");
+  printf("\t--dns-proxy-enable <0|1> \t Enable DNS proxy\n");
+  printf("\t--nvm-proxy-port <port> \t Configure NVM proxy port\n");
   printf("\n");
 
   printf
@@ -1196,10 +1234,18 @@ main(int argc, char *argv[])
   char *eth_ip64_addr = NULL;
   char *eth_ip64_netmask = NULL;
   char *eth_ip64_gateway = NULL;
+  char *node_config_first_coap_port = NULL;
+  char *node_config_first_http_port = NULL;
 
   //Global flags
   char *disable_config = NULL;
+  char *webserver_enable = NULL;
   char *webserver_port = NULL;
+  char *udp_server_enable = NULL;
+  char *udp_server_port = NULL;
+  char *coap_server_enable = NULL;
+  char *dns_proxy_enable = NULL;
+  char *nvm_proxy_port = NULL;
 
   int file_nb;
 
@@ -1302,10 +1348,18 @@ main(int argc, char *argv[])
     CASE_OPTION(eth_ip64_addr)
     CASE_OPTION(eth_ip64_netmask)
     CASE_OPTION(eth_ip64_gateway)
+    CASE_OPTION(node_config_first_coap_port)
+    CASE_OPTION(node_config_first_http_port)
 
     //Global flags
     CASE_OPTION(disable_config)
+    CASE_OPTION(webserver_enable)
     CASE_OPTION(webserver_port)
+    CASE_OPTION(udp_server_enable)
+    CASE_OPTION(udp_server_port)
+    CASE_OPTION(coap_server_enable)
+    CASE_OPTION(dns_proxy_enable)
+    CASE_OPTION(nvm_proxy_port)
 
     case fit_option:
       fit = 1;
@@ -1436,10 +1490,18 @@ main(int argc, char *argv[])
     UPDATE_IP4("nat64-ip-addr", eth_ip64_addr)
     UPDATE_IP4("nat64-ip-netmask", eth_ip64_netmask)
     UPDATE_IP4("nat64-ip-gateway", eth_ip64_gateway)
+    UPDATE_INT("nat64-first-coap-port", node_config_first_coap_port)
+    UPDATE_INT("nat64-first-http-port", node_config_first_http_port)
 
     //Global flags
     UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)
+    UPDATE_FLAG_INV("webserver-enable", webserver_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
     UPDATE_INT("webserver-port", webserver_port)
+    UPDATE_FLAG_INV("udp-server-enable", udp_server_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_INT("udp-server-port", udp_server_port)
+    UPDATE_FLAG_INV("coap-server-enable", coap_server_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_FLAG_INV("dns-proxy-enable", dns_proxy_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_INT("nvm-proxy-port", nvm_proxy_port)
   }
 
   print_nvm();

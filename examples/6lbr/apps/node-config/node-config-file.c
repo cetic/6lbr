@@ -64,8 +64,6 @@ static int infd;
 
 LIST(node_config_list);
 
-static uint16_t node_config_first_coap_port = 20000;
-static uint16_t node_config_first_http_port = 25000;
 static uint16_t node_config_coap_port;
 static uint16_t node_config_http_port;
 
@@ -88,8 +86,8 @@ void node_config_load(void) {
   node_config_t *  node_config;
 
   list_init(node_config_list);
-  node_config_coap_port = node_config_first_coap_port;
-  node_config_http_port = node_config_first_http_port;
+  node_config_coap_port = nvm_data.node_config_first_coap_port;
+  node_config_http_port = nvm_data.node_config_first_http_port;
   node_config_add_br();
 
   if (sixlbr_config_node_config_file_name) {
@@ -165,8 +163,8 @@ void node_config_load(void) {
   int result;
 
   list_init(node_config_list);
-  node_config_coap_port = node_config_first_coap_port;
-  node_config_http_port = node_config_first_http_port;
+  node_config_coap_port = nvm_data.node_config_first_coap_port;
+  node_config_http_port = nvm_data.node_config_first_http_port;
   node_config_add_br();
 
   if (sixlbr_config_node_config_file_name) {

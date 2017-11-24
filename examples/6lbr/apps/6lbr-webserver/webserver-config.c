@@ -285,7 +285,11 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
   INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
   INPUT_FLAG_CB("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, "RFC 6052 prefix" );
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   INPUT_FLAG_CB("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, "Static port mapping" );
+  INPUT_INT("ip64_coap_port", node_config_first_coap_port, "First CoAP port");
+  INPUT_INT("ip64_http_port", node_config_first_http_port, "First HTTP port");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -353,7 +357,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-  add("<br /><h3>RPL Behavior</h2>");
+  add("<br /><h3>RPL Behavior</h3>");
   INPUT_FLAG( "non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, "RPL Mode", "Non storing", "Storing");
   INPUT_FLAG_CB( "dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, "DAO Ack");
   SEND_STRING(&s->sout, buf);
@@ -366,6 +370,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   add("<br /><h2>Global configuration</h2>");
   INPUT_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, "Webserver", "disabled", "enabled" );
+  INPUT_INT( "web_port", webserver_port, "Webserver port");
 #if WITH_COAPSERVER
   INPUT_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, "CoAP server", "disabled", "enabled" );
 #endif
@@ -373,6 +378,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #if UDPSERVER
   INPUT_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, "UDP server", "disabled", "enabled" );
+  INPUT_INT( "udp_port", udp_server_port, "UDP server port");
 #endif
 #if WITH_DNS_PROXY
   INPUT_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, "DNS Proxy", "disabled", "enabled" );
@@ -540,6 +546,8 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IP4ADDR("ip64_gateway", eth_ip64_gateway, 1)
     UPDATE_FLAG("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, 1)
     UPDATE_FLAG("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, 1)
+    UPDATE_INT( "ip64_coap_port", node_config_first_coap_port, 1)
+    UPDATE_INT( "ip64_http_port", node_config_first_http_port, 1)
 #endif
 #if RESOLV_CONF_SUPPORTS_MDNS
     UPDATE_FLAG("mdns", global_flags, CETIC_GLOBAL_MDNS, 1)
@@ -584,8 +592,10 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     UPDATE_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, 1)
+    UPDATE_INT( "web_port", webserver_port, 1)
     UPDATE_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, 1)
     UPDATE_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, 1)
+    UPDATE_INT( "udp_port", udp_server_port, 1)
     UPDATE_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, 1)
 
 #if !LOG6LBR_STATIC

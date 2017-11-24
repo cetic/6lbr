@@ -184,6 +184,12 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
 
+    nvm_data->udp_server_port = CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT;
+    nvm_data->nvm_proxy_port = CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT;
+
+    nvm_data->node_config_first_coap_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP;
+    nvm_data->node_config_first_http_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP;
+
     flash = 1;
   }
 

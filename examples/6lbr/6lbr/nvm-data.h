@@ -105,6 +105,12 @@ typedef struct {
   //Multicast
   uint8_t multicast_engine;
 
+  //Ports
+  uint16_t udp_server_port;
+  uint16_t nvm_proxy_port;
+
+  uint16_t node_config_first_coap_port;
+  uint16_t node_config_first_http_port;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -280,6 +286,12 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL 0xFF
 
 #define CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES 0xFFFFFFFF
+
+//Ports
+#define CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT    3000
+#define CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT    4000
+#define CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP    20000
+#define CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP    25000
 
 /*---------------------------------------------------------------------------*/
 
