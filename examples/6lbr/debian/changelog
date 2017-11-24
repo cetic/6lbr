@@ -1,3 +1,27 @@
+cetic-6lbr (1.4.2) unstable; urgency=low
+
+  * Features
+    Multi SLIP-Radio support
+    Add CRC for SLIP-Radio
+    Runtime configuration of NUD
+    Add Per-Node statistics
+    Add set PAN ID command in slip radio
+    Add RPL hooks and delayed RPL initialisation
+    Replace abbreviations in status pages
+    New demo framework and demos for the main features of 6LBR
+  * Bugfixes
+    6lbr.ip4 is not updated when using DHCP
+    SLIP retransmit callback not scheduled
+    Node tree graph is sometimes corrupted
+    TCP RST are observed on BBB and RPi
+    Buffer overflow when saving 6lbr.ip
+    gettimeofday() is still used in handle_fd()
+    Loss of access to web server due to wrong source address selection
+    Global repair is not properly triggered at BR startup
+    Infinite loop in node config
+
+ -- 6lbr-team <6lbr@cetic.be>  Fri, 24 Nov 2017 9:30:10 +0100
+
 cetic-6lbr (1.4.1) unstable; urgency=low
 
   * Features
