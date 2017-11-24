@@ -35,7 +35,7 @@
 #ifndef MULTICAST_WRAPPER_H_
 #define MULTICAST_WRAPPER_H_
 
-#include "net/ipv6/multicast/uip-mcast6.h"
+#include "uip-mcast6.h"
 
 extern const struct uip_mcast6_driver mcast_wrapper_driver;
 

@@ -38,10 +38,10 @@
 
 #include "contiki.h"
 #include "sicslowpan.h"
-#include "net/ipv6/uip-nd6.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ipv6/uip-ds6-nbr.h"
-#include "net/ipv6/uip-ds6-route.h"
+#include "uip-nd6.h"
+#include "uip-ds6.h"
+#include "uip-ds6-nbr.h"
+#include "uip-ds6-route.h"
 #include "sicslow-ethernet.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
@@ -49,8 +49,8 @@
 #include <stdlib.h>
 
 #if WITH_MULTICAST
-#include "net/ipv6/multicast/uip-mcast6.h"
-#include "net/ipv6/multicast/uip-mcast6-route.h"
+#include "uip-mcast6.h"
+#include "uip-mcast6-route.h"
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
 #endif
@@ -63,9 +63,9 @@
 #endif
 
 #if UIP_CONF_IPV6_RPL
-#include "net/rpl/rpl-private.h"
+#include "rpl-private.h"
 #if RPL_WITH_NON_STORING
-#include "net/rpl/rpl-ns.h"
+#include "rpl-ns.h"
 #endif
 #endif
 

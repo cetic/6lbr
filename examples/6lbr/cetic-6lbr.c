@@ -83,8 +83,10 @@
 #include "strategy-wrapper.h"
 #endif
 
+#if WITH_MULTICAST
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
+#endif
 #endif
 
 #if WEBSERVER

@@ -42,7 +42,7 @@
 #include "webserver-utils.h"
 #if CETIC_6LBR_IP64
 #include "ip64.h"
-#include "net/ip/ip64-addr.h"
+#include "ip64-addr.h"
 #endif
 
 #include "cetic-6lbr.h"

@@ -35,9 +35,11 @@
  */
 
 #include "contiki.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
-#include "net/ipv6/multicast/uip-mcast6.h"
+#include "rpl.h"
+#include "rpl-private.h"
+#if WITH_MULTICAST
+#include "uip-mcast6.h"
+#endif
 
 #include "rpl-utils.h"
 #include "cetic-6lbr.h"

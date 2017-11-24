@@ -41,7 +41,7 @@
 #if WITH_RPL
 #include "rpl.h"
 #endif
-#include "net/ip64/ip64-dhcpc.h"
+#include "ip64-dhcpc.h"
 
 PROCESS_NAME(cetic_6lbr_process);
 

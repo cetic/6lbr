@@ -40,8 +40,8 @@
 #ifndef MULTI_RADIO_H_
 #define MULTI_RADIO_H_
 
-#include "net/mac/mac.h"
-#include "dev/radio.h"
+#include "mac.h"
+#include "radio.h"
 
 extern uint8_t multi_radio_input_ifindex;
 extern uint8_t multi_radio_output_ifindex;

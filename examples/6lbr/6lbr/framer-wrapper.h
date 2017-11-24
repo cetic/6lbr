@@ -35,7 +35,7 @@
 #ifndef FRAMER_WRAPPER_H_
 #define FRAMER_WRAPPER_H_
 
-#include "net/mac/framer.h"
+#include "framer.h"
 
 extern const struct framer framer_wrapper;
 

@@ -36,7 +36,7 @@
 
 #include "contiki.h"
 #include "network-itf.h"
-#include "net/linkaddr.h"
+#include "linkaddr.h"
 #include <string.h>
 
 #include "log-6lbr.h"

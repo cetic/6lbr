@@ -41,11 +41,11 @@
 
 #define LOG6LBR_MODULE "BR-RDC"
 
-#include "net/packetbuf.h"
-#include "net/queuebuf.h"
-#include "net/netstack.h"
+#include "packetbuf.h"
+#include "queuebuf.h"
+#include "netstack.h"
 #include "packetutils.h"
-#include "sys/ctimer.h"
+#include "ctimer.h"
 #include "slip-dev.h"
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"

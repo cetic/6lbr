@@ -34,15 +34,15 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#include "net/ipv6/uip-nd6.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ipv6/uip-ds6-route.h"
+#include "uip-nd6.h"
+#include "uip-ds6.h"
+#include "uip-ds6-route.h"
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/ip/uip.h"
-#include "net/netstack.h"
-#include "net/rpl/rpl.h"
+#include "uip.h"
+#include "netstack.h"
+#include "rpl.h"
 
 #include "sicslow-ethernet.h"
 #include "cetic-6lbr.h"
@@ -68,7 +68,7 @@
 #include <ctype.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
+#include "uip-debug.h"
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];

@@ -34,8 +34,8 @@
 
 #define LOG6LBR_MODULE "LLSEC"
 
-#include "net/llsec/adaptivesec/adaptivesec.h"
-#include "net/llsec/adaptivesec/noncoresec-strategy.h"
+#include "adaptivesec/adaptivesec.h"
+#include "adaptivesec/noncoresec-strategy.h"
 
 #include "nvm-config.h"
 

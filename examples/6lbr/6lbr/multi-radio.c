@@ -40,8 +40,8 @@
 #define LOG6LBR_MODULE "SWITCH"
 
 #include "contiki.h"
-#include "net/netstack.h"
-#include "net/packetbuf.h"
+#include "netstack.h"
+#include "packetbuf.h"
 
 #include "multi-radio.h"
 #include "network-itf.h"

@@ -36,8 +36,8 @@
 
 #include "contiki.h"
 #include "framer-wrapper.h"
-#include "net/mac/framer-802154.h"
-#include "net/mac/framer-nullmac.h"
+#include "framer-802154.h"
+#include "framer-nullmac.h"
 #include "noncoresec/noncoresec.h"
 #include "adaptivesec/adaptivesec.h"
 

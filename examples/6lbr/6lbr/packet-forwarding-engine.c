@@ -52,7 +52,7 @@
 #endif
 
 #if CETIC_6LBR_IP64
-#include "net/ip/ip64-addr.h"
+#include "ip64-addr.h"
 #endif
 #if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
 #include "link-stats.h"

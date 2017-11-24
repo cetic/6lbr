@@ -53,8 +53,8 @@
 #include <errno.h>
 
 #include "log-6lbr.h"
-#include "net/netstack.h"
-#include "net/packetbuf.h"
+#include "netstack.h"
+#include "packetbuf.h"
 #include "packetutils.h"
 #include "cmd.h"
 #include "slip-cmds.h"

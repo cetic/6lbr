@@ -35,7 +35,7 @@
 #ifndef STRATEGY_WRAPPER_H_
 #define STRATEGY_WRAPPER_H_
 
-#include "net/llsec/adaptivesec/adaptivesec.h"
+#include "adaptivesec/adaptivesec.h"
 
 extern const struct adaptivesec_strategy strategy_wrapper;
 

@@ -36,8 +36,8 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "net/ipv6/multicast/uip-mcast6.h"
-#include "net/ipv6/multicast/uip-mcast6-engines.h"
+#include "uip-mcast6.h"
+#include "uip-mcast6-engines.h"
 
 #include "nvm-config.h"
 #include "log-6lbr.h"

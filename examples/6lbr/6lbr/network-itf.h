@@ -36,7 +36,7 @@
 #define NETWORK_ITF_H_
 
 #include "contiki-conf.h"
-#include "net/ip/uip.h"
+#include "uip.h"
 
 #define NETWORK_ITF_TYPE_NONE 0
 #define NETWORK_ITF_TYPE_ETHERNET 1

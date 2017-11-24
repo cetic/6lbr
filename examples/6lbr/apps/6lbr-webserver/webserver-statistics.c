@@ -37,14 +37,13 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
-#include "net/ip/uip.h"
+#include "uip.h"
+#if WITH_RPL
+#include "rpl-private.h"
+#endif
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
-
-#if WITH_RPL
-#include "net/rpl/rpl-private.h"
-#endif
 
 #if CONTIKI_TARGET_NATIVE
 #include "native-config.h"
@@ -61,7 +60,7 @@
 #endif
 
 #if CETIC_6LBR_LLSEC_STATS
-#include "net/llsec/noncoresec/noncoresec.h"
+#include "noncoresec/noncoresec.h"
 #endif
 
 #define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)

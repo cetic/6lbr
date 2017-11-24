@@ -54,7 +54,7 @@
 #include "network-itf.h"
 #endif
 #if WITH_MULTICAST
-#include "net/ipv6/multicast/uip-mcast6.h"
+#include "uip-mcast6.h"
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
 #endif

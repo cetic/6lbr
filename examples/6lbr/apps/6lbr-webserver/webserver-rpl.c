@@ -37,8 +37,8 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
+#include "rpl.h"
+#include "rpl-private.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
