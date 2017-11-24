@@ -48,7 +48,6 @@
 #include "node-info.h"
 #endif
 #include "nvm-data.h"
-#include "net/rpl/rpl.h"
 #include "6lbr-hooks.h"
 #include "cetic-6lbr.h"
 

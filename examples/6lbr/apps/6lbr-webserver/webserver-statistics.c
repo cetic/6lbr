@@ -38,10 +38,13 @@
 
 #include "contiki.h"
 #include "net/ip/uip.h"
-#include "net/rpl/rpl-private.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
+
+#if WITH_RPL
+#include "net/rpl/rpl-private.h"
+#endif
 
 #if CONTIKI_TARGET_NATIVE
 #include "native-config.h"

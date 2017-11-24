@@ -39,13 +39,15 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/ip/uip.h"
-#include "net/ipv6/sicslowpan.h"
-#include "net/ipv6/uip-nd6.h"
-#include "net/rpl/rpl.h"
-#include "net/netstack.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
+#include "uip.h"
+#include "sicslowpan.h"
+#include "uip-nd6.h"
+#include "netstack.h"
+
+#if WITH_RPL
+#include "rpl.h"
+#include "rpl-private.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -653,7 +655,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   llsec_wrapper_init();
 #endif
 
-#if CETIC_6LBR_MULTICAST_WRAPPER
+#if WITH_MULTICAST && CETIC_6LBR_MULTICAST_WRAPPER
   multicast_wrapper_init();
 #endif
   //6LoWPAN init

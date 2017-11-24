@@ -42,8 +42,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "rpl-private.h"
-
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "nvm-itf.h"

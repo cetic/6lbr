@@ -54,6 +54,8 @@
 
 //RPL Configuration
 
+#if WITH_RPL
+
 #undef RPL_CONF_DEFAULT_INSTANCE
 #define RPL_CONF_DEFAULT_INSTANCE    (nvm_data.rpl_instance_id)
 
@@ -95,6 +97,8 @@ extern int cetic_6lbr_config_rpl_mop(void);
 #undef RPL_CONF_MOP
 #define RPL_CONF_MOP (cetic_6lbr_config_rpl_mop())
 #endif
+
+#endif /* WITH_RPL */
 
 // Security configuration
 

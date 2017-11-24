@@ -40,7 +40,6 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
-#include "net/ipv6/multicast/uip-mcast6.h"
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"
@@ -54,8 +53,11 @@
 #if CETIC_6LBR_MULTI_RADIO
 #include "network-itf.h"
 #endif
+#if WITH_MULTICAST
+#include "net/ipv6/multicast/uip-mcast6.h"
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
+#endif
 #endif
 #if CONTIKI_TARGET_NATIVE
 #include "native-config.h"

@@ -42,13 +42,19 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 #include "net/ipv6/uip-ds6-route.h"
-#include "net/ipv6/multicast/uip-mcast6.h"
-#include "net/ipv6/multicast/uip-mcast6-route.h"
 #include "sicslow-ethernet.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 #include <stdlib.h>
+
+#if WITH_MULTICAST
+#include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/ipv6/multicast/uip-mcast6-route.h"
+#if CETIC_6LBR_MULTICAST_WRAPPER
+#include "multicast-wrapper.h"
+#endif
+#endif
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"

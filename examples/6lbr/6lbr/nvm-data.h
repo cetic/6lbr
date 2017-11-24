@@ -146,6 +146,10 @@ typedef struct {
 
 //RA Mode flags
 
+//Avoid inclusion of contiki headers
+#define UIP_ND6_RA_FLAG_ONLINK          0x80
+#define UIP_ND6_RA_FLAG_AUTONOMOUS      0x40
+
 //RA PIO mode flags
 #define CETIC_6LBR_MODE_SEND_PIO		0x0100
 
@@ -204,7 +208,7 @@ typedef struct {
 //Default values
 
 #define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_ROUTER_RA_DAEMON | CETIC_MODE_REWRITE_ADDR_MASK )
-#define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		RPL_LOLLIPOP_INIT
+#define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		240
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x0)
 #define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX(a)	uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0)

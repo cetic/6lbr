@@ -185,7 +185,7 @@ extern const struct uip_mcast6_driver UIP_MCAST6;
 /*---------------------------------------------------------------------------*/
 /* Configuration Checks */
 /*---------------------------------------------------------------------------*/
-#if RPL_WITH_MULTICAST && (!UIP_CONF_IPV6_RPL)
+#if !CETIC_6LBR && RPL_WITH_MULTICAST && (!UIP_CONF_IPV6_RPL)
 #error "The selected Multicast mode requires UIP_CONF_IPV6_RPL != 0"
 #error "Check the value of UIP_CONF_IPV6_RPL in conf files."
 #endif
