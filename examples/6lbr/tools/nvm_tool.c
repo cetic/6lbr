@@ -475,6 +475,17 @@ migrate_nvm(uint8_t print_info)
 
     CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
     memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
+    nvm_data->log_level = CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL;
+    nvm_data->log_services = CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES;
+  }
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_3)
+  {
+    if (print_info) {
+      printf("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_3);
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_3;
+
+    nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
   }
 }
 
@@ -683,6 +694,9 @@ print_nvm(void)
   //MAC Configuration
   PRINT_INT("MAC layer", mac_layer);
 
+  //Multicast Configuration
+  PRINT_INT("Multicast engine", multicast_engine);
+
   //Security Configuration
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
@@ -805,6 +819,9 @@ print_nvm(void)
 //MAC
 #define mac_layer_option 14000
 
+//Multicast
+#define multicast_engine_option 15000
+
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
   {"new", no_argument, 0, new_nvm_action},
@@ -879,7 +896,10 @@ static struct option long_options[] = {
   //MAC
   {"mac-layer", required_argument, 0, mac_layer_option},
 
-// NAT64
+  //Multicast engine
+  {"mcast-engine", required_argument, 0, multicast_engine_option},
+
+  // NAT64
   {"nat64-enable", required_argument, 0, nat64_enable_option},
   {"nat64-dhcp-enable", required_argument, 0, nat64_dhcp_enable_option},
   {"nat64-static-ports-enable", required_argument, 0, nat64_static_ports_enable_option},
@@ -994,6 +1014,11 @@ help(char const *name)
   //MAC
   printf("\nMAC :\n");
   printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA, 2: NullMAC)\n");
+  printf("\n");
+
+  //Multicast
+  printf("\nMulticast :\n");
+  printf("\t--mcast-layer <0|1|2>\t\t Multicast engine (0: None, 1: SMRF, 2: ROLL-TM, 3: ESMRF)\n");
   printf("\n");
 
   //Security
@@ -1152,6 +1177,9 @@ main(int argc, char *argv[])
   //MAC
   char *mac_layer = NULL;
 
+  //Multicast
+  char *multicast_engine = NULL;
+
   //Security
   char *security_layer = NULL;
   char *security_level = NULL;
@@ -1252,8 +1280,11 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_dao_ack_repair)
     CASE_OPTION(rpl_dio_refresh_routes)
 
-    //Security
+    //MAC
     CASE_OPTION(mac_layer)
+
+    //Multicast
+    CASE_OPTION(multicast_engine)
 
     //Security
     CASE_OPTION(security_layer)
@@ -1383,8 +1414,11 @@ main(int argc, char *argv[])
     UPDATE_FLAG("rpl-dao-ack-repair", rpl_dao_ack_repair, rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR)
     UPDATE_FLAG_INV("rpl-dio-refresh-routes", rpl_dio_refresh_routes, rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)
 
-    //Security
+    //MAC
     UPDATE_INT("mac-layer", mac_layer)
+
+    //Multicast
+    UPDATE_INT("mcast-engine", multicast_engine)
 
     //Security
     UPDATE_INT("security-layer", security_layer)
