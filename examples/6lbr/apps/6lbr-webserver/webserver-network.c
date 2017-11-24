@@ -54,10 +54,18 @@
 #include "ip64-dhcpc.h"
 #endif
 
+#if UIP_CONF_IPV6_RPL
+#include "net/rpl/rpl-private.h"
+#endif
+
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "rio.h"
 #include "log-6lbr.h"
+#if UIP_SWITCH_LOOKUP
+#include "switch-lookup.h"
+#include "network-itf.h"
+#endif
 
 #if CETIC_NODE_INFO
 #include "node-info.h"
@@ -70,6 +78,44 @@
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
 
 static void add_network_cases(const uint8_t state);
+
+static void
+add_address_state(uint8_t state) {
+  switch(state) {
+  case ADDR_TENTATIVE:
+    add("Tentative");
+    break;
+  case ADDR_PREFERRED:
+    add("Pref");
+    break;
+  case ADDR_DEPRECATED:
+    add("Deprecated");
+    break;
+  default:
+    add("Unknown (%u)", state);
+  }
+}
+
+static void
+add_address_type(uint8_t type) {
+  switch(type) {
+  case ADDR_ANYTYPE:
+    add("Anytype");
+    break;
+  case ADDR_AUTOCONF:
+    add("Autoconf");
+    break;
+  case ADDR_DHCP:
+    add("DHCP");
+    break;
+  case ADDR_MANUAL:
+    add("Manual");
+    break;
+  default:
+    add("Unknown (%u)", type);
+  }
+}
+
 
 static
 PT_THREAD(generate_network(struct httpd_state *s))
@@ -87,26 +133,10 @@ PT_THREAD(generate_network(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     if(uip_ds6_if.addr_list[i].isused) {
       ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
-      char flag;
-
-      if(uip_ds6_if.addr_list[i].state == ADDR_TENTATIVE) {
-        flag = 'T';
-      } else if(uip_ds6_if.addr_list[i].state == ADDR_PREFERRED) {
-        flag = 'P';
-      } else {
-        flag = '?';
-      }
-      add(" %c", flag);
-      if(uip_ds6_if.addr_list[i].type == ADDR_MANUAL) {
-        flag = 'M';
-      } else if(uip_ds6_if.addr_list[i].type == ADDR_DHCP) {
-        flag = 'D';
-      } else if(uip_ds6_if.addr_list[i].type == ADDR_AUTOCONF) {
-        flag = 'A';
-      } else {
-        flag = '?';
-      }
-      add(" %c", flag);
+      add(" ");
+      add_address_type(uip_ds6_if.addr_list[i].type);
+      add(" ");
+      add_address_state(uip_ds6_if.addr_list[i].state);
       if(!uip_ds6_if.addr_list[i].isinfinite) {
         add(" %u s", stimer_remaining(&uip_ds6_if.addr_list[i].vlifetime));
       }
@@ -120,14 +150,13 @@ PT_THREAD(generate_network(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_PREFIX_NB; i++) {
     if(uip_ds6_prefix_list[i].isused) {
       ipaddr_add(&uip_ds6_prefix_list[i].ipaddr);
-      add(" ");
 #if UIP_CONF_ROUTER
       if(uip_ds6_prefix_list[i].advertise) {
-        add("A");
+        add(" Adv");
       }
 #else
       if(uip_ds6_prefix_list[i].isinfinite) {
-        add("I");
+        add(" Inf");
       }
 #endif
       add("\n");
@@ -185,6 +214,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
     lladdr_add(uip_ds6_nbr_get_ll(nbr));
     add(" ");
     add_network_cases(nbr->state);
+#if UIP_SWITCH_LOOKUP
+    if(nbr->ifindex != NETWORK_ITF_UNKNOWN) {
+      add(" if:%u", nbr->ifindex);
+    }
+#endif
     add("\n");
     SEND_STRING(&s->sout, buf);
     reset_buf();
@@ -221,10 +255,14 @@ PT_THREAD(generate_network(struct httpd_state *s))
     add("/%u via ", r->length);
     ipaddr_add(uip_ds6_route_nexthop(r));
 #endif
-    if(1 || (r->state.lifetime < 600)) {
+#if UIP_CONF_IPV6_RPL
+    if(r->state.lifetime != RPL_ROUTE_INFINITE_LIFETIME) {
+#else
+    if(r->neighbor_routes != NULL) {
+#endif
       add(" %lu s\n", r->state.lifetime);
     } else {
-      add("\n");
+      add("Inf\n");
     }
     SEND_STRING(&s->sout, buf);
     reset_buf();
@@ -234,7 +272,9 @@ PT_THREAD(generate_network(struct httpd_state *s))
 
   for(dr = uip_ds6_defrt_list_head(); dr != NULL; dr = list_item_next(r)) {
     ipaddr_add(&dr->ipaddr);
-    if(!dr->isinfinite) {
+    if(dr->isinfinite) {
+      add("Inf");
+    } else {
       add(" %u s", stimer_remaining(&dr->lifetime));
     }
     add("\n");
@@ -247,7 +287,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_INFO_NB; i++) {
     if(uip_ds6_route_info_list[i].isused) {
       ipaddr_add(&uip_ds6_route_info_list[i].ipaddr);
-      add("/%u (%x) %us\n", uip_ds6_route_info_list[i].length,
+      add("/%u (%x) %u s\n", uip_ds6_route_info_list[i].length,
           uip_ds6_route_info_list[i].flags,
           uip_ds6_route_info_list[i].lifetime);
     }
@@ -293,7 +333,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 #endif
 
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
-  add("<pre><h2>6LoWPAN Prefix contexts</h2><pre>");
+  add("</pre><h2>6LoWPAN Prefix contexts</h2><pre>");
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if(addr_contexts[i].used == 1) {
       add("%d : ", addr_contexts[i].number);
@@ -323,19 +363,19 @@ add_network_cases(const uint8_t state)
 {
   switch (state) {
   case NBR_INCOMPLETE:
-    add("INCOMPLETE");
+    add("Incomplete");
     break;
   case NBR_REACHABLE:
-    add("REACHABLE");
+    add("Reachable");
     break;
   case NBR_STALE:
-    add("STALE");
+    add("Stale");
     break;
   case NBR_DELAY:
-    add("DELAY");
+    add("Delay");
     break;
   case NBR_PROBE:
-    add("NBR_PROBE");
+    add("Probe");
     break;
   }
 }

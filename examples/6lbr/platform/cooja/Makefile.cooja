@@ -12,7 +12,7 @@ WITH_DNS_PROXY?=1
 
 PROJECTDIRS += platform/cooja platform/native
 
-PROJECT_SOURCEFILES += cooja-init.c cooja-nvm.c cooja-eth-drv.c native-config.c
+PROJECT_SOURCEFILES += cooja-init.c cooja-eth-drv.c native-nvm.c native-config.c native-config-file.c native-config-handlers.c
 
 PROJECTDIRS+= lib/inih
 PROJECT_SOURCEFILES += ini.c

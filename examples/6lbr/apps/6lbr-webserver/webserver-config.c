@@ -49,6 +49,10 @@
 #include "node-config.h"
 #endif
 
+#if CONTIKI_TARGET_NATIVE
+#include "native-config.h"
+#endif
+
 #include <stdlib.h>
 
 HTTPD_CGI_CALL_NAME(webserver_config)
@@ -150,6 +154,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<form action=\"config\" method=\"get\">");
   add("<h2>WSN Network</h2>");
 #if !CETIC_6LBR_ONE_ITF
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
 #if !CONTIKI_TARGET_NATIVE
@@ -191,8 +199,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#endif
-
+  }
+#endif /* CETIC_6LBR_ONE_ITF */
   add("<br /><h3>IP configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   INPUT_FLAG_CB("wait_ra", mode, CETIC_MODE_WAIT_RA_MASK, "Network autoconfiguration");
@@ -205,11 +213,19 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("wsn_pre", wsn_net_prefix, "Prefix");
   INPUT_INT("wsn_pre_len", wsn_net_prefix_len, "Prefix length");
 #endif
-  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context 0");
   INPUT_FLAG_CB("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, "Address autoconfiguration");
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip)
+#endif
+  {
+  add("<br /><h3>6LoWPAN configuration</h3>");
+  INPUT_CONTEXT("wsn_context_0", wsn_6lowpan_context_0, "6LoPWAN context 0");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  }
   add("<h3>Extra configuration</h3>");
 #if CETIC_6LBR_SMARTBRIDGE
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
@@ -218,6 +234,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #if CETIC_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
+  INPUT_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, "NDP NUD", "disabled", "enabled");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -483,6 +500,7 @@ update_config(const char *name, uint8_t *reboot_needed)
 #if CETIC_NODE_CONFIG
     UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
 #endif
+    UPDATE_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, 1)
     UPDATE_INT( "ra_lifetime", ra_router_lifetime, 1)
     UPDATE_INT( "ra_max_interval", ra_max_interval, 1)
     UPDATE_INT( "ra_min_interval", ra_min_interval, 1)
@@ -527,7 +545,12 @@ update_config(const char *name, uint8_t *reboot_needed)
   if(do_update) {
     store_nvm_config();
 #if !LOG6LBR_STATIC
-    if(nvm_data.log_level != 0xFF) {
+    if(nvm_data.log_level == 0xFF) {
+#if CONTIKI_TARGET_NATIVE
+      Log6lbr_level = sixlbr_config_log_level;
+      Log6lbr_services = sixlbr_config_log_services;
+#endif
+    } else {
       Log6lbr_level = nvm_data.log_level;
       Log6lbr_services = nvm_data.log_services;
     }

@@ -60,7 +60,7 @@ void
 platform_load_config(config_level_t level)
 {
   switch(level) {
-  case CONFIG_LEVEL_LOAD:
+  case CONFIG_LEVEL_BOOT:
     load_nvm_config();
     break;
   default:

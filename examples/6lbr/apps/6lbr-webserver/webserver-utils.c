@@ -59,10 +59,10 @@ const char *TOP =
   "<html><head><style type=\"text/css\">"
   "body{font-family:Verdana;background-color:#333333;color:#333333;padding:20px;}"
   "#banner{background-color:#779945;color:#ffffff;}"
-  ".barre_nav{background-color:#669934; color:#fff;clear:left;height:23px;}"
-  ".menu-general{float:left;height:23px;color:#ffffff;}"
-  ".menu-general span{background-color:#333333;padding:3px 10px 4px;}"
-  ".menu-general a{padding:3px 10px 4px;color:#fff;text-decoration:none;}}"
+  ".nb{background-color:#669934; color:#fff;clear:left;height:23px;}"
+  ".gm{float:left;height:23px;color:#ffffff;}"
+  ".gm span{background-color:#333333;padding:3px 10px 4px;}"
+  ".gm a{padding:3px 10px 4px;color:#fff;text-decoration:none;}}"
   "h1,h2{margin:40px 0 10px;padding:0;font-weight:bold;}"
   "h1{font-size:16px;line-height:18px;color:#333333;}"
   "h2{font-size:14px;line-height:16px;color:#669934;}"
@@ -82,7 +82,7 @@ static const char *BODY =
   "<div id=\"banner\">"
   "<h1>6LBR</h1>"
   "<h2>6Lowpan Border Router</h2>"
-  "<div class=\"barre_nav\">";
+  "<div class=\"nb\">";
 static const char*BODY_AFTER_MENU =
   "</div></div>";
 static const char *BOTTOM = "</div></body></html>";
@@ -224,7 +224,7 @@ add_menu(struct httpd_state *s)
 {
   httpd_group_t *f;
   for(f = httpd_group_head(); f != NULL; f = f->next) {
-    add("<div class=\"menu-general\">");
+    add("<div class=\"gm\">");
     if(s->script != NULL && f == s->script->group) {
       add("<span>%s</span>", f->title);
     } else {
@@ -239,10 +239,10 @@ add_submenu(struct httpd_state *s)
 {
   httpd_cgi_call_t *f;
   if(s->script != NULL && s->script->group != NULL && s->script->group->count > 1) {
-    add("</div><div class=\"barre_nav\">");
+    add("</div><div class=\"nb\">");
     for(f = s->script->group->first_page; f != NULL; f = f->next_in_group) {
       if(f->title != NULL && (f->flags & WEBSERVER_NOMENU) == 0) {
-        add("<div class=\"menu-general\">");
+        add("<div class=\"gm\">");
         if(f == s->script) {
           add("<span>%s</span>", f->title);
         } else {
@@ -394,10 +394,11 @@ add(char const *str, ...)
   va_list arg;
 
   va_start(arg, str);
-  if(blen<sizeof(buf)) {
+  if(blen < sizeof(buf)) {
     blen += vsnprintf(&buf[blen], sizeof(buf) - blen, str, arg);
-  } else {
-    LOG6LBR_WARN("Buffer overflow\n");
+    if(blen >= sizeof(buf)) {
+      LOG6LBR_WARN("Buffer overflow\n");
+    }
   }
   va_end(arg);
 }

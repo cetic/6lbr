@@ -42,6 +42,7 @@
 
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
+#include "slip-dev.h"
 #include "native-rdc.h"
 #include "native-config-file.h"
 #include "native-config-handlers.h"
@@ -64,7 +65,9 @@ reload_trigger(int signal)
 void
 platform_init(void)
 {
-  slip_config_handle_arguments(contiki_argc, contiki_argv);
+  //Must be initialized first to allocate the slip config structures
+  slip_init();
+  native_args_handle_arguments(contiki_argc, contiki_argv);
   if (sixlbr_config_watchdog_interval) {
     process_start(&native_6lbr_watchdog, NULL);
   } else {
@@ -91,7 +94,7 @@ void
 platform_load_config(config_level_t level)
 {
   switch(level) {
-  case CONFIG_LEVEL_LOAD:
+  case CONFIG_LEVEL_BOOT:
     load_nvm_config();
     native_config_load(level);
     break;
@@ -132,7 +135,7 @@ cetic_6lbr_save_ip(void)
       LOG6LBR_ERROR("Cannot create ip log file '%s' : %s\n", sixlbr_config_ip_file_name, strerror(errno));
     }
 
-    char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+    char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name) + 1 + 1);
     strcpy(ip4_file_name, sixlbr_config_ip_file_name);
     strcat(ip4_file_name, "4");
     FILE *ip4_config_file = fopen(ip4_file_name, "w");
@@ -158,7 +161,7 @@ cetic_6lbr_clear_ip(void)
     fprintf(ip_config_file, "::\n");
     fclose(ip_config_file);
     if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-      char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name + 1 + 1));
+      char * ip4_file_name = (char *)malloc(strlen(sixlbr_config_ip_file_name) + 1 + 1);
       strcpy(ip4_file_name, sixlbr_config_ip_file_name);
       strcat(ip4_file_name, "4");
       FILE *ip4_config_file = fopen(ip4_file_name, "w");

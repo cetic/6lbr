@@ -12,6 +12,9 @@ COOJAGEN=./coojagen
 launch-6lbr-router-1-cooja:
 	../package/usr/bin/6lbr conf-templates/cooja-1-router.conf
 
+launch-6lbr-router-2-cooja:
+	../package/usr/bin/6lbr conf-templates/cooja-2-router.conf
+
 launch-6lbr-smartbridge-2br-cooja:
 	@echo "*************************************************************************"
 	@echo "* Creating bridge in LAZY mode, needs to be deleted manually at the end *"

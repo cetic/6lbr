@@ -53,6 +53,9 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include "sys/clock.h"
+#include <time.h>
+#include <sys/time.h>
 
 #ifdef linux
 #include <netinet/in.h>
@@ -83,8 +86,7 @@ struct ifreq if_idx;
 
 //Temporary, should be removed
 #include "native-rdc.h"
-extern int slipfd;
-extern void slip_flushbuf(int fd);
+#include "slip-dev.h"
 //End of temporary
 
 extern void cetic_6lbr_clear_ip(void);
@@ -139,7 +141,7 @@ cleanup(void)
   cetic_6lbr_clear_ip();
 #if !CETIC_6LBR_ONE_ITF
   slip_set_mac(&linkaddr_null);
-  slip_flushbuf(slipfd);
+  slip_close();
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -371,16 +373,24 @@ handle_fd(fd_set * rset, fd_set * wset)
   /* Base delay times number of 6lowpan fragments to be sent */
   /* delaymsec = 10; */
   if(delaymsec) {
-    struct timeval tv;
     int dmsec;
-
+#ifdef linux
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    dmsec =
+        (ts.tv_sec - delaystartsec) * 1000 + ts.tv_nsec / 1000000 - delaystartmsec;
+#else
+    struct timeval tv;
     gettimeofday(&tv, NULL);
     dmsec =
-      (tv.tv_sec - delaystartsec) * 1000 + tv.tv_usec / 1000 - delaystartmsec;
-    if(dmsec < 0)
+        (tv.tv_sec - delaystartsec) * 1000 + tv.tv_usec / 1000 - delaystartmsec;
+#endif /* linux */
+    if(dmsec < 0) {
       delaymsec = 0;
-    if(dmsec > delaymsec)
+    }
+    if(dmsec > delaymsec) {
       delaymsec = 0;
+    }
   }
 
   if(delaymsec == 0) {
@@ -391,12 +401,18 @@ handle_fd(fd_set * rset, fd_set * wset)
       eth_drv_input(ethernet_tmp_buf, size);
 
       if(sixlbr_config_eth_basedelay) {
-        struct timeval tv;
-
-        gettimeofday(&tv, NULL);
         delaymsec = sixlbr_config_eth_basedelay;
+#ifdef linux
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        delaystartsec = ts.tv_sec;
+        delaystartmsec = ts.tv_nsec / 1000000;
+#else
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
         delaystartsec = tv.tv_sec;
         delaystartmsec = tv.tv_usec / 1000;
+#endif /* linux */
       }
     }
   }

@@ -45,6 +45,7 @@
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -55,11 +56,13 @@
 
 #include "cetic-6lbr.h"
 #include "platform-init.h"
-#include "packet-filter.h"
+#include "packet-forwarding-engine.h"
+#include "network-itf.h"
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"
 #include "6lbr-hooks.h"
+#include "rpl-utils.h"
 
 #if CETIC_6LBR_IP64
 #include "ip64.h"
@@ -130,6 +133,11 @@ uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 rpl_dag_t *cetic_dag;
 
+int rpl_can_become_root = 1;
+int rpl_fast_startup = 1;
+int rpl_wait_delay = 10 * CLOCK_SECOND;
+int rpl_ignore_other_dodags = 1;
+
 // Eth
 ethaddr_t eth_mac_addr;
 uip_lladdr_t eth_mac64_addr;
@@ -147,8 +155,21 @@ static int security_ready = 0;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
+/*---------------------------------------------------------------------------*/
 //Hooks
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
+#if UIP_CONF_IPV6_RPL
+cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook = cetic_6lbr_dis_input_default_hook;
+cetic_6lbr_dio_input_hook_t cetic_6lbr_dio_input_hook = cetic_6lbr_dio_input_default_hook;
+#endif
+
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6_RPL
+static struct ctimer create_dodag_root_timer;
+static struct uip_ds6_notification create_dodag_root_route_callback;
+static clock_time_t dodag_root_check_interval;
+#define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(udp_client_process);
@@ -200,6 +221,9 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
 {
   LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
+#if CONTIKI_TARGET_NATIVE
+  cetic_6lbr_save_ip();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
@@ -215,6 +239,15 @@ cetic_6lbr_init(void)
   uip_ipaddr_copy(&wsn_ip_local_addr, &local->ipaddr);
 
   LOG6LBR_6ADDR(INFO, &wsn_ip_local_addr, "Tentative local IPv6 address ");
+
+  eth_mac64_addr.addr[0] = eth_mac_addr[0];
+  eth_mac64_addr.addr[1] = eth_mac_addr[1];
+  eth_mac64_addr.addr[2] = eth_mac_addr[2];
+  eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
+  eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
+  eth_mac64_addr.addr[5] = eth_mac_addr[3];
+  eth_mac64_addr.addr[6] = eth_mac_addr[4];
+  eth_mac64_addr.addr[7] = eth_mac_addr[5];
 
 #if CETIC_6LBR_SMARTBRIDGE
 
@@ -281,15 +314,6 @@ cetic_6lbr_init(void)
     uip_ds6_defrt_add(&eth_dft_router, 0);
   }
 
-  eth_mac64_addr.addr[0] = eth_mac_addr[0];
-  eth_mac64_addr.addr[1] = eth_mac_addr[1];
-  eth_mac64_addr.addr[2] = eth_mac_addr[2];
-  eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
-  eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
-  eth_mac64_addr.addr[5] = eth_mac_addr[3];
-  eth_mac64_addr.addr[6] = eth_mac_addr[4];
-  eth_mac64_addr.addr[7] = eth_mac_addr[5];
-
   if((nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) != 0)    //Address auto configuration
   {
     uip_ipaddr_copy(&eth_ip_addr, &eth_net_prefix);
@@ -339,10 +363,15 @@ cetic_6lbr_init(void)
 #endif
 }
 
+#if UIP_CONF_IPV6_RPL
+
+static void
+check_dodag_creation(void *data);
+
 void
-cetic_6lbr_init_finalize(void)
+cetic_6lbr_start_dodag_root(void)
 {
-#if UIP_CONF_IPV6_RPL && CETIC_6LBR_DODAG_ROOT
+#if CETIC_6LBR_DODAG_ROOT
   if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
     //Manual DODAG ID
     cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.rpl_dodag_id);
@@ -375,11 +404,112 @@ cetic_6lbr_init_finalize(void)
   if(cetic_dag) {
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
-#endif
   if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
     uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
   }
+#endif /* CETIC_6LBR_DODAG_ROOT */
+}
 
+void
+cetic_6lbr_end_dodag_root(rpl_instance_t *instance)
+{
+  if(is_dodag_root()) {
+    LOG6LBR_INFO("Leaving DODAG root\n");
+    rpl_local_repair(instance);
+    dio_output(instance, NULL);
+    rpl_free_dag(instance->current_dag);
+    rpl_free_instance(instance);
+    if(!rpl_fast_startup) {
+      //Restart DODAG creation check
+      ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+    }
+  }
+}
+
+static void
+check_dodag_creation(void *data)
+{
+  if(!rpl_can_become_root) {
+    //It's forbidden to become DODAG root right now, skipping checks
+    ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+  } else {
+    if(!is_dodag_available()) {
+      LOG6LBR_INFO("No DODAGs found\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else if(is_own_dodag()) {
+      LOG6LBR_INFO("Own DODAG already existing\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else if(rpl_ignore_other_dodags) {
+      LOG6LBR_INFO("Ignoring other DODAGs\n");
+      uip_ds6_notification_rm(&create_dodag_root_route_callback);
+      cetic_6lbr_start_dodag_root();
+    } else {
+      //Another DODAG is present on the network, stay as simple router
+      ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+    }
+  }
+}
+
+static void
+route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr, int numroutes)
+{
+  if(event == UIP_DS6_NOTIFICATION_DEFRT_ADD) {
+    if(route != NULL && ipaddr != NULL &&
+       !uip_is_addr_unspecified(route) &&
+       !uip_is_addr_unspecified(ipaddr)) {
+      check_dodag_creation(NULL);
+    }
+  }
+}
+
+int
+cetic_6lbr_dis_input_default_hook(void)
+{
+  return 1;
+}
+
+int
+cetic_6lbr_dio_input_default_hook(uip_ipaddr_t *from, rpl_instance_t *instance, rpl_dag_t *dag, rpl_dio_t *dio)
+{
+  return 1;
+}
+
+void
+cetic_6lbr_start_delayed_dodag_root(int send_dis)
+{
+  if(rpl_can_become_root && is_own_dodag()) {
+    LOG6LBR_INFO("Own DODAG already existing\n");
+    cetic_6lbr_start_dodag_root();
+  } else {
+    dodag_root_check_interval = rpl_wait_delay / 2 + random_rand() % (rpl_wait_delay / 2);
+    LOG6LBR_INFO("Wait for potential DODAGs\n");
+    ctimer_set(&create_dodag_root_timer, dodag_root_check_interval, check_dodag_creation, NULL);
+    uip_ds6_notification_add(&create_dodag_root_route_callback, route_callback);
+    if(send_dis) {
+      dis_output(NULL);
+    }
+  }
+}
+
+void
+cetic_6lbr_set_rpl_can_become_root(int can_become_root)
+{
+  rpl_can_become_root = can_become_root;
+}
+#endif /*UIP_CONF_IPV6_RPL*/
+
+void
+cetic_6lbr_init_finalize(void)
+{
+#if UIP_CONF_IPV6_RPL
+  if(rpl_fast_startup) {
+    cetic_6lbr_start_dodag_root();
+  } else {
+    cetic_6lbr_start_delayed_dodag_root(1);
+  }
+#endif
 #if CETIC_6LBR_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
@@ -454,6 +584,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   static int addr_number;
   PROCESS_BEGIN();
 
+  /* Step 0: Basic infrastructure initialization */
+
+  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+
   //Turn off radio until 6LBR is properly configured
   NETSTACK_MAC.off(0);
 
@@ -461,10 +595,21 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
-  LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
+  network_itf_init();
+
+  /* Step 1: Platform specific initialization */
 
   platform_init();
-  platform_load_config(CONFIG_LEVEL_LOAD);
+
+  /* Step 2: Register configuration hooks and set default configuration */
+
+#if CETIC_NODE_INFO
+  node_info_config();
+#endif
+
+  /* Step 3: Load configuration from NVM and configuration file */
+
+  platform_load_config(CONFIG_LEVEL_BOOT);
 
 #if !LOG6LBR_STATIC
   if(nvm_data.log_level != 0xFF) {
@@ -476,8 +621,13 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   LOG6LBR_NOTICE("Log level: %d (services: %x)\n", LOG6LBR_LEVEL, LOG6LBR_SERVICE_DEFAULT);
 #endif
 
+  /* Step 4: Initialize radio and network interfaces */
+
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
+#endif
+#if CETIC_6LBR_MULTI_RADIO
+  CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC.init();
 #endif
 
 #if !CETIC_6LBR_ONE_ITF
@@ -496,6 +646,8 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   //Turn on radio and keep it always on
   NETSTACK_MAC.off(1);
 
+  /* Step 5: Initialize Network stack */
+
 #if CETIC_6LBR_LLSEC_WRAPPER
   llsec_wrapper_init();
 #endif
@@ -513,20 +665,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   PROCESS_PAUSE();
 
-#if WEBSERVER
-  webserver_init();
-#endif
-
-#if CETIC_NODE_INFO
-  node_info_init();
-#endif
-
-#if CETIC_NODE_CONFIG
-  node_config_init();
-#endif
+  /* Step 6: Configure network interfaces */
 
   packet_filter_init();
-
   cetic_6lbr_init();
 
   //Wait result of DAD on 6LBR addresses
@@ -542,8 +683,31 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     platform_restart();
   }
+
+  /* Step 7: Finalize configuration of network interfaces */
   cetic_6lbr_init_finalize();
-  platform_load_config(CONFIG_LEVEL_NETWORK);
+
+  /* Step 8: Initialize 6LBR core and base applications */
+
+  platform_load_config(CONFIG_LEVEL_CORE);
+  PROCESS_PAUSE();
+
+#if WEBSERVER
+  webserver_init();
+#endif
+
+#if CETIC_NODE_INFO
+  node_info_init();
+#endif
+
+#if CETIC_NODE_CONFIG
+  node_config_init();
+#endif
+
+  /* Step 9: Initialize and configure 6LBR applications */
+
+  platform_load_config(CONFIG_LEVEL_BASE);
+  PROCESS_PAUSE();
 
 #if UDPSERVER
   udp_server_init();
@@ -553,7 +717,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
 #if WITH_TINYDTLS
-dtls_init();
+  dtls_init();
 #endif
 
 #if WITH_COAPSERVER
@@ -574,6 +738,8 @@ dtls_init();
   dns_proxy_init();
 #endif
 
+  /* Step 10: Finalize platform configuration and load runtime configuration */
+
   platform_finalize();
   platform_load_config(CONFIG_LEVEL_APP);
 
@@ -583,6 +749,8 @@ dtls_init();
 
   etimer_set(&timer, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+
+  /* Shutdown 6LBR */
 
   //Turn off radio
   NETSTACK_MAC.off(0);

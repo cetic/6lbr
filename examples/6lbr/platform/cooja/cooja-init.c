@@ -32,22 +32,26 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "CC2538"
+#define LOG6LBR_MODULE "COOJA"
 
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "watchdog.h"
 
-#include "platform-init.h"
-#include "cetic-6lbr.h"
-#include "sicslow-ethernet.h"
-#include "nvm-config.h"
 #include "log-6lbr.h"
+
+#include "cetic-6lbr.h"
+#include "nvm-config.h"
+#include "native-config-file.h"
+#include "native-config-handlers.h"
+#include "native-config.h"
 
 void
 platform_init(void)
 {
+  native_config_init();
+  native_config_handlers_init();
 }
 
 void
@@ -59,10 +63,12 @@ void
 platform_load_config(config_level_t level)
 {
   switch(level) {
-  case CONFIG_LEVEL_LOAD:
+  case CONFIG_LEVEL_BOOT:
     load_nvm_config();
+    native_config_load(level);
     break;
   default:
+    native_config_load(level);
     break;
   }
 }
@@ -71,6 +77,7 @@ void
 platform_radio_init(void)
 {
   NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, nvm_data.pan_id);
   radio_ready = 1;
   radio_mac_addr_ready = 1;
 }

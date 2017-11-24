@@ -3,6 +3,8 @@ PROJECT?=6lbr-demo
 # Configuration
 
 WITH_RPL?=1
+WITH_LLSEC?=0
+WITH_TCP?=0
 
 # Applications
 
@@ -13,8 +15,6 @@ WITH_COAPSERVER?=0
 WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
-WITH_LLSEC?=0
-WITH_TCP?=0
 WITH_COAP_PROFILE?=IPSO_APP_FW
 
 # UDP client configuration

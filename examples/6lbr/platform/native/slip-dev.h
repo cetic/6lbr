@@ -39,15 +39,64 @@
 #ifndef NATIVE_SLIP_H_
 #define NATIVE_SLIP_H_
 
-#include "contiki.h"
-#include "net/ip/uip.h"
+#include "contiki-conf.h"
+#include "network-itf.h"
 #include <stdio.h>
+#include <termios.h>
 
-int slip_config_handle_arguments(int argc, char **argv);
-void write_to_slip(const uint8_t * buf, int len);
+#define SLIP_MAX_DEVICE NETWORK_ITF_NBR
 
-int slip_init(void);
-int slip_set_fd(int maxfd, fd_set * rset, fd_set * wset);
-void slip_handle_fd(fd_set * rset, fd_set * wset);
+typedef struct {
+  uint8_t isused;
+
+  /* Device configuration */
+  int flowcontrol;
+  const char *siodev;
+  const char *host;
+  const char *port;
+  speed_t baud_rate;
+  int dtr_rts_set;
+  clock_time_t send_delay;
+  int timeout;
+  int retransmit;
+  int serialize_tx_attrs;
+  int deserialize_rx_attrs;
+  int crc8;
+
+  /* Device function support */
+  uint32_t features;
+
+  /* Device runtime */
+  uint8_t ifindex;
+  int slipfd;
+  FILE *inslip;
+  unsigned char slip_buf[2048];
+  int slip_end, slip_begin, slip_packet_end, slip_packet_count;
+  struct timer send_delay_timer;
+
+  /* for statistics */
+  uint32_t bytes_sent;
+  uint32_t bytes_received;
+  uint32_t message_sent;
+  uint32_t message_received;
+  uint32_t crc_errors;
+} slip_descr_t;
+
+#define SLIP_RADIO_FEATURE_REBOOT 1
+#define SLIP_RADIO_FEATURE_NULL_MAC 2
+#define SLIP_RADIO_FEATURE_CHANNEL 4
+#define SLIP_RADIO_FEATURE_PAN_ID 8
+
+extern slip_descr_t *slip_default_device;
+
+void slip_init(void);
+void slip_close(void);
+slip_descr_t *slip_new_device(void);
+slip_descr_t *find_slip_dev(uint8_t ifindex);
+
+void slip_init_all_dev(void);
+void write_to_slip(slip_descr_t * slip_device, const uint8_t * buf, int len);
+
+speed_t convert_baud_rate(int baudrate);
 
 #endif /* NATIVE_SLIP_H_ */

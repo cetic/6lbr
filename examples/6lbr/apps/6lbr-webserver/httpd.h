@@ -65,7 +65,8 @@ struct httpd_state {
   char inputbuf[HTTPD_PATHLEN + 24];
   char *query;
 #if CONTIKI_TARGET_NATIVE
-  char outputbuf[UIP_TCP_MSS];
+  /* Add -8 in order to avoid problem on BB and RPi due to TCP connection RST */
+  char outputbuf[UIP_TCP_MSS - 8];
   int fd;
   int len;
   int to_send;

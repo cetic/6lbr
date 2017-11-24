@@ -38,8 +38,13 @@
 #include "net/linkaddr.h"
 
 typedef enum {
-  CONFIG_LEVEL_LOAD,
-  CONFIG_LEVEL_NETWORK,
+  /* Triggered immediately after boot or startup */
+  CONFIG_LEVEL_BOOT,
+  /* Triggered after core and network initialization */
+  CONFIG_LEVEL_CORE,
+  /* Triggered after basic applications initialization */
+  CONFIG_LEVEL_BASE,
+  /* Triggered after all application initialization */
   CONFIG_LEVEL_APP
 } config_level_t;
 

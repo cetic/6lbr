@@ -44,7 +44,11 @@ extern char * node_info_export_path;
 extern int node_info_export_enable;
 extern int node_info_export_global;
 
-void node_info_export_init(void);
+void
+node_info_export_init(void);
+
+void
+node_info_export_config(void);
 
 void
 node_info_export_set_interval(int interval);

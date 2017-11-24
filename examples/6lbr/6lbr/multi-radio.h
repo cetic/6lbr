@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, CETIC.
+ * Copyright (c) 2016 CETIC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,27 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         NVM Interface for the Econotag platform
+ *         A pseudo MAC layer for multi-radio support
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "NVM"
+#ifndef MULTI_RADIO_H_
+#define MULTI_RADIO_H_
 
-#include "contiki.h"
-#include "contiki-lib.h"
+#include "net/mac/mac.h"
+#include "dev/radio.h"
 
-#include "cetic-6lbr.h"
-#include "nvm-config.h"
-#include "nvm-itf.h"
-#include "log-6lbr.h"
+extern uint8_t multi_radio_input_ifindex;
+extern uint8_t multi_radio_output_ifindex;
 
-void
-nvm_data_read(void)
-{
-}
+extern const struct mac_driver multiradio_driver;
 
-void
-nvm_data_write(void)
-{
-}
+#endif /* MULTI_RADIO_H_ */

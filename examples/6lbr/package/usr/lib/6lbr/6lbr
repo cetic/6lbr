@@ -176,7 +176,7 @@ else
 # Launch 6LBR in a loop
 
 while true; do
-	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" ]; then
+	if [ "$MODE" != 'RPL-ROOT' -a "$SOCK_RADIO" = "" -a "$DEV_RADIO" != "" ]; then
 		$SCAN_DEVICE
 		while [ ! -e "$DEV_RADIO" ]; do
 			echo "Waiting for $DEV_RADIO"

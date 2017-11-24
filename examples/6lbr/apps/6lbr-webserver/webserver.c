@@ -68,6 +68,7 @@ HTTPD_CGI_CALL_NAME(webserver_sensors_tree)
 HTTPD_CGI_CALL_NAME(webserver_sensors_prr)
 HTTPD_CGI_CALL_NAME(webserver_sensors_ps)
 HTTPD_CGI_CALL_NAME(webserver_sensors_hc)
+HTTPD_CGI_CALL_NAME(webserver_sensors_traffic)
 HTTPD_CGI_CMD_NAME(webserver_sensors_reset_stats_all_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_reset_stats_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_delete_node_cmd)
@@ -120,6 +121,9 @@ webserver_init(void)
   httpd_group_add_page(&sensors_group, &webserver_sensors_prr);
   httpd_group_add_page(&sensors_group, &webserver_sensors_ps);
   httpd_group_add_page(&sensors_group, &webserver_sensors_hc);
+#if NODE_INFO_PER_NODE_STATS
+  httpd_group_add_page(&sensors_group, &webserver_sensors_traffic);
+#endif
   httpd_cgi_command_add(&webserver_sensors_reset_stats_all_cmd);
   httpd_cgi_command_add(&webserver_sensor_reset_stats_cmd);
   httpd_cgi_command_add(&webserver_sensor_delete_node_cmd);

@@ -67,12 +67,13 @@ PROCESS(node_info_export_process, "Node info export");
 static int
 node_info_export_config_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
-  if(level != CONFIG_LEVEL_APP) {
-    //Parse config only when in application init phase
+  if(level != CONFIG_LEVEL_BASE) {
+    //Parse config only when application has been started
     return 1;
   }
   if(!name) {
-    //ignore end of section
+    //End of section, apply configuration
+    process_poll(&node_info_export_process);
     return 1;
   }
   if(strcmp(name, "filename") == 0) {
@@ -265,6 +266,7 @@ PROCESS_THREAD(node_info_export_process, ev, data)
 
   if(node_info_export_enable) {
     etimer_set(&et, node_info_export_interval * CLOCK_SECOND);
+    LOG6LBR_INFO("Starting node info export\n");
   }
   while(1) {
     PROCESS_YIELD();
@@ -277,6 +279,7 @@ PROCESS_THREAD(node_info_export_process, ev, data)
       etimer_set(&et, node_info_export_interval * CLOCK_SECOND);
     } else if(ev == PROCESS_EVENT_POLL) {
       if(node_info_export_enable) {
+        LOG6LBR_INFO("Starting node info export\n");
         etimer_set(&et, node_info_export_interval * CLOCK_SECOND);
       } else {
         etimer_stop(&et);
@@ -287,11 +290,16 @@ PROCESS_THREAD(node_info_export_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-node_info_export_init(void)
+node_info_export_config(void)
 {
   node_info_export_file_name = strdup("/tmp/node-info.csv");
   node_info_export_path = strdup("/tmp/node-info");
   native_config_add_callback(&node_info_export_config_cb, "node-info.export", node_info_export_config_handler, NULL);
+}
+/*---------------------------------------------------------------------------*/
+void
+node_info_export_init(void)
+{
   process_start(&node_info_export_process, NULL);
 #if WEBSERVER
   httpd_group_add_page(&sensors_group, &webserver_node_info_export);

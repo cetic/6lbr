@@ -42,19 +42,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-extern int sixlbr_config_slip_flowcontrol;
-extern const char *sixlbr_config_slip_device;
-extern const char *sixlbr_config_slip_host;
-extern const char *sixlbr_config_slip_port;
-extern int sixlbr_config_slip_send_delay;
-extern speed_t sixlbr_config_slip_baud_rate;
-extern int sixlbr_config_slip_dtr_rts_set;
-
-extern int sixlbr_config_slip_timeout;
-extern int sixlbr_config_slip_retransmit;
-extern int sixlbr_config_slip_serialize_tx_attrs;
-extern int sixlbr_config_slip_deserialize_rx_attrs;
-
 extern int sixlbr_config_select_timeout;
 extern char sixlbr_config_eth_device[32];
 extern int sixlbr_config_eth_basedelay;
@@ -74,6 +61,10 @@ extern char const *sixlbr_config_ip_file_name;
 extern char const *sixlbr_config_config_file_name;
 extern char const *sixlbr_config_node_config_file_name;
 
+extern int sixlbr_config_slip_ip;
+
+extern int sixlbr_config_log_level;
+extern int sixlbr_config_log_services;
 
 /*---------------------------------------------------------------------------*/
 
@@ -92,6 +83,8 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_SLIP_RETRANSMIT      0
 #define SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX    1
 #define SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX  0
+#define SIXLBR_CONFIG_DEFAULT_SLIP_CRC8            0
+#define SIXLBR_CONFIG_DEFAULT_SLIP_FEATURES        -1
 
 #define SIXLBR_CONFIG_DEFAULT_SELECT_TIMEOUT     1000
 #define SIXLBR_CONFIG_DEFAULT_ETH_DEVICE         ""
@@ -109,7 +102,13 @@ extern char const *sixlbr_config_node_config_file_name;
 #define SIXLBR_CONFIG_DEFAULT_WATCHDOG_FILENAME   "/var/log/6lbr.timestamp"
 
 #define SIXLBR_CONFIG_DEFAULT_IP_FILENAME            NULL
+#if CONTIKI_TARGET_COOJA
+#define SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME        "nvm.conf"
+#else
 #define SIXLBR_CONFIG_DEFAULT_CONFIG_FILENAME        NULL
+#endif
 #define SIXLBR_CONFIG_DEFAULT_NODE_CONFIG_FILENAME   NULL
+
+#define SIXLBR_CONFIG_DEFAULT_SLIP_IP   0
 
 #endif

@@ -41,15 +41,13 @@
 /* NATIVE 6LBR                                                      */
 /*------------------------------------------------------------------*/
 
+#define UIP_MULTI_RADIO 1
+
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM         256
 
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     200
-
-//Deprecated, for old DS6 Route API, use UIP_CONF_MAX_ROUTES instead
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   200
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     200
 
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   200
@@ -75,11 +73,17 @@
 #undef RPL_CONF_STATS
 #define RPL_CONF_STATS              1
 
+#define NODE_INFO_PER_NODE_STATS    1
+
+#define CETIC_6LBR_MULTI_RADIO        1
+
 #define CETIC_6LBR_MAC_WRAPPER        1
 
 #define CETIC_6LBR_LLSEC_WRAPPER        1
 
 /* Do not change lines below */
+
+#define SLIP_CONF_CRC_ON 1
 
 #define SELECT_CALLBACK 1
 
@@ -110,7 +114,7 @@
 #undef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
 #elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
-    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__ || \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ || \
     defined(__LITTLE_ENDIAN__) || \
     defined(__ARMEL__) || \
     defined(__THUMBEL__) || \

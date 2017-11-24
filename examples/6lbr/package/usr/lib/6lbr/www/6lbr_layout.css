@@ -48,7 +48,7 @@ h3 {font-size: 12px; font-weight: bold; color: #333333; line-height: 14px;}
 	margin-top: -5px;
 	padding: 0 50px 0 50px;
 }
-.barre_nav {
+.nb {
 	padding-left: 0px;
 	position: relative;
 	height: 23px;
@@ -57,7 +57,7 @@ h3 {font-size: 12px; font-weight: bold; color: #333333; line-height: 14px;}
 	clear: left;
 }
 
-.menu-general {
+.gm {
 	text-align: left;
 	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	font-size: 12px;
@@ -65,7 +65,7 @@ h3 {font-size: 12px; font-weight: bold; color: #333333; line-height: 14px;}
 	float:left ; 
 	height:23px;
 }
-.menu-general span {
+.gm span {
 	padding: 3px 10px 4px; 
 	height: 23px; 
 	line-height: 22px; 
@@ -74,18 +74,18 @@ h3 {font-size: 12px; font-weight: bold; color: #333333; line-height: 14px;}
 	margin-right: 0px;
 	color: #FFFFFF; 
 	background-color: #333333;}
-.menu-general a {
+.gm a {
 	padding: 3px 10px 4px; 
 	height: 23px; 
 	line-height: 22px; 
 	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	font-size: 12px; 
 	margin-right: 0px;}
-.menu-general a:link, .menu-general a:visited {
+.gm a:link, .gm a:visited {
 	color: #fff; 
 	/* background-color: #669934; */
 	text-decoration: none;}
-.menu-general a:hover {
+.gm a:hover {
 	color: #FFFFFF; 
 	background-color: #333333; 
 	text-decoration: none;}

@@ -40,12 +40,9 @@
 #ifndef NATIVE_ARGS_H_
 #define NATIVE_ARGS_H_
 
-#include <stdint.h>
-#include <termios.h>
-
 extern int contiki_argc;
 extern char **contiki_argv;
 
-extern int slip_config_handle_arguments(int argc, char **argv);
+extern int native_args_handle_arguments(int argc, char **argv);
 
 #endif

@@ -50,6 +50,9 @@
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"
 #include "native-config.h"
+#include "network-itf.h"
+#include "multi-radio.h"
+#include "native-rdc.h"
 #include "log-6lbr.h"
 
 #include <string.h>
@@ -65,18 +68,6 @@ int callback_count;
 int native_rdc_ack_timeout;
 int native_rdc_parse_error;
 
-#ifdef NATIVE_RDC_CONF_SLIP_TIMEOUT
-#define NATIVE_RDC_SLIP_TIMEOUT NATIVE_RDC_CONF_SLIP_TIMEOUT
-#else
-#define NATIVE_RDC_SLIP_TIMEOUT (CLOCK_SECOND / 5)
-#endif
-
-#ifdef NATIVE_RDC_CONF_SLIP_RETRANSMIT
-#define NATIVE_RDC_SLIP_RETRANSMIT NATIVE_RDC_CONF_SLIP_RETRANSMIT
-#else
-#define NATIVE_RDC_SLIP_RETRANSMIT 0
-#endif
-
 /* a structure for calling back when packet data is coming back
    from radio... */
 struct tx_callback {
@@ -85,16 +76,26 @@ struct tx_callback {
   void *ptr;
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+  slip_descr_t *slip_device;
   struct ctimer timeout;
   int sid;
   int retransmit;
-  /* 3 bytes per packet attribute is required for serialization */
   int buf_len;
-  uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
+  uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t) * 2];
 };
 
 static struct tx_callback callbacks[MAX_CALLBACKS];
 
+/*---------------------------------------------------------------------------*/
+static slip_descr_t*
+get_slip_device(uint8_t ifindex)
+{
+  slip_descr_t * slip_device = find_slip_dev(ifindex);
+  if(slip_device == NULL) {
+    LOG6LBR_INFO("No slip device found for %d\n", ifindex);
+  }
+  return slip_device;
+}
 /*---------------------------------------------------------------------------*/
 void
 packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
@@ -107,10 +108,15 @@ packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
     if (callback->isused) {
       callback_count--;
       callback->isused = 0;
-      packetbuf_clear();
-      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
       ctimer_stop(&callback->timeout);
-      mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+      if(!sixlbr_config_slip_ip) {
+        packetbuf_clear();
+        packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+        if(callback->cback != NULL) {
+          //multi_radio_input_ifindex is set by the slip layer
+          mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
+        }
+      }
     } else {
       LOG6LBR_ERROR("br-rdc: ack received for unknown packet (%d)\n", callback->sid);
     }
@@ -124,18 +130,24 @@ packet_timeout(void *ptr)
 {
   struct tx_callback *callback = ptr;
   if (callback->isused) {
+    native_rdc_ack_timeout++;
     if(callback->retransmit > 0) {
       LOG6LBR_INFO("br-rdc: slip ack timeout, retransmit (%d)\n", callback->sid);
       callback->retransmit--;
-      write_to_slip(callback->buf, callback->buf_len);
+      ctimer_set(&callback->timeout, callback->slip_device->timeout, packet_timeout, callback);
+      write_to_slip(callback->slip_device, callback->buf, callback->buf_len);
     } else {
       callback_count--;
       callback->isused = 0;
-      native_rdc_ack_timeout++;
       LOG6LBR_ERROR("br-rdc: send failed, slip ack timeout (%d)\n", callback->sid);
-      packetbuf_clear();
-      packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
-      mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+      if(!sixlbr_config_slip_ip) {
+        packetbuf_clear();
+        packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+        if(callback->cback != NULL) {
+          multi_radio_input_ifindex = callback->slip_device->ifindex;
+          mac_call_sent_callback(callback->cback, callback->ptr, MAC_TX_NOACK, 1);
+        }
+      }
     }
   } else {
     LOG6LBR_ERROR("br-rdc: ack timeout for already acked packet (%d)\n", callback->sid);
@@ -143,7 +155,7 @@ packet_timeout(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static int
-setup_callback(mac_callback_t sent, void *ptr)
+setup_callback(slip_descr_t *slip_device, mac_callback_t sent, void *ptr)
 {
   struct tx_callback *callback;
   if ( callback_count < MAX_CALLBACKS) {
@@ -164,13 +176,58 @@ setup_callback(mac_callback_t sent, void *ptr)
     callback->ptr = ptr;
     callback->sid = callback_pos;
     callback->isused = 1;
-    callback->retransmit = NATIVE_RDC_SLIP_RETRANSMIT;
-    packetbuf_attr_copyto(callback->attrs, callback->addrs);
-    ctimer_set(&callback->timeout, NATIVE_RDC_SLIP_TIMEOUT, packet_timeout, callback);
+    callback->slip_device = slip_device;
+    callback->retransmit = slip_device->retransmit;
+    if(!sixlbr_config_slip_ip) {
+      packetbuf_attr_copyto(callback->attrs, callback->addrs);
+    }
+    ctimer_set(&callback->timeout, callback->slip_device->timeout, packet_timeout, callback);
 
     return callback_pos;
   } else {
     return -1;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+send_ip_packet(const uip_lladdr_t *localdest)
+{
+  uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t)];
+  int sid;
+  int size = 0;
+  slip_descr_t *slip_device = get_slip_device(multi_radio_output_ifindex);
+
+  if(slip_device == NULL) {
+    LOG6LBR_ERROR("Can not find slip device of interface %d\n", multi_radio_output_ifindex);
+    return 0;
+  }
+  sid = setup_callback(slip_device, NULL, NULL);
+  if (sid != -1) {
+    LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d, cb: %d)\n", uip_len, sid, callback_count);
+    LOG6LBR_DUMP_PACKET(RADIO_OUT, uip_buf, uip_len);
+
+    size = 0;
+    buf[size++] = '!';
+    buf[size++] = 'S';
+    buf[size++] = sid;             /* sequence or session number for this packet */
+
+    if(localdest != NULL) {
+      memcpy(&buf[size], localdest, sizeof(uip_lladdr_t));
+    } else {
+      memcpy(&buf[size], &linkaddr_null, sizeof(uip_lladdr_t));
+    }
+    size += sizeof(uip_lladdr_t);
+    /* Copy packet data */
+    memcpy(&buf[size], &uip_buf[UIP_LLH_LEN], uip_len);
+    size += uip_len;
+
+    callbacks[sid].buf_len = size;
+    memcpy(callbacks[sid].buf, buf, size);
+    write_to_slip(slip_device, buf, callbacks[sid].buf_len);
+    return 1;
+  } else {
+    LOG6LBR_INFO("native-rdc queue full\n");
+    return 0;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -182,8 +239,13 @@ send_packet(mac_callback_t sent, void *ptr)
   /* 3 bytes per packet attribute is required for serialization */
   uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
   int sid;
+  slip_descr_t *slip_device = get_slip_device(multi_radio_output_ifindex);
 
-  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+  if(slip_device == NULL) {
+    LOG6LBR_ERROR("Can not find slip device of interface %d\n", multi_radio_output_ifindex);
+    mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
+    return;
+  }
 
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
@@ -196,14 +258,14 @@ send_packet(mac_callback_t sent, void *ptr)
   } else {
     /* here we send the data over SLIP to the radio-chip */
     size = 0;
-    if(sixlbr_config_slip_serialize_tx_attrs) {
+    if(slip_device->serialize_tx_attrs) {
       size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
     }
     if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
       LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
     } else {
-      sid = setup_callback(sent, ptr);
+      sid = setup_callback(slip_device, sent, ptr);
       if (sid != -1) {
         LOG6LBR_PRINTF(PACKET, RADIO_OUT, "write: %d (sid: %d, cb: %d)\n", packetbuf_datalen(), sid, callback_count);
         LOG6LBR_DUMP_PACKET(RADIO_OUT, packetbuf_dataptr(), packetbuf_datalen());
@@ -216,7 +278,8 @@ send_packet(mac_callback_t sent, void *ptr)
         memcpy(&buf[3 + size], packetbuf_hdrptr(), packetbuf_totlen());
         callbacks[sid].buf_len = packetbuf_totlen() + size + 3;
         memcpy(callbacks[sid].buf, buf, callbacks[sid].buf_len);
-        write_to_slip(buf, callbacks[sid].buf_len);
+
+        write_to_slip(slip_device, buf, callbacks[sid].buf_len);
       } else {
         LOG6LBR_INFO("native-rdc queue full\n");
         mac_call_sent_callback(sent, ptr, MAC_TX_NOACK, 1);
@@ -273,61 +336,68 @@ init(void)
   callback_count = 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_reboot(void)
+static void
+slip_reboot(slip_descr_t *slip_device)
 {
   LOG6LBR_INFO("Reset SLIP Radio\n");
-  write_to_slip((uint8_t *) "!R", 2);
+  write_to_slip(slip_device, (uint8_t *) "!R", 2);
 }
-
-void
-slip_request_mac(void)
+/*---------------------------------------------------------------------------*/
+static void
+slip_request_mac(slip_descr_t *slip_device)
 {
   LOG6LBR_INFO("Fetching MAC address\n");
   radio_mac_addr_ready = 0;
-  write_to_slip((uint8_t *) "?M", 2);
+  write_to_slip(slip_device, (uint8_t *) "?M", 2);
 }
-
+/*---------------------------------------------------------------------------*/
 void
 slip_got_mac(const uint8_t * data)
 {
-  memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-  linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
-  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  LOG6LBR_LLADDR(INFO, &uip_lladdr, "Got MAC: ");
+  LOG6LBR_LLADDR(INFO, (uip_lladdr_t *)data, "Got MAC %d : ", multi_radio_input_ifindex);
+  //Temporary workaround, we always use the mac of the first radio
+  if(multi_radio_input_ifindex == 0) {
+    memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
+    linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+    linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
+  }
+  network_itf_set_mac(multi_radio_input_ifindex, (uip_lladdr_t *)data);
   radio_mac_addr_ready = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 void
 slip_set_mac(linkaddr_t const * mac_addr)
 {
 	uint8_t buffer[10];
 	int i;
-
-    LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC: ");
-	buffer[0] = '!';
-	buffer[1] = 'M';
-    for(i = 0; i < 8; i++) {
-    	buffer[2 + i] = mac_addr->u8[i];
+    //Temporary workaround, we always use the mac of the first radio
+	slip_descr_t *slip_device = find_slip_dev(0);
+    if(mac_addr != &linkaddr_null || (slip_device->features & SLIP_RADIO_FEATURE_NULL_MAC) != 0) {
+      LOG6LBR_LLADDR(INFO, (uip_lladdr_t*)mac_addr, "Set MAC %d : ", slip_device->ifindex);
+      buffer[0] = '!';
+      buffer[1] = 'M';
+      for(i = 0; i < 8; i++) {
+          buffer[2 + i] = mac_addr->u8[i];
+      }
+      write_to_slip(slip_device, buffer, 10);
     }
-    write_to_slip(buffer, 10);
 }
 /*---------------------------------------------------------------------------*/
-void
-slip_set_rf_channel(uint8_t channel)
+static void
+slip_set_rf_channel(slip_descr_t *slip_device, uint8_t channel)
 {
   static uint8_t msg[3];
 
   msg[0] = '!';
   msg[1] = 'C';
   msg[2] = channel;
-  write_to_slip(msg, 3);
+  write_to_slip(slip_device, msg, 3);
 }
 /*---------------------------------------------------------------------------*/
 void
 native_rdc_init(void)
 {
-  slip_init();
+  slip_init_all_dev();
   process_start(&border_router_cmd_process, NULL);
   process_start(&native_rdc_process, NULL);
 }
@@ -343,16 +413,35 @@ PROCESS_THREAD(native_rdc_process, ev, data)
   PROCESS_BEGIN();
 
   static struct etimer et;
+  static uint8_t ifindex;
+  static slip_descr_t *slip_device;
   do
   {
-    slip_reboot();
-    while(!radio_mac_addr_ready) {
-      etimer_set(&et, CLOCK_SECOND);
-      slip_request_mac();
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    if(sixlbr_config_slip_ip) {
+      LOG6LBR_INFO("SLIP RADIO configured as IP\n");
+      tcpip_set_outputfunc(send_ip_packet);
+    } else {
+      LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
     }
-    //Set radio channel
-    slip_set_rf_channel(nvm_data.channel);
+    for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+      network_itf_t *network_itf = network_itf_get_itf(ifindex);
+      if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+        slip_device = get_slip_device(ifindex);
+        if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
+          slip_reboot(slip_device);
+        }
+        radio_mac_addr_ready = 0;
+        while(!radio_mac_addr_ready) {
+          etimer_set(&et, CLOCK_SECOND);
+          slip_request_mac(slip_device);
+          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+        }
+        //Set radio channel
+        if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
+          slip_set_rf_channel(slip_device, nvm_data.channel);
+        }
+      }
+    }
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);
