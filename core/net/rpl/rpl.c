@@ -165,6 +165,7 @@ rpl_purge_routes(void)
   }
 
 #if RPL_WITH_MULTICAST
+  if(RPL_WITH_MULTICAST_TEST()) {
   mcast_route = uip_mcast6_route_list_head();
 
   while(mcast_route != NULL) {
@@ -175,6 +176,7 @@ rpl_purge_routes(void)
       mcast_route->lifetime--;
       mcast_route = list_item_next(mcast_route);
     }
+  }
   }
 #endif
 }
@@ -199,6 +201,7 @@ rpl_remove_routes(rpl_dag_t *dag)
   }
 
 #if RPL_WITH_MULTICAST
+  if(RPL_WITH_MULTICAST_TEST()) {
   mcast_route = uip_mcast6_route_list_head();
 
   while(mcast_route != NULL) {
@@ -208,6 +211,7 @@ rpl_remove_routes(rpl_dag_t *dag)
     } else {
       mcast_route = list_item_next(mcast_route);
     }
+  }
   }
 #endif
 }

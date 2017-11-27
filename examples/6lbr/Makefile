@@ -257,8 +257,6 @@ PROJECT_SOURCEFILES += rpl-utils.c
 endif
 
 ifeq ($(WITH_MULTICAST),1)
-ifeq ($(WITH_RPL),1)
-#Multicast is only supported in RPL mode yet
 CFLAGS += -DCETIC_6LBR_WITH_MULTICAST=1
 MODULES += core/net/ipv6/multicast
 ifeq ($(WITH_MULTI_MULTICAST),1)
@@ -266,7 +264,6 @@ CFLAGS += -DCETIC_6LBR_MULTICAST_WRAPPER=1
 PROJECT_SOURCEFILES += multicast-wrapper.c
 else
 CFLAGS += -DWITH_MULTICAST_ENGINE_$(WITH_MULTICAST_ENGINE)
-endif
 endif
 endif
 

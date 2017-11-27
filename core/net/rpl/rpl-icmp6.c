@@ -767,6 +767,7 @@ dao_input_storing(void)
   PRINTF("\n");
 
 #if RPL_WITH_MULTICAST
+  if(RPL_WITH_MULTICAST_TEST())
   if(uip_is_addr_mcast_global(&prefix)) {
     /*
      * "rep" is used for a unicast route which we don't need now; so set NULL so

@@ -1472,7 +1472,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 #if RPL_WITH_MULTICAST
   /* If the root is advertising MOP 2 but we support MOP 3 we can still join
    * In that scenario, we suppress DAOs for multicast targets */
-  if(dio->mop < RPL_MOP_STORING_NO_MULTICAST) {
+  if((RPL_WITH_MULTICAST_TEST() && dio->mop < RPL_MOP_STORING_NO_MULTICAST) ||
+      (!RPL_WITH_MULTICAST_TEST() && dio->mop != RPL_MOP_DEFAULT)) {
 #else
   if(dio->mop != RPL_MOP_DEFAULT) {
 #endif

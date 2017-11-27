@@ -41,5 +41,6 @@ extern const struct uip_mcast6_driver mcast_wrapper_driver;
 
 void multicast_wrapper_init(void);
 char const * multicast_wrapper_name(void);
+uint8_t multicast_wrapper_is_rpl_multicast(void);
 
 #endif /* MULTICAST_WRAPPER_H_ */

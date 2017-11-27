@@ -100,7 +100,7 @@ cetic_6lbr_config_rpl_mop(void)
   if ((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
     return RPL_MOP_NON_STORING;
 #if CETIC_6LBR_WITH_MULTICAST
-  } else if (RPL_WITH_MULTICAST) {
+  } else if (RPL_WITH_MULTICAST_TEST()) {
     return RPL_MOP_STORING_MULTICAST;
 #endif
   } else {

@@ -72,6 +72,22 @@ multicast_wrapper_init(void)
   current_multicast_driver->init();
 }
 /*---------------------------------------------------------------------------*/
+uint8_t
+multicast_wrapper_is_rpl_multicast(void)
+{
+  if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_NONE) {
+    return 0;
+  } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_SMRF) {
+    return 1;
+  } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_ROLL_TM) {
+    return 0;
+  } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_ESMRF) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
 char const *
 multicast_wrapper_name(void)
 {
