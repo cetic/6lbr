@@ -71,7 +71,7 @@ node_config_t* node_config_add_node(uip_lladdr_t *mac_address) {
     return NULL;
   }
 
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
   node_config->name = NULL;
 #endif
   node_config->mac_address = *mac_address;
@@ -107,7 +107,7 @@ void node_config_add_br(void) {
   if(node_config == NULL) {
     return;
   }
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
   node_config->name = "BR";
 #endif
   node_config->mac_address = wsn_mac_addr;

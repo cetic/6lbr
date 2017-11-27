@@ -37,7 +37,7 @@
 #ifndef SIXLBR_HOOKS_H_
 #define SIXLBR_HOOKS_H_
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #else
 typedef void rpl_instance_t;

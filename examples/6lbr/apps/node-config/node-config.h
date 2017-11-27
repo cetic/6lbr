@@ -41,15 +41,15 @@
 
 /* Temporarily until more complete support of node-config */
 #if CONTIKI_TARGET_NATIVE
-#define CETIC_NODE_CONFIG_HAS_NAME 1
+#define CETIC_6LBR_NODE_CONFIG_HAS_NAME 1
 #else
-#define CETIC_NODE_CONFIG_HAS_NAME 0
+#define CETIC_6LBR_NODE_CONFIG_HAS_NAME 0
 #endif
 
 struct node_config {
   struct node_config * next;
   uip_lladdr_t mac_address;
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
   char const * name;
 #endif
   /* Temporarily hardcoded list of ports */
@@ -67,7 +67,7 @@ node_config_t * node_config_find_by_ip(uip_ipaddr_t const * ipaddr);
 node_config_t * node_config_find_by_lladdr(uip_lladdr_t const * node_addr);
 
 node_config_t * node_config_find_by_port(uint16_t port);
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const * node_config);
 #endif
 

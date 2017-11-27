@@ -1,5 +1,17 @@
 #Default configuration for CC26XX
 
+WITH_MULTI_RADIO?=0
+WITH_RDC=nullrdc
+WITH_MAC=csma
+WITH_MULTI_MAC?=0
+WITH_LLSEC?=0
+WITH_MULTI_LLSEC?=0
+WITH_NONCORESEC?=0
+WITH_ADAPTIVESEC?=0
+WITH_MULTICAST?=0
+WITH_MULTI_MULTICAST?=0
+WITH_IP64?=1
+
 WITH_UDPSERVER?=0
 WITH_UDPCLIENT?=0
 WITH_NODE_INFO?=0
@@ -9,8 +21,8 @@ WITH_WEBSERVER_LITE?=1
 WITH_COAPSERVER?=0
 WITH_NVM_PROXY?=0
 WITH_DNS_PROXY?=0
-WITH_IP64?=0
-WITH_LLSEC?=0
+
+WITH_MULTI_RADIO=0
 
 SMALL=1
 
@@ -38,22 +50,22 @@ bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC26XX_FW):
 	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC26XX_FW)
 
 bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	$(MAKE) CETIC_6LBR_RPL_RELAY=1 $(CONF)
 	mkdir -p bin_$(TARGET)
 	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC26XX_FW)
 
 bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	$(MAKE) CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 $(CONF)
 	mkdir -p bin_$(TARGET)
 	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC26XX_FW)
 
 bin_$(TARGET)/cetic_6lbr_router.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_ROUTER=1 $(CONF)
+	$(MAKE) CETIC_6LBR_RPL_ROUTER=1 $(CONF)
 	mkdir -p bin_$(TARGET)
 	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_router.$(CC26XX_FW)
 
 bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	$(MAKE) CETIC_6LBR_NDP_ROUTER=1 $(CONF)
 	mkdir -p bin_$(TARGET)
 	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC26XX_FW)
 

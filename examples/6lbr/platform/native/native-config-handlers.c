@@ -38,7 +38,7 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 #include "uip-mcast6.h"
 #include "uip-mcast6-route.h"
 #endif
@@ -58,7 +58,7 @@ static native_config_callback_t slip_radio_config_cb;
 #if UIP_DS6_STATIC_ROUTES
 static native_config_callback_t network_route_config_cb;
 #endif
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 static native_config_callback_t network_multicast_config_cb;
 #endif
 /*---------------------------------------------------------------------------*/
@@ -256,7 +256,7 @@ static int native_config_network_route_handler(config_level_t level, void* user,
 }
 #endif
 /*---------------------------------------------------------------------------*/
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 static int native_config_network_multicast_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
   static uip_ipaddr_t group;
@@ -300,7 +300,7 @@ void native_config_handlers_init(void)
 #if UIP_DS6_STATIC_ROUTES
   native_config_add_callback(&network_route_config_cb, "network.route", native_config_network_route_handler, NULL);
 #endif
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
   native_config_add_callback(&network_multicast_config_cb, "network.multicast", native_config_network_multicast_handler, NULL);
 #endif
 }

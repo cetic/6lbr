@@ -45,7 +45,7 @@
 #include "node-info.h"
 #include "log-6lbr.h"
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 
@@ -60,7 +60,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
     node_info = node_info_lookup(&ipaddr);
     if(node_info) {
       add("<h2>Info</h2>");
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
       if ( node_config_loaded ) {
         add("Name: %s<br />", node_config_get_name(node_config_find_by_ip(&ipaddr)));
       }
@@ -71,7 +71,7 @@ PT_THREAD(generate_sensor(struct httpd_state *s))
       add("Model: -<br />");
       add("Parent: ");
       if((node_info->flags & NODE_INFO_PARENT_VALID) != 0) {
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
         if (node_config_loaded) {
           add("%s (", node_config_get_name(node_config_find_by_ip(&node_info->ip_parent)));
           ipaddr_add(&node_info->ip_parent);

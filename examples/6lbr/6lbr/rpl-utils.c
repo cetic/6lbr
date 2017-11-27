@@ -37,7 +37,7 @@
 #include "contiki.h"
 #include "rpl.h"
 #include "rpl-private.h"
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 #include "uip-mcast6.h"
 #endif
 
@@ -99,7 +99,7 @@ cetic_6lbr_config_rpl_mop(void)
 {
   if ((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
     return RPL_MOP_NON_STORING;
-#if UIP_IPV6_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
   } else if (RPL_WITH_MULTICAST) {
     return RPL_MOP_STORING_MULTICAST;
 #endif

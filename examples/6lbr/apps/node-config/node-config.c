@@ -44,7 +44,7 @@
 #else
 #include "node-config-memb.h"
 #endif
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 #include "nvm-data.h"
@@ -53,7 +53,7 @@
 
 uint8_t node_config_loaded = 0;
 
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
 static char const * unknown_name = "(Unknown)";
 #endif
 
@@ -90,7 +90,7 @@ node_config_t * node_config_find_by_lladdr(uip_lladdr_t const * node_addr) {
   return NULL;
 }
 
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
 char const *  node_config_get_name(node_config_t const *  node_config) {
   return node_config && node_config->name ? node_config->name : unknown_name;
 }
@@ -113,7 +113,7 @@ int node_config_allowed_node_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int pref
       allowed = 1;
     }
   }
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   if(dag != NULL && allowed) {
     //As control traffic is always allowed, set the flag only when it's coming from RPL
     node_info_clear_flags(prefix, NODE_INFO_REJECTED);

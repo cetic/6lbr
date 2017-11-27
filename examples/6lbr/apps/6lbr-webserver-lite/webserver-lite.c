@@ -48,7 +48,7 @@
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "rio.h"
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 
@@ -261,28 +261,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("<h1>Info</h1>");
   add("<h2>6LBR</h2>");
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br>");
-  add("Mode : ");
-#if CETIC_6LBR_SMARTBRIDGE
-  add("SMART BRIGDE");
-#endif
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-#if CETIC_6LBR_LEARN_RPL_MAC
-  add("RPL Relay");
-#else
-  add("FULL TRANSPARENT BRIGDE");
-#endif
-#endif
-#if CETIC_6LBR_ROUTER
-#if UIP_CONF_IPV6_RPL
-  add("RPL ROUTER");
-#else
-  add("NDP ROUTER");
-#endif
-#endif
-#if CETIC_6LBR_6LR
-  add("6LR");
-#endif
-  add("<br>");
+  add("Mode : " CETIC_6LBR_MODE "<br>");
   i = clock_seconds() - cetic_6lbr_startup;
   add("Uptime : %dh %dm %ds<br>", i / 3600, (i / 60) % 60, i % 60);
   SEND_STRING(&s->sout, buf);
@@ -349,7 +328,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       add("<tr><td>");
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
       if ( node_config_loaded ) {
         add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ipaddr)));
         ipaddr_add(&node_info_table[i].ipaddr);
@@ -421,7 +400,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
       add("]:5683/>coap</a></td>");
       if(node_info_table[i].messages_count > 0) {
         add("<td>%d</td><td>", node_info_table[i].sequence);
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
         if (node_config_loaded) {
           add("%s (", node_config_get_name(node_config_find_by_ip(&node_info_table[i].ip_parent)));
           ipaddr_add(&node_info_table[i].ip_parent);
@@ -450,7 +429,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add
     ("<center>"
      "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{");
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
   node_config_t *  my_config = node_config_find_by_lladdr(&uip_lladdr);
   if (my_config) {
     add("%s;", node_config_get_name(my_config));
@@ -465,7 +444,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
       if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
         node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
         node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
         if ( node_config ) {

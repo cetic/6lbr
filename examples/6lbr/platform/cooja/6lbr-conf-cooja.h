@@ -61,23 +61,12 @@
 #undef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID   0xABCD
 
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
 #define CETIC_CSMA_STATS      0
-
-#define CETIC_6LBR_LLSEC_WRAPPER        1
-
-#undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      1
 
 /* Do not change lines below */
 
 // IP packet must be 4 bytes aligned
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN 16
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
 
 #endif /* SIXLBR_CONF_COOJADK_H */

@@ -73,15 +73,7 @@
 #undef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID   0xABCD
 
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
 #define CETIC_CSMA_STATS      0
-
-#define CETIC_6LBR_LLSEC_WRAPPER        0
-
-#undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      0
 
 /* Do not change lines below */
 
@@ -91,8 +83,5 @@
 
 #define LOG6LBR_TIMESTAMP           0
 #define LOG6LBR_STATIC              1
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
 
 #endif /* SIXLBR_CONF_CC26XX_H */

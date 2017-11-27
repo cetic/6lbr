@@ -54,7 +54,7 @@
 
 //RPL Configuration
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 
 #undef RPL_CONF_DEFAULT_INSTANCE
 #define RPL_CONF_DEFAULT_INSTANCE    (nvm_data.rpl_instance_id)
@@ -98,11 +98,11 @@ extern int cetic_6lbr_config_rpl_mop(void);
 #define RPL_CONF_MOP (cetic_6lbr_config_rpl_mop())
 #endif
 
-#endif /* WITH_RPL */
+#endif /* CETIC_6LBR_WITH_RPL */
 
 // Security configuration
 
-#if WITH_LLSEC
+#if CETIC_6LBR_WITH_LLSEC
 
 #undef NONCORESEC_CONF_SEC_LVL
 #define NONCORESEC_CONF_SEC_LVL     (nvm_data.security_level)
@@ -125,7 +125,7 @@ extern int cetic_6lbr_config_rpl_mop(void);
 #define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
 
-#endif /* WITH_LLSEC */
+#endif /* CETIC_6LBR_WITH_LLSEC */
 
 #if CONTIKI_TARGET_NATIVE
 

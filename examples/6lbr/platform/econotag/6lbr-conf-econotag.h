@@ -73,24 +73,12 @@
 
 #define WEBSERVER_CONF_CFS_CONNS        1
 
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
 #define CETIC_CSMA_STATS      0
-
-#define CETIC_6LBR_MAC_WRAPPER          0
-#define CETIC_6LBR_LLSEC_WRAPPER        0
-
-#undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      0
 
 /* Do not change lines below */
 
 #define LOG6LBR_TIMESTAMP           0
 #define LOG6LBR_STATIC              1
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_LEARN_RPL_MAC
 //Setup 802.15.4 interface in promiscuous mode

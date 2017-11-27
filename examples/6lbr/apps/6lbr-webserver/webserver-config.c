@@ -45,7 +45,7 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 
@@ -252,7 +252,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
 #endif
   INPUT_IPADDR("dns", dns_server, "DNS server");
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
   INPUT_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, "NDP NUD", "disabled", "enabled");
@@ -275,7 +275,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   add("<br /><h3>IP64</h3>");
   INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
   INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
@@ -334,7 +334,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   add("<br /><h2>RPL Configuration</h2>");
 #if CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE
   add("<br /><h3>DODAG Configuration</h2>");
@@ -483,7 +483,7 @@ update_config(const char *name, uint8_t *reboot_needed)
   char *next;
   uint8_t do_update = 1;
   uip_ipaddr_t loc_fipaddr;
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   uip_ip4addr_t loc_fip4addr;
 #endif
 
@@ -538,7 +538,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
     UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
     UPDATE_FLAG("ip64", global_flags, CETIC_GLOBAL_IP64, 1)
     UPDATE_FLAG("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, 1)
     UPDATE_IP4ADDR("ip64_addr", eth_ip64_addr, 1)
@@ -556,7 +556,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, 1)
 #endif
 #endif
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
     UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
 #endif
     UPDATE_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, 1)

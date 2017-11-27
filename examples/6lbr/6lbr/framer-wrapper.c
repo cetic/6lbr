@@ -39,7 +39,9 @@
 #include "framer-802154.h"
 #include "framer-nullmac.h"
 #include "noncoresec/noncoresec.h"
+#if CETIC_6LBR_WITH_ADAPTIVESEC
 #include "adaptivesec/adaptivesec.h"
+#endif
 
 #include "nvm-config.h"
 
@@ -58,13 +60,17 @@ framer_wrapper_init(void)
       LOG6LBR_INFO("Using 802.15.4 framer\n");
       current_framer = &framer_802154;
     }
+#if CETIC_6LBR_WITH_NONCORESEC
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     LOG6LBR_INFO("Using 'noncoresec' framer\n");
     current_framer = &noncoresec_framer;
+#endif
+#if CETIC_6LBR_WITH_ADAPTIVESEC
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC ||
       nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_CORESEC) {
     LOG6LBR_INFO("Using 'adaptivesec' framer\n");
     current_framer = &adaptivesec_framer;
+#endif
   } else {
     LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
     current_framer = &framer_802154;

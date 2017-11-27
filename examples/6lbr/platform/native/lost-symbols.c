@@ -37,6 +37,12 @@
 /*
  */
 
+#include "uip.h"
+
+#if !CETIC_6LBR_WITH_IP64
+uip_ipaddr_t uip_hostaddr; /* Needed because it is referenced by dhcpc.c */
+#endif
+
 void procinit() {}
 void slip_arch_writeb() {}
 void dhcpc_configured() {}

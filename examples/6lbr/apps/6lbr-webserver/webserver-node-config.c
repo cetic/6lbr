@@ -40,7 +40,7 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #include "ip64-addr.h"
 #endif
@@ -60,7 +60,7 @@ PT_THREAD(generate_sensors_config(struct httpd_state *s))
   add
     ("<table>"
      "<theader><tr class=\"row_first\"><td>Node</td>");
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
   add("<td>Name</td>");
 #endif
   if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
@@ -75,7 +75,7 @@ PT_THREAD(generate_sensors_config(struct httpd_state *s))
       add("<tr><td>");
       lladdr_add(&node_config->mac_address);
       add("</td>");
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
       add("<td>%s</td>", node_config_get_name(node_config));
 #endif
       if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {

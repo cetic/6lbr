@@ -47,14 +47,14 @@
 #include "string.h"
 #include "sicslow-ethernet.h"
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #endif
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64-addr.h"
 #endif
-#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+#if CETIC_6LBR_ETH_LINK_STATS
 #include "link-stats.h"
 #endif
 
@@ -67,7 +67,7 @@
 #endif
 #include "6lbr-hooks.h"
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 
@@ -130,7 +130,7 @@ wireless_input(void)
   int processFrame = 0;
   int forwardFrame = 0;
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
     send_to_uip();
     return;
@@ -185,7 +185,7 @@ wireless_input(void)
     }
   }
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   node_info_analyze_packet();
 #endif
 
@@ -231,7 +231,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     return 0;
   }
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   node_info_analyze_packet();
 #endif
 
@@ -296,7 +296,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 void
 eth_input(void)
 {
-#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ETH_LINK_STATS
   uip_lladdr_t srcAddr;
 #endif
 
@@ -407,7 +407,7 @@ eth_input(void)
   //-------------
   if(processFrame && cetic_6lbr_allowed_node_hook(NULL, &UIP_IP_BUF->destipaddr, 128)) {
     LOG6LBR_PRINTF(PACKET, PF_IN, "eth_input: Processing frame\n");
-#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+#if CETIC_6LBR_ETH_LINK_STATS
   //RPL uses source packet address to populate its neighbor table
   //In this two modes RPL packets are incoming from Eth interface
   mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
@@ -463,7 +463,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 
   //IP header alteration
   //--------------------
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   rpl_remove_header();
 #endif
 
@@ -550,7 +550,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   //Sending packet
   //--------------
 
-#if CETIC_6LBR_ONE_ITF || CETIC_6LBR_6LR
+#if CETIC_6LBR_ETH_LINK_STATS
 //The link stats must be manually populated for these nodes
 //We set the link to perfect values as the Ethernet medium is assumed perfect
   if(!IS_BROADCAST_ADDR(dest)) {
@@ -570,7 +570,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 
 /*---------------------------------------------------------------------------*/
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_6LR
+#if !CETIC_6LBR_ROUTER
 
 static uint8_t
 bridge_output(const uip_lladdr_t * dest)
@@ -632,7 +632,7 @@ bridge_output(const uip_lladdr_t * dest)
     //Obviously we can not guess the target segment for a multicast packet
     //So we have to check the packet source prefix (and match it on the Ethernet segment prefix)
     //or, in case of link-local packet, check packet type and/or packet data
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
     //in RPL mode, RA and RS packets are used to configure the Ethernet subnet
     if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
         (UIP_ICMP_BUF->type == ICMP6_RA || UIP_ICMP_BUF->type == ICMP6_RS)) {
@@ -657,7 +657,7 @@ bridge_output(const uip_lladdr_t * dest)
         UIP_ICMP_BUF->type == ICMP6_RPL) {
       //RPL packets are always for WSN subnet
       wsnDest = 1;
-#if UIP_IPV6_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
     } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
       //The destination is a known multicast group
       if(UIP_IP_BUF->proto == UIP_PROTO_HBHO) {

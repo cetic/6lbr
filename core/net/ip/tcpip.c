@@ -51,9 +51,9 @@
 #include "cetic-6lbr.h"
 #include "rpl-utils.h"
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
-#include "net/ip/ip64-addr.h"
+#include "ip64-addr.h"
 #endif
 #if UIP_CONF_IPV6_RPL
 #include "net/rpl/rpl.h"
@@ -643,7 +643,7 @@ tcpip_ipv6_output(void)
           return;
         } else
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
         if(ip64_addr_is_ip64(&UIP_IP_BUF->destipaddr)) {
 #if UIP_CONF_IPV6_RPL
           rpl_remove_header();

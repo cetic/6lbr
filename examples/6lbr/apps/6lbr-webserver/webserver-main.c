@@ -41,7 +41,7 @@
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #endif
 #if CETIC_6LBR_MAC_WRAPPER
@@ -53,7 +53,7 @@
 #if CETIC_6LBR_MULTI_RADIO
 #include "network-itf.h"
 #endif
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 #include "uip-mcast6.h"
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
@@ -121,28 +121,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   }
 #endif
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
-  add("Mode : ");
-#if CETIC_6LBR_SMARTBRIDGE
-  add("SMART BRIGDE");
-#endif
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-#if CETIC_6LBR_LEARN_RPL_MAC
-  add("RPL Relay");
-#else
-  add("FULL TRANSPARENT BRIGDE");
-#endif
-#endif
-#if CETIC_6LBR_ROUTER
-#if UIP_CONF_IPV6_RPL
-  add("RPL ROUTER");
-#else
-  add("NDP ROUTER");
-#endif
-#endif
-#if CETIC_6LBR_6LR
-  add("6LR");
-#endif
-  add("<br />\n");
+  add("Mode : " CETIC_6LBR_MODE "<br />");
   clock_time_t uptime = clock_seconds() - cetic_6lbr_startup;
   add("Uptime : %dh %dm %ds<br />", uptime / 3600, (uptime / 60) % 60, uptime % 60);
   SEND_STRING(&s->sout, buf);
@@ -154,7 +133,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   if(!sixlbr_config_slip_ip) //Temporary until slip-ip is merged into network-itf
 #endif
   {
-#if UIP_MCAST6_ENGINE
+#if CETIC_6LBR_WITH_MULTICAST
 #if CETIC_6LBR_MULTICAST_WRAPPER
   add("Multicast: %s<br />", multicast_wrapper_name());
 #else
@@ -215,7 +194,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   ipaddr_add(&eth_ip_local_addr);
   add("<br />");
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("IP64 Address : ");
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {

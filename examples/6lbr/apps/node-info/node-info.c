@@ -43,7 +43,7 @@
 
 #include "log-6lbr.h"
 
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
 #include "node-info-export.h"
 #endif
 
@@ -72,7 +72,7 @@ node_info_route_notification_cb(int event,
 void
 node_info_config(void)
 {
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
   node_info_export_config();
 #endif
 }
@@ -83,7 +83,7 @@ node_info_init(void)
   memset(node_info_table, 0, sizeof(node_info_table));
   uip_ds6_notification_add(&node_info_route_notification,
                            node_info_route_notification_cb);
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
   node_info_export_init();
 #endif
 }

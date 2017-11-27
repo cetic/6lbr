@@ -1,6 +1,18 @@
 
 #Default configuration for native
 
+WITH_MULTI_RADIO?=1
+WITH_RDC=custom
+WITH_MAC=csma
+WITH_MULTI_MAC?=1
+WITH_LLSEC?=1
+WITH_MULTI_LLSEC?=1
+WITH_NONCORESEC?=1
+WITH_ADAPTIVESEC?=1
+WITH_MULTICAST?=1
+WITH_MULTI_MULTICAST?=1
+WITH_IP64?=1
+
 WITH_UDPSERVER?=1
 WITH_UDPCLIENT?=1
 WITH_NODE_INFO?=1
@@ -10,7 +22,6 @@ WITH_WEBSERVER_LITE?=0
 WITH_COAPSERVER?=1
 WITH_NVM_PROXY?=0
 WITH_DNS_PROXY?=1
-WITH_MULTICAST?=1
 
 PLUGINS=${shell test -e plugins && cd plugins && find * -type d -prune}
 PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
@@ -41,22 +52,22 @@ bin/cetic_6lbr_smart_bridge:
 	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
 
 bin/cetic_6lbr_rpl_relay:
-	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_RELAY=1 $(CONF)
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
 
 bin/cetic_6lbr_full_transparent_bridge:
-	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 CETIC_6LBR_LEARN_RPL_MAC=0 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 $(CONF)
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
 
 bin/cetic_6lbr_router:
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROUTER=1 $(CONF)
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_router
 
 bin/cetic_6lbr_ndp_router:
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_NDP_ROUTER=1 $(CONF)
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
 
@@ -66,7 +77,7 @@ bin/cetic_6lbr_6lr:
 	mv cetic-6lbr.native bin/cetic_6lbr_6lr
 
 bin/cetic_6lbr_rpl_root:
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 CETIC_6LBR_ONE_ITF=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROOT=1 $(CONF)
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
 

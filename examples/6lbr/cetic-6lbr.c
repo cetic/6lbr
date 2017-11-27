@@ -44,7 +44,7 @@
 #include "uip-nd6.h"
 #include "netstack.h"
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl.h"
 #include "rpl-private.h"
 #endif
@@ -66,7 +66,7 @@
 #include "6lbr-hooks.h"
 #include "rpl-utils.h"
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #include "ip64-ipv4-dhcp.h"
 #include "ip64-eth.h"
@@ -80,13 +80,13 @@
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #include "framer-wrapper.h"
+#if CETIC_6LBR_WITH_ADAPTIVESEC
 #include "strategy-wrapper.h"
 #endif
+#endif
 
-#if WITH_MULTICAST
 #if CETIC_6LBR_MULTICAST_WRAPPER
 #include "multicast-wrapper.h"
-#endif
 #endif
 
 #if WEBSERVER
@@ -97,11 +97,11 @@
 #include "udp-server.h"
 #endif
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 
@@ -167,13 +167,13 @@ enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 /*---------------------------------------------------------------------------*/
 //Hooks
 cetic_6lbr_allowed_node_hook_t cetic_6lbr_allowed_node_hook = cetic_6lbr_allowed_node_default_hook;
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
 cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook = cetic_6lbr_dis_input_default_hook;
 cetic_6lbr_dio_input_hook_t cetic_6lbr_dio_input_hook = cetic_6lbr_dio_input_default_hook;
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
 static struct ctimer create_dodag_root_timer;
 static struct uip_ds6_notification create_dodag_root_route_callback;
 static clock_time_t dodag_root_check_interval;
@@ -227,6 +227,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 #endif
 }
 /*---------------------------------------------------------------------------*/
+#if CETIC_6LBR_WITH_IP64
 void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
 {
   LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
@@ -234,6 +235,7 @@ void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
   cetic_6lbr_save_ip();
 #endif
 }
+#endif
 /*---------------------------------------------------------------------------*/
 int cetic_6lbr_allowed_node_default_hook(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len)
 {
@@ -346,7 +348,7 @@ cetic_6lbr_init(void)
   uip_ds6_addr_add(&wsn_ip_local_addr, 0, ADDR_AUTOCONF);
 
   //Prefix and RA configuration
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   uint8_t publish = (nvm_data.ra_prefix_flags & CETIC_6LBR_MODE_SEND_PIO) != 0;
   uip_ds6_prefix_add(&eth_net_prefix, nvm_data.eth_net_prefix_len, publish,
                      nvm_data.ra_prefix_flags,
@@ -359,7 +361,7 @@ cetic_6lbr_init(void)
 		             nvm_data.ra_prefix_vtime, nvm_data.ra_prefix_ptime);
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   if ((nvm_data.ra_rio_flags & CETIC_6LBR_MODE_SEND_RIO) != 0 ) {
     uip_ds6_route_info_add(&wsn_net_prefix, nvm_data.wsn_net_prefix_len, nvm_data.ra_rio_flags, nvm_data.ra_rio_lifetime);
   }
@@ -372,7 +374,7 @@ cetic_6lbr_init(void)
 #endif
 }
 
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
 
 static void
 check_dodag_creation(void *data);
@@ -507,19 +509,19 @@ cetic_6lbr_set_rpl_can_become_root(int can_become_root)
 {
   rpl_can_become_root = can_become_root;
 }
-#endif /*UIP_CONF_IPV6_RPL*/
+#endif /*CETIC_6LBR_WITH_RPL*/
 
 void
 cetic_6lbr_init_finalize(void)
 {
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   if(rpl_fast_startup) {
     cetic_6lbr_start_dodag_root();
   } else {
     cetic_6lbr_start_delayed_dodag_root(1);
   }
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
     ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
@@ -554,25 +556,7 @@ cetic_6lbr_init_finalize(void)
   }
 #endif
 
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-#if CETIC_6LBR_LEARN_RPL_MAC
-  LOG6LBR_INFO("Starting as RPL Relay\n");
-#else
-  LOG6LBR_INFO("Starting as Full TRANSPARENT-BRIDGE\n");
-#endif
-#elif CETIC_6LBR_SMARTBRIDGE
-  LOG6LBR_INFO("Starting as SMART-BRIDGE\n");
-#elif CETIC_6LBR_ROUTER
-#if UIP_CONF_IPV6_RPL
-  LOG6LBR_INFO("Starting as RPL ROUTER\n");
-#else
-  LOG6LBR_INFO("Starting as NDP ROUTER\n");
-#endif
-#elif CETIC_6LBR_6LR
-  LOG6LBR_INFO("Starting as 6LR\n");
-#else
-  LOG6LBR_INFO("Starting in UNKNOWN mode\n");
-#endif
+  LOG6LBR_INFO("Starting as " CETIC_6LBR_MODE "\n");
 
 #if CONTIKI_TARGET_NATIVE
   cetic_6lbr_save_ip();
@@ -598,7 +582,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_reload_event = process_alloc_event();
   cetic_6lbr_startup = clock_seconds();
 
+#if CETIC_6LBR_MULTI_RADIO
   network_itf_init();
+#endif
 
   /* Step 1: Platform specific initialization */
 
@@ -606,7 +592,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
   /* Step 2: Register configuration hooks and set default configuration */
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   node_info_config();
 #endif
 
@@ -629,6 +615,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
 #endif
+
 #if CETIC_6LBR_MULTI_RADIO
   CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC.init();
 #endif
@@ -653,11 +640,13 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 
 #if CETIC_6LBR_LLSEC_WRAPPER
   framer_wrapper_init();
+#if CETIC_6LBR_WITH_ADAPTIVESEC
   llsec_strategy_wrapper_init();
+#endif
   llsec_wrapper_init();
 #endif
 
-#if WITH_MULTICAST && CETIC_6LBR_MULTICAST_WRAPPER
+#if CETIC_6LBR_MULTICAST_WRAPPER
   multicast_wrapper_init();
 #endif
   //6LoWPAN init
@@ -700,11 +689,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   webserver_init();
 #endif
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   node_info_init();
 #endif
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
   node_config_init();
 #endif
 

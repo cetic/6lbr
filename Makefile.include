@@ -297,8 +297,10 @@ endif
 # the match-anything rule below instead.
 %: %.c
 
+ifndef CUSTOM_DEFAULT_TARGET
 # Match-anything pattern rule to allow the project makefiles to
 # abstract from the actual binary name. It needs to contain some
 # command in order to be a rule, not just a prerequisite.
 %: %.$(TARGET)
 	@
+endif

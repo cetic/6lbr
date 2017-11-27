@@ -38,7 +38,7 @@
 
 #include "contiki.h"
 #include "uip.h"
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #endif
 #include "httpd.h"
@@ -60,7 +60,9 @@
 #endif
 
 #if CETIC_6LBR_LLSEC_STATS
+#if CETIC_6LBR_WITH_NONCORESEC
 #include "noncoresec/noncoresec.h"
+#endif
 #endif
 
 #define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)
@@ -142,7 +144,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #else
   add("<h3>IP statistics are deactivated</h3>");
 #endif /* UIP_STATISTICS */
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   add("<h2>RPL</h2>");
 #if RPL_CONF_STATS
   PRINT_RPL_STAT( mem_overflows, "Memory overflow");
@@ -165,7 +167,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #else
   add("<h3>RPL statistics are deactivated</h3>");
 #endif
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* CETIC_6LBR_WITH_RPL */
 #if CONTIKI_TARGET_NATIVE
   if(!sixlbr_config_slip_ip)
 #endif
@@ -191,6 +193,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #endif
   }
 #if CETIC_6LBR_LLSEC_STATS
+#if CETIC_6LBR_WITH_NONCORESEC
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     add("<h2>LLSEC</h2>");
     add("Invalid level : %d<br />", noncoresec_invalid_level);
@@ -201,6 +204,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
+#endif
 #endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>RDC</h2>");

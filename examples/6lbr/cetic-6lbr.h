@@ -38,10 +38,12 @@
 #define CETIC_6LBR_H_
 
 #include "uip.h"
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl.h"
 #endif
+#if CETIC_6LBR_WITH_IP64
 #include "ip64-dhcpc.h"
+#endif
 
 PROCESS_NAME(cetic_6lbr_process);
 
@@ -51,9 +53,11 @@ extern process_event_t cetic_6lbr_reload_event;
 extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
                                   uip_ipaddr_t * ipaddr);
 
+#if CETIC_6LBR_WITH_IP64
 extern void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
+#endif
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 extern void
 cetic_6lbr_end_dodag_root(rpl_instance_t *instance);
 
@@ -77,7 +81,7 @@ extern uip_ipaddr_t wsn_ip_local_addr;  //Created from wsn_mac_addr
 extern uip_ip6addr_t wsn_net_prefix;
 extern uint8_t wsn_net_prefix_len;
 
-#if WITH_RPL
+#if CETIC_6LBR_WITH_RPL
 extern rpl_dag_t *cetic_dag;
 
 extern int rpl_fast_startup;

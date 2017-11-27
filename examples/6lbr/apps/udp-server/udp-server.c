@@ -37,7 +37,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 #include "log-6lbr.h"
@@ -57,7 +57,7 @@ PROCESS(udp_server_process, "UDP server process");
 static void
 tcpip_handler(void)
 {
-#if !CETIC_NODE_INFO
+#if !CETIC_6LBR_NODE_INFO
   static int seq_id;
 #endif
   char buf[MAX_PAYLOAD_LEN];
@@ -66,13 +66,13 @@ tcpip_handler(void)
     ((char *)uip_appdata)[uip_datalen()] = 0;
     LOG6LBR_6ADDR(DEBUG, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
     node_info_t * node = node_info_update(&UIP_IP_BUF->srcipaddr, (char *)uip_appdata);
 #endif
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
     if(node) {
       node->replies_sent += 1;
       sprintf(buf, "%d", node->last_down_sequence + 1);

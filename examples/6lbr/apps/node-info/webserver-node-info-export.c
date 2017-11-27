@@ -46,7 +46,7 @@
 #include "log-6lbr.h"
 #include <stdlib.h>
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 

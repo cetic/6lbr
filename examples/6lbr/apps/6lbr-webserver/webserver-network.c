@@ -48,7 +48,7 @@
 #include "webserver-utils.h"
 #include <stdlib.h>
 
-#if WITH_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
 #include "uip-mcast6.h"
 #include "uip-mcast6-route.h"
 #if CETIC_6LBR_MULTICAST_WRAPPER
@@ -56,13 +56,13 @@
 #endif
 #endif
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #include "ip64-addrmap.h"
 #include "ip64-dhcpc.h"
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #if RPL_WITH_NON_STORING
 #include "rpl-ns.h"
@@ -78,11 +78,11 @@
 #include "network-itf.h"
 #endif
 
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
 #endif
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 
@@ -135,7 +135,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   static uip_ds6_route_t *r;
   static uip_ds6_defrt_t *dr;
   static uip_ds6_nbr_t *nbr;
-#if UIP_IPV6_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
   static uip_mcast6_route_t *mcast_route;
 #endif
 #if RPL_WITH_NON_STORING
@@ -192,7 +192,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64</h2><pre>");
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
@@ -231,7 +231,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&nbr->ipaddr);
       add("\">del</a>] ");
     }
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
     if ( node_config_loaded ) {
       add("%s : ", node_config_get_name(node_config_find_by_lladdr(uip_ds6_nbr_get_ll(nbr))));
     }
@@ -261,7 +261,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ipaddr_add(&r->ipaddr);
       add("\">del</a>] ");
     }
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
     if ( node_config_loaded ) {
       add("%s (", node_config_get_name(node_config_find_by_ip(&r->ipaddr)));
       ipaddr_add(&r->ipaddr);
@@ -282,7 +282,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
     add("/%u via ", r->length);
     ipaddr_add(uip_ds6_route_nexthop(r));
 #endif
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
     if(r->state.lifetime != RPL_ROUTE_INFINITE_LIFETIME) {
 #else
     if(r->neighbor_routes != NULL) {
@@ -303,7 +303,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 
       rpl_ns_get_node_global_addr(&child_ipaddr, link);
       rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
-#if CETIC_NODE_CONFIG_HAS_NAME
+#if CETIC_6LBR_NODE_CONFIG_HAS_NAME
       if ( node_config_loaded ) {
         add("%s (", node_config_get_name(node_config_find_by_ip(&child_ipaddr)));
         ipaddr_add(&child_ipaddr);
@@ -331,7 +331,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
 #endif
 
-#if UIP_IPV6_MULTICAST
+#if CETIC_6LBR_WITH_MULTICAST
   add("</pre><h2>Routed multicast groups</h2><pre>");
   for(mcast_route = uip_mcast6_route_list_head(), i = 0; mcast_route != NULL;
       mcast_route = list_item_next(mcast_route), ++i) {
@@ -385,7 +385,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");
     static struct ip64_addrmap_entry *m;

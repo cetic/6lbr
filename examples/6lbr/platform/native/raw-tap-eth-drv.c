@@ -46,13 +46,13 @@
 #include "native-config.h"
 #include "sicslow-ethernet.h"
 #include "packet-forwarding-engine.h"
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #endif
 
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
-#if !CETIC_6LBR_IP64
+#if !CETIC_6LBR_WITH_IP64
 uip_buf_t ethernet_tmp_buf_aligned;
 uint8_t *ethernet_tmp_buf = ethernet_tmp_buf_aligned.u8;
 #endif
@@ -74,7 +74,7 @@ eth_drv_input(uint8_t *packet, uint16_t len)
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", len);
   LOG6LBR_DUMP_PACKET(ETH_IN, packet, len);
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
       (((struct uip_eth_hdr *)packet)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
     IP64_INPUT(packet, len);
@@ -83,7 +83,7 @@ eth_drv_input(uint8_t *packet, uint16_t len)
     uip_len = len - UIP_LLH_LEN;
     memcpy(uip_buf, packet, len);
     eth_input();
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   }
 #endif
 }

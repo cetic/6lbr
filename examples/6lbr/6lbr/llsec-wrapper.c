@@ -37,8 +37,12 @@
 #include "contiki.h"
 #include "llsec-wrapper.h"
 #include "nullsec.h"
+#if CETIC_6LBR_WITH_NONCORESEC
 #include "noncoresec/noncoresec.h"
+#endif
+#if CETIC_6LBR_WITH_ADAPTIVESEC
 #include "adaptivesec/adaptivesec.h"
+#endif
 
 #include "nvm-config.h"
 
@@ -52,15 +56,19 @@ llsec_wrapper_init(void)
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONE) {
     LOG6LBR_INFO("Using 'nullsec' llsec driver\n");
     current_llsec_driver = &nullsec_driver;
+#if CETIC_6LBR_WITH_NONCORESEC
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     LOG6LBR_INFO("Using 'noncoresec' llsec driver\n");
     current_llsec_driver = &noncoresec_driver;
+#endif
+#if CETIC_6LBR_WITH_ADAPTIVESEC
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC) {
     LOG6LBR_INFO("Using 'adaptivesec (noncore)' llsec driver\n");
     current_llsec_driver = &adaptivesec_driver;
   } else if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_CORESEC) {
     LOG6LBR_INFO("Using 'adaptivesec (core)' llsec driver\n");
     current_llsec_driver = &adaptivesec_driver;
+#endif /* CETIC_6LBR_WITH_ADAPTIVESEC */
   } else {
     LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
     current_llsec_driver = &nullsec_driver;

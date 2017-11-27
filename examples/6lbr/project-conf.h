@@ -37,38 +37,19 @@
 #ifndef __PROJECT_6LBR_CONF_H__
 #define __PROJECT_6LBR_CONF_H__
 
-/* COAP content type definition */
-#ifndef COAP_CONF_DATA_FORMAT
-#define COAP_CONF_DATA_FORMAT coap_data_format_text
-#endif
-
-#define REST_TYPE_SENML_CONF_TIMESTAMP 1
-
-/*------------------------------------------------------------------*/
-/* Mode selection                                                   */
-/*------------------------------------------------------------------*/
-
-#define CETIC_6LBR							1
-
-#ifndef CETIC_6LBR_SMARTBRIDGE
-#define CETIC_6LBR_SMARTBRIDGE				0
-#endif
-
-#ifndef CETIC_6LBR_TRANSPARENTBRIDGE
-#define CETIC_6LBR_TRANSPARENTBRIDGE		0
-#endif
-
-#ifndef CETIC_6LBR_ROUTER
-#define CETIC_6LBR_ROUTER					0
-#endif
-
-#ifndef CETIC_NODE_INFO
-#define CETIC_NODE_INFO						0
-#endif
-
 /*------------------------------------------------------------------*/
 /* Common configuration                                             */
 /*------------------------------------------------------------------*/
+
+//Local link address is already reserved
+#define UIP_CONF_DS6_ADDR_NBU 5
+
+//all routers + all nodes + solicited are already reserved
+#define UIP_CONF_DS6_MADDR_NBU 5
+
+//Perform DAD on own addresses
+#undef UIP_CONF_ND6_DEF_MAXDADNS
+#define UIP_CONF_ND6_DEF_MAXDADNS   1
 
 #undef NEIGHBOR_CONF_ATTR_MAX_NEIGHBORS
 #define NEIGHBOR_CONF_ATTR_MAX_NEIGHBORS	8
@@ -109,21 +90,11 @@
 /* SMART BRIDGE MODE                                                */
 /*------------------------------------------------------------------*/
 
-//Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 5
-
-//all routers + all nodes + solicited are already reserved
-#define UIP_CONF_DS6_MADDR_NBU 5
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
 #define UIP_CONF_ND6_RA_RDNSS 1
 
 #define UIP_CONF_DS6_STATIC_ROUTES 1
-
-#define CETIC_6LBR_IP64      1
-
-/* Do not change lines below */
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             0
@@ -134,7 +105,6 @@
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
 
-/*------------------------------------------------------------------*/
 #endif
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE
@@ -142,17 +112,9 @@
 /* TRANSPARENT BRIDGE MODE                                          */
 /*------------------------------------------------------------------*/
 
-//Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 5
-
-//all routers + all nodes + solicited are already reserved
-#define UIP_CONF_DS6_MADDR_NBU 5
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
 #define UIP_CONF_ND6_RA_RDNSS 0
-
-/* Do not change lines below */
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             0
@@ -169,9 +131,6 @@
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
-#define CETIC_6LBR_IP64      0
-
-/*------------------------------------------------------------------*/
 #endif
 
 #if CETIC_6LBR_ROUTER
@@ -182,24 +141,11 @@
 #undef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA		1
 
-#undef UIP_CONF_ND6_DEF_MAXDADNS
-#define UIP_CONF_ND6_DEF_MAXDADNS	1
-
-//Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 5
-
-//all routers + all nodes + solicited are already reserved
-#define UIP_CONF_DS6_MADDR_NBU 5
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
 #define UIP_CONF_ND6_RA_RDNSS 1
 
 #define UIP_CONF_DS6_STATIC_ROUTES 1
-
-#define CETIC_6LBR_IP64      1
-
-/* Do not change lines below */
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             1
@@ -212,18 +158,12 @@
 #define CETIC_6LBR_ETH_FILTER_RPL	1
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
 #define CETIC_6LBR_WSN_FILTER_RA	1
 #else
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
-#if WITH_MULTICAST
-#define UIP_CONF_MLD 1
-#define UIP_CONF_MLD_PUBLISH_ROUTES 1
-#endif
-
-/*------------------------------------------------------------------*/
 #endif
 
 #if CETIC_6LBR_6LR
@@ -231,22 +171,9 @@
 /* ROUTER MODE                                                      */
 /*------------------------------------------------------------------*/
 
-#undef UIP_CONF_ND6_DEF_MAXDADNS
-#define UIP_CONF_ND6_DEF_MAXDADNS	1
-
-//Local link address is already reserved
-#define UIP_CONF_DS6_ADDR_NBU 5
-
-//all routers + all nodes + solicited are already reserved
-#define UIP_CONF_DS6_MADDR_NBU 5
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
 
 #define UIP_CONF_ND6_RA_RDNSS 1
-
-#define CETIC_6LBR_IP64      0
-
-/* Do not change lines below */
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             1
@@ -271,8 +198,12 @@
 #endif
 
 /*------------------------------------------------------------------*/
-
 /* Do not change lines below */
+/*------------------------------------------------------------------*/
+
+/* Activate CETIC 6LBR specific code in Contiki */
+#define CETIC_6LBR              1
+
 #define CETIC_6LBR_VERSION		"1.5.x"
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF
@@ -290,29 +221,72 @@
 #endif
 #endif
 
+/*------------------------------------------------------------------*/
+/* RDC Configuration */
+/*------------------------------------------------------------------*/
+#if WITH_RDC_custom
+//Do nothing
+#elif WITH_RDC_nullrdc
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nullrdc_driver
+#elif WITH_RDC_contikimac
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     contikimac_driver
+#else
+#error "Unsupported RDC layer"
+#endif
+
+/*------------------------------------------------------------------*/
+/* MAC configuration */
+/*------------------------------------------------------------------*/
+#if WITH_MAC_custom
+//Do nothing
+#elif WITH_MAC_csma
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     csma_driver
+#elif WITH_MAC_nullmac
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
+#else
+#error "Unsupported MAC layer"
+#endif
+
 #if CETIC_6LBR_MAC_WRAPPER
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     mac_wrapper_driver
+
 #undef CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC
 #define CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC     mac_wrapper_driver
+
 #endif
 
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-/* Currently we can not have multi-radio with transparent bridge */
-#undef CETIC_6LBR_MULTI_RADIO
-#define CETIC_6LBR_MULTI_RADIO        0
-#endif
-
+/*------------------------------------------------------------------*/
+/* Multi-Radio configuration */
+/*------------------------------------------------------------------*/
 #if CETIC_6LBR_MULTI_RADIO
+
 #define UIP_SWITCH_LOOKUP 1
+
+#ifndef CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC
+#define CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC     NETSTACK_CONF_MAC
+#endif
+
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     multi_radio_driver
+
 #endif
 
-#if WITH_LLSEC
+/*------------------------------------------------------------------*/
+/* LLSEC Configuration */
+/*------------------------------------------------------------------*/
+#if CETIC_6LBR_WITH_LLSEC
 
 #undef LLSEC802154_CONF_ENABLED
 #define LLSEC802154_CONF_ENABLED 1
+
+#undef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#define PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES 1
 
 #if CETIC_6LBR_LLSEC_WRAPPER
 
@@ -325,19 +299,60 @@
 #undef ADAPTIVESEC_CONF_STRATEGY
 #define ADAPTIVESEC_CONF_STRATEGY strategy_wrapper
 
-#undef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
-#define PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES 1
+#else /* CETIC_6LBR_LLSEC_WRAPPER */
+
+#if WITH_LLSEC_ENGINE_custom
+
+//Do nothing
+
+#elif WITH_LLSEC_ENGINE_noncoresec
+
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER noncoresec_framer
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC noncoresec_driver
+
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED 1
+
+#undef AES_128_CONF
+#define AES_128_CONF aes_128_driver
+
+#elif WITH_LLSEC_ENGINE_adaptivesec
+
+#include "noncoresec-autoconf.h"
+
+#else
+
+#error "Unsupported LLSEC layer"
+
+#endif
 
 #endif /* CETIC_6LBR_LLSEC_WRAPPER */
 
-#endif /* WITH_LLSEC */
+#else /* CETIC_6LBR_WITH_LLSEC */
 
+#undef CETIC_6LBR_LLSEC_STATS
+#define CETIC_6LBR_LLSEC_STATS 0
+
+#undef CETIC_6LBR_LLSEC_WRAPPER
+#define CETIC_6LBR_LLSEC_WRAPPER 0
+
+#endif /* CETIC_6LBR_WITH_LLSEC */
+
+/*------------------------------------------------------------------*/
+/* IPv6 Configuration */
+/*------------------------------------------------------------------*/
 #undef UIP_CONF_ND6_SEND_NS
 #define UIP_CONF_ND6_SEND_NS        1
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA        1
 
+
+/*------------------------------------------------------------------*/
+/* RPL configuration */
+/*------------------------------------------------------------------*/
 #if CETIC_6LBR_RPL_RUNTIME_MOP
 
 #undef RPL_CONF_WITH_STORING
@@ -348,10 +363,48 @@
 
 #endif
 
-#if WITH_MULTICAST && CETIC_6LBR_MULTICAST_WRAPPER
+/*------------------------------------------------------------------*/
+/* Multicast configuration */
+/*------------------------------------------------------------------*/
+#if CETIC_6LBR_WITH_MULTICAST
+
+#if CETIC_6LBR_ROUTER
+
+#define UIP_CONF_MLD 1
+#define UIP_CONF_MLD_PUBLISH_ROUTES 1
+
+#endif /* CETIC_6LBR_ROUTER */
+
+#if CETIC_6LBR_MULTICAST_WRAPPER
+
 #define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_WRAPPER
+
+#else
+
+#if WITH_MULTICAST_ENGINE_custom
+//Do nothing
+#elif WITH_MULTICAST_ENGINE_SMRF
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_SMRF
+#elif WITH_MULTICAST_ENGINE_ESMRF
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_ESMRF
+#elif WITH_MULTICAST_ENGINE_ROLL_TM
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_ROLL_TM
+#else
+#error "Unsupported multicast engine"
 #endif
 
+#endif
+
+#else /* CETIC_6LBR_WITH_MULTICAST */
+
+#undef CETIC_6LBR_MULTICAST_WRAPPER
+#define CETIC_6LBR_MULTICAST_WRAPPER 0
+
+#endif /* CETIC_6LBR_WITH_MULTICAST */
+
+/*------------------------------------------------------------------*/
+/* NAT64 configuration */
+/*------------------------------------------------------------------*/
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
 
