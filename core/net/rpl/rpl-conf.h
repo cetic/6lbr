@@ -251,8 +251,6 @@
 #define RPL_WITH_DAO_ACK 1
 #else
 #define RPL_WITH_DAO_ACK_TEST RPL_WITH_DAO_ACK
-#undef RPL_WITH_DAO_ACK
-#define RPL_WITH_DAO_ACK 1
 #endif /* RPL_CONF_WITH_DAO_ACK_TEST */
 
 /*

@@ -150,7 +150,6 @@ struct uip_mcast6_driver {
 /* Enable Multicast hooks in the uip6 core */
 #define UIP_IPV6_MULTICAST 1
 
-#define RPL_WITH_MULTICAST_TEST()  1
 #if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_ROLL_TM
 #define RPL_WITH_MULTICAST     0        /* Not used by trickle */
 #define UIP_CONF_IPV6_ROLL_TM  1        /* ROLL Trickle ICMP type support */
@@ -169,7 +168,6 @@ struct uip_mcast6_driver {
 #elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_WRAPPER
 uint8_t multicast_wrapper_is_rpl_multicast(void);
 #define RPL_WITH_MULTICAST     1
-#undef RPL_WITH_MULTICAST_TEST
 #define RPL_WITH_MULTICAST_TEST     multicast_wrapper_is_rpl_multicast
 #define UIP_MCAST6             multicast_wrapper_driver
 
@@ -177,6 +175,11 @@ uint8_t multicast_wrapper_is_rpl_multicast(void);
 #error "Multicast Enabled with an Unknown Engine."
 #error "Check the value of UIP_MCAST6_CONF_ENGINE in conf files."
 #endif
+
+#ifndef RPL_WITH_MULTICAST_TEST
+#define RPL_WITH_MULTICAST_TEST(x) RPL_WITH_MULTICAST
+#endif
+
 #endif /* UIP_MCAST6_ENGINE */
 
 #ifdef RPL_CONF_SEND_DAO_FOR_MULTICAST_ADDRESS

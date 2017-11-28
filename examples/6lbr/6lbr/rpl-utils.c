@@ -44,6 +44,7 @@
 #include "rpl-utils.h"
 #include "cetic-6lbr.h"
 
+/*---------------------------------------------------------------------------*/
 int
 is_dodag_available(void)
 {
@@ -59,7 +60,7 @@ is_dodag_available(void)
     return 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 int
 is_own_dodag(void)
 {
@@ -76,7 +77,7 @@ is_own_dodag(void)
     return 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 int
 is_dodag_root(void)
 {
@@ -93,7 +94,7 @@ is_dodag_root(void)
     return 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 int
 cetic_6lbr_config_rpl_mop(void)
 {
@@ -107,3 +108,4 @@ cetic_6lbr_config_rpl_mop(void)
     return RPL_MOP_STORING_NO_MULTICAST;
   }
 }
+/*---------------------------------------------------------------------------*/

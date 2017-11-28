@@ -51,6 +51,10 @@
 #include "rpl-private.h"
 #endif
 
+#if CETIC_6LBR_WITH_MULTICAST
+#include "uip-mcast6.h"
+#endif
+
 #if CETIC_6LBR_WITH_IP64
 #include "ip64-addr.h"
 #endif

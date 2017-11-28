@@ -353,7 +353,10 @@
 /*------------------------------------------------------------------*/
 /* RPL configuration */
 /*------------------------------------------------------------------*/
-#if CETIC_6LBR_RPL_RUNTIME_MOP
+
+#if CETIC_6LBR_WITH_RPL
+
+#if CETIC_6LBR_WITH_MULTI_RPL
 
 #undef RPL_CONF_WITH_STORING
 #define RPL_CONF_WITH_STORING 1
@@ -361,7 +364,43 @@
 #undef RPL_CONF_WITH_NON_STORING
 #define RPL_CONF_WITH_NON_STORING 1
 
+#define CETIC_6LBR_RPL_RUNTIME_MOP 1
+
+#else /* CETIC_6LBR_WITH_MULTI_RPL */
+
+#if WITH_RPL_ENGINE_custom
+//Do nothing
+#elif WITH_RPL_ENGINE_storing
+
+#undef RPL_CONF_WITH_NON_STORING
+#define RPL_CONF_WITH_NON_STORING 0
+
+#undef RPL_CONF_WITH_STORING
+#define RPL_CONF_WITH_STORING 1
+
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
+
+#elif WITH_RPL_ENGINE_nonstoring
+
+#undef RPL_CONF_WITH_STORING
+#define RPL_CONF_WITH_STORING 0
+
+#undef RPL_CONF_WITH_NON_STORING
+#define RPL_CONF_WITH_NON_STORING 1
+
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_NON_STORING
+
+#else
+
+#error "Unsupported RPL engine"
+
 #endif
+
+#endif /* CETIC_6LBR_WITH_MULTI_RPL */
+
+#endif /* CETIC_6LBR_WITH_RPL */
 
 /*------------------------------------------------------------------*/
 /* Multicast configuration */
@@ -378,6 +417,7 @@
 #if CETIC_6LBR_MULTICAST_WRAPPER
 
 #define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_WRAPPER
+#define CETIC_6LBR_RPL_RUNTIME_MOP 1
 
 #else
 

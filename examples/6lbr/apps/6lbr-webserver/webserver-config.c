@@ -358,7 +358,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
   add("<br /><h3>RPL Behavior</h3>");
+#if CETIC_6LBR_WITH_MULTI_RPL
   INPUT_FLAG( "non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, "RPL Mode", "Non storing", "Storing");
+#endif
   INPUT_FLAG_CB( "dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, "DAO Ack");
   SEND_STRING(&s->sout, buf);
   reset_buf();

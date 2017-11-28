@@ -34,18 +34,20 @@ endif
 
 WITH_MULTI_RADIO?=1
 WITH_RDC?=nullrdc
-WITH_MULTI_MAC?=0
+WITH_MULTI_MAC?=1
 WITH_MAC?=csma
 WITH_LLSEC?=1
 WITH_LLSEC_ENGINE?=noncoresec
 WITH_MULTI_LLSEC?=1
 WITH_NONCORESEC?=1
-WITH_ADAPTIVESEC?=0
+WITH_ADAPTIVESEC?=1
 WITH_MULTICAST?=1
 WITH_MULTICAST_ENGINE?=ESMRF
-WITH_MULTI_MULTICAST?=0
+WITH_MULTI_MULTICAST?=1
 WITH_IP64?=1
 WITH_RPL?=1
+WITH_RPL_ENGINE?=storing
+WITH_MULTI_RPL?=1
 
 WITH_UDPSERVER?=0
 WITH_UDPCLIENT?=0
@@ -146,7 +148,6 @@ CFLAGS +=-DCETIC_6LBR_MODE=\"$(CETIC_6LBR_MODE)\"
 
 CONTIKI_WITH_IPV6 = 1
 CONTIKI_WITH_RPL=$(WITH_RPL)
-CFLAGS+=-DCETIC_6LBR_WITH_RPL=$(WITH_RPL)
 
 ###############################################################################
 # Applications configuration
@@ -267,6 +268,15 @@ CFLAGS += -DWITH_MULTICAST_ENGINE_$(WITH_MULTICAST_ENGINE)
 endif
 endif
 
+ifeq ($(WITH_RPL),1)
+CFLAGS += -DCETIC_6LBR_WITH_RPL=1
+ifeq ($(WITH_MULTI_RPL),1)
+CFLAGS += -DCETIC_6LBR_WITH_MULTI_RPL=1
+else
+CFLAGS += -DWITH_RPL_ENGINE_$(WITH_RPL_ENGINE)
+endif
+endif
+
 ###############################################################################
 # Targets
 ###############################################################################
@@ -307,6 +317,15 @@ ifeq ($(WITH_MULTI_MULTICAST),0)
 	@echo "Multicast:   $(WITH_MULTICAST_ENGINE)"
 else
 	@echo "Multicast:   Multi-Multicast"
+endif
+endif
+ifeq ($(WITH_RPL),0)
+	@echo "RPL:         Disabled"
+else
+ifeq ($(WITH_MULTI_RPL),0)
+	@echo "RPL:         $(WITH_RPL_ENGINE)"
+else
+	@echo "RPL:         Multi-RPL"
 endif
 endif
 	@echo "NAT64:       $(call to_bool,$(WITH_IP64))"

@@ -55,15 +55,19 @@ multicast_wrapper_init(void)
   if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_NONE) {
     LOG6LBR_INFO("Using 'null' multicast driver\n");
     current_multicast_driver = &multicast_null_driver;
+#if CETIC_6LBR_WITH_RPL
   } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_SMRF) {
       LOG6LBR_INFO("Using 'smrf' multicast driver\n");
       current_multicast_driver = &smrf_driver;
+#endif
   } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_ROLL_TM) {
       LOG6LBR_INFO("Using 'roll-tm' multicast driver\n");
       current_multicast_driver = &roll_tm_driver;
+#if CETIC_6LBR_WITH_RPL
   } else if(nvm_data.multicast_engine == CETIC_6LBR_MULTICAST_ESMRF) {
       LOG6LBR_INFO("Using 'esmrf' multicast driver\n");
       current_multicast_driver = &esmrf_driver;
+#endif
   } else {
     LOG6LBR_ERROR("Unknown multicast driver, using 'null' instead\n");
     current_multicast_driver = &multicast_null_driver;
