@@ -95,6 +95,7 @@ send_packet(mac_callback_t sent, void *ptr)
       network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
         multi_radio_output_ifindex = ifindex;
+        packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&network_itf->mac_addr);
         network_itf->mac->send(packet_sent, ptr);
         multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
       }

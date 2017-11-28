@@ -217,11 +217,16 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");
+#if CETIC_6LBR_MULTI_RADIO
   for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
     network_itf_t *network_itf = network_itf_get_itf(ifindex);
     if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
       slip_device = find_slip_dev(ifindex);
       if(slip_device != NULL) {
+#else
+        slip_device = slip_default_device;
+        ifindex = 0;
+#endif
         add("<h3>slip-%d</h3>", ifindex);
         add("Messages sent : %d<br />", slip_device->message_sent);
         add("Messages received : %d<br />", slip_device->message_received);
@@ -233,9 +238,11 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
         add("<br />");
         SEND_STRING(&s->sout, buf);
         reset_buf();
+#if CETIC_6LBR_MULTI_RADIO
       }
     }
   }
+#endif
 #endif
 
   PSOCK_END(&s->sout);

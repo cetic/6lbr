@@ -44,7 +44,11 @@
 #include <stdio.h>
 #include <termios.h>
 
+#if CETIC_6LBR_MULTI_RADIO
 #define SLIP_MAX_DEVICE NETWORK_ITF_NBR
+#else
+#define SLIP_MAX_DEVICE 1
+#endif
 
 typedef struct {
   uint8_t isused;

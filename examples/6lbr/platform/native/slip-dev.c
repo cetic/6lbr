@@ -83,6 +83,11 @@ static slip_descr_t slip_devices[SLIP_MAX_DEVICE];
 
 slip_descr_t * slip_default_device;
 
+#if !CETIC_6LBR_MULTI_RADIO
+//Probably not the better place to define these when multi-radio is disabled
+uint8_t multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
+uint8_t multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
+#endif
 /*---------------------------------------------------------------------------*/
 speed_t
 convert_baud_rate(int baudrate)
@@ -763,11 +768,16 @@ slip_new_device(void)
     slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
     slip_devices[i].features = SIXLBR_CONFIG_DEFAULT_SLIP_FEATURES;
     //Temporary until proper multi mac layer configuration
+#if CETIC_6LBR_MULTI_RADIO
     slip_devices[i].ifindex = network_itf_register(NETWORK_ITF_TYPE_802154, &CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC);
+#else
+    slip_devices[i].ifindex = 0;
+#endif
     LOG6LBR_INFO("Allocated slip device %d -> %d\n", i, slip_devices[i].ifindex);
 
     return &slip_devices[i];
   } else {
+    LOG6LBR_ERROR("Could not allocate a new slip device !\n");
     return NULL;
   }
 }

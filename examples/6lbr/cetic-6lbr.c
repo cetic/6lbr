@@ -664,15 +664,16 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   cetic_6lbr_init();
 
   //Wait result of DAD on 6LBR addresses
-  LOG6LBR_INFO("Checking addresses duplication\n");
   addr_number = uip_ds6_get_addr_number(-1);
+  LOG6LBR_INFO("Checking addresses duplication\n");
   etimer_set(&timer, CLOCK_SECOND);
   while(uip_ds6_get_addr_number(ADDR_TENTATIVE) > 0) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
     etimer_set(&timer, CLOCK_SECOND);
   }
-  if(uip_ds6_get_addr_number(-1) != addr_number) {
-    LOG6LBR_FATAL("Addresses duplication failed");
+  //Can not use equality as autoconf address could be created when running DAD
+  if(uip_ds6_get_addr_number(-1) < addr_number) {
+    LOG6LBR_FATAL("Addresses duplication failed\n");
     cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
     platform_restart();
   }

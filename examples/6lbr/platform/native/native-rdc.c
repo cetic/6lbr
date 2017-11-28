@@ -247,6 +247,10 @@ send_packet(mac_callback_t sent, void *ptr)
     return;
   }
 
+#if !CETIC_6LBR_MULTI_RADIO
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+#endif
+
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
@@ -361,7 +365,9 @@ slip_got_mac(const uint8_t * data)
     linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
     linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   }
+#if CETIC_6LBR_MULTI_RADIO
   network_itf_set_mac(multi_radio_input_ifindex, (uip_lladdr_t *)data);
+#endif
   radio_mac_addr_ready = 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -452,9 +458,13 @@ PROCESS_THREAD(native_rdc_process, ev, data)
     } else {
       LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
     }
+#if CETIC_6LBR_MULTI_RADIO
     for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
       network_itf_t *network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+#else
+        ifindex = 0;
+#endif
         slip_device = get_slip_device(ifindex);
         if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
           slip_reboot(slip_device);
@@ -481,8 +491,10 @@ PROCESS_THREAD(native_rdc_process, ev, data)
             LOG6LBR_ERROR("Set PAN-ID failed\n");
           }
         }
+#if CETIC_6LBR_MULTI_RADIO
       }
     }
+#endif
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);
