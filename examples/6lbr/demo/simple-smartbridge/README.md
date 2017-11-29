@@ -20,7 +20,7 @@ The nodes are using the standard 6lbr-demo firmware
 
 ## Demo
 
-Once started, the BR can be reached at [http://[fd00::201:1:1:1]/](http://[aaaa::201:1:1:1]/)
+Once started, the BR can be reached at [http://[fd00::201:1:1:1]/](http://[fd00::201:1:1:1]/)
 
 The nodes can be reached in the same fd00:: subnet, for example : fd00::202:2:2:2
 

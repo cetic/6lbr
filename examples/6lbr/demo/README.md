@@ -68,3 +68,8 @@ The [100 nodes](100-nodes/README.md) demo show how 6LBR behaves in a high-densit
 ### NDP-Router
 
 The [NDP-Router](ndp-router/README.md) demo creates a WSN network without using RPL.
+
+### Multi-SmartBridge
+
+The [Multi-SmartBridge](multi-smartbridge/README.md) demo shows the configuration of two 6LBR in SmartBridge mode with multi-br activated.
+
