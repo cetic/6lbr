@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # General environment variables
 
 #export CONTIKI=../../../..
@@ -21,7 +23,7 @@ elif [ "$SIXLBR_LIST" == "" ]; then
 	SIXLBR_LIST="6lbr"
 fi
 
-DEV_TAP_MAC=02:a:b:c:d:e
+DEV_TAP_MAC="02:a:b:c:d:%x"
 
 function find_xterm() {
 	if [ -x /etc/alternatives/x-terminal-emulator ]; then
@@ -35,30 +37,59 @@ function find_xterm() {
 
 function create-tap() {
 	sudo tunctl -t $1 -g netdev
-	sudo ip link set $1 address $DEV_TAP_MAC up
-	sudo sysctl -w net.ipv6.conf.$1.accept_ra=2
-	sudo sysctl -w net.ipv6.conf.$1.accept_ra_rt_info_max_plen=64
-	if [ "$DEV_TAP_IP6" != "" ]; then
-		sudo ip addr add $DEV_TAP_IP6 dev $1
-	fi
-	if [ "$DEV_TAP_IP4" != "" ]; then
-		sudo ip addr add $DEV_TAP_IP4 dev $1
-	fi
-	if [ "$ROUTE" != "" ]; then
-		sudo ip route add $ROUTE via $GW
+	mac=$(printf $DEV_TAP_MAC $2)
+	sudo ip link set $1 address $mac up
+	if [ "$BRIDGE" = "" ]; then
+		sudo sysctl -w net.ipv6.conf.$1.accept_ra=2
+		sudo sysctl -w net.ipv6.conf.$1.accept_ra_rt_info_max_plen=64
+		if [ "$DEV_TAP_IP6" != "" ]; then
+			sudo ip addr add $DEV_TAP_IP6 dev $1
+		fi
+		if [ "$DEV_TAP_IP4" != "" ]; then
+			sudo ip addr add $DEV_TAP_IP4 dev $1
+		fi
+		if [ "$ROUTE" != "" ]; then
+			sudo ip route add $ROUTE via $GW
+		fi
+	else
+		sudo brctl addif $BRIDGE $1
+		sudo ip addr flush dev $1
 	fi
 }
 	
 function remove-tap() {
+	sudo ip link set $1 down
+	if [ "$BRIDGE" != "" ]; then
+		sudo brctl delif $BRIDGE $1
+	fi
 	sudo tunctl -d $1
 }
 
 function create-bridge() {
-  echo
+	if [ "$BRIDGE" != "" ]; then
+		sudo brctl addbr $BRIDGE
+		sudo brctl setfd $BRIDGE 0
+		sudo ip link set $BRIDGE up
+		sudo sysctl -w net.ipv6.conf.$BRIDGE.accept_ra=2
+		sudo sysctl -w net.ipv6.conf.$BRIDGE.accept_ra_rt_info_max_plen=64
+		if [ "$DEV_TAP_IP6" != "" ]; then
+			sudo ip addr add $DEV_TAP_IP6 dev $BRIDGE
+		fi
+		if [ "$DEV_TAP_IP4" != "" ]; then
+			sudo ip addr add $DEV_TAP_IP4 dev $BRIDGE
+		fi
+		if [ "$ROUTE" != "" ]; then
+			sudo ip route add $ROUTE via $GW
+		fi
+	fi
 }
 
 function remove-bridge() {
-  echo
+	if [ "$BRIDGE" != "" ]; then
+		sudo ip link set $BRIDGE down
+		sudo ip addr flush dev $BRIDGE
+		sudo brctl delbr $BRIDGE
+	fi
 }
 	
 function launch-6lbr() {
@@ -83,11 +114,14 @@ function launch-cooja() {
 
 find_xterm
 
+create-bridge
 
 TAP_ID=0
+TAP_MAC=14
 for sixlbr in $SIXLBR_LIST; do
-	create-tap "tap$TAP_ID"
+	create-tap "tap$TAP_ID" $TAP_MAC
 	TAP_ID=$((TAP_ID + 1))
+	TAP_MAC=$((TAP_MAC + 1))
 done
 
 build-cooja
@@ -98,20 +132,16 @@ TAP_ID=0
 for sixlbr in $SIXLBR_LIST; do
 	echo "Launching '$sixlbr'"
 	launch-6lbr $sixlbr
-	#PID_6LBR=$!
 	TAP_ID=$((TAP_ID + 1))
 done
 
 echo Press enter to close simulation...
 read dummy
 
-#kill $PID_6LBR
-#wait $PID_6LBR > /dev/null
-
 killall 6lbr
 
 kill $PID_COOJA
-wait $PID_COOJA > /dev/null
+wait $PID_COOJA > /dev/null 2>&1 || true
 
 sleep 1
 
@@ -121,3 +151,5 @@ for sixlbr in $SIXLBR_LIST; do
 	remove-tap "tap$TAP_ID"
 	TAP_ID=$((TAP_ID + 1))
 done
+
+remove-bridge

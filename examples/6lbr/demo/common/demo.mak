@@ -13,10 +13,11 @@ export CONTIKI SIXLBR COOJA
 
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
+BRIDGE?=
 ROUTE?=
 GW?=bbbb::100
 
-export DEV_TAP_IP6 DEV_TAP_IP4 ROUTE GW
+export BRIDGE DEV_TAP_IP6 DEV_TAP_IP4 ROUTE GW
 
 help:
 	@echo "usage: make <target>"
@@ -70,7 +71,7 @@ endif
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
 
 run: $(CSC)
-	$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
+	@$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
 
 all: clean-6lbr clean-firmwares clean build-6lbr run
 
