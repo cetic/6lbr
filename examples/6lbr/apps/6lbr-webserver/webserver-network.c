@@ -352,7 +352,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   for(dr = uip_ds6_defrt_head(); dr != NULL; dr = list_item_next(r)) {
     ipaddr_add(&dr->ipaddr);
     if(dr->isinfinite) {
-      add("Inf");
+      add(" Inf");
     } else {
       add(" %u s", stimer_remaining(&dr->lifetime));
     }

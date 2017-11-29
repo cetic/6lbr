@@ -252,6 +252,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
 #endif
   INPUT_IPADDR("dns", dns_server, "DNS server");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #if CETIC_6LBR_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
