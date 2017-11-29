@@ -73,3 +73,6 @@ The [NDP-Router](ndp-router/README.md) demo creates a WSN network without using 
 
 The [Multi-SmartBridge](multi-smartbridge/README.md) demo shows the configuration of two 6LBR in SmartBridge mode with multi-br activated.
 
+### RPL-Root+RPL-Relay
+
+The [RPL-Root+RPL-Relay](multi-smartbridge/README.md) demo shows the configuration of two 6LBR, one acting as a standalone RPL Root, the second being a simple packet relay.
