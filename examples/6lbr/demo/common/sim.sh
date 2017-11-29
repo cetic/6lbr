@@ -140,7 +140,7 @@ read dummy
 
 killall 6lbr
 
-kill $PID_COOJA
+kill $PID_COOJA || true
 wait $PID_COOJA > /dev/null 2>&1 || true
 
 sleep 1
