@@ -59,6 +59,8 @@
 
 PROCESS(native_rdc_process, "Native RDC process");
 
+static int report_slip_error = 0;
+
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 0
 
@@ -412,10 +414,12 @@ PT_THREAD(send_slip_cmd(struct pt * pt, process_event_t ev, slip_descr_t *slip_d
 {
   static struct etimer et;
   PT_BEGIN(pt);
+  report_slip_error = 1;
   etimer_set(&et, slip_device->timeout);
   write_to_slip(slip_device, msg, len);
   PT_YIELD_UNTIL(pt, etimer_expired(&et) || ev == PROCESS_EVENT_POLL);
   *status = (ev == PROCESS_EVENT_POLL);
+  report_slip_error = 0;
   PT_END(pt);
 }
 /*---------------------------------------------------------------------------*/
@@ -436,7 +440,9 @@ native_rdc_reset_slip(void)
 void
 slip_error_callback(const uint8_t * buf)
 {
-  process_poll(&native_rdc_process);
+  if(report_slip_error) {
+    process_poll(&native_rdc_process);
+  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(native_rdc_process, ev, data)
