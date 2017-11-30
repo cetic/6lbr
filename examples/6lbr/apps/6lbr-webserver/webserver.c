@@ -101,6 +101,7 @@ void
 webserver_init(void)
 {
   if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WEBSERVER) != 0) {
+    LOG6LBR_INFO("Webserver disabled\n");
     return;
   }
   httpd_init();
