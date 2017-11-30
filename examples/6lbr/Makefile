@@ -149,6 +149,19 @@ MAKE_ROUTING=MAKE_ROUTING_NONE
 endif
 endif
 
+# Check unsupported functionalities
+ifeq ($(WITH_CONTIKI),0)
+ifeq ($(WITH_LLSEC),1)
+$(error LLSEC is not supported with Contiki-NG)
+endif
+ifeq ($(WITH_COAPSERVER),1)
+$(error CoAP Server is not supported with Contiki-NG)
+endif
+ifeq ($(WITH_TINYDTLS),1)
+$(error TinyDTLS is not supported with Contiki-NG)
+endif
+endif
+
 ###############################################################################
 # Applications configuration
 ###############################################################################
