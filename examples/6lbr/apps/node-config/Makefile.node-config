@@ -1,7 +1,8 @@
-CFLAGS += -DCETIC_6LBR_NODE_CONFIG=1 -DIP64_SPECIAL_PORTS_CONF_ENABLE=1
+CFLAGS += -DCETIC_6LBR_NODE_CONFIG=1
 node-config_src = node-config.c
 
 ifeq ($(WITH_IP64),1)
+CFLAGS +=-DIP64_SPECIAL_PORTS_CONF_ENABLE=1
 node-config_src += node-config-ip64-ports.c
 endif
 

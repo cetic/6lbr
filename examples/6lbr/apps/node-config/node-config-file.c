@@ -43,7 +43,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
-#include "er-coap.h"
 #include "cetic-6lbr.h"
 
 #if CONTIKI_TARGET_NATIVE && __linux__
@@ -64,6 +63,9 @@ static int infd;
 
 LIST(node_config_list);
 
+#define COAP_DEFAULT_PORT                    5683
+#define HTTP_DEFAULT_PORT                    80
+
 static uint16_t node_config_coap_port;
 static uint16_t node_config_http_port;
 
@@ -73,7 +75,7 @@ void node_config_add_br(void) {
   node_config->name = strdup("BR");
   node_config->mac_address = wsn_mac_addr;
   node_config->coap_port = COAP_DEFAULT_PORT;
-  node_config->http_port = 80;
+  node_config->http_port = HTTP_DEFAULT_PORT;
   list_add(node_config_list, node_config);
 }
 
