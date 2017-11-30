@@ -365,6 +365,8 @@
 
 /* Z1 platform has limited RAM */
 
+#if !CUSTOM_CONFIG
+
 #if defined CONTIKI_TARGET_Z1
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    12
@@ -406,6 +408,8 @@
 #endif
 
 #endif /* RPL_NON_STORING */
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Init                                                                      */
