@@ -85,6 +85,9 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
   static int i;
 
   PSOCK_BEGIN(&s->sout);
+  //Force update of non automatic status
+  node_info_update_all();
+
   add("<br /><h2>Sensors list</h2>");
   add
     ("<table>"
