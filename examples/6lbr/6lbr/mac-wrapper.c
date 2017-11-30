@@ -88,17 +88,27 @@ on(void)
   return current_mac_driver->on();
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static int
 off(int keep_radio_on)
 {
   return current_mac_driver->off(keep_radio_on);
 }
+#else
+static int
+off(void)
+{
+  return current_mac_driver->off();
+}
+#endif
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static unsigned short
 channel_check_interval(void)
 {
   return current_mac_driver->channel_check_interval();
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
@@ -113,6 +123,8 @@ const struct mac_driver mac_wrapper_driver = {
   input,
   on,
   off,
+#if WITH_CONTIKI
   channel_check_interval,
+#endif
 };
 /*---------------------------------------------------------------------------*/

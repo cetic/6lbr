@@ -372,12 +372,20 @@
 /*------------------------------------------------------------------*/
 /* IPv6 Configuration */
 /*------------------------------------------------------------------*/
+#if !WITH_CONTIKI
+#undef NETSTACK_CONF_NETWORK
+#define NETSTACK_CONF_NETWORK pfe_driver
+#endif
+
 #undef UIP_CONF_ND6_SEND_NS
 #define UIP_CONF_ND6_SEND_NS        1
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA        1
 
+//TODO: move to NVM
+#undef SICSLOWPAN_CONF_COMPRESS_EXT_HDR
+#define SICSLOWPAN_CONF_COMPRESS_EXT_HDR 0
 
 /*------------------------------------------------------------------*/
 /* RPL configuration */

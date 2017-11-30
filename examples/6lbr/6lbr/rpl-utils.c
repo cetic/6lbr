@@ -51,7 +51,7 @@ is_dodag_available(void)
   rpl_dag_t *dag;
   dag = rpl_get_any_dag();
   if(dag != NULL) {
-    if(dag->rank != INFINITE_RANK) {
+    if(dag->rank != RPL_INFINITE_RANK) {
       return 1;
     } else {
       return 0;
@@ -68,7 +68,7 @@ is_own_dodag(void)
 
   dag = rpl_get_any_dag();
   if(dag != NULL) {
-    if(dag->rank != INFINITE_RANK && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
+    if(dag->rank != RPL_INFINITE_RANK && uip_ipaddr_cmp(&dag->dag_id, &wsn_ip_addr)) { //TODO: Check all DODAG ID
       return 1;
     } else {
       return 0;

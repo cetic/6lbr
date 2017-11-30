@@ -107,8 +107,14 @@
 #undef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
 
+#if WITH_CONTIKI
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     border_router_rdc_driver
+#else
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     border_router_slip_radio_driver
+#define CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC     border_router_slip_radio_driver
+#endif
 
 #undef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nullradio_driver
@@ -138,6 +144,9 @@
 #else
 #error "I don't know what architecture this is!"
 #endif
+
+#undef STACK_CHECK_CONF_ENABLED
+#define STACK_CHECK_CONF_ENABLED 0
 
 /* include the plugin config if needed */
 #ifdef PLUGIN_PROJECT_CONF_H

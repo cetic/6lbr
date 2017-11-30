@@ -2,9 +2,15 @@
 #Default configuration for native
 
 WITH_MULTI_RADIO?=1
+ifeq ($(WITH_CONTIKI),1)
 WITH_RDC=custom
 WITH_MAC=csma
 WITH_MULTI_MAC?=1
+else
+WITH_RDC=custom
+WITH_MAC=custom
+WITH_MULTI_MAC?=0
+endif
 WITH_LLSEC?=1
 WITH_MULTI_LLSEC?=1
 WITH_NONCORESEC?=1
@@ -33,7 +39,11 @@ endif
 
 PROJECTDIRS += $(6LBR)/platform/native
 
+ifeq ($(WITH_CONTIKI),1)
 APPS += slip-cmd
+else
+MODULES += os/services/slip-cmd
+endif
 
 PROJECT_SOURCEFILES += native-init.c native-nvm.c native-config.c native-config-file.c native-config-handlers.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c native-args.c slip-dev.c 6lbr-watchdog.c plugin.c lost-symbols.c
 

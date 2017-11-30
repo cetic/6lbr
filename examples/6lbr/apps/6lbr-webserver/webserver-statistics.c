@@ -182,11 +182,18 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("Send packets : %d<br />", csma_sent_packets);
-  add("Received packets : %d<br />", csma_received_packets);
   add("Not acked packets : %d<br />", csma_noack);
   add("Collisions : %d<br />", csma_collisions);
   add("Retransmissions : %d<br />", csma_retransmissions);
   add("Dropped packets : %d<br />", csma_dropped);
+  add("<br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("Received packets : %d<br />", csma_received_packets);
+#if !WITH_CONTIKI
+  add("Invalid packets : %d<br />", csma_invalid_packets);
+  add("Duplicate packets : %d<br />", csma_duplicate_packets);
+#endif
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

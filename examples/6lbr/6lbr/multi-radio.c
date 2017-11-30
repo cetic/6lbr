@@ -103,16 +103,20 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-packet_input(void)
+void
+multi_radio_packet_input(void)
 {
   if(multi_radio_input_ifindex != NETWORK_ITF_UNKNOWN) {
     switch_lookup_learn_addr((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), multi_radio_input_ifindex);
+#if WITH_CONTIKI
+    NETSTACK_LLSEC.input();
+#else
+    NETSTACK_NETWORK.input();
+#endif
     multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
   } else {
     LOG6LBR_DEBUG("packet_input: No source ifindex\n");
   }
-  NETSTACK_LLSEC.input();
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -129,25 +133,36 @@ on(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static int
 off(int keep_radio_on)
+#else
+static int
+off()
+#endif
 {
   uint8_t ifindex;
   network_itf_t *network_itf;
   for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
     network_itf = network_itf_get_itf(ifindex);
     if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+#if WITH_CONTIKI
       network_itf->mac->off(keep_radio_on);
+#else
+      network_itf->mac->off();
+#endif
     }
   }
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static unsigned short
 channel_check_interval(void)
 {
   return 0;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
@@ -158,9 +173,11 @@ const struct mac_driver multi_radio_driver = {
   "multi-radio",
   init,
   send_packet,
-  packet_input,
+  multi_radio_packet_input,
   on,
   off,
+#if WITH_CONTIKI
   channel_check_interval,
+#endif
 };
 /*---------------------------------------------------------------------------*/

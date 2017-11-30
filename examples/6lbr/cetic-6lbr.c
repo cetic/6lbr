@@ -81,6 +81,10 @@
 #include "mac-wrapper.h"
 #endif
 
+#if CETIC_6LBR_MULTI_RADIO
+extern const struct mac_driver CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC;
+#endif
+
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
 #if CETIC_6LBR_WITH_ADAPTIVESEC
@@ -584,7 +588,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   LOG6LBR_NOTICE("Starting 6LBR version " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")\n");
 
   //Turn off radio until 6LBR is properly configured
+#if WITH_CONTIKI
   NETSTACK_MAC.off(0);
+#else
+  NETSTACK_MAC.off();
+#endif
 
   cetic_6lbr_restart_event = process_alloc_event();
   cetic_6lbr_reload_event = process_alloc_event();
@@ -645,7 +653,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   }
 
   //Turn on radio and keep it always on
+#if WITH_CONTIKI
   NETSTACK_MAC.off(1);
+#else
+  NETSTACK_MAC.on();
+#endif
 
   /* Step 5: Initialize Network stack */
 
@@ -757,7 +769,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   /* Shutdown 6LBR */
 
   //Turn off radio
+#if WITH_CONTIKI
   NETSTACK_MAC.off(0);
+#else
+  NETSTACK_MAC.off();
+#endif
   platform_restart();
 
   PROCESS_END();

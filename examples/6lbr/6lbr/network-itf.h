@@ -61,6 +61,9 @@ network_itf_register(uint8_t itf_type, const struct mac_driver *mac);
 network_itf_t *
 network_itf_get_itf(uint8_t ifindex);
 
+const struct mac_driver *
+network_itf_get_mac_drv(uint8_t ifindex);
+
 void
 network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address);
 

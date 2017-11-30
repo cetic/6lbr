@@ -78,6 +78,19 @@ network_itf_get_itf(uint8_t ifindex)
   }
 }
 
+const struct mac_driver *
+network_itf_get_mac_drv(uint8_t ifindex)
+{
+  if(ifindex == NETWORK_ITF_UNKNOWN) {
+    return NULL;
+  }
+  if(ifindex < NETWORK_ITF_NBR) {
+    return network_itf_type_table[ifindex].mac;
+  } else {
+    return NULL;
+  }
+}
+
 void
 network_itf_set_mac(uint8_t ifindex, uip_lladdr_t *mac_address)
 {

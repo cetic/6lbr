@@ -48,4 +48,6 @@ extern uint8_t multi_radio_output_ifindex;
 
 extern const struct mac_driver multiradio_driver;
 
+void multi_radio_packet_input(void);
+
 #endif /* MULTI_RADIO_H_ */

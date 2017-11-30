@@ -145,10 +145,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #else
   add("MAC: %s<br />", NETSTACK_MAC.name);
 #endif
+#if WITH_CONTIKI
   add("RDC: %s (%d Hz)<br />",
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
+#endif
 #if CETIC_6LBR_WITH_LLSEC
 #if CETIC_6LBR_LLSEC_WRAPPER
   add("Security: %s<br />", llsec_wrapper_name());

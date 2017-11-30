@@ -68,6 +68,7 @@
 #include "log-6lbr.h"
 #if CONTIKI_TARGET_NATIVE
 #include "native-config.h"
+#include "native-rdc.h"
 #endif
 #include "6lbr-hooks.h"
 
@@ -92,9 +93,12 @@ int packet_filter_wsn_packet;
 
 /*---------------------------------------------------------------------------*/
 
-
+#if WITH_CONTIKI
 static outputfunc_t wireless_outputfunc;
 static inputfunc_t tcpip_inputfunc;
+#else
+extern const struct network_driver sicslowpan_driver;
+#endif
 
 #define BUF ((struct uip_eth_hdr *)uip_buf)
 
@@ -116,29 +120,43 @@ static int rpl_mac_known = 0;
 #endif
 
 /*---------------------------------------------------------------------------*/
-
 static void
 send_to_uip(void)
 {
+#if WITH_CONTIKI
   if(tcpip_inputfunc != NULL) {
     tcpip_inputfunc();
   } else {
     LOG6LBR_DEBUG("No input function set\n");
   }
+#else
+  tcpip_input();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
 send_to_wireless(const uip_lladdr_t * dest)
 {
+#if WITH_CONTIKI
   if(wireless_outputfunc != NULL) {
     return wireless_outputfunc(dest);
   } else {
     return 0;
   }
+#else
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip) {
+    return sicslowpan_driver.output((const linkaddr_t *)dest);
+  } else {
+    return native_rdc_send_ip_packet(dest);
+  }
+#else
+  return sicslowpan_driver.output((const linkaddr_t *)dest);
+#endif
+#endif
 }
 /*---------------------------------------------------------------------------*/
-
-static void
+void
 wireless_input(void)
 {
   int processFrame = 0;
@@ -474,7 +492,11 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
   //IP header alteration
   //--------------------
 #if CETIC_6LBR_WITH_RPL
+#if WITH_CONTIKI
   rpl_remove_header();
+#else
+  rpl_ext_header_remove();
+#endif
 #endif
 
   //IP packet alteration
@@ -704,15 +726,53 @@ bridge_output(const uip_lladdr_t * dest)
 #endif
 
 /*---------------------------------------------------------------------------*/
+#if !WITH_CONTIKI
+static void
+init(void)
+{
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip) {
+    sicslowpan_driver.init();
+  }
+#else
+  sicslowpan_driver.init();
+#endif
+}
 
+static void
+input(void)
+{
+#if CONTIKI_TARGET_NATIVE
+  if(!sixlbr_config_slip_ip) {
+    sicslowpan_driver.input();
+  } else {
+    wireless_input();
+  }
+#else
+  sicslowpan_driver.input();
+#endif
+}
+#endif
+/*---------------------------------------------------------------------------*/
 void
 packet_filter_init(void)
 {
+#if WITH_CONTIKI
   wireless_outputfunc = tcpip_get_outputfunc();
   tcpip_set_outputfunc(bridge_output);
 
   tcpip_inputfunc = tcpip_get_inputfunc();
 
   tcpip_set_inputfunc(wireless_input);
+#endif
 }
+/*---------------------------------------------------------------------------*/
+#if !WITH_CONTIKI
+const struct network_driver pfe_driver = {
+  "pfe",
+  init,
+  input,
+  (uint8_t (*)(const linkaddr_t *))bridge_output
+};
+#endif
 /*---------------------------------------------------------------------------*/

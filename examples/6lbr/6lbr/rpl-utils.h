@@ -37,6 +37,10 @@
 #ifndef RPL_UTILS
 #define RPL_UTILS
 
+#if WITH_CONTIKI
+#define RPL_INFINITE_RANK INFINITE_RANK
+#endif
+
 int
 is_dodag_available(void);
 

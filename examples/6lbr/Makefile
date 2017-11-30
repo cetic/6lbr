@@ -4,6 +4,8 @@
 
 CONTIKI_PROJECT = cetic-6lbr
 
+WITH_CONTIKI?=1
+
 6LBR?=.
 
 CONTIKI ?= $(6LBR)/../..
@@ -133,8 +135,19 @@ CFLAGS +=-DCETIC_6LBR_MODE=\"$(CETIC_6LBR_MODE)\"
 # Global configuration
 ###############################################################################
 
+CFLAGS+=-DWITH_CONTIKI=$(WITH_CONTIKI)
+
+ifeq ($(WITH_CONTIKI),1)
 CONTIKI_WITH_IPV6 = 1
 CONTIKI_WITH_RPL=$(WITH_RPL)
+else
+ifneq ($(WITH_RPL),0)
+MAKE_NET = MAKE_NET_IPV6
+MAKE_ROUTING=MAKE_ROUTING_RPL_CLASSIC
+else
+MAKE_ROUTING=MAKE_ROUTING_NONE
+endif
+endif
 
 ###############################################################################
 # Applications configuration
@@ -207,6 +220,12 @@ ifneq ($(WITH_MAC),)
 CFLAGS += -DWITH_MAC_$(WITH_MAC)
 endif
 
+ifeq ($(WITH_CONTIKI),0)
+MAKE_MAC=MAKE_MAC_OTHER
+MODULES+=os/net/mac/csma
+MODULES+=os/net/mac/nullmac
+endif
+
 ifeq ($(WITH_MULTI_RADIO),1)
 CFLAGS += -DCETIC_6LBR_MULTI_RADIO=1
 PROJECT_SOURCEFILES +=switch-lookup.c network-itf.c multi-radio.c
@@ -246,13 +265,21 @@ endif
 
 ifeq ($(WITH_IP64),1)
 CFLAGS+=-DCETIC_6LBR_WITH_IP64=1
+ifeq ($(WITH_CONTIKI),1)
 MODULES += core/net/ip64 core/net/ip64-addr
+else
+MODULES += os/services/ip64
+endif
 PROJECT_SOURCEFILES += ip64-eth-driver.c
 endif
 
 ifeq ($(WITH_MULTICAST),1)
 CFLAGS += -DCETIC_6LBR_WITH_MULTICAST=1
+ifeq ($(WITH_CONTIKI),1)
 MODULES += core/net/ipv6/multicast
+else
+MODULES += os/net/ipv6/multicast
+endif
 ifeq ($(WITH_MULTI_MULTICAST),1)
 CFLAGS += -DCETIC_6LBR_MULTICAST_WRAPPER=1
 PROJECT_SOURCEFILES += multicast-wrapper.c

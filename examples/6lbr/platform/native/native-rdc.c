@@ -54,6 +54,9 @@
 #include "multi-radio.h"
 #include "native-rdc.h"
 #include "log-6lbr.h"
+#if CETIC_6LBR_MULTI_RADIO
+#include "multi-radio.h"
+#endif
 
 #include <string.h>
 
@@ -252,6 +255,7 @@ send_packet(mac_callback_t sent, void *ptr)
 #if !CETIC_6LBR_MULTI_RADIO
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 #endif
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
 
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
@@ -294,6 +298,7 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static void
 send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 {
@@ -302,6 +307,7 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
     send_packet(sent, ptr);
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 native_rdc_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
@@ -323,7 +329,11 @@ native_rdc_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
     LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", uip_len);
     LOG6LBR_DUMP_PACKET(RADIO_IN, &uip_buf[UIP_LLH_LEN], uip_len);
 
+#if WITH_CONTIKI
     tcpip_input();
+#else
+    NETSTACK_NETWORK.input();
+#endif
   } else {
     if(slip_device->deserialize_rx_attrs) {
       int pos = packetutils_deserialize_atts(data, len);
@@ -347,7 +357,15 @@ native_rdc_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
       LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
       native_rdc_parse_error++;
     } else {
+#if WITH_CONTIKI
       NETSTACK_MAC.input();
+#else
+#if CETIC_6LBR_MULTI_RADIO
+      multi_radio_packet_input();
+#else
+      NETSTACK_NETWORK.input();
+#endif
+#endif
     }
   }
   multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
@@ -365,6 +383,7 @@ on(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 static int
 off(int keep_radio_on)
 {
@@ -376,6 +395,14 @@ channel_check_interval(void)
 {
   return 0;
 }
+/*---------------------------------------------------------------------------*/
+#else
+static int
+off(void)
+{
+  return 1;
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
@@ -502,7 +529,11 @@ PROCESS_THREAD(native_rdc_process, ev, data)
   {
     if(sixlbr_config_slip_ip) {
       LOG6LBR_INFO("SLIP RADIO configured as IP\n");
+#if WITH_CONTIKI
       tcpip_set_outputfunc(native_rdc_send_ip_packet);
+#else
+      //TODO: native_rdc_send_ip_packet is called explicitely by PFE
+#endif
     } else {
       LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
     }
@@ -549,6 +580,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_CONTIKI
 const struct rdc_driver border_router_rdc_driver = {
   "br-rdc",
   init,
@@ -559,4 +591,14 @@ const struct rdc_driver border_router_rdc_driver = {
   off,
   channel_check_interval,
 };
+#else
+const struct mac_driver border_router_slip_radio_driver = {
+  "br-rdc",
+  init,
+  send_packet,
+  packet_input,
+  on,
+  off,
+};
+#endif
 /*---------------------------------------------------------------------------*/
