@@ -149,10 +149,12 @@ PT_THREAD(generate_index(struct httpd_state *s))
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
        0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
+#if CETIC_6LBR_WITH_LLSEC
 #if CETIC_6LBR_LLSEC_WRAPPER
   add("Security: %s<br />", llsec_wrapper_name());
 #else
   add("Security: %s<br />", NETSTACK_LLSEC.name);
+#endif
 #endif
   }
 #if CETIC_6LBR_MULTI_RADIO
