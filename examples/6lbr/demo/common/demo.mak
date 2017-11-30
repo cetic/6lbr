@@ -9,8 +9,6 @@ SIXLBR_LIST?=6lbr
 TARGET?=cooja
 SIXLBR_BIN=bin/cetic_6lbr_router
 
-export CONTIKI SIXLBR COOJA
-
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
 BRIDGE?=
@@ -71,7 +69,7 @@ endif
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
 
 run: $(CSC)
-	@$(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
+	@CONTIKI=$(CONTIKI) SIXLBR=$(SIXLBR) COOJA=$(COOJA) $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
 
 all: clean-6lbr clean-firmwares clean build-6lbr run
 
