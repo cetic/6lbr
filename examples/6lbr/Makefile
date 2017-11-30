@@ -46,6 +46,7 @@ WITH_MULTICAST_ENGINE?=ESMRF
 WITH_MULTI_MULTICAST?=1
 WITH_IP64?=1
 WITH_RPL?=1
+WITH_TCP?=1
 WITH_RPL_ENGINE?=storing
 WITH_MULTI_RPL?=1
 
@@ -157,10 +158,12 @@ CONTIKI_WITH_RPL=$(WITH_RPL)
 
 ifneq ($(WITH_WEBSERVER),0)
 APPS+=6lbr-webserver
+WITH_TCP=1
 endif
 
 ifneq ($(WITH_WEBSERVER_LITE),0)
 APPS+=6lbr-webserver-lite
+WITH_TCP=1
 endif
 
 ifneq ($(WITH_UDPSERVER),0)
@@ -255,10 +258,6 @@ MODULES += core/net/ip64 core/net/ip64-addr
 PROJECT_SOURCEFILES += ip64-eth-driver.c
 endif
 
-ifeq ($(WITH_RPL),1)
-PROJECT_SOURCEFILES += rpl-utils.c
-endif
-
 ifeq ($(WITH_MULTICAST),1)
 CFLAGS += -DCETIC_6LBR_WITH_MULTICAST=1
 MODULES += core/net/ipv6/multicast
@@ -272,12 +271,18 @@ endif
 
 ifeq ($(WITH_RPL),1)
 CFLAGS += -DCETIC_6LBR_WITH_RPL=1
+PROJECT_SOURCEFILES += rpl-utils.c
 ifeq ($(WITH_MULTI_RPL),1)
 CFLAGS += -DCETIC_6LBR_WITH_MULTI_RPL=1
 else
 CFLAGS += -DWITH_RPL_ENGINE_$(WITH_RPL_ENGINE)
 endif
 endif
+
+ifeq ($(WITH_TCP),1)
+CFLAGS += -DCETIC_6LBR_WITH_TCP=1
+endif
+
 
 ###############################################################################
 # Targets
@@ -330,6 +335,7 @@ else
 	@echo "RPL:         Multi-RPL"
 endif
 endif
+	@echo "TCP:         $(call to_bool,$(WITH_TCP))"
 	@echo "NAT64:       $(call to_bool,$(WITH_IP64))"
 	@echo
 	@echo "UDP Server:     $(call to_bool,$(WITH_UDPSERVER))"

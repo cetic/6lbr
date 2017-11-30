@@ -443,6 +443,17 @@
 #endif /* CETIC_6LBR_WITH_MULTICAST */
 
 /*------------------------------------------------------------------*/
+/* TCP configuration */
+/*------------------------------------------------------------------*/
+
+#undef UIP_CONF_TCP
+#if CETIC_6LBR_WITH_TCP
+#define UIP_CONF_TCP 1
+#else
+#define UIP_CONF_TCP 0
+#endif
+
+/*------------------------------------------------------------------*/
 /* NAT64 configuration */
 /*------------------------------------------------------------------*/
 //IP64 DHCP is manually started in cetic-6lbr if needed
