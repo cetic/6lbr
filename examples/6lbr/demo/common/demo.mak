@@ -7,7 +7,7 @@ NODE_FIRMWARE?=node
 SLIP_FIRMWARE?=slip-radio
 SIXLBR_LIST?=6lbr
 TARGET?=cooja
-SIXLBR_BIN=bin/cetic_6lbr_router
+SIXLBR_BIN?=bin/cetic_6lbr_router
 
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
