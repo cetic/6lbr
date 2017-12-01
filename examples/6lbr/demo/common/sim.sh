@@ -12,6 +12,16 @@ set -e
 
 # Simulation configuration
 
+ACTION=run
+
+if [ "$1" = "--clean" ]; then
+	ACTION=clean
+	shift
+elif [ "$1" = "--run" ]; then
+	ACTION=run
+	shift
+fi
+
 SETUP=$1
 shift
 
@@ -112,44 +122,76 @@ function launch-cooja() {
 	$XTERM -T COOJA -e "java -jar ${COOJA}/dist/cooja.jar -quickstart=$SETUP -contiki=${CONTIKI}" &
 }
 
-find_xterm
+function clean() {
+	#The cleansing might fail
+	set +e
 
-create-bridge
+	killall 6lbr
 
-TAP_ID=0
-TAP_MAC=14
-for sixlbr in $SIXLBR_LIST; do
-	create-tap "tap$TAP_ID" $TAP_MAC
-	TAP_ID=$((TAP_ID + 1))
-	TAP_MAC=$((TAP_MAC + 1))
-done
+	TAP_ID=0
 
-build-cooja
-launch-cooja
-PID_COOJA=$!
+	for sixlbr in $SIXLBR_LIST; do
+		remove-tap "tap$TAP_ID"
+		TAP_ID=$((TAP_ID + 1))
+	done
 
-TAP_ID=0
-for sixlbr in $SIXLBR_LIST; do
-	echo "Launching '$sixlbr'"
-	launch-6lbr $sixlbr
-	TAP_ID=$((TAP_ID + 1))
-done
+	remove-bridge
+}
 
-echo Press enter to close simulation...
-read dummy
+function run() {
+	find_xterm
 
-killall 6lbr
+	create-bridge
 
-kill $PID_COOJA || true
-wait $PID_COOJA > /dev/null 2>&1 || true
+	TAP_ID=0
+	TAP_MAC=14
+	for sixlbr in $SIXLBR_LIST; do
+		create-tap "tap$TAP_ID" $TAP_MAC
+		TAP_ID=$((TAP_ID + 1))
+		TAP_MAC=$((TAP_MAC + 1))
+	done
 
-sleep 1
+	build-cooja
+	launch-cooja
+	PID_COOJA=$!
 
-TAP_ID=0
+	TAP_ID=0
+	for sixlbr in $SIXLBR_LIST; do
+		echo "Launching '$sixlbr'"
+		launch-6lbr $sixlbr
+		TAP_ID=$((TAP_ID + 1))
+	done
 
-for sixlbr in $SIXLBR_LIST; do
-	remove-tap "tap$TAP_ID"
-	TAP_ID=$((TAP_ID + 1))
-done
+	echo Press enter to close simulation...
+	read dummy
 
-remove-bridge
+	killall 6lbr
+
+	kill $PID_COOJA || true
+	wait $PID_COOJA > /dev/null 2>&1 || true
+
+	sleep 1
+
+	TAP_ID=0
+
+	for sixlbr in $SIXLBR_LIST; do
+		remove-tap "tap$TAP_ID"
+		TAP_ID=$((TAP_ID + 1))
+	done
+
+	remove-bridge
+}
+
+case $ACTION in
+	run)
+		run
+		;;
+
+	clean)
+		clean
+		;;
+
+	*)
+		echo "Unknown action '$ACTION'"
+		;;
+esac

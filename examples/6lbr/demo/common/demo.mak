@@ -67,6 +67,7 @@ ifneq ($(SIXLBR_LIST),-)
 endif
 	rm -rf org
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
+	@$(DEMO)/common/sim.sh --clean $(CSC) $(SIXLBR_LIST)
 
 run: $(CSC)
 	@CONTIKI=$(CONTIKI) SIXLBR=$(SIXLBR) COOJA=$(COOJA) $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
