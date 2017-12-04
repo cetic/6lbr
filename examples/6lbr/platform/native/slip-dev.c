@@ -457,7 +457,7 @@ slip_send(slip_descr_t *slip_device, unsigned char c)
   }
   slip_device->slip_buf[slip_device->slip_end] = c;
   slip_device->slip_end++;
-  slip_devices->bytes_sent++;
+  slip_device->bytes_sent++;
   if(c == SLIP_END) {
     /* Full packet received. */
     slip_device->slip_packet_count++;
