@@ -71,12 +71,14 @@ ifeq ($(CETIC_6LBR_RPL_ROUTER),1)
 CFLAGS +=-DCETIC_6LBR_RPL_ROUTER=1
 CETIC_6LBR_MODE = RPL-Router
 WITH_RPL = 1
+WITH_UDPCLIENT = 0
 endif
 
 ifeq ($(CETIC_6LBR_SMARTBRIDGE),1)
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=1
 CETIC_6LBR_MODE = SmartBridge
 WITH_RPL = 1
+WITH_UDPCLIENT = 0
 endif
 
 ifeq ($(CETIC_6LBR_RPL_RELAY),1)
@@ -86,6 +88,8 @@ WITH_RPL = 0
 WITH_MULTICAST = 0
 WITH_IP64 = 0
 WITH_MULTI_RADIO = 0
+WITH_UDPSERVER = 0
+WITH_UDPCLIENT = 0
 endif
 
 ifeq ($(CETIC_6LBR_FULL_TRANSPARENT_BRIDGE),1)
@@ -95,12 +99,15 @@ WITH_RPL = 0
 WITH_MULTICAST = 0
 WITH_IP64 = 0
 WITH_MULTI_RADIO = 0
+WITH_UDPSERVER = 0
+WITH_UDPCLIENT = 0
 endif
 
 ifeq ($(CETIC_6LBR_NDP_ROUTER),1)
 CFLAGS +=-DCETIC_6LBR_NDP_ROUTER=1
 CETIC_6LBR_MODE = NDP-Router
 WITH_RPL = 0
+WITH_UDPCLIENT = 0
 endif
 
 ifeq ($(CETIC_6LBR_6LR),1)
@@ -108,12 +115,14 @@ CFLAGS +=-DCETIC_6LBR_6LR=1
 CETIC_6LBR_MODE = 6LR
 WITH_RPL = 1
 WITH_IP64 = 0
+WITH_UDPSERVER = 0
 endif
 
 ifeq ($(CETIC_6LBR_RPL_ROOT),1)
 CFLAGS +=-DCETIC_6LBR_RPL_ROOT=1
 CETIC_6LBR_MODE = RPL-Root
 WITH_RPL = 1
+WITH_UDPCLIENT = 0
 endif
 
 CETIC_6LBR_MODE?=Custom
@@ -313,7 +322,7 @@ endif
 	@echo "NAT64:       $(call to_bool,$(WITH_IP64))"
 	@echo
 	@echo "UDP Server:     $(call to_bool,$(WITH_UDPSERVER))"
-#@echo ": $(WITH_UDPCLIENT)"
+	@echo "UDP Client:     $(call to_bool,$(WITH_UDPCLIENT))"
 	@echo "Node Info:      $(call to_bool,$(WITH_NODE_INFO))"
 	@echo "Node Config:    $(call to_bool,$(WITH_NODE_CONFIG))"
 	@echo "Webserver:      $(call to_bool,$(WITH_WEBSERVER))"

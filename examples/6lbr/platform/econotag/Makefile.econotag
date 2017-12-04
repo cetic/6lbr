@@ -30,36 +30,33 @@ PROJECTDIRS += platform/econotag dev/enc28j60
 
 PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60-spi.c enc28j60-drv.c
 
-CONF=WITH_UDPCLIENT=0
-CONF_6LR=WITH_UDPSERVER=0
-
 bin_econotag/cetic_6lbr_smart_bridge:
-	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
 
 bin_econotag/cetic_6lbr_rpl_relay:
-	$(MAKE) TARGET=econotag CETIC_6LBR_RPL_RELAY=1 $(CONF)
+	$(MAKE) TARGET=econotag CETIC_6LBR_RPL_RELAY=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_rpl_relay
 
 bin_econotag/cetic_6lbr_full_transparent_bridge:
-	$(MAKE) TARGET=econotag CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 $(CONF)
+	$(MAKE) TARGET=econotag CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_full_transparent_bridge 
 
 bin_econotag/cetic_6lbr_router:
-	$(MAKE) TARGET=econotag CETIC_6LBR_RPL_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=econotag CETIC_6LBR_RPL_ROUTER=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router 
 
 bin_econotag/cetic_6lbr_ndp_router:
-	$(MAKE) TARGET=econotag CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=econotag CETIC_6LBR_NDP_ROUTER=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_ndp_router 
 
 bin_econotag/cetic_6lbr_6lr:
-	$(MAKE) TARGET=econotag CETIC_6LBR_6LR=1 $(CONF_6LR)
+	$(MAKE) TARGET=econotag CETIC_6LBR_6LR=1
 	mkdir -p bin_econotag
 	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_6lr
 

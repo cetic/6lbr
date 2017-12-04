@@ -40,45 +40,42 @@ PROJECT_SOURCEFILES += native-init.c native-nvm.c native-config.c native-config-
 PROJECTDIRS+= lib/inih
 PROJECT_SOURCEFILES += ini.c
 
-CONF=WITH_UDPCLIENT=0
-CONF_6LR=WITH_UDPSERVER=0
-
 ifeq ($(6LBR_PLUGIN),)
 
 # 6LBR targets
 
 bin/cetic_6lbr_smart_bridge:
-	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
 
 bin/cetic_6lbr_rpl_relay:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_RELAY=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_RELAY=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
 
 bin/cetic_6lbr_full_transparent_bridge:
-	$(MAKE) TARGET=native CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
 
 bin/cetic_6lbr_router:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROUTER=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_router
 
 bin/cetic_6lbr_ndp_router:
-	$(MAKE) TARGET=native CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_NDP_ROUTER=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
 
 bin/cetic_6lbr_6lr:
-	$(MAKE) TARGET=native CETIC_6LBR_6LR=1 $(CONF_6LR)
+	$(MAKE) TARGET=native CETIC_6LBR_6LR=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_6lr
 
 bin/cetic_6lbr_rpl_root:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROOT=1 $(CONF)
+	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROOT=1
 	mkdir -p bin
 	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
 

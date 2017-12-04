@@ -32,36 +32,33 @@ PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c 
 
 override TARGET=econotag
 
-CONF=WITH_UDPCLIENT=0
-CONF_6LR=WITH_UDPSERVER=0
-
 bin_red-io/cetic_6lbr_smart_bridge:
-	$(MAKE) TARGET=red-io CETIC_6LBR_SMARTBRIDGE=1 $(CONF)
+	$(MAKE) TARGET=red-io CETIC_6LBR_SMARTBRIDGE=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_smart_bridge 
 
 bin_red-io/cetic_6lbr_rpl_relay:
-	$(MAKE) TARGET=red-io CETIC_6LBR_RPL_RELAY=1 $(CONF)
+	$(MAKE) TARGET=red-io CETIC_6LBR_RPL_RELAY=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_rpl_relay
 
 bin_red-io/cetic_6lbr_full_transparent_bridge:
-	$(MAKE) TARGET=red-io CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 $(CONF)
+	$(MAKE) TARGET=red-io CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_full_transparent_bridge 
 
 bin_red-io/cetic_6lbr_router:
-	$(MAKE) TARGET=red-io CETIC_6LBR_RPL_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=red-io CETIC_6LBR_RPL_ROUTER=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_router 
 
 bin_red-io/cetic_6lbr_ndp_router:
-	$(MAKE) TARGET=red-io CETIC_6LBR_NDP_ROUTER=1 $(CONF)
+	$(MAKE) TARGET=red-io CETIC_6LBR_NDP_ROUTER=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_ndp_router 
 
 bin_red-io/cetic_6lbr_6lr:
-	$(MAKE) TARGET=red-io CETIC_6LBR_6LR=1 $(CONF_6LR)
+	$(MAKE) TARGET=red-io CETIC_6LBR_6LR=1
 	mkdir -p bin_red-io
 	mv cetic-6lbr_econotag.bin bin_red-io/cetic_6lbr_6lr
 
