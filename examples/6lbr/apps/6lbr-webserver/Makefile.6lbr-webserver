@@ -1,4 +1,4 @@
-CFLAGS += -DWEBSERVER=1
+CFLAGS += -DCETIC_6LBR_WITH_WEBSERVER=1
 6lbr-webserver_src = httpd.c httpd-cgi.c httpd-urlconv.c webserver.c webserver-utils.c \
     webserver-main.c webserver-network.c \
     webserver-config.c webserver-statistics.c webserver-admin.c webserver-log.c

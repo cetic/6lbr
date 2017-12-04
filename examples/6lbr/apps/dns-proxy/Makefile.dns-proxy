@@ -1,2 +1,2 @@
-CFLAGS += -DWITH_DNS_PROXY=1
+CFLAGS += -DCETIC_6LBR_WITH_DNS_PROXY=1
 dns-proxy_src = dns-proxy.c

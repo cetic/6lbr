@@ -380,11 +380,11 @@ PT_THREAD(generate_config(struct httpd_state *s))
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#if UDPSERVER
+#if CETIC_6LBR_WITH_UDPSERVER
   INPUT_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, "UDP server", "disabled", "enabled" );
   INPUT_INT( "udp_port", udp_server_port, "UDP server port");
 #endif
-#if WITH_DNS_PROXY
+#if CETIC_6LBR_WITH_DNS_PROXY
   INPUT_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, "DNS Proxy", "disabled", "enabled" );
 #endif
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {

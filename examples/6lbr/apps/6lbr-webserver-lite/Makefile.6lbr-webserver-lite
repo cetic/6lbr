@@ -1,2 +1,2 @@
-CFLAGS += -DWEBSERVER=1
+CFLAGS += -DCETIC_6LBR_WITH_WEBSERVER=1
 6lbr-webserver-lite_src = httpd-simple.c webserver-lite.c

@@ -89,11 +89,11 @@
 #include "multicast-wrapper.h"
 #endif
 
-#if WEBSERVER
+#if CETIC_6LBR_WITH_WEBSERVER
 #include "webserver.h"
 #endif
 
-#if UDPSERVER
+#if CETIC_6LBR_WITH_UDPSERVER
 #include "udp-server.h"
 #endif
 
@@ -117,11 +117,11 @@
 #include "dtls-echo.h"
 #endif
 
-#if WITH_NVM_PROXY
+#if CETIC_6LBR_WITH_NVM_PROXY
 #include "nvm-proxy.h"
 #endif
 
-#if WITH_DNS_PROXY
+#if CETIC_6LBR_WITH_DNS_PROXY
 #include "dns-proxy.h"
 #endif
 
@@ -686,7 +686,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   platform_load_config(CONFIG_LEVEL_CORE);
   PROCESS_PAUSE();
 
-#if WEBSERVER
+#if CETIC_6LBR_WITH_WEBSERVER
   webserver_init();
 #endif
 
@@ -703,7 +703,7 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   platform_load_config(CONFIG_LEVEL_BASE);
   PROCESS_PAUSE();
 
-#if UDPSERVER
+#if CETIC_6LBR_WITH_UDPSERVER
   udp_server_init();
 #endif
 #if UDPCLIENT
@@ -724,11 +724,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   process_start(&dtls_echo_server_process, NULL);
 #endif
 
-#if WITH_NVM_PROXY
+#if CETIC_6LBR_WITH_NVM_PROXY
   nvm_proxy_init();
 #endif
 
-#if WITH_DNS_PROXY
+#if CETIC_6LBR_WITH_DNS_PROXY
   dns_proxy_init();
 #endif
 
