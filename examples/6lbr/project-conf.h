@@ -107,7 +107,7 @@
 
 #endif
 
-#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
 /*------------------------------------------------------------------*/
 /* TRANSPARENT BRIDGE MODE                                          */
 /*------------------------------------------------------------------*/
@@ -123,17 +123,21 @@
 
 #define UIP_CONF_ND6_MAX_RTR_SOLICITATIONS	0
 
+#define CETIC_6LBR_TRANSPARENTBRIDGE    1
+
 #define CETIC_6LBR_ETH_FILTER_RPL	0
 
-#if CETIC_6LBR_LEARN_RPL_MAC
+#if CETIC_6LBR_RPL_RELAY
+#define CETIC_6LBR_LEARN_RPL_MAC    1
 #define CETIC_6LBR_WSN_FILTER_RA	1
 #else
+#define CETIC_6LBR_LEARN_RPL_MAC    0
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
 #endif
 
-#if CETIC_6LBR_ROUTER
+#if CETIC_6LBR_RPL_ROUTER || CETIC_6LBR_RPL_ROOT || CETIC_6LBR_NDP_ROUTER
 /*------------------------------------------------------------------*/
 /* ROUTER MODE                                                      */
 /*------------------------------------------------------------------*/
@@ -150,18 +154,24 @@
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             1
 
-#define CETIC_6LBR_DODAG_ROOT		1
+#define CETIC_6LBR_ROUTER           1
 
-#if CETIC_6LBR_ONE_ITF
-#define CETIC_6LBR_ETH_FILTER_RPL	0
-#else
-#define CETIC_6LBR_ETH_FILTER_RPL	1
+#if CETIC_6LBR_RPL_ROUTER
+#define CETIC_6LBR_DODAG_ROOT		1
+#define CETIC_6LBR_WSN_FILTER_RA    1
+#define CETIC_6LBR_ETH_FILTER_RPL   1
 #endif
 
-#if CETIC_6LBR_WITH_RPL
-#define CETIC_6LBR_WSN_FILTER_RA	1
-#else
-#define CETIC_6LBR_WSN_FILTER_RA	0
+#if CETIC_6LBR_NDP_ROUTER
+#define CETIC_6LBR_WSN_FILTER_RA    0
+#endif
+
+#if CETIC_6LBR_RPL_ROOT
+#define CETIC_6LBR_DODAG_ROOT       1
+#define CETIC_6LBR_WSN_FILTER_RA    1
+#define CETIC_6LBR_ETH_FILTER_RPL	0
+#define CETIC_6LBR_ONE_ITF          1
+#define CETIC_6LBR_ETH_LINK_STATS   1
 #endif
 
 #endif
@@ -187,6 +197,8 @@
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
 
+#define CETIC_6LBR_ETH_LINK_STATS   1
+
 #endif
 
 /*------------------------------------------------------------------*/
@@ -211,15 +223,25 @@
 
 //Sanity checks
 #if !CETIC_6LBR_PLUGIN
-#if ( (CETIC_6LBR_SMARTBRIDGE && (CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ROUTER || CETIC_6LBR_6LR)) || \
-      (CETIC_6LBR_TRANSPARENTBRIDGE && (CETIC_6LBR_ROUTER || CETIC_6LBR_6LR)) || \
-      (CETIC_6LBR_ROUTER && CETIC_6LBR_6LR) )
+#if ( (CETIC_6LBR_SMARTBRIDGE + \
+    CETIC_6LBR_FULL_TRANSPARENT_BRIDGE + \
+    CETIC_6LBR_RPL_RELAY + \
+    CETIC_6LBR_RPL_ROUTER + \
+    CETIC_6LBR_RPL_ROOT + \
+    CETIC_6LBR_NDP_ROUTER + \
+    CETIC_6LBR_6LR) > 1)
 #error Only one mode can be selected at a time
 #endif
-#if !CETIC_6LBR_SMARTBRIDGE && !CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_ROUTER && !CETIC_6LBR_6LR
-#error A mode must be selected
+#if !CETIC_6LBR_SMARTBRIDGE && \
+    !CETIC_6LBR_FULL_TRANSPARENT_BRIDGE && \
+    !CETIC_6LBR_RPL_RELAY && \
+    !CETIC_6LBR_RPL_ROUTER && \
+    !CETIC_6LBR_RPL_ROOT && \
+    !CETIC_6LBR_NDP_ROUTER && \
+    !CETIC_6LBR_6LR
+#error "A mode must be selected"
 #endif
-#endif
+#endif /* !CETIC_6LBR_PLUGIN */
 
 /*------------------------------------------------------------------*/
 /* RDC Configuration */
