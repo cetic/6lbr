@@ -151,7 +151,9 @@ static uip_ds6_route_info_t *rtinfo; /**  Pointer to a route information list en
 #endif
 #endif
 #if (!UIP_CONF_ROUTER || UIP_ND6_SEND_RA)
+#if !CETIC_6LBR_SMARTBRIDGE
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
+#endif
 #endif
 
 #if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
