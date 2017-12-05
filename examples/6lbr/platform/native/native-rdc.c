@@ -191,8 +191,8 @@ setup_callback(slip_descr_t *slip_device, mac_callback_t sent, void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-send_ip_packet(const uip_lladdr_t *localdest)
+uint8_t
+native_rdc_send_ip_packet(const uip_lladdr_t *localdest)
 {
   uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t)];
   int sid;
@@ -303,18 +303,60 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+native_rdc_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
+{
+  multi_radio_input_ifindex = slip_device->ifindex;
+  packetbuf_clear();
+
+  if(sixlbr_config_slip_ip) {
+    uip_lladdr_t src;
+    uip_lladdr_t dest;
+
+    memcpy(&src, data, sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&src);
+    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&dest);
+    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
+    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
+
+    LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", uip_len);
+    LOG6LBR_DUMP_PACKET(RADIO_IN, &uip_buf[UIP_LLH_LEN], uip_len);
+
+    tcpip_input();
+  } else {
+    if(slip_device->deserialize_rx_attrs) {
+      int pos = packetutils_deserialize_atts(data, len);
+      if(pos < 0) {
+        LOG6LBR_ERROR("illegal packet attributes\n");
+        return;
+      }
+      len -= pos;
+      if(len > PACKETBUF_SIZE) {
+        len = PACKETBUF_SIZE;
+      }
+      memcpy(packetbuf_dataptr(), &data[pos], len);
+      packetbuf_set_datalen(len);
+    } else {
+      packetbuf_copyfrom(data, len);
+    }
+    LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
+    LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
+
+    if(NETSTACK_FRAMER.parse() < 0) {
+      LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
+      native_rdc_parse_error++;
+    } else {
+      NETSTACK_MAC.input();
+    }
+  }
+  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
+}
+/*---------------------------------------------------------------------------*/
 static void
 packet_input(void)
 {
-  LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
-  LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
-
-  if(NETSTACK_FRAMER.parse() < 0) {
-    LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
-    native_rdc_parse_error++;
-  } else {
-    NETSTACK_MAC.input();
-  }
+  //Should never be called
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -460,7 +502,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
   {
     if(sixlbr_config_slip_ip) {
       LOG6LBR_INFO("SLIP RADIO configured as IP\n");
-      tcpip_set_outputfunc(send_ip_packet);
+      tcpip_set_outputfunc(native_rdc_send_ip_packet);
     } else {
       LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
     }

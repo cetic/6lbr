@@ -61,6 +61,7 @@
 #include "native-config.h"
 #include "network-itf.h"
 #include "multi-radio.h"
+#include "native-rdc.h"
 #include "slip-dev.h"
 
 //Temporary until proper multi mac layer configuration
@@ -305,42 +306,6 @@ is_sensible_string(const unsigned char *s, int len)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static void
-slip_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
-{
-  multi_radio_input_ifindex = slip_device->ifindex;
-  packetbuf_clear();
-  if(sixlbr_config_slip_ip) {
-    uip_lladdr_t src;
-    uip_lladdr_t dest;
-    memcpy(&src, data, sizeof(uip_lladdr_t));
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&src);
-    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
-    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&dest);
-    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
-    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
-    tcpip_input();
-  } else {
-    if(slip_device->deserialize_rx_attrs) {
-      int pos = packetutils_deserialize_atts(data, len);
-      if(pos < 0) {
-        LOG6LBR_ERROR("illegal packet attributes\n");
-        return;
-      }
-      len -= pos;
-      if(len > PACKETBUF_SIZE) {
-        len = PACKETBUF_SIZE;
-      }
-      memcpy(packetbuf_dataptr(), &data[pos], len);
-      packetbuf_set_datalen(len);
-    } else {
-      packetbuf_copyfrom(data, len);
-    }
-    NETSTACK_RDC.input();
-  }
-  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
-}
-/*---------------------------------------------------------------------------*/
 /*
  * Read from serial, when we have a packet call slip_packet_input. No output
  * buffering, input buffered by stdio.
@@ -417,7 +382,7 @@ after_fread:
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
-        slip_packet_input(slip_device, inbuf, inbufptr);
+        native_rdc_packet_input(slip_device, inbuf, inbufptr);
       }
       inbufptr = 0;
     }
