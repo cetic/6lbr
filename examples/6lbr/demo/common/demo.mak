@@ -28,6 +28,7 @@ help:
 	@echo "\t build-cooja : Rebuild the Cooja simulator"
 	@echo "\t clean-6lbr : Clean 6LBR and nvm_tool builds"
 	@echo "\t build-6lbr : Rebuild 6LBR and nvm_tool"
+	@echo "\t clean-net : Clean network interfaces"
 	@echo
 	@echo "\t all : Clean, rebuild and launch demo"
 
@@ -67,6 +68,8 @@ ifneq ($(SIXLBR_LIST),-)
 endif
 	rm -rf org
 	rm -f COOJA.* *.pcap *.log $(GEN_CSC)
+
+clean-net:
 	@$(DEMO)/common/sim.sh --clean $(CSC) $(SIXLBR_LIST)
 
 run: $(CSC)
@@ -74,4 +77,4 @@ run: $(CSC)
 
 all: clean-6lbr clean-firmwares clean build-6lbr run
 
-.PHONY: clean-cooja build-cooja clean-firmwares clean run clean-all all
+.PHONY: clean-cooja build-cooja clean-firmwares clean clean-net run clean-all all
