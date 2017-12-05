@@ -34,6 +34,7 @@ endif
 
 WITH_MULTI_RADIO?=1
 WITH_RDC?=nullrdc
+WITH_MULTI_FRAMER?=0
 WITH_MULTI_MAC?=1
 WITH_MAC?=csma
 WITH_LLSEC?=1
@@ -212,6 +213,7 @@ PROJECT_SOURCEFILES +=switch-lookup.c network-itf.c multi-radio.c
 endif
 
 ifeq ($(WITH_MULTI_MAC),1)
+WITH_MULTI_FRAMER = 1
 CFLAGS += -DCETIC_6LBR_MAC_WRAPPER=1
 PROJECT_SOURCEFILES += mac-wrapper.c
 endif
@@ -219,9 +221,11 @@ endif
 ifeq ($(WITH_LLSEC),1)
 CFLAGS += -DCETIC_6LBR_WITH_LLSEC=1
 ifeq ($(WITH_MULTI_LLSEC),1)
+WITH_MULTI_FRAMER = 1
 CFLAGS += -DCETIC_6LBR_LLSEC_WRAPPER=1
-PROJECT_SOURCEFILES += llsec-wrapper.c framer-wrapper.c
+PROJECT_SOURCEFILES += llsec-wrapper.c
 else
+WITH_MULTI_FRAMER = 0
 CFLAGS += -DWITH_LLSEC_ENGINE_$(WITH_LLSEC_ENGINE)
 endif
 ifeq ($(WITH_NONCORESEC),1)
@@ -233,6 +237,11 @@ CFLAGS += -DCETIC_6LBR_WITH_ADAPTIVESEC=1
 PROJECT_SOURCEFILES += strategy-wrapper.c
 MODULES += core/net/llsec/adaptivesec
 endif
+endif
+
+ifeq ($(WITH_MULTI_FRAMER),1)
+CFLAGS += -DCETIC_6LBR_FRAMER_WRAPPER=1
+PROJECT_SOURCEFILES += framer-wrapper.c
 endif
 
 ifeq ($(WITH_IP64),1)
@@ -283,6 +292,11 @@ show_config:
 	@echo "Multi-Radio: $(call to_bool,$(WITH_MULTI_RADIO))"
 ifneq ($(WITH_RDC),)
 	@echo "RDC:         $(WITH_RDC)"
+endif
+ifeq ($(WITH_MULTI_FRAMER),0)
+	@echo "Framer:      Default"
+else
+	@echo "Framer:      Multi-Framer"
 endif
 ifeq ($(WITH_MULTI_MAC),0)
 	@echo "MAC:         $(WITH_MAC)"

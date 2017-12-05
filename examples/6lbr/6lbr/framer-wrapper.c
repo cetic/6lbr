@@ -32,13 +32,15 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "LLSEC"
+#define LOG6LBR_MODULE "FRAMER"
 
 #include "contiki.h"
 #include "framer-wrapper.h"
 #include "framer-802154.h"
 #include "framer-nullmac.h"
+#if CETIC_6LBR_WITH_NONCORESEC
 #include "noncoresec/noncoresec.h"
+#endif
 #if CETIC_6LBR_WITH_ADAPTIVESEC
 #include "adaptivesec/adaptivesec.h"
 #endif
@@ -72,7 +74,7 @@ framer_wrapper_init(void)
     current_framer = &adaptivesec_framer;
 #endif
   } else {
-    LOG6LBR_ERROR("Unknown llsec driver, using 'nullsec' instead\n");
+    LOG6LBR_ERROR("Unknown framer, using '802.15.4' instead\n");
     current_framer = &framer_802154;
   }
 }

@@ -259,6 +259,16 @@
 #endif
 
 /*------------------------------------------------------------------*/
+/* Framer configuration */
+/*------------------------------------------------------------------*/
+#if CETIC_6LBR_FRAMER_WRAPPER
+
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER framer_wrapper
+
+#endif
+
+/*------------------------------------------------------------------*/
 /* MAC configuration */
 /*------------------------------------------------------------------*/
 #if WITH_MAC_custom
@@ -311,9 +321,6 @@
 #define PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES 1
 
 #if CETIC_6LBR_LLSEC_WRAPPER
-
-#undef NETSTACK_CONF_FRAMER
-#define NETSTACK_CONF_FRAMER framer_wrapper
 
 #undef NETSTACK_LLSEC
 #define NETSTACK_LLSEC llsec_wrapper_driver

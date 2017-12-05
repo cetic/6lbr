@@ -73,13 +73,16 @@
 #include "ip64-addr.h"
 #endif
 
+#if CETIC_6LBR_FRAMER_WRAPPER
+#include "framer-wrapper.h"
+#endif
+
 #if CETIC_6LBR_MAC_WRAPPER
 #include "mac-wrapper.h"
 #endif
 
 #if CETIC_6LBR_LLSEC_WRAPPER
 #include "llsec-wrapper.h"
-#include "framer-wrapper.h"
 #if CETIC_6LBR_WITH_ADAPTIVESEC
 #include "strategy-wrapper.h"
 #endif
@@ -611,6 +614,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
   /* Step 4: Initialize radio and network interfaces */
+#if CETIC_6LBR_FRAMER_WRAPPER
+  framer_wrapper_init();
+#endif
 
 #if CETIC_6LBR_MAC_WRAPPER
   mac_wrapper_init();
@@ -639,7 +645,6 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   /* Step 5: Initialize Network stack */
 
 #if CETIC_6LBR_LLSEC_WRAPPER
-  framer_wrapper_init();
 #if CETIC_6LBR_WITH_ADAPTIVESEC
   llsec_strategy_wrapper_init();
 #endif
