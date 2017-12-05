@@ -127,6 +127,16 @@ send_to_uip(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+send_to_wireless(const uip_lladdr_t * dest)
+{
+  if(wireless_outputfunc != NULL) {
+    return wireless_outputfunc(dest);
+  } else {
+    return 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
 
 static void
 wireless_input(void)
@@ -249,49 +259,45 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 
   //Packet sending
   //--------------
-  if(wireless_outputfunc != NULL) {
-    LOG6LBR_PRINTF(PACKET, PF_OUT, "wireless_output: sending packet\n");
+  LOG6LBR_PRINTF(PACKET, PF_OUT, "wireless_output: sending packet\n");
 #if CETIC_6LBR_MULTI_RADIO
-    uint8_t ifindex;
-    network_itf_t *network_itf;
-    /* Currently we assume that the sent callback is always the same */
-    ifindex = switch_lookup_get_itf_for(dest);
-    network_itf = network_itf_get_itf(ifindex);
-    if(network_itf != NULL) {
-      multi_radio_output_ifindex = ifindex;
-      memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
-      ret = wireless_outputfunc(dest);
-      memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
-    } else {
-      LOG6LBR_PRINTF(PACKET, PF_OUT, "Destination unknown or broadcast\n");
-      for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
-        network_itf = network_itf_get_itf(ifindex);
-        if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
-          multi_radio_output_ifindex = ifindex;
-          memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
-          ret = wireless_outputfunc(dest);
-        }
+  uint8_t ifindex;
+  network_itf_t *network_itf;
+  /* Currently we assume that the sent callback is always the same */
+  ifindex = switch_lookup_get_itf_for(dest);
+  network_itf = network_itf_get_itf(ifindex);
+  if(network_itf != NULL) {
+    multi_radio_output_ifindex = ifindex;
+    memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
+    ret = send_to_wireless(dest);
+    memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
+  } else {
+    LOG6LBR_PRINTF(PACKET, PF_OUT, "Destination unknown or broadcast\n");
+    for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
+      network_itf = network_itf_get_itf(ifindex);
+      if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+        multi_radio_output_ifindex = ifindex;
+        memcpy(&uip_lladdr.addr, &network_itf->mac_addr, sizeof(uip_lladdr.addr));
+        ret = send_to_wireless(dest);
       }
-      memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
     }
-    multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
+    memcpy(&uip_lladdr.addr, &wsn_mac_addr, sizeof(uip_lladdr.addr));
+  }
+  multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
 #else
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-	if ( src != NULL ) {
-      platform_set_wsn_mac((linkaddr_t *)src);
-	}
-#endif
-    ret = wireless_outputfunc(dest);
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-	if ( src != NULL ) {
-      //Restore node address
-	  platform_set_wsn_mac((linkaddr_t *) & wsn_mac_addr);
-	}
-#endif
-#endif
-  } else {
-    ret = 0;
+  if ( src != NULL ) {
+    platform_set_wsn_mac((linkaddr_t *)src);
   }
+#endif
+  ret = send_to_wireless(dest);
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+  if ( src != NULL ) {
+    //Restore node address
+    platform_set_wsn_mac((linkaddr_t *) & wsn_mac_addr);
+  }
+#endif
+#endif
   return ret;
 }
 
