@@ -140,8 +140,8 @@ LIST(neighbor_list);
 static void packet_sent(void *ptr, int status, int num_transmissions);
 static void transmit_packet_list(void *ptr);
 
-int packet_overflow;
-int neighbor_overflow;
+uint32_t csma_packet_overflow;
+uint32_t csma_neighbor_overflow;
 uint32_t csma_sent_packets;
 uint32_t csma_received_packets;
 uint32_t csma_noack;
@@ -487,10 +487,10 @@ send_packet(mac_callback_t sent, void *ptr)
       PRINTF("csma: Neighbor queue full\n");
     }
     PRINTF("csma: could not allocate packet, dropping packet\n");
-    packet_overflow++;
+    csma_packet_overflow++;
   } else {
     PRINTF("csma: could not allocate neighbor, dropping packet\n");
-    neighbor_overflow++;
+    csma_neighbor_overflow++;
   }
   mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
 }
@@ -529,7 +529,6 @@ init(void)
   memb_init(&packet_memb);
   memb_init(&metadata_memb);
   memb_init(&neighbor_memb);
-  packet_overflow = 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {

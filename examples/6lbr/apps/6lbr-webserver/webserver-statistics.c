@@ -176,8 +176,8 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<h2>CSMA</h2>");
   add("Allocated packets : %d<br />", csma_allocated_packets());
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
-  add("Packet overflow : %d<br />", packet_overflow);
-  add("Neighbor overflow : %d<br />", neighbor_overflow);
+  add("Packet overflow : %d<br />", csma_packet_overflow);
+  add("Neighbor overflow : %d<br />", csma_neighbor_overflow);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
