@@ -206,11 +206,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
       ip4addr_add(ip64_get_draddr());
       add("<br />");
       if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
-        extern struct ip64_dhcpc_state *ip64_dhcp_state;
         add("DHCP Server : ");
-        ip4addr_add_u8(ip64_dhcp_state->serverid);
+        ip4addr_add_u8(cetic_6lbr_ip64_dhcp_state->serverid);
         add("<br />");
-        add("DHCP lease time : %d s<br />", uip_ntohs(ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(ip64_dhcp_state->lease_time[1]));
+        add("DHCP lease time : %d s<br />",
+            uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[1]));
       }
     } else {
       add("Waiting configuration<br />");

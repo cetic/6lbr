@@ -104,6 +104,10 @@ extern uip_ip4addr_t eth_ip64_addr;
 extern uip_ip4addr_t eth_ip64_netmask;
 extern uip_ip4addr_t eth_ip64_gateway;
 
+#if CETIC_6LBR_WITH_IP64
+const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
+#endif
+
 // Misc
 extern unsigned long cetic_6lbr_startup;
 

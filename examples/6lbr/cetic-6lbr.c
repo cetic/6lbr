@@ -162,6 +162,10 @@ uip_ip4addr_t eth_ip64_addr;
 uip_ip4addr_t eth_ip64_netmask;
 uip_ip4addr_t eth_ip64_gateway;
 
+#if CETIC_6LBR_WITH_IP64
+const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
+#endif
+
 //Misc
 unsigned long cetic_6lbr_startup;
 
@@ -233,6 +237,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 #if CETIC_6LBR_WITH_IP64
 void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
 {
+  cetic_6lbr_ip64_dhcp_state = s;
   LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
 #if CONTIKI_TARGET_NATIVE
   cetic_6lbr_save_ip();
