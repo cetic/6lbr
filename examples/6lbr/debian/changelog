@@ -1,3 +1,15 @@
+cetic-6lbr (1.5.0) unstable; urgency=low
+
+  * Features
+    Multicast routing
+    RPL Non-Storing mode
+    DAO-Ack support
+    AdaptiveSec integration
+    TSCH SLIP-Radio support
+    Rebased on latest Contiki (11-Oct-2017)
+
+ -- 6lbr-team <6lbr@cetic.be>  Thu, 14 Nov 2017 12:30:10 +0100
+
 cetic-6lbr (1.4.2) unstable; urgency=low
 
   * Features
