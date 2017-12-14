@@ -213,7 +213,7 @@
 /* Do not change lines below */
 /*------------------------------------------------------------------*/
 
-#define CETIC_6LBR_VERSION		"1.4.2"
+#define CETIC_6LBR_VERSION		"1.5.0"
 
 /* Activate CETIC 6LBR specific code in Contiki */
 #define CETIC_6LBR              1
