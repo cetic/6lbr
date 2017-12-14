@@ -35,7 +35,7 @@
 #ifndef MAC_WRAPPER_H_
 #define MAC_WRAPPER_H_
 
-#include "net/mac/mac.h"
+#include "mac.h"
 
 extern const struct mac_driver mac_wrapper_driver;
 

@@ -47,6 +47,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/list.h"
+#include "net/link-stats.h"
 #include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
@@ -78,25 +79,36 @@ NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 void
 uip_ds6_neighbors_init(void)
 {
+  link_stats_init();
   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                uint8_t isrouter, uint8_t state)
+                uint8_t isrouter, uint8_t state, nbr_table_reason_t reason,
+                void *data)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
+                                            , reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+#if UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
     nbr->isrouter = isrouter;
+#endif /* UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
     nbr->state = state;
-  #if UIP_CONF_IPV6_QUEUE_PKT
+#if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
-  #endif /* UIP_CONF_IPV6_QUEUE_PKT */
-    /* timers are set separately, for now we put them in expired state */
-    stimer_set(&nbr->reachable, 0);
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#if UIP_ND6_SEND_NS
+    if(nbr->state == NBR_REACHABLE) {
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+    } else {
+      /* We set the timer in expired state */
+      stimer_set(&nbr->reachable, 0);
+    }
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
+#endif /* UIP_ND6_SEND_NS */
 #if UIP_SWITCH_LOOKUP
     /* interface is not yet known */
     nbr->ifindex = NETWORK_ITF_UNKNOWN;
@@ -119,7 +131,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 }
 
 /*---------------------------------------------------------------------------*/
-void
+int
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
@@ -127,11 +139,69 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
     NEIGHBOR_STATE_CHANGED(nbr);
-    nbr_table_remove(ds6_neighbors, nbr);
+    return nbr_table_remove(ds6_neighbors, nbr);
   }
-  return;
+  return 0;
 }
 
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Update the link-layer address associated with a specified 'nbr'
+ * \retval 0 Failure
+ * \retval 1 Success
+ */
+int
+uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
+{
+  uip_ds6_nbr_t *duplicated_nbr;
+  uip_ds6_nbr_t *new_nbr;
+  uip_ds6_nbr_t backup_nbr;
+
+  if(nbr == NULL || *nbr == NULL || new_ll_addr == NULL) {
+    return 0;
+  }
+
+  duplicated_nbr = uip_ds6_nbr_ll_lookup(new_ll_addr);
+  if(duplicated_nbr != NULL) {
+    /*
+     * It seems new_ll_addr is associated with another IPv6 address. Currently,
+     * we have a single 'nbr' entry per link-layer address so remove the older
+     * entry.
+     */
+    PRINTF("Duplicated address for ");
+    PRINTLLADDR((uip_lladdr_t *)new_ll_addr);
+    PRINTF(" ");
+    PRINT6ADDR(&(*nbr)->ipaddr);
+    PRINTF(" removing ");
+    PRINT6ADDR(&duplicated_nbr->ipaddr);
+    PRINTF("\n");
+    if(uip_ds6_nbr_rm(duplicated_nbr) == 0) {
+      /* Unexpectedly failed to remove 'nbr'. */
+      PRINTF("Could not remove\n");
+      return 0;
+    }
+  }
+
+  /* make room for a newly allocated nbr first */
+  memcpy(&backup_nbr, *nbr, sizeof(uip_ds6_nbr_t));
+  if(uip_ds6_nbr_rm(*nbr) == 0) {
+    /* Unexpectedly failed to remove 'nbr'. */
+    return 0;
+  }
+
+  new_nbr = uip_ds6_nbr_add(&backup_nbr.ipaddr, new_ll_addr,
+                            backup_nbr.isrouter, backup_nbr.state,
+                            NBR_TABLE_REASON_IPV6_ND, NULL);
+  if(new_nbr == NULL) {
+    /* Failed to allocate a new 'nbr', and *nbr has already removed  */
+    *nbr = NULL;
+    return 0;
+  }
+  memcpy(new_nbr, &backup_nbr, sizeof(uip_ds6_nbr_t));
+  *nbr = new_nbr; /* make '*nbr' point to 'new_nbr' */
+
+  return 1;
+}
 /*---------------------------------------------------------------------------*/
 const uip_ipaddr_t *
 uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr)
@@ -206,23 +276,26 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
     return;
   }
 
+  /* Update neighbor link statistics */
+  link_stats_packet_sent(dest, status, numtx);
+  /* Call upper-layer callback (e.g. RPL) */
   LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
 
 #if UIP_DS6_LL_NUD
   /* From RFC4861, page 72, last paragraph of section 7.3.3:
    *
-   * 	"In some cases, link-specific information may indicate that a path to
-   * 	a neighbor has failed (e.g., the resetting of a virtual circuit). In
-   * 	such cases, link-specific information may be used to purge Neighbor
-   * 	Cache entries before the Neighbor Unreachability Detection would do
-   * 	so. However, link-specific information MUST NOT be used to confirm
-   * 	the reachability of a neighbor; such information does not provide
-   * 	end-to-end confirmation between neighboring IP layers."
+   *         "In some cases, link-specific information may indicate that a path to
+   *         a neighbor has failed (e.g., the resetting of a virtual circuit). In
+   *         such cases, link-specific information may be used to purge Neighbor
+   *         Cache entries before the Neighbor Unreachability Detection would do
+   *         so. However, link-specific information MUST NOT be used to confirm
+   *         the reachability of a neighbor; such information does not provide
+   *         end-to-end confirmation between neighboring IP layers."
    *
    * However, we assume that receiving a link layer ack ensures the delivery
-   * of the transmitted packed to the IP stack of the neighbour. This is a 
-   * fair assumption and allows battery powered nodes save some battery by 
-   * not re-testing the state of a neighbour periodically if it 
+   * of the transmitted packed to the IP stack of the neighbour. This is a
+   * fair assumption and allows battery powered nodes save some battery by
+   * not re-testing the state of a neighbour periodically if it
    * acknowledges link packets. */
   if(status == MAC_TX_OK) {
     uip_ds6_nbr_t *nbr;
@@ -238,18 +311,29 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #endif /* UIP_DS6_LL_NUD */
 
 }
+#if UIP_ND6_SEND_NS
 /*---------------------------------------------------------------------------*/
+/** Periodic processing on neighbors */
 void
 uip_ds6_neighbor_periodic(void)
 {
-  /* Periodic processing on neighbors */
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
+    const uip_lladdr_t * lladdr = uip_ds6_nbr_get_ll(nbr);
+    if(nbr->state != NBR_INCOMPLETE && (lladdr == NULL || linkaddr_cmp((linkaddr_t *)lladdr, &linkaddr_null))) {
+      PRINTF("Invalid NBR entry found, removing\n");
+      if(uip_ds6_nbr_rm(nbr) == 0) {
+        /* Unexpectedly failed to remove 'nbr'. */
+        PRINTF("Could not remove\n");
+      }
+      nbr = nbr_table_next(ds6_neighbors, nbr);
+      continue;
+    }
     switch(nbr->state) {
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
 #if UIP_CONF_IPV6_RPL
-        /* when a neighbor leave it's REACHABLE state and is a default router,
+        /* when a neighbor leave its REACHABLE state and is a default router,
            instead of going to STALE state it enters DELAY state in order to
            force a NUD on it. Otherwise, if there is no upward traffic, the
            node never knows if the default router is still reachable. This
@@ -276,7 +360,6 @@ uip_ds6_neighbor_periodic(void)
 #endif /* UIP_CONF_IPV6_RPL */
       }
       break;
-#if UIP_ND6_SEND_NA
     case NBR_INCOMPLETE:
       if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
         uip_ds6_nbr_rm(nbr);
@@ -312,11 +395,22 @@ uip_ds6_neighbor_periodic(void)
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
-#endif /* UIP_ND6_SEND_NA */
     default:
       break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
+{
+  uip_ds6_nbr_t *nbr;
+  nbr = uip_ds6_nbr_lookup(ipaddr);
+  if(nbr != NULL && nbr-> state != NBR_INCOMPLETE) {
+    nbr->state = NBR_REACHABLE;
+    nbr->nscount = 0;
+    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -338,5 +432,6 @@ uip_ds6_get_least_lifetime_neighbor(void)
   }
   return nbr_expiring;
 }
+#endif /* UIP_ND6_SEND_NS */
 /*---------------------------------------------------------------------------*/
 /** @} */

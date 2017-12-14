@@ -40,10 +40,9 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "lib/random.h"
-#include "net/ipv6/uip-nd6.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ip/uip-packetqueue.h"
+#include "random.h"
+#include "uip-nd6.h"
+#include "uip-ds6.h"
 #include "log-6lbr.h"
 
 #include "rio.h"

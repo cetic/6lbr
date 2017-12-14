@@ -53,14 +53,15 @@
 #include <errno.h>
 
 #include "log-6lbr.h"
-#include "net/netstack.h"
-#include "net/packetbuf.h"
+#include "netstack.h"
+#include "packetbuf.h"
 #include "packetutils.h"
 #include "cmd.h"
 #include "slip-cmds.h"
 #include "native-config.h"
 #include "network-itf.h"
 #include "multi-radio.h"
+#include "native-rdc.h"
 #include "slip-dev.h"
 
 //Temporary until proper multi mac layer configuration
@@ -83,6 +84,11 @@ static slip_descr_t slip_devices[SLIP_MAX_DEVICE];
 
 slip_descr_t * slip_default_device;
 
+#if !CETIC_6LBR_MULTI_RADIO
+//Probably not the better place to define these when multi-radio is disabled
+uint8_t multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
+uint8_t multi_radio_output_ifindex = NETWORK_ITF_UNKNOWN;
+#endif
 /*---------------------------------------------------------------------------*/
 speed_t
 convert_baud_rate(int baudrate)
@@ -300,42 +306,6 @@ is_sensible_string(const unsigned char *s, int len)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static void
-slip_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
-{
-  multi_radio_input_ifindex = slip_device->ifindex;
-  packetbuf_clear();
-  if(sixlbr_config_slip_ip) {
-    uip_lladdr_t src;
-    uip_lladdr_t dest;
-    memcpy(&src, data, sizeof(uip_lladdr_t));
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&src);
-    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
-    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&dest);
-    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
-    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
-    tcpip_input();
-  } else {
-    if(slip_device->deserialize_rx_attrs) {
-      int pos = packetutils_deserialize_atts(data, len);
-      if(pos < 0) {
-        LOG6LBR_ERROR("illegal packet attributes\n");
-        return;
-      }
-      len -= pos;
-      if(len > PACKETBUF_SIZE) {
-        len = PACKETBUF_SIZE;
-      }
-      memcpy(packetbuf_dataptr(), &data[pos], len);
-      packetbuf_set_datalen(len);
-    } else {
-      packetbuf_copyfrom(data, len);
-    }
-    NETSTACK_RDC.input();
-  }
-  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
-}
-/*---------------------------------------------------------------------------*/
 /*
  * Read from serial, when we have a packet call slip_packet_input. No output
  * buffering, input buffered by stdio.
@@ -408,10 +378,11 @@ after_fread:
       } else if(inbuf[0] == 'E' && is_sensible_string(inbuf, inbufptr) ) {
         LOG6LBR_WRITE(ERROR, GLOBAL, inbuf + 1, inbufptr - 1);
         LOG6LBR_APPEND(ERROR, GLOBAL, "\n");
+        slip_error_callback(inbuf + 1);
       } else if(is_sensible_string(inbuf, inbufptr)) {
         LOG6LBR_WRITE(INFO, SLIP_DBG, inbuf, inbufptr);
       } else {
-        slip_packet_input(slip_device, inbuf, inbufptr);
+        native_rdc_packet_input(slip_device, inbuf, inbufptr);
       }
       inbufptr = 0;
     }
@@ -451,7 +422,7 @@ slip_send(slip_descr_t *slip_device, unsigned char c)
   }
   slip_device->slip_buf[slip_device->slip_end] = c;
   slip_device->slip_end++;
-  slip_devices->bytes_sent++;
+  slip_device->bytes_sent++;
   if(c == SLIP_END) {
     /* Full packet received. */
     slip_device->slip_packet_count++;
@@ -762,11 +733,16 @@ slip_new_device(void)
     slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
     slip_devices[i].features = SIXLBR_CONFIG_DEFAULT_SLIP_FEATURES;
     //Temporary until proper multi mac layer configuration
+#if CETIC_6LBR_MULTI_RADIO
     slip_devices[i].ifindex = network_itf_register(NETWORK_ITF_TYPE_802154, &CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC);
+#else
+    slip_devices[i].ifindex = 0;
+#endif
     LOG6LBR_INFO("Allocated slip device %d -> %d\n", i, slip_devices[i].ifindex);
 
     return &slip_devices[i];
   } else {
+    LOG6LBR_ERROR("Could not allocate a new slip device !\n");
     return NULL;
   }
 }

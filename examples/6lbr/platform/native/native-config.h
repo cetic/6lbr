@@ -57,6 +57,7 @@ extern int sixlbr_config_watchdog_interval;
 extern char const *sixlbr_config_watchdog_file_name;
 
 extern char const *sixlbr_config_nvm_file;
+extern char const *sixlbr_config_factory_nvm_file;
 extern char const *sixlbr_config_ip_file_name;
 extern char const *sixlbr_config_config_file_name;
 extern char const *sixlbr_config_node_config_file_name;
@@ -93,6 +94,7 @@ extern int sixlbr_config_log_services;
 #define SIXLBR_CONFIG_DEFAULT_ETH_HAS_FCS        0
 
 #define SIXLBR_CONFIG_DEFAULT_NVM_FILE       "nvm.dat"
+#define SIXLBR_CONFIG_DEFAULT_FACTORY_NVM_FILE     "factory.dat"
 #define SIXLBR_CONFIG_DEFAULT_IFUP_SCRIPT    NULL
 #define SIXLBR_CONFIG_DEFAULT_IFDOWN_SCRIPT  NULL
 #define SIXLBR_CONFIG_DEFAULT_WWW_ROOT       "../www"

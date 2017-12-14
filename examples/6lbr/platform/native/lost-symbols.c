@@ -37,6 +37,17 @@
 /*
  */
 
+#include "uip.h"
+#include "rpl.h"
+
+#if !CETIC_6LBR_WITH_IP64
+uip_ipaddr_t uip_hostaddr; /* Needed because it is referenced by dhcpc.c */
+#endif
+
+#if !CETIC_6LBR_WITH_RPL
+rpl_dag_t * rpl_get_any_dag(void) { return NULL; }
+#endif
+
 void procinit() {}
 void slip_arch_writeb() {}
 void dhcpc_configured() {}

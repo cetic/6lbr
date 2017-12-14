@@ -41,7 +41,6 @@
 #include "net/rpl/rpl.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-icmp6.h"
-#include "net/ipv6/sicslowpan.h"
 #include "sys/etimer.h"
 #include "sys/ctimer.h"
 #include "lib/sensors.h"
@@ -65,6 +64,9 @@
  */
 static const char *broker_ip = "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd";
 /*---------------------------------------------------------------------------*/
+#define ADDRESS_CONVERSION_OK       1
+#define ADDRESS_CONVERSION_ERROR    0
+/*---------------------------------------------------------------------------*/
 /*
  * A timeout used when waiting for something to happen (e.g. to connect or to
  * disconnect)
@@ -86,7 +88,7 @@ static const char *broker_ip = "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd";
  * Number of times to try reconnecting to the broker.
  * Can be a limited number (e.g. 3, 10 etc) or can be set to RETRY_FOREVER
  */
-#define RECONNECT_ATTEMPTS         RETRY_FOREVER
+#define RECONNECT_ATTEMPTS         5
 #define CONNECTION_STABLE_TIME     (CLOCK_SECOND * 5)
 #define NEW_CONFIG_WAIT_INTERVAL   (CLOCK_SECOND * 20)
 static struct timer connection_life;
@@ -139,9 +141,7 @@ static uint16_t seq_nr_value = 0;
 static uip_ip6addr_t def_route;
 /*---------------------------------------------------------------------------*/
 /* Parent RSSI functionality */
-static struct uip_icmp6_echo_reply_notification echo_reply_notification;
-static struct etimer echo_request_timer;
-int def_rt_rssi = 0;
+extern int def_rt_rssi;
 /*---------------------------------------------------------------------------*/
 const static cc26xx_web_demo_sensor_reading_t *reading;
 /*---------------------------------------------------------------------------*/
@@ -353,13 +353,20 @@ ip_addr_post_handler(char *key, int key_len, char *val, int val_len)
 {
   int rv = HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
 
+  /*
+   * uiplib_ip6addrconv will immediately start writing into the supplied buffer
+   * even if it subsequently fails. Thus, pass an intermediate buffer
+   */
+  uip_ip6addr_t tmp_addr;
+
   if(key_len != strlen("broker_ip") ||
      strncasecmp(key, "broker_ip", strlen("broker_ip")) != 0) {
     /* Not ours */
     return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
   }
 
-  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN) {
+  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN
+          || uiplib_ip6addrconv(val, &tmp_addr) != ADDRESS_CONVERSION_OK) {
     /* Ours but bad value */
     rv = HTTPD_SIMPLE_POST_HANDLER_ERROR;
   } else {
@@ -388,29 +395,6 @@ reconnect_post_handler(char *key, int key_len, char *val, int val_len)
   return HTTPD_SIMPLE_POST_HANDLER_OK;
 }
 /*---------------------------------------------------------------------------*/
-static int
-ping_interval_post_handler(char *key, int key_len, char *val, int val_len)
-{
-  int rv = 0;
-
-  if(key_len != strlen("ping_interval") ||
-     strncasecmp(key, "ping_interval", strlen("ping_interval")) != 0) {
-    /* Not ours */
-    return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
-  }
-
-  rv = atoi(val);
-
-  if(rv < MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MIN ||
-     rv > MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MAX) {
-    return HTTPD_SIMPLE_POST_HANDLER_ERROR;
-  }
-
-  conf->def_rt_ping_interval = rv * CLOCK_SECOND;
-
-  return HTTPD_SIMPLE_POST_HANDLER_OK;
-}
-/*---------------------------------------------------------------------------*/
 HTTPD_SIMPLE_POST_HANDLER(org_id, org_id_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(type_id, type_id_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(event_type_id, event_type_id_post_handler);
@@ -420,16 +404,6 @@ HTTPD_SIMPLE_POST_HANDLER(ip_addr, ip_addr_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(port, port_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(interval, interval_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(reconnect, reconnect_post_handler);
-HTTPD_SIMPLE_POST_HANDLER(ping_interval, ping_interval_post_handler);
-/*---------------------------------------------------------------------------*/
-static void
-echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data,
-                   uint16_t datalen)
-{
-  if(uip_ip6addr_cmp(source, uip_ds6_defrt_choose())) {
-    def_rt_rssi = sicslowpan_get_last_rssi();
-  }
-}
 /*---------------------------------------------------------------------------*/
 static void
 pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
@@ -624,7 +598,6 @@ init_config()
 
   conf->broker_port = CC26XX_WEB_DEMO_DEFAULT_BROKER_PORT;
   conf->pub_interval = CC26XX_WEB_DEMO_DEFAULT_PUBLISH_INTERVAL;
-  conf->def_rt_ping_interval = CC26XX_WEB_DEMO_DEFAULT_RSSI_MEAS_INTERVAL;
 
   return 1;
 }
@@ -641,7 +614,6 @@ register_http_post_handlers(void)
   httpd_simple_register_post_handler(&port_handler);
   httpd_simple_register_post_handler(&ip_addr_handler);
   httpd_simple_register_post_handler(&reconnect_handler);
-  httpd_simple_register_post_handler(&ping_interval_handler);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -664,6 +636,7 @@ publish(void)
   /* Publish MQTT topic in IBM quickstart format */
   int len;
   int remaining = APP_BUFFER_SIZE;
+  char def_rt_str[64];
 
   seq_nr_value++;
 
@@ -686,7 +659,6 @@ publish(void)
   buf_ptr += len;
 
   /* Put our Default route's string representation in a buffer */
-  char def_rt_str[64];
   memset(def_rt_str, 0, sizeof(def_rt_str));
   cc26xx_web_demo_ipaddr_sprintf(def_rt_str, sizeof(def_rt_str),
                                  uip_ds6_defrt_choose());
@@ -736,21 +708,15 @@ static void
 connect_to_broker(void)
 {
   /* Connect to MQTT server */
-  mqtt_connect(&conn, conf->broker_ip, conf->broker_port,
-               conf->pub_interval * 3);
+  mqtt_status_t conn_attempt_result = mqtt_connect(&conn, conf->broker_ip,
+                                                   conf->broker_port,
+                                                   conf->pub_interval * 3);
 
-  state = MQTT_CLIENT_STATE_CONNECTING;
-}
-/*---------------------------------------------------------------------------*/
-static void
-ping_parent(void)
-{
-  if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
-    return;
+  if(conn_attempt_result == MQTT_STATUS_OK) {
+    state = MQTT_CLIENT_STATE_CONNECTING;
+  } else {
+    state = MQTT_CLIENT_STATE_CONFIG_ERROR;
   }
-
-  uip_icmp6_send(uip_ds6_defrt_choose(), ICMP6_ECHO_REQUEST, 0,
-                 CC26XX_WEB_DEMO_ECHO_REQ_PAYLOAD_LEN);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -794,7 +760,6 @@ state_machine(void)
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);
-      ping_parent();
       connect_to_broker();
     }
     etimer_set(&publish_periodic_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
@@ -877,8 +842,8 @@ state_machine(void)
     }
     break;
   case MQTT_CLIENT_STATE_NEWCONFIG:
-    /* Only update config after we have disconnected */
-    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED) {
+    /* Only update config after we have disconnected or in the case of an error */
+    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED || conn.state == MQTT_CONN_STATE_ERROR) {
       update_config();
       DBG("New config\n");
 
@@ -923,11 +888,6 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 
   update_config();
 
-  def_rt_rssi = 0x8000000;
-  uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
-                                    echo_reply_handler);
-  etimer_set(&echo_request_timer, conf->def_rt_ping_interval);
-
   /* Main loop */
   while(1) {
 
@@ -954,11 +914,6 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
        ev == cc26xx_web_demo_publish_event ||
        (ev == sensors_event && data == CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER)) {
       state_machine();
-    }
-
-    if(ev == PROCESS_EVENT_TIMER && data == &echo_request_timer) {
-      ping_parent();
-      etimer_set(&echo_request_timer, conf->def_rt_ping_interval);
     }
 
     if(ev == cc26xx_web_demo_load_config_defaults) {

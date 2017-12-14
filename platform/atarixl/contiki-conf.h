@@ -50,13 +50,6 @@
 #define BORDERCOLOR COLOR_BLACK
 #define SCREENCOLOR COLOR_BLACK
 
-#define EMAIL_CONF_WIDTH  39
-#define EMAIL_CONF_HEIGHT 19
-#define EMAIL_CONF_ERASE   0
-
-#define FTP_CONF_WIDTH  18
-#define FTP_CONF_HEIGHT 21
-
 #define IRC_CONF_WIDTH  40
 #define IRC_CONF_HEIGHT 23
 
@@ -67,5 +60,6 @@
 #define WWW_CONF_WEBPAGE_WIDTH  40
 #define WWW_CONF_WEBPAGE_HEIGHT 19
 #define WWW_CONF_HISTORY_SIZE    4
+#define WWW_CONF_WGET_EXEC(url) exec("wget.com", url)
 
 #endif /* CONTIKI_CONF_H_ */

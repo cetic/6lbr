@@ -93,8 +93,8 @@ static int state;
 #define STRINGIFY(x) XSTR(x)
 #define XSTR(x)      #x
 
-#define RSSI_INT_MAX STRINGIFY(MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MAX)
-#define RSSI_INT_MIN STRINGIFY(MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MIN)
+#define RSSI_INT_MAX STRINGIFY(CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MAX)
+#define RSSI_INT_MIN STRINGIFY(CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MIN)
 #define PUB_INT_MAX  STRINGIFY(MQTT_CLIENT_PUBLISH_INTERVAL_MAX)
 #define PUB_INT_MIN  STRINGIFY(MQTT_CLIENT_PUBLISH_INTERVAL_MIN)
 /*---------------------------------------------------------------------------*/
@@ -136,6 +136,10 @@ PROCESS(httpd_simple_process, "CC26XX Web Server");
 /*---------------------------------------------------------------------------*/
 #define REQUEST_TYPE_GET  1
 #define REQUEST_TYPE_POST 2
+/*---------------------------------------------------------------------------*/
+/* Temporary buffer for holding escaped HTML used by html_escape_quotes */
+#define HTML_ESCAPED_BUFFER_SIZE 128
+static char html_escaped_buf[HTML_ESCAPED_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 static const char *NOT_FOUND = "<html><body bgcolor=\"white\">"
                                "<center>"
@@ -303,6 +307,31 @@ url_unescape(const char *src, size_t srclen, char *dst, size_t dstlen)
   dst[j] = '\0';
 
   return i == srclen;
+}
+/*---------------------------------------------------------------------------*/
+static char*
+html_escape_quotes(const char *src, size_t srclen)
+{
+  size_t srcpos, dstpos;
+  memset(html_escaped_buf, 0, HTML_ESCAPED_BUFFER_SIZE);
+  for(srcpos = dstpos = 0;
+      srcpos < srclen && dstpos < HTML_ESCAPED_BUFFER_SIZE - 1; srcpos++) {
+    if(src[srcpos] == '\0') {
+      break;
+    } else if(src[srcpos] == '"') {
+      if(dstpos + 7 > HTML_ESCAPED_BUFFER_SIZE) {
+        break;
+      }
+
+      strcpy(&html_escaped_buf[dstpos], "&quot;");
+      dstpos += 6;
+    } else {
+      html_escaped_buf[dstpos++] = src[srcpos];
+    }
+  }
+
+  html_escaped_buf[HTML_ESCAPED_BUFFER_SIZE - 1] = '\0';
+  return html_escaped_buf;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -568,11 +597,53 @@ PT_THREAD(generate_config(struct httpd_state *s))
                                  s->reading->publish ? "" : " Checked",
                                  config_div_close));
   }
+
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
                                "<input type=\"submit\" value=\"Submit\">"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "</form>"));
+
+  /* RSSI measurements */
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "<h1>RSSI Probing</h1>"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "application/x-www-form-urlencoded\" "));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "accept-charset=\"UTF-8\">"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%sPeriod (secs):%s",
+                               config_div_left, config_div_close));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%s<input type=\"number\" ",
+                               config_div_right));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "value=\"%lu\" ",
+                               (clock_time_t)
+                               (cc26xx_web_demo_config.def_rt_ping_interval
+                                / CLOCK_SECOND)));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "min=\"" RSSI_INT_MIN "\" "
+                               "max=\"" RSSI_INT_MAX "\" "
+                               "name=\"ping_interval\">%s",
+                               config_div_close));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "<input type=\"submit\" value=\"Submit\">"));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "</form>"));
+#endif
 
   /* Actions */
   PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, "<h1>Actions</h1>"));
@@ -633,7 +704,9 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.type_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.type_id,
+                               MQTT_CLIENT_CONFIG_TYPE_ID_LEN)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"type_id\">%s", config_div_close));
 
@@ -645,7 +718,9 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.org_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.org_id,
+                               MQTT_CLIENT_CONFIG_ORG_ID_LEN)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"org_id\">%s", config_div_close));
 
@@ -669,7 +744,9 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.cmd_type));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.cmd_type,
+                               MQTT_CLIENT_CONFIG_CMD_TYPE_LEN)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"cmd_type\">%s",
                                config_div_close));
@@ -682,7 +759,9 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.event_type_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.event_type_id,
+                               MQTT_CLIENT_CONFIG_EVENT_TYPE_ID_LEN)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"event_type_id\">%s",
                                config_div_close));
@@ -730,24 +809,6 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "min=\"1\" max=\"65535\" "
                                      "name=\"broker_port\">%s",
-                               config_div_close));
-
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%sRSSI Interval (secs):%s",
-                               config_div_left, config_div_close));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%s<input type=\"number\" ",
-                               config_div_right));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "value=\"%lu\" ",
-                               (clock_time_t)
-                               (cc26xx_web_demo_config.mqtt_config.def_rt_ping_interval
-                                / CLOCK_SECOND)));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0,
-                               "min=\"" RSSI_INT_MIN "\" "
-                               "max=\"" RSSI_INT_MAX "\" "
-                               "name=\"ping_interval\">%s",
                                config_div_close));
 
   PT_WAIT_THREAD(&s->generate_pt,
@@ -1244,9 +1305,7 @@ appcall(void *state)
 
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
-      s->script = NULL;
-      s->blen = 0;
-      s->tmp_buf_len = 0;
+      memset(s, 0, sizeof(struct httpd_state));
       memb_free(&conns, s);
     }
   } else if(uip_connected()) {
@@ -1267,7 +1326,7 @@ appcall(void *state)
     if(uip_poll()) {
       if(timer_expired(&s->timer)) {
         uip_abort();
-        s->script = NULL;
+        memset(s, 0, sizeof(struct httpd_state));
         memb_free(&conns, s);
       }
     } else {

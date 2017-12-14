@@ -18,7 +18,7 @@ class SimMoteType:
 		self.description = description
 
 	def text_from_template(self):
-		text_sky ="""    <motetype>\r\n
+		text_sky ="""    <motetype>\n
 	  org.contikios.cooja.mspmote.SkyMoteType
 	  <identifier>SHORTNAME</identifier>
 	  <description>DESCRIPTION</description>
@@ -40,8 +40,8 @@ class SimMoteType:
 	  <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
 	  <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
 	  <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
-    </motetype>\r\n"""
-		text_coojamote = """    <motetype>\r\n
+    </motetype>\n"""
+		text_coojamote = """    <motetype>\n
 	  org.contikios.cooja.contikimote.ContikiMoteType
 	  <identifier>SHORTNAME</identifier>
 	  <description>DESCRIPTION</description>
@@ -65,7 +65,7 @@ class SimMoteType:
 	  <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
 	  <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
 	  <symbols>false</symbols>
-    </motetype>\r\n"""
+    </motetype>\n"""
 		if self.target == 'cooja':
 			text = text_coojamote
 		else:
@@ -108,7 +108,7 @@ class SimMote:
 	<z>ZPOS</z>
       </interface_config>
       <motetype_identifier>MOTETYPE_ID</motetype_identifier>
-    </mote>\r\n"""
+    </mote>\n"""
 
 		if self.mote_type.target == 'cooja':
 			text = text.replace('org.contikios.cooja.mspmote.interfaces.MspMoteID','org.contikios.cooja.contikimote.interfaces.ContikiMoteID')			
@@ -129,7 +129,7 @@ class SimMote:
     <height>100</height>
     <location_x>161</location_x>
     <location_y>532</location_y>
-  </plugin>\r\n"""
+  </plugin>\n"""
 		elif self.mote_type.serial == 'socket':
 			text = """  <plugin>
     org.contikios.cooja.serialsocket.SerialSocketServer
@@ -143,7 +143,7 @@ class SimMote:
 	  <port>%d</port>
 	  <bound>true</bound>
 	</plugin_config>
-  </plugin>\r\n""" % (self.socket_base_port + self.nodeid)
+  </plugin>\n""" % (self.socket_base_port + self.nodeid)
 		else:
 			return ''
 
@@ -159,15 +159,15 @@ class Sim():
 
 		motetype_text = mote_type.text_from_template()
 
-		motetype_indexes = all_indices("    <motetype>\r\n",self.simfile_lines)
-		motetype_close_indexes = all_indices("    </motetype>\r\n",self.simfile_lines)
+		motetype_indexes = all_indices("    <motetype>\n",self.simfile_lines)
+		motetype_close_indexes = all_indices("    </motetype>\n",self.simfile_lines)
 
 		if len(motetype_indexes) == 0 or len(motetype_indexes) != len(motetype_close_indexes):
 			print "No motetype placeholder or file truncated"
 			sys.exit(1)
 		elif len(motetype_indexes) == 1:
 			#in case of 1 motetype, check if it's the template version or a real mote
-			if self.simfile_lines[motetype_indexes[0]+2] == "      <identifier>templatesky1</identifier>\r\n":
+			if self.simfile_lines[motetype_indexes[0]+2] == "      <identifier>templatesky1</identifier>\n":
 				#template version, we first remove the template motetype lines
 				count = motetype_close_indexes[0] - motetype_indexes[0] + 1
 				remove_n_at(motetype_indexes[0], count, self.simfile_lines)
@@ -184,12 +184,12 @@ class Sim():
 
 		mote_text = mote.text_from_template()
 		
-		mote_indexes = all_indices("    <mote>\r\n",self.simfile_lines)
-		mote_close_indexes = all_indices("    </mote>\r\n",self.simfile_lines)
+		mote_indexes = all_indices("    <mote>\n",self.simfile_lines)
+		mote_close_indexes = all_indices("    </mote>\n",self.simfile_lines)
 	
 		if len(mote_indexes) == 1:
 			#only 1 mote, check if it's the template
-			if self.simfile_lines[mote_indexes[0]+4] == "        <x>XPOS</x>\r\n":
+			if self.simfile_lines[mote_indexes[0]+4] == "        <x>XPOS</x>\n":
 				#template version, we first remove the template motetype lines
 				count = mote_close_indexes[0] - mote_indexes[0] + 1
 				remove_n_at(mote_indexes[0], count, self.simfile_lines)
@@ -204,7 +204,7 @@ class Sim():
 		
 		
 		if mote.mote_type.serial != '':	
-			plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
+			plugin_indexes = all_indices("  </plugin>\n", self.simfile_lines)
 			serial_text = mote.serial_text()
 			self.simfile_lines = insert_list_at(serial_text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
 
@@ -213,45 +213,45 @@ class Sim():
 			self.add_mote(mote)
 
 	def udgm_set_range(self, mote_range):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\n':
 			self.simfile_lines.pop(radiomedium_index+2)
-			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%f</transmitting_range>\r\n" % mote_range)
+			self.simfile_lines.insert(radiomedium_index+2,"      <transmitting_range>%f</transmitting_range>\n" % mote_range)
 		
 		else:
-			print("ERROR: radio model is not UDGM\r\n")
+			print("ERROR: radio model is not UDGM\n")
 
 	def udgm_set_interference_range(self, interference_range):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\n':
 			self.simfile_lines.pop(radiomedium_index+3)
-			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%f</interference_range>\r\n" % interference_range)
+			self.simfile_lines.insert(radiomedium_index+3,"      <interference_range>%f</interference_range>\n" % interference_range)
 		
 		else:
-			print("ERROR: radio model is not UDGM\r\n")
+			print("ERROR: radio model is not UDGM\n")
 
 	def udgm_set_rx_tx_ratios(self, rx, tx):
-		radiomedium_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\r\n':
+		radiomedium_index = self.simfile_lines.index('    <radiomedium>\n')
+		if self.simfile_lines[radiomedium_index+1] == '      org.contikios.cooja.radiomediums.UDGM\n':
 			self.simfile_lines.pop(radiomedium_index+4)
 			self.simfile_lines.pop(radiomedium_index+4)
-			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%f</success_ratio_tx>\r\n" % tx)
-			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%f</success_ratio_rx>\r\n" % rx)
+			self.simfile_lines.insert(radiomedium_index+4,"      <success_ratio_tx>%f</success_ratio_tx>\n" % tx)
+			self.simfile_lines.insert(radiomedium_index+5,"      <success_ratio_rx>%f</success_ratio_rx>\n" % rx)
 		
 		else:
-			print("ERROR: radio model is not UDGM\r\n")
+			print("ERROR: radio model is not UDGM\n")
 
 	def set_timeout(self, timeout):
-		script_index = all_indices('      <script>\r\n' ,self.simfile_lines)[0]
+		script_index = all_indices('      <script>\n' ,self.simfile_lines)[0]
 		self.simfile_lines.pop(script_index+1)
-		self.simfile_lines.insert(script_index+1, '        TIMEOUT(%d);\r\n' % timeout)
+		self.simfile_lines.insert(script_index+1, '        TIMEOUT(%d);\n' % timeout)
 
 	def set_dgrm_model(self, dgrm_file_path):
 		dgrm_file = open(dgrm_file_path, 'r')
-		radiomedium_open_index = self.simfile_lines.index('    <radiomedium>\r\n')
-		radiomedium_close_index = self.simfile_lines.index('    </radiomedium>\r\n')
+		radiomedium_open_index = self.simfile_lines.index('    <radiomedium>\n')
+		radiomedium_close_index = self.simfile_lines.index('    </radiomedium>\n')
 		remove_n_at(radiomedium_open_index+1, radiomedium_close_index - radiomedium_open_index -1, self.simfile_lines)
-		self.simfile_lines.insert(radiomedium_open_index+1, '      org.contikios.cooja.radiomediums.DirectedGraphMedium\r\n')
+		self.simfile_lines.insert(radiomedium_open_index+1, '      org.contikios.cooja.radiomediums.DirectedGraphMedium\n')
 
 		ptr = radiomedium_open_index+2
 
@@ -259,7 +259,7 @@ class Sim():
 		#71 20 0.00 0 0 0 -10.0 0 0
 
 		total_errors = 0
-		re_dgrm_line = re.compile('([0-9]+) ([0-9]+) ([0-9,.]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9,.,-]+) ([0-9]+) ([0-9]+)\r\n')
+		re_dgrm_line = re.compile('([0-9]+) ([0-9]+) ([0-9,.]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9,.,-]+) ([0-9]+) ([0-9]+)\n')
 		for line in dgrm_file:
 			match_dgrm_line = re_dgrm_line.match(line)
 			if not match_dgrm_line:
@@ -282,7 +282,7 @@ class Sim():
 				self.simfile_lines = insert_list_at(radio_edge.splitlines(1), self.simfile_lines, ptr)
 				#we don't increment ptr, just let the next insertions shift the existing edges down
 
-		print ("total_errors = %d\r\n",total_errors)
+		print ("total_errors = %d\n",total_errors)
 
 	def save_simfile(self, simfilepath):
 		simfile = open(simfilepath,'w')
@@ -301,13 +301,13 @@ class Sim():
     <height>200</height>
     <location_x>210</location_x>
     <location_y>210</location_y>
-  </plugin>\r\n"""
+  </plugin>\n"""
 		text = text.replace('POSITIONSFILE', mobility_path)
-		plugin_indexes = all_indices("  </plugin>\r\n", self.simfile_lines)
+		plugin_indexes = all_indices("  </plugin>\n", self.simfile_lines)
 		self.simfile_lines = insert_list_at(text.splitlines(1), self.simfile_lines, plugin_indexes[-1]+1)
 
-		simulation_indexes = all_indices("  <simulation>\r\n", self.simfile_lines)
-		text = '  <project EXPORT="discard">[APPS_DIR]/mobility</project>\r\n'
+		simulation_indexes = all_indices("  <simulation>\n", self.simfile_lines)
+		text = '  <project EXPORT="discard">[APPS_DIR]/mobility</project>\n'
 		self.simfile_lines = insert_list_at(text, self.simfile_lines, simulation_indexes[-1])
 
 def new_sim(templatepath = 'cooja-template.csc'):
@@ -357,7 +357,7 @@ def dgrm_generate(src,dst,prr,rssi,delay):
 	  <signal>RSSI</signal>
 	  <delay>DELAY</delay>
 	</dest>
-      </edge>\r\n"""
+      </edge>\n"""
 
 	template = template.replace('SRC',src)
 	template = template.replace('DST',dst)
@@ -399,7 +399,7 @@ def export_mote_list(exportpath, motelist):
 		if mote.mobility_data != None:
 			for xy in mote.mobility_data:
 				exportfile.write(";%2.2f,%2.2f" % (xy[0], xy[1]))
-		exportfile.write("\r\n")
+		exportfile.write("\n")
 	exportfile.close()
 
 

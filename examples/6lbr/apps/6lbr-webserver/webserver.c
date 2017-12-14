@@ -61,7 +61,7 @@ HTTPD_CGI_CALL_NAME(webserver_rpl)
 HTTPD_CGI_CMD_NAME(webserver_rpl_gr_cmd)
 HTTPD_CGI_CMD_NAME(webserver_rpl_reset_cmd)
 HTTPD_CGI_CMD_NAME(webserver_rpl_child_cmd)
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
 HTTPD_CGI_CALL_NAME(webserver_sensors_info)
 HTTPD_CGI_CALL_NAME(webserver_sensor)
 HTTPD_CGI_CALL_NAME(webserver_sensors_tree)
@@ -73,7 +73,7 @@ HTTPD_CGI_CMD_NAME(webserver_sensors_reset_stats_all_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_reset_stats_cmd)
 HTTPD_CGI_CMD_NAME(webserver_sensor_delete_node_cmd)
 #endif
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 HTTPD_CGI_CALL_NAME(webserver_sensors_config)
 #endif
 HTTPD_CGI_CALL_NAME(webserver_config)
@@ -101,6 +101,7 @@ void
 webserver_init(void)
 {
   if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WEBSERVER) != 0) {
+    LOG6LBR_INFO("Webserver disabled\n");
     return;
   }
   httpd_init();
@@ -114,7 +115,7 @@ webserver_init(void)
 
   httpd_group_add_page(&main_group, &webserver_main);
   httpd_group_add_page(&config_group, &webserver_config);
-#if CETIC_NODE_INFO
+#if CETIC_6LBR_NODE_INFO
   httpd_group_add_page(&sensors_group, &webserver_sensors_info);
   httpd_cgi_add(&webserver_sensor);
   httpd_group_add_page(&sensors_group, &webserver_sensors_tree);
@@ -128,16 +129,16 @@ webserver_init(void)
   httpd_cgi_command_add(&webserver_sensor_reset_stats_cmd);
   httpd_cgi_command_add(&webserver_sensor_delete_node_cmd);
 #endif
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
   httpd_group_add_page(&config_group, &webserver_sensors_config);
 #endif
   httpd_group_add_page(&status_group, &webserver_network);
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   httpd_group_add_page(&status_group, &webserver_rpl);
 #endif
   httpd_group_add_page(&statistics_group, &webserver_statistics);
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
     httpd_cgi_command_add(&webserver_rpl_gr_cmd);
     httpd_cgi_command_add(&webserver_rpl_reset_cmd);
     httpd_cgi_command_add(&webserver_rpl_child_cmd);

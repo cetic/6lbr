@@ -36,7 +36,7 @@
 #define ETH_DRV_H_
 
 #include "contiki.h"
-#include "net/ip/uip.h"
+#include "uip.h"
 
 #define UIP_8023_ADDR_LEN 6
 
@@ -44,7 +44,7 @@
 extern int ethernet_ready;
 extern int eth_mac_addr_ready;
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 extern uint8_t *ip64_packet_buffer;
 #define ethernet_tmp_buf ip64_packet_buffer
 #else

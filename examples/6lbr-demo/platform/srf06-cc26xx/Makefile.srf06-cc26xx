@@ -1,3 +1,5 @@
-ifeq ($(BOARD),sensortag)
+ifeq ($(BOARD),sensortag/cc2650)
 include $(PROJECTDIR)/platform/sensortag/Makefile.sensortag
+else
+PROJECT_SOURCEFILES+=srf06-cc26xx-resources.c
 endif

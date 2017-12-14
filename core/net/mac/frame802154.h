@@ -41,7 +41,7 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 /**
  *    \addtogroup net
@@ -59,20 +59,30 @@
  *  This file converts to and from a structure to a packed 802.15.4
  *  frame.
  *
-*/
-
+ */
 
 /* Includes */
 #ifndef FRAME_802154_H
 #define FRAME_802154_H
 
 #include "contiki-conf.h"
+#include "net/linkaddr.h"
 
 #ifdef IEEE802154_CONF_PANID
 #define IEEE802154_PANID           IEEE802154_CONF_PANID
 #else /* IEEE802154_CONF_PANID */
 #define IEEE802154_PANID           0xABCD
 #endif /* IEEE802154_CONF_PANID */
+
+#define FRAME802154_IEEE802154_2003  (0x00)
+#define FRAME802154_IEEE802154_2006  (0x01)
+#define FRAME802154_IEEE802154E_2012 (0x02)
+
+#ifdef FRAME802154_CONF_VERSION
+#define FRAME802154_VERSION FRAME802154_CONF_VERSION
+#else /* FRAME802154_CONF_VERSION */
+#define FRAME802154_VERSION FRAME802154_IEEE802154_2006
+#endif /* FRAME802154_CONF_VERSION */
 
 /* Macros & Defines */
 
@@ -96,9 +106,6 @@
 
 #define FRAME802154_BROADCASTADDR   (0xFFFF)
 #define FRAME802154_BROADCASTPANDID (0xFFFF)
-
-#define FRAME802154_IEEE802154_2003 (0x00)
-#define FRAME802154_IEEE802154_2006 (0x01)
 
 #define FRAME802154_SECURITY_LEVEL_NONE        (0)
 #define FRAME802154_SECURITY_LEVEL_MIC_32      (1)
@@ -125,7 +132,7 @@
  *            3. Addressing fields    - 4 - 20 bytes  - Variable
  *            4. Aux security header  - 0 - 14 bytes  - Variable
  *            5. CRC                  - 2 bytes       - Fixed
-*/
+ */
 
 /**
  * \brief Defines the bitfields of the frame control field (FCF).
@@ -136,7 +143,9 @@ typedef struct {
   uint8_t frame_pending;     /**< 1 bit. True if sender has more data to send */
   uint8_t ack_required;      /**< 1 bit. Is an ack frame required? */
   uint8_t panid_compression; /**< 1 bit. Is this a compressed header? */
-  /*   uint8_t reserved; */  /**< 3 bit. Unused bits */
+  /*   uint8_t reserved; */  /**< 1 bit. Unused bit */
+  uint8_t sequence_number_suppression; /**< 1 bit. Does the header omit sequence number?, see 802.15.4e */
+  uint8_t ie_list_present;   /**< 1 bit. Does the header contain Information Elements?, see 802.15.4e */
   uint8_t dest_addr_mode;    /**< 2 bit. Destination address mode, see 802.15.4 */
   uint8_t frame_version;     /**< 2 bit. 802.15.4 frame version */
   uint8_t src_addr_mode;     /**< 2 bit. Source address mode, see 802.15.4 */
@@ -146,6 +155,8 @@ typedef struct {
 typedef struct {
   uint8_t  security_level; /**< 3 bit. security level      */
   uint8_t  key_id_mode;    /**< 2 bit. Key identifier mode */
+  uint8_t  frame_counter_suppression;  /**< 1 bit. Frame counter suppression */
+  uint8_t  frame_counter_size;  /**< 1 bit. Frame counter size (0: 4 bytes, 1: 5 bytes) */
   uint8_t  reserved;       /**< 3 bit. Reserved bits       */
 } frame802154_scf_t;
 
@@ -190,8 +201,24 @@ typedef struct {
 /* Prototypes */
 
 int frame802154_hdrlen(frame802154_t *p);
+void frame802154_create_fcf(frame802154_fcf_t *fcf, uint8_t *buf);
 int frame802154_create(frame802154_t *p, uint8_t *buf);
 int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);
+void frame802154_parse_fcf(uint8_t *data, frame802154_fcf_t *pfcf);
+
+/* Get current PAN ID */
+uint16_t frame802154_get_pan_id(void);
+/* Set current PAN ID */
+void frame802154_set_pan_id(uint16_t pan_id);
+/* Tells whether a given Frame Control Field indicates a frame with
+ * source PANID and/or destination PANID */
+void frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id);
+/* Check if the destination PAN ID, if any, matches ours */
+int frame802154_check_dest_panid(frame802154_t *frame);
+/* Check is the address is a broadcast address, whatever its size */
+int frame802154_is_broadcast_addr(uint8_t mode, uint8_t *addr);
+/* Check and extract source and destination linkaddr from frame */
+int frame802154_extract_linkaddr(frame802154_t *frame, linkaddr_t *source_address, linkaddr_t *dest_address);
 
 /** @} */
 #endif /* FRAME_802154_H */

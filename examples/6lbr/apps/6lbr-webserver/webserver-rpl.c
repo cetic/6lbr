@@ -37,8 +37,8 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
+#include "rpl.h"
+#include "rpl-private.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
@@ -74,10 +74,10 @@ static void
 add_rpl_ocp(uint8_t ocp)
 {
   switch(ocp) {
-  case 0: //RPL_OCP_OF0:
+  case RPL_OCP_OF0:
     add("OF0");
     break;
-  case 1: //RPL_OCP_MRHOF:
+  case RPL_OCP_MRHOF:
     add("MRHOF");
     break;
   default:

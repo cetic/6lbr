@@ -120,17 +120,14 @@ uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler)
 static void
 echo_request_input(void)
 {
-#if UIP_CONF_IPV6_RPL
-  uint8_t temp_ext_len;
-#endif /* UIP_CONF_IPV6_RPL */
   /*
    * we send an echo reply. It is trivial if there was no extension
    * headers in the request otherwise we need to remove the extension
    * headers and change a few fields
    */
-  PRINTF("Received Echo Request from");
+  PRINTF("Received Echo Request from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF("\n");
 
@@ -147,44 +144,22 @@ echo_request_input(void)
   }
 
   if(uip_ext_len > 0) {
-#if UIP_CONF_IPV6_RPL
-    if((temp_ext_len = rpl_invert_header())) {
-      /* If there were other extension headers*/
-      UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
-      if (uip_ext_len != temp_ext_len) {
-        uip_len -= (uip_ext_len - temp_ext_len);
-        UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
-        UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-        /* move the echo request payload (starting after the icmp header)
-         * to the new location in the reply.
-         * The shift is equal to the length of the remaining extension headers present
-         * Note: UIP_ICMP_BUF still points to the echo request at this stage
-         */
-      memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - (uip_ext_len - temp_ext_len),
-              (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
-              (uip_len - UIP_IPH_LEN - temp_ext_len - UIP_ICMPH_LEN));
-      }
-      uip_ext_len = temp_ext_len;
-    } else {
-#endif /* UIP_CONF_IPV6_RPL */
-      /* If there were extension headers*/
-      UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-      uip_len -= uip_ext_len;
-      UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
-      UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-      /* move the echo request payload (starting after the icmp header)
-       * to the new location in the reply.
-       * The shift is equal to the length of the extension headers present
-       * Note: UIP_ICMP_BUF still points to the echo request at this stage
-       */
-      memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
-              (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
-              (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
-      uip_ext_len = 0;
-#if UIP_CONF_IPV6_RPL
-    }
-#endif /* UIP_CONF_IPV6_RPL */
+    /* Remove extension headers if any */
+    UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+    uip_len -= uip_ext_len;
+    UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+    UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+    /* move the echo request payload (starting after the icmp header)
+     * to the new location in the reply.
+     * The shift is equal to the length of the extension headers present
+     * Note: UIP_ICMP_BUF still points to the echo request at this stage
+     */
+    memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
+        (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
+        (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
+    uip_ext_len = 0;
   }
+
   /* Below is important for the correctness of UIP_ICMP_BUF and the
    * checksum
    */
@@ -195,9 +170,9 @@ echo_request_input(void)
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
-  PRINTF("Sending Echo Reply to");
+  PRINTF("Sending Echo Reply to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   UIP_STAT(++uip_stat.icmp.sent);
@@ -276,15 +251,11 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
-#if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
-#endif /* UIP_CONF_IPV6_RPL */
-
   UIP_STAT(++uip_stat.icmp.sent);
 
-  PRINTF("Sending ICMPv6 ERROR message type %d code %d to", type, code);
+  PRINTF("Sending ICMPv6 ERROR message type %d code %d to ", type, code);
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   return;
@@ -325,9 +296,12 @@ echo_reply_input(void)
 {
   int ttl;
   uip_ipaddr_t sender;
-#if UIP_CONF_IPV6_RPL
-  uint8_t temp_ext_len;
-#endif /* UIP_CONF_IPV6_RPL */
+
+  PRINTF("Received Echo Reply from ");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF(" to ");
+  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+  PRINTF("\n");
 
 #if CETIC_6LBR_TRACE_PING
   //TODO: Replace with proper callback
@@ -338,45 +312,20 @@ echo_reply_input(void)
   ttl = UIP_IP_BUF->ttl;
 
   if(uip_ext_len > 0) {
-#if UIP_CONF_IPV6_RPL
-    if((temp_ext_len = rpl_invert_header())) {
-      /* If there were other extension headers*/
-      UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
-      if (uip_ext_len != temp_ext_len) {
-        uip_len -= (uip_ext_len - temp_ext_len);
-        UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
-        UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-        /* move the echo reply payload (starting after the icmp
-         * header) to the new location in the reply.  The shift is
-         * equal to the length of the remaining extension headers
-         * present Note: UIP_ICMP_BUF still points to the echo reply
-         * at this stage
-         */
-        memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - (uip_ext_len - temp_ext_len),
-                (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
-                (uip_len - UIP_IPH_LEN - temp_ext_len - UIP_ICMPH_LEN));
-      }
-      uip_ext_len = temp_ext_len;
-      uip_len -= uip_ext_len;
-    } else {
-#endif /* UIP_CONF_IPV6_RPL */
-      /* If there were extension headers*/
-      UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-      uip_len -= uip_ext_len;
-      UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
-      UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-      /* move the echo reply payload (starting after the icmp header)
-       * to the new location in the reply.  The shift is equal to the
-       * length of the extension headers present Note: UIP_ICMP_BUF
-       * still points to the echo request at this stage
-       */
-      memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
-              (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
-              (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
-      uip_ext_len = 0;
-#if UIP_CONF_IPV6_RPL
-    }
-#endif /* UIP_CONF_IPV6_RPL */
+    /* Remove extension headers if any */
+    UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+    uip_len -= uip_ext_len;
+    UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+    UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+    /* move the echo reply payload (starting after the icmp header)
+     * to the new location in the reply.  The shift is equal to the
+     * length of the extension headers present Note: UIP_ICMP_BUF
+     * still points to the echo request at this stage
+     */
+    memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
+        (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
+        (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
+    uip_ext_len = 0;
   }
 
   /* Call all registered applications to let them know an echo reply

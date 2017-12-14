@@ -54,6 +54,8 @@
 
 //RPL Configuration
 
+#if CETIC_6LBR_WITH_RPL
+
 #undef RPL_CONF_DEFAULT_INSTANCE
 #define RPL_CONF_DEFAULT_INSTANCE    (nvm_data.rpl_instance_id)
 
@@ -81,14 +83,49 @@
 #undef RPL_CONF_PREFERENCE
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
-#undef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL     (nvm_data.security_level)
+#undef RPL_CONF_WITH_DAO_ACK_TEST
+#define RPL_CONF_WITH_DAO_ACK_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
+
+#undef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)
+
+#undef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
+
+#if CETIC_6LBR_RPL_RUNTIME_MOP
+extern int cetic_6lbr_config_rpl_mop(void);
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP (cetic_6lbr_config_rpl_mop())
+#endif
+
+#endif /* CETIC_6LBR_WITH_RPL */
+
+// Security configuration
+
+#if CETIC_6LBR_WITH_LLSEC
+
+#undef NONCORESEC_CONF_SEC_LVL
+#define NONCORESEC_CONF_SEC_LVL     (nvm_data.security_level)
 
 #undef NONCORESEC_CONF_KEY_REF
 #define NONCORESEC_CONF_KEY_REF (nvm_data.noncoresec_key)
 
+#undef ADAPTIVESEC_CONF_UNICAST_SEC_LVL
+#define ADAPTIVESEC_CONF_UNICAST_SEC_LVL (nvm_data.security_level)
+
+#undef ADAPTIVESEC_CONF_BROADCAST_SEC_LVL
+#define ADAPTIVESEC_CONF_BROADCAST_SEC_LVL (nvm_data.security_level)
+
+#undef ADAPTIVESEC_CONF_UNICAST_MIC_LEN
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN ADAPTIVESEC_MIC_LEN(ADAPTIVESEC_CONF_UNICAST_SEC_LVL)
+
+#undef ADAPTIVESEC_CONF_BROADCAST_MIC_LEN
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN ADAPTIVESEC_MIC_LEN(ADAPTIVESEC_CONF_BROADCAST_SEC_LVL)
+
 #define LLSEC_ANTIREPLAY_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY) != 0)
 #define LLSEC_REBOOT_WORKAROUND_ENABLED ((nvm_data.noncoresec_flags & CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND) != 0)
+
+#endif /* CETIC_6LBR_WITH_LLSEC */
 
 #if CONTIKI_TARGET_NATIVE
 

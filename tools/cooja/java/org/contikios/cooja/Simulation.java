@@ -71,6 +71,7 @@ public class Simulation extends Observable implements Runnable {
   private long speedLimitLastSimtime;
   private long speedLimitLastRealtime;
 
+  private long lastStartTime;
   private long currentSimulationTime = 0;
 
   private String title = null;
@@ -96,7 +97,7 @@ public class Simulation extends Observable implements Runnable {
 
   private long maxMoteStartupDelay = 1000*MILLISECOND;
 
-  private Random randomGenerator = new Random();
+  private SafeRandom randomGenerator;
 
   private boolean hasMillisecondObservers = false;
   private MillisecondObservable millisecondObservable = new MillisecondObservable();
@@ -257,7 +258,7 @@ public class Simulation extends Observable implements Runnable {
   }
 
   public void run() {
-    long lastStartTime = System.currentTimeMillis();
+    lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
     isRunning = true;
     speedLimitLastRealtime = System.currentTimeMillis();
@@ -331,6 +332,7 @@ public class Simulation extends Observable implements Runnable {
    */
   public Simulation(Cooja cooja) {
     this.cooja = cooja;
+    randomGenerator = new SafeRandom(this);
   }
 
   /**
@@ -855,6 +857,9 @@ public class Simulation extends Observable implements Runnable {
       }
     };
 
+    //Add to list of uninitialized motes
+    motesUninit.add(mote);
+
     if (!isRunning()) {
       /* Simulation is stopped, add mote immediately */
       addMote.run();
@@ -862,8 +867,6 @@ public class Simulation extends Observable implements Runnable {
       /* Add mote from simulation thread */
       invokeSimulationThread(addMote);
     }
-    //Add to list of uninitialized motes
-    motesUninit.add(mote);
     
   }
 
@@ -1080,6 +1083,16 @@ public class Simulation extends Observable implements Runnable {
    */
   public long getSimulationTimeMillis() {
     return currentSimulationTime / MILLISECOND;
+  }
+
+  /**
+   * Return the actual time value corresponding to an argument which
+   * is a simulation time value in microseconds.
+   *
+   * @return Actual time (microseconds)
+   */
+  public long convertSimTimeToActualTime(long simTime) {
+    return simTime + lastStartTime * 1000;
   }
 
   /**

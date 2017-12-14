@@ -77,7 +77,7 @@ static uint8_t fwd_spread;
 static void
 mcast_fwd(void *p)
 {
-  memcpy(uip_buf, &mcast_buf, mcast_len);
+  memcpy(&uip_buf[UIP_LLH_LEN], &mcast_buf, mcast_len);
   uip_len = mcast_len;
   UIP_IP_BUF->ttl--;
   tcpip_output(NULL);
@@ -88,8 +88,10 @@ static uint8_t
 in()
 {
   rpl_dag_t *d;                 /* Our DODAG */
+#if !CETIC_6LBR_ROUTER
   uip_ipaddr_t *parent_ipaddr;  /* Our pref. parent's IPv6 address */
   const uip_lladdr_t *parent_lladdr;  /* Our pref. parent's LL address */
+#endif
 
   /*
    * Fetch a pointer to the LL address of our preferred parent
@@ -101,15 +103,18 @@ in()
    */
   d = rpl_get_any_dag();
   if(!d) {
+    PRINTF("SMRF: No DODAG\n");
     UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
+#if !CETIC_6LBR_ROUTER
   /* Retrieve our preferred parent's LL address */
   parent_ipaddr = rpl_get_parent_ipaddr(d->preferred_parent);
   parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
 
   if(parent_lladdr == NULL) {
+    PRINTF("SMRF: NO Parent exist \n");
     UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
@@ -124,9 +129,11 @@ in()
     UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
+#endif /* !CETIC_6LBR_ROUTER */
 
   if(UIP_IP_BUF->ttl <= 1) {
     UIP_MCAST6_STATS_ADD(mcast_dropped);
+    PRINTF("SMRF: TTL too low\n");
     return UIP_MCAST6_DROP;
   }
 
@@ -168,12 +175,14 @@ in()
         fwd_delay = fwd_delay * (1 + ((random_rand() >> 11) % fwd_spread));
       }
 
-      memcpy(&mcast_buf, uip_buf, uip_len);
+      memcpy(&mcast_buf, &uip_buf[UIP_LLH_LEN], uip_len);
       mcast_len = uip_len;
       ctimer_set(&mcast_periodic, fwd_delay, mcast_fwd, NULL);
     }
     PRINTF("SMRF: %u bytes: fwd in %u [%u]\n",
            uip_len, fwd_delay, fwd_spread);
+  } else {
+    PRINTF("SMRF: Group unknown, dropping\n");
   }
 
   /* Done with this packet unless we are a member of the mcast group */

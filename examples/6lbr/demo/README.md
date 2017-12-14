@@ -37,13 +37,25 @@ The [Simple Router](simple-router/README.md) demo is the simplest configuration 
 
 The [Simple Smart-Bridge](simple-smartbridge/README.md) demo is the simplest configuration of 6LBR in SmartBridge mode.
 
+### Non-Storing
+
+The [Non-Storing](non-storing/README.md) demo creates a WSN network using the Non-Storing mode of RPL.
+
 ### NAT-64
 
 The [NAT-64](nat64/README.md) demo activates the NAT-64 support in 6LBR, allowing to reach the BR and the nodes using IPv4.
 
+### TSCH
+
+The [TSCH](tsch/README.md) demo activates the TSCH MAC layer in the slip-radio and activates its support in 6LBR.
+
 ### LLSEC
 
 The [LLSEC](llsec/README.md) demo enables Link-Layer Security in the WSN using NonCoresec engine.
+
+### AdaptiveSec
+
+The [AdaptiveSec](adaptivesec/README.md) demo enables Link-Layer Security in the WSN using AdaptiveSec engine.
 
 ### Multi-Radio
 
@@ -52,3 +64,15 @@ The [MultiRadio](multi-radio/README.md) demo shows how to run 6LBR with two slip
 ### 100 Nodes
 
 The [100 nodes](100-nodes/README.md) demo show how 6LBR behaves in a high-density network.
+
+### NDP-Router
+
+The [NDP-Router](ndp-router/README.md) demo creates a WSN network without using RPL.
+
+### Multi-SmartBridge
+
+The [Multi-SmartBridge](multi-smartbridge/README.md) demo shows the configuration of two 6LBR in SmartBridge mode with multi-br activated.
+
+### RPL-Root+RPL-Relay
+
+The [RPL-Root+RPL-Relay](multi-smartbridge/README.md) demo shows the configuration of two 6LBR, one acting as a standalone RPL Root, the second being a simple packet relay.

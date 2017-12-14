@@ -47,7 +47,6 @@
 #include "contiki.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
-#include "dev/scb.h"
 #include "dev/nvic.h"
 #include "dev/uart.h"
 #include "dev/watchdog.h"
@@ -58,6 +57,7 @@
 #include "dev/cc2538-rf.h"
 #include "dev/udma.h"
 #include "dev/crypto.h"
+#include "dev/rtcc.h"
 #include "usb/usb-serial.h"
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -65,13 +65,16 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
+#include "soc.h"
 #include "cpu.h"
 #include "reg.h"
 #include "ieee-addr.h"
 #include "lpm.h"
+#include "lib/csprng.h"
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 #if STARTUP_CONF_VERBOSE
@@ -106,6 +109,62 @@ fade(unsigned char l)
       asm("nop");
     }
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+rtc_init(void)
+{
+#if RTC_CONF_INIT
+#if RTC_CONF_SET_FROM_SYS
+  char *next;
+  simple_td_map td;
+#endif
+
+  /* Configure RTC and return structure with all parameters */
+  rtcc_init();
+
+#if RTC_CONF_SET_FROM_SYS
+#ifndef DATE
+#error Could not retrieve date from system
+#endif
+
+  /* Alternatively, for test only, undefine DATE and define it on your own as:
+   * #define DATE "07 06 12 15 16 00 00"
+   * Also note that if you restart the node at a given time, it will use the
+   * already defined DATE, so if you want to update the device date/time you
+   * need to reflash the node.
+   */
+
+  /* Get the system date in the following format: wd dd mm yy hh mm ss */
+  PRINTF("Setting RTC from system date: %s\n", DATE);
+
+  /* Configure the RTC with the current values */
+  td.weekdays = (uint8_t)strtol(DATE, &next, 10);
+  td.day      = (uint8_t)strtol(next, &next, 10);
+  td.months   = (uint8_t)strtol(next, &next, 10);
+  td.years    = (uint8_t)strtol(next, &next, 10);
+  td.hours    = (uint8_t)strtol(next, &next, 10);
+  td.minutes  = (uint8_t)strtol(next, &next, 10);
+  td.seconds  = (uint8_t)strtol(next, NULL, 10);
+
+  /* Don't care about the milliseconds... */
+  td.miliseconds = 0;
+
+  /* This example relies on 24h mode */
+  td.mode = RTCC_24H_MODE;
+
+  /*
+   * And to simplify the configuration, it relies on the fact that it will be
+   * executed in the present century
+   */
+  td.century = RTCC_CENTURY_20XX;
+
+  /* Set the time and date */
+  if(rtcc_set_time_date(&td) == AB08_ERROR) {
+    PRINTF("Failed to set time and date\n");
+  }
+#endif
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -185,6 +244,9 @@ main(void)
 
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
+#if STARTUP_CONF_VERBOSE
+  soc_print_info();
+#endif
 
   /* Initialise the H/W RNG engine. */
   random_init(0);
@@ -195,17 +257,23 @@ main(void)
   ctimer_init();
 
   board_init();
+  set_rf_params();
 
 #if CRYPTO_CONF_INIT
   crypto_init();
   crypto_disable();
+  csprng_init();
 #endif
 
+  rtc_init();
+
+  queuebuf_init();
   netstack_init();
-  set_rf_params();
 
   PRINTF(" Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
+  PRINTF(" LLSEC: ");
+  PRINTF("%s\n", NETSTACK_LLSEC.name);
   PRINTF(" MAC: ");
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
@@ -213,14 +281,13 @@ main(void)
 
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
-  queuebuf_init();
   process_start(&tcpip_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_start(&sensors_process, NULL);
-
+#if PLATFORM_HAS_BUTTON
   SENSORS_ACTIVATE(button_sensor);
-
+#endif
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 

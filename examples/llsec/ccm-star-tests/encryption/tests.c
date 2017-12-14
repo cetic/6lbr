@@ -47,6 +47,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SEC_LVL 6
+#define MIC_LEN LLSEC802154_MIC_LEN(6)
+
 /*---------------------------------------------------------------------------*/
 /* Test vector C.2.1.2 from IEEE 802.15.4-2006 */
 static void
@@ -56,8 +59,8 @@ test_sec_lvl_6()
                       0xC4 , 0xC5 , 0xC6 , 0xC7 ,
                       0xC8 , 0xC9 , 0xCA , 0xCB ,
                       0xCC , 0xCD , 0xCE , 0xCF };
-  uint8_t extended_source_address[8] = { 0xAC , 0xDE , 0x48 , 0x00 ,
-                                         0x00 , 0x00 , 0x00 , 0x01 };
+  linkaddr_t source_address = {{ 0xAC , 0xDE , 0x48 , 0x00 ,
+                                 0x00 , 0x00 , 0x00 , 0x01 }};
   uint8_t data[30] = { 0x2B , 0xDC , 0x84 , 0x21 , 0x43 ,
                        /* Destination Address */
                        0x02 , 0x00 , 0x00 , 0x00 , 0x00 , 0x48 , 0xDE , 0xAC ,
@@ -70,26 +73,32 @@ test_sec_lvl_6()
                        /* Frame Counter */
                        0x05 , 0x00 , 0x00 , 0x00 ,
                        0x01 , 0xCE };
-  uint8_t oracle[LLSEC802154_MIC_LENGTH] = { 0x4F , 0xDE , 0x52 , 0x90 ,
-                                             0x61 , 0xF9 , 0xC6 , 0xF1 };
+  uint8_t oracle[MIC_LEN] = { 0x4F , 0xDE , 0x52 , 0x90 ,
+                              0x61 , 0xF9 , 0xC6 , 0xF1 };
+  uint8_t nonce[13];
   frame802154_frame_counter_t counter;
-  uint8_t mic[LLSEC802154_MIC_LENGTH];
   
   printf("Testing verification ... ");
   
+  linkaddr_copy(&linkaddr_node_addr, &source_address);
   packetbuf_clear();
   packetbuf_set_datalen(30);
   memcpy(packetbuf_hdrptr(), data, 30);
   counter.u32 = 5;
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, counter.u16[1]);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
   packetbuf_hdrreduce(29);
   
   CCM_STAR.set_key(key);
-  ccm_star_mic_packetbuf(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_packetbuf_set_nonce(nonce, 1);
+  CCM_STAR.aead(nonce,
+      packetbuf_dataptr(), packetbuf_datalen(),
+      packetbuf_hdrptr(), packetbuf_hdrlen(),
+      ((uint8_t *) packetbuf_hdrptr()) + 30, MIC_LEN,
+      1);
   
-  if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
+  if(memcmp(((uint8_t *) packetbuf_hdrptr()) + 30, oracle, MIC_LEN) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");
@@ -97,7 +106,6 @@ test_sec_lvl_6()
   
   printf("Testing encryption ... ");
   
-  ccm_star_ctr_packetbuf(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xD8) {
     printf("Success\n");
   } else {
@@ -105,7 +113,13 @@ test_sec_lvl_6()
   }
   
   printf("Testing decryption ... ");
-  ccm_star_ctr_packetbuf(extended_source_address);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &source_address);
+  ccm_star_packetbuf_set_nonce(nonce, 0);
+  CCM_STAR.aead(nonce,
+      packetbuf_dataptr(), packetbuf_datalen(),
+      packetbuf_hdrptr(), packetbuf_hdrlen(),
+      ((uint8_t *) packetbuf_hdrptr()) + 30, MIC_LEN,
+      0);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xCE) {
     printf("Success\n");
   } else {

@@ -47,10 +47,6 @@
 #include "log-6lbr.h"
 #include "nvm-proxy.h"
 
-#ifndef CETIC_6LBR_NVM_PROXY_PORT
-#define CETIC_6LBR_NVM_PROXY_PORT 4000
-#endif
-
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 
@@ -97,7 +93,7 @@ PROCESS_THREAD(nvm_proxy_process, ev, data)
   LOG6LBR_INFO("NVM Proxy started\n");
 
   server_conn = udp_new(NULL, 0, NULL);
-  udp_bind(server_conn, UIP_HTONS(CETIC_6LBR_NVM_PROXY_PORT));
+  udp_bind(server_conn, UIP_HTONS(nvm_data->nvm_proxy_port));
 
   while(1) {
     PROCESS_YIELD();

@@ -39,10 +39,10 @@
 #include "sys/energest.h"
 #include "sys/process.h"
 #include "dev/sys-ctrl.h"
-#include "dev/scb.h"
 #include "dev/rfcore-xreg.h"
 #include "rtimer-arch.h"
 #include "lpm.h"
+#include "cc2538_cm3.h"
 #include "reg.h"
 
 #include <stdbool.h>
@@ -101,7 +101,7 @@ static uint8_t max_pm;
 #ifdef LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
 #define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
 #else
-#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 3
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 5
 #endif
 
 static lpm_periph_permit_pm1_func_t
@@ -128,8 +128,7 @@ periph_permit_pm1(void)
 static void
 enter_pm0(void)
 {
-  ENERGEST_OFF(ENERGEST_TYPE_CPU);
-  ENERGEST_ON(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
   /* We are only interested in IRQ energest while idle or in LPM */
   ENERGEST_IRQ_RESTORE(irq_energest);
@@ -147,8 +146,7 @@ enter_pm0(void)
   /* Remember IRQ energest for next pass */
   ENERGEST_IRQ_SAVE(irq_energest);
 
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
-  ENERGEST_OFF(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -238,8 +236,7 @@ lpm_exit()
   /* Remember IRQ energest for next pass */
   ENERGEST_IRQ_SAVE(irq_energest);
 
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
-  ENERGEST_OFF(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -312,8 +309,7 @@ lpm_enter()
 
   /* We are only interested in IRQ energest while idle or in LPM */
   ENERGEST_IRQ_RESTORE(irq_energest);
-  ENERGEST_OFF(ENERGEST_TYPE_CPU);
-  ENERGEST_ON(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
   /* Remember the current time so we can keep stats when we wake up */
   if(LPM_CONF_STATS) {
@@ -339,8 +335,7 @@ lpm_enter()
 
     /* Remember IRQ energest for next pass */
     ENERGEST_IRQ_SAVE(irq_energest);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);
-    ENERGEST_OFF(ENERGEST_TYPE_LPM);
+    ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
   } else {
     /* All clear. Assert WFI and drop to PM1/2. This is now un-interruptible */
     assert_wfi();
@@ -384,7 +379,7 @@ lpm_init()
    * By default, we will enter PM0 unless lpm_enter() decides otherwise
    */
   REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM0;
-  REG(SCB_SYSCTRL) |= SCB_SYSCTRL_SLEEPDEEP;
+  SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
   max_pm = LPM_CONF_MAX_PM;
 

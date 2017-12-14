@@ -41,9 +41,16 @@
 #include "string.h"
 #include "stdlib.h"
 
+#if CETIC_6LBR_WITH_RPL
+#include "rpl-private.h"
+#if RPL_WITH_NON_STORING
+#include "rpl-ns.h"
+#endif
+#endif
+
 #include "log-6lbr.h"
 
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
 #include "node-info-export.h"
 #endif
 
@@ -72,7 +79,7 @@ node_info_route_notification_cb(int event,
 void
 node_info_config(void)
 {
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
   node_info_export_config();
 #endif
 }
@@ -83,11 +90,31 @@ node_info_init(void)
   memset(node_info_table, 0, sizeof(node_info_table));
   uip_ds6_notification_add(&node_info_route_notification,
                            node_info_route_notification_cb);
-#if CETIC_NODE_INFO_EXPORT
+#if CETIC_6LBR_NODE_INFO_EXPORT
   node_info_export_init();
 #endif
 }
 
+void
+node_info_update_all(void)
+{
+#if RPL_WITH_NON_STORING
+  if(RPL_IS_NON_STORING(default_instance)) {
+    static rpl_ns_node_t *link;
+    for(link = rpl_ns_node_head(); link != NULL; link = rpl_ns_node_next(link)) {
+      if(link->parent != NULL) {
+        uip_ipaddr_t addr;
+        rpl_ns_get_node_global_addr(&addr, link);
+        if(rpl_ns_is_node_reachable(link->dag, &addr)) {
+          node_info_set_flags(&addr, NODE_INFO_HAS_ROUTE);
+        } else {
+          node_info_clear_flags(&addr, NODE_INFO_HAS_ROUTE);
+        }
+      }
+    }
+  }
+#endif
+}
 node_info_t *
 node_info_add(uip_ipaddr_t * ipaddr)
 {

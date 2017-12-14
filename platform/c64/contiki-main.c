@@ -32,13 +32,24 @@
  *
  */
 
-#include <string.h>
+#include <stdlib.h>
 
 #include "contiki-net.h"
 #include "ctk/ctk.h"
 #include "sys/log.h"
 #include "lib/config.h"
+#include "dev/slip.h"
 #include "net/ethernet-drv.h"
+
+#if WITH_SLIP
+#define DRIVER_PROCESS &slip_process,
+#define SLIP_INIT() slip_arch_init(0)
+#define SLIP_POLL() slip_arch_poll()
+#else /* WITH_SLIP */
+#define DRIVER_PROCESS &ethernet_process,
+#define SLIP_INIT()
+#define SLIP_POLL()
+#endif /* WITH_SLIP */
 
 #if WITH_GUI
 #define CTK_PROCESS &ctk_process,
@@ -54,10 +65,11 @@
 
 PROCINIT(&etimer_process,
          CTK_PROCESS
+         DRIVER_PROCESS
          &tcpip_process
          RESOLV_PROCESS);
 
-static struct ethernet_config *ethernet_config;
+void slip_arch_poll(void);
 
 /*-----------------------------------------------------------------------------------*/
 #if WITH_ARGS
@@ -79,53 +91,16 @@ main(void)
 
 #endif /* WITH_ARGS */
 
+#if WITH_80COL
+  _heapadd((void *)0x0400, 0x0400);
+#endif /* WITH_80COL */
+
+  config_read("contiki.cfg");
+
+  SLIP_INIT();
+
   process_init();
-
-#if 1
-  ethernet_config = config_read("contiki.cfg");
-#else
-  {
-    static struct ethernet_config config = {0xDE08, "cs8900a.eth"};
-    uip_ipaddr_t addr;
-
-    uip_ipaddr(&addr, 192,168,0,128);
-    uip_sethostaddr(&addr);
-
-    uip_ipaddr(&addr, 255,255,255,0);
-    uip_setnetmask(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_setdraddr(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-
-    ethernet_config = &config;
-  }
-#endif
-
-#if (WITH_GUI && WITH_MOUSE)
-  {
-    static const uint8_t mouse_sprite[64] = {
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x0F, 0xE0, 0x00, 0x0F, 0xC0, 0x00, 0x0F,
-      0x80, 0x00, 0x0F, 0xC0, 0x00, 0x0D, 0xE0, 0x00,
-      0x08, 0xF0, 0x00, 0x00, 0x78, 0x00, 0x00, 0x3C,
-      0x00, 0x00, 0x1E, 0x00, 0x00, 0x0F, 0x00, 0x00,
-      0x07, 0x80, 0x00, 0x03, 0x80, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-    memcpy((void*)0x0340, mouse_sprite, sizeof(mouse_sprite));
-    *(uint8_t*)0x07F8 = 0x0340 / 64;
-    VIC.spr0_color = COLOR_WHITE;
-  }
-#endif /* WITH_GUI && WITH_MOUSE */
-
   procinit_init();
-
-  process_start((struct process *)&ethernet_process, (void *)ethernet_config);
-
   autostart_start(autostart_processes);
 
   log_message("Contiki up and running ...", "");
@@ -135,6 +110,8 @@ main(void)
     process_run();
 
     etimer_request_poll();
+
+    SLIP_POLL();
   }
 }
 /*-----------------------------------------------------------------------------------*/

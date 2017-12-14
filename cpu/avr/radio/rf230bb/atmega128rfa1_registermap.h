@@ -71,6 +71,7 @@
 #define RG_PHY_ED_LEVEL       PHY_ED_LEVEL
 #define RG_RX_SYN             RX_SYN
 #define SR_RSSI               0x146, 0x1f, 0
+#define SR_RX_CRC_VALID       0x146, 0x80, 7
 #define SR_PLL_CF_START       0x15a, 0x80, 7
 #define SR_PLL_DCU_START      0x15b, 0x80, 7
 #define SR_MAX_CSMA_RETRIES   0x16c, 0x0e, 1
@@ -82,7 +83,28 @@
 #define SR_CCA_DONE            0x141, 0x80, 7
 #define SR_CCA_STATUS          0x141, 0x40, 6
 #define SR_AACK_SET_PD         0x16e, 0x20, 5
+#define SR_AACK_DIS_ACK        0x16e, 0x10, 4
 
+#define RG_XAH_CTRL_1         (0x157)
+#define SR_AACK_PROM_MODE     0x157, 0x02, 1
+
+
+#define RG_AES_KEY             (0x13F)
+#define SR_AES_KEY             0x13F, 0xff, 0
+#define RG_AES_STATE           (0x13E)
+#define SR_AES_STATE           0x13E, 0xff, 0
+#define RG_AES_STATUS          (0x13D)
+#define SR_AES_STATUS          0x13D, 0xff, 0
+#define SR_AES_STATUS_DONE     0x13D, 0x01, 0
+#define SR_AES_STATUS_ERR      0x13D, 0x80, 7
+#define RG_AES_CNTRL           (0x13C)
+#define SR_AES_CNTRL           0x13C, 0xff, 0
+#define SR_AES_CNTRL_IM        0x13C, 0x04, 2
+#define SR_AES_CNTRL_DIR       0x13C, 0x08, 3
+#define SR_AES_CNTRL_MODE      0x13C, 0x20, 5
+#define SR_AES_CNTRL_REQUEST   0x13C, 0x80, 7
+
+#define SR_IRQ_MASK                  0x14e, 0xff, 0
 
 /* RF230 register assignments, for reference */
 #if 0

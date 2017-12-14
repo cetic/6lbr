@@ -50,6 +50,7 @@
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "net/linkaddr.h"
+#include "net/queuebuf.h"
 
 #include "dev/ds2401.h"
 #include "sys/node-id.h"
@@ -177,7 +178,7 @@ init_net(void)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf_P(PSTR("Tentative global IPv6 address "));

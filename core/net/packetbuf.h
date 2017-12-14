@@ -55,6 +55,8 @@
 #include "contiki-conf.h"
 #include "net/linkaddr.h"
 #include "net/llsec/llsec802154.h"
+#include "net/mac/tsch/tsch-conf.h"
+#include "net/llsec/anti-replay.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -65,20 +67,17 @@
 #define PACKETBUF_SIZE 128
 #endif
 
-/**
- * \brief      The size of the packetbuf header, in bytes
- */
-#ifdef PACKETBUF_CONF_HDR_SIZE
-#define PACKETBUF_HDR_SIZE PACKETBUF_CONF_HDR_SIZE
-#else
-#define PACKETBUF_HDR_SIZE 48
-#endif
-
 #ifdef PACKETBUF_CONF_WITH_PACKET_TYPE
 #define PACKETBUF_WITH_PACKET_TYPE PACKETBUF_CONF_WITH_PACKET_TYPE
 #else
 #define PACKETBUF_WITH_PACKET_TYPE NETSTACK_CONF_WITH_RIME
 #endif
+
+#ifdef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#define PACKETBUF_WITH_UNENCRYPTED_BYTES PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#else /* PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES */
+#define PACKETBUF_WITH_UNENCRYPTED_BYTES 0
+#endif /* PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES */
 
 /**
  * \brief      Clear and reset the packetbuf
@@ -92,36 +91,12 @@
 void packetbuf_clear(void);
 
 /**
- * \brief      Clear and reset the header of the packetbuf
- *
- *             This function clears the header of the packetbuf and
- *             resets all the internal state pointers pertaining to
- *             the header (header size, header pointer, but not
- *             external data pointer). It is used before after sending
- *             a packet in the packetbuf, to be able to reuse the
- *             packet buffer for a later retransmission.
- *
- */
-void packetbuf_clear_hdr(void);
-
-void packetbuf_hdr_remove(int bytes);
-
-/**
  * \brief      Get a pointer to the data in the packetbuf
  * \return     Pointer to the packetbuf data
  *
  *             This function is used to get a pointer to the data in
  *             the packetbuf. The data is either stored in the packetbuf,
  *             or referenced to an external location.
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. The header is accessed with the
- *             packetbuf_hdrptr() function.
- *
- *             For incoming packets, both the packet header and the
- *             packet data is stored in the data portion of the
- *             packetbuf. Thus this function is used to get a pointer to
- *             the header for incoming packets.
  *
  */
 void *packetbuf_dataptr(void);
@@ -130,23 +105,12 @@ void *packetbuf_dataptr(void);
  * \brief      Get a pointer to the header in the packetbuf, for outbound packets
  * \return     Pointer to the packetbuf header
  *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get a
- *             pointer to the header in the packetbuf. The header is
- *             stored in the packetbuf.
- *
  */
 void *packetbuf_hdrptr(void);
 
 /**
  * \brief      Get the length of the header in the packetbuf
  * \return     Length of the header in the packetbuf
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get
- *             the length of the header in the packetbuf. The header is
- *             stored in the packetbuf and accessed via the
- *             packetbuf_hdrptr() function.
  *
  */
 uint8_t packetbuf_hdrlen(void);
@@ -155,17 +119,6 @@ uint8_t packetbuf_hdrlen(void);
 /**
  * \brief      Get the length of the data in the packetbuf
  * \return     Length of the data in the packetbuf
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get
- *             the length of the data in the packetbuf. The data is
- *             stored in the packetbuf and accessed via the
- *             packetbuf_dataptr() function.
- *
- *             For incoming packets, both the packet header and the
- *             packet data is stored in the data portion of the
- *             packetbuf. This function is then used to get the total
- *             length of the packet - both header and data.
  *
  */
 uint16_t packetbuf_datalen(void);
@@ -178,12 +131,15 @@ uint16_t packetbuf_datalen(void);
 uint16_t packetbuf_totlen(void);
 
 /**
+ * \brief      Get the total length of the remaining space in the packetbuf
+ * \return     Length of the remaining space in the packetbuf
+ *
+ */
+uint16_t packetbuf_remaininglen(void);
+
+/**
  * \brief      Set the length of the data in the packetbuf
  * \param len  The length of the data
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to set
- *             the length of the data in the packetbuf.
  */
 void packetbuf_set_datalen(uint16_t len);
 
@@ -227,28 +183,12 @@ int packetbuf_copyfrom(const void *from, uint16_t len);
  *
  *             The external buffer to which the packetbuf is to be
  *             copied must be able to accomodate at least
- *             (PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) bytes. The number of
+ *             PACKETBUF_SIZE bytes. The number of
  *             bytes that was copied to the external buffer is
  *             returned.
  *
  */
 int packetbuf_copyto(void *to);
-
-/**
- * \brief      Copy the header portion of the packetbuf to an external buffer
- * \param to   A pointer to the buffer to which the data is to be copied
- * \retval     The number of bytes that was copied to the external buffer
- *
- *             This function copies the header portion of the packetbuf
- *             to an external buffer.
- *
- *             The external buffer to which the packetbuf is to be
- *             copied must be able to accomodate at least
- *             PACKETBUF_HDR_SIZE bytes. The number of bytes that was
- *             copied to the external buffer is returned.
- *
- */
-int packetbuf_copyto_hdr(uint8_t *to);
 
 /**
  * \brief      Extend the header of the packetbuf, for outbound packets
@@ -283,11 +223,9 @@ int packetbuf_hdrreduce(int size);
 typedef uint16_t packetbuf_attr_t;
 
 struct packetbuf_attr {
-/*   uint8_t type; */
   packetbuf_attr_t val;
 };
 struct packetbuf_addr {
-/*   uint8_t type; */
   linkaddr_t addr;
 };
 
@@ -313,7 +251,11 @@ enum {
   PACKETBUF_ATTR_MAC_SEQNO,
   PACKETBUF_ATTR_MAC_ACK,
   PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
-  
+#if TSCH_WITH_LINK_SELECTOR
+  PACKETBUF_ATTR_TSCH_SLOTFRAME,
+  PACKETBUF_ATTR_TSCH_TIMESLOT,
+#endif /* TSCH_WITH_LINK_SELECTOR */
+
   /* Scope 1 attributes: used between two neighbors only. */
 #if PACKETBUF_WITH_PACKET_TYPE
   PACKETBUF_ATTR_PACKET_TYPE,
@@ -327,17 +269,25 @@ enum {
 #endif /* NETSTACK_CONF_WITH_RIME */
   PACKETBUF_ATTR_PENDING,
   PACKETBUF_ATTR_FRAME_TYPE,
-#if LLSEC802154_SECURITY
+#if LLSEC802154_USES_AUX_HEADER
   PACKETBUF_ATTR_SECURITY_LEVEL,
+#endif /* LLSEC802154_USES_AUX_HEADER */
+#if LLSEC802154_USES_FRAME_COUNTER
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3,
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
+#if ANTI_REPLAY_WITH_SUPPRESSION
+  PACKETBUF_ATTR_NEIGHBOR_INDEX,
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
 #if LLSEC802154_USES_EXPLICIT_KEYS
   PACKETBUF_ATTR_KEY_ID_MODE,
   PACKETBUF_ATTR_KEY_INDEX,
   PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-#endif /* LLSEC802154_SECURITY */
-  
+#if PACKETBUF_WITH_UNENCRYPTED_BYTES
+  PACKETBUF_ATTR_UNENCRYPTED_BYTES,
+#endif /* PACKETBUF_WITH_UNENCRYPTED_BYTES */
+
   /* Scope 2 attributes: used between end-to-end nodes. */
 #if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ATTR_HOPS,
@@ -358,24 +308,6 @@ enum {
   PACKETBUF_ATTR_MAX
 };
 
-/* Define surrogates when 802.15.4 security is off */
-#if !LLSEC802154_SECURITY
-enum {
-  PACKETBUF_ATTR_SECURITY_LEVEL,
-  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
-  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3
-};
-#endif /* LLSEC802154_SECURITY */
-
-/* Define surrogates when not using explicit keys */
-#if !LLSEC802154_USES_EXPLICIT_KEYS
-enum {
-  PACKETBUF_ATTR_KEY_ID_MODE,
-  PACKETBUF_ATTR_KEY_INDEX,
-  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1
-};
-#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-
 #if NETSTACK_CONF_WITH_RIME
 #define PACKETBUF_NUM_ADDRS 4
 #else /* NETSTACK_CONF_WITH_RIME */
@@ -391,15 +323,9 @@ enum {
 extern struct packetbuf_attr packetbuf_attrs[];
 extern struct packetbuf_addr packetbuf_addrs[];
 
-static int               packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val);
-static packetbuf_attr_t    packetbuf_attr(uint8_t type);
-static int               packetbuf_set_addr(uint8_t type, const linkaddr_t *addr);
-static const linkaddr_t *packetbuf_addr(uint8_t type);
-
 static inline int
 packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
 {
-/*   packetbuf_attrs[type].type = type; */
   packetbuf_attrs[type].val = val;
   return 1;
 }
@@ -412,7 +338,6 @@ packetbuf_attr(uint8_t type)
 static inline int
 packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)
 {
-/*   packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].type = type; */
   linkaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
@@ -438,9 +363,9 @@ int               packetbuf_holds_broadcast(void);
 void              packetbuf_attr_clear(void);
 
 void              packetbuf_attr_copyto(struct packetbuf_attr *attrs,
-				      struct packetbuf_addr *addrs);
+                                        struct packetbuf_addr *addrs);
 void              packetbuf_attr_copyfrom(struct packetbuf_attr *attrs,
-					struct packetbuf_addr *addrs);
+                                          struct packetbuf_addr *addrs);
 
 #define PACKETBUF_ATTRIBUTES(...) { __VA_ARGS__ PACKETBUF_ATTR_LAST }
 #define PACKETBUF_ATTR_LAST { PACKETBUF_ATTR_NONE, 0 }

@@ -59,11 +59,11 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include "net/ip/uip.h"
-#include "net/ipv6/sicslowpan.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ipv6/uip-icmp6.h"
-#include "net/ipv6/uip-nd6.h"
+#include "uip.h"
+#include "sicslowpan.h"
+#include "uip-ds6.h"
+#include "uip-icmp6.h"
+#include "uip-nd6.h"
 
 #include <stdint.h>
 #include <stdio.h>

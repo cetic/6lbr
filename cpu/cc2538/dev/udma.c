@@ -56,14 +56,14 @@ static volatile struct channel_ctrl channel_config[UDMA_CONF_MAX_CHANNEL + 1]
 void
 udma_init()
 {
-  memset(&channel_config, 0, sizeof(channel_config));
+  memset((void *)&channel_config, 0, sizeof(channel_config));
 
   REG(UDMA_CFG) = UDMA_CFG_MASTEN;
 
   REG(UDMA_CTLBASE) = (uint32_t)(&channel_config);
 
-  nvic_interrupt_enable(NVIC_INT_UDMA);
-  nvic_interrupt_enable(NVIC_INT_UDMA_ERR);
+  NVIC_EnableIRQ(UDMA_SW_IRQn);
+  NVIC_EnableIRQ(UDMA_ERR_IRQn);
 }
 /*---------------------------------------------------------------------------*/
 void

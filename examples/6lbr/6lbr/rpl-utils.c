@@ -35,12 +35,16 @@
  */
 
 #include "contiki.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
+#include "rpl.h"
+#include "rpl-private.h"
+#if CETIC_6LBR_WITH_MULTICAST
+#include "uip-mcast6.h"
+#endif
 
 #include "rpl-utils.h"
 #include "cetic-6lbr.h"
 
+/*---------------------------------------------------------------------------*/
 int
 is_dodag_available(void)
 {
@@ -56,7 +60,7 @@ is_dodag_available(void)
     return 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 int
 is_own_dodag(void)
 {
@@ -73,7 +77,7 @@ is_own_dodag(void)
     return 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 int
 is_dodag_root(void)
 {
@@ -90,3 +94,18 @@ is_dodag_root(void)
     return 0;
   }
 }
+/*---------------------------------------------------------------------------*/
+int
+cetic_6lbr_config_rpl_mop(void)
+{
+  if ((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
+    return RPL_MOP_NON_STORING;
+#if CETIC_6LBR_WITH_MULTICAST
+  } else if (RPL_WITH_MULTICAST_TEST()) {
+    return RPL_MOP_STORING_MULTICAST;
+#endif
+  } else {
+    return RPL_MOP_STORING_NO_MULTICAST;
+  }
+}
+/*---------------------------------------------------------------------------*/

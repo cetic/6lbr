@@ -50,8 +50,6 @@
 #include "net/nbr-table.h"
 #include "sys/stimer.h"
 #include "net/ipv6/uip-ds6.h"
-#include "net/nbr-table.h"
-
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
@@ -69,12 +67,13 @@ NBR_TABLE_DECLARE(ds6_neighbors);
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {
   uip_ipaddr_t ipaddr;
+  uint8_t isrouter;
+  uint8_t state;
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_RA
   struct stimer reachable;
   struct stimer sendns;
   uint8_t nscount;
-  uint8_t isrouter;
-  uint8_t state;
-  uint16_t link_metric;
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA */
 #if UIP_CONF_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
@@ -87,9 +86,13 @@ typedef struct uip_ds6_nbr {
 void uip_ds6_neighbors_init(void);
 
 /** \brief Neighbor Cache basic routines */
-uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                               uint8_t isrouter, uint8_t state);
-void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr,
+                               const uip_lladdr_t *lladdr,
+                               uint8_t isrouter, uint8_t state,
+                               nbr_table_reason_t reason, void *data);
+int uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+int uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr,
+                              const uip_lladdr_t *new_addr);
 const uip_lladdr_t *uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr);
 const uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr);
 uip_ds6_nbr_t *uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr);
@@ -99,6 +102,17 @@ const uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr);
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
 int uip_ds6_nbr_num(void);
+
+#if UIP_ND6_SEND_NS
+/**
+ * \brief Refresh the reachable state of a neighbor. This function
+ * may be called when a node receives an IPv6 message that confirms the
+ * reachability of a neighbor.
+ * \param ipaddr pointer to the IPv6 address whose neighbor reachability state
+ * should be refreshed.
+ */
+void uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr);
+#endif /* UIP_ND6_SEND_NS */
 
 /**
  * \brief

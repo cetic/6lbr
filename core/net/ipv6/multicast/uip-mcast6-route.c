@@ -45,6 +45,9 @@
 #include "lib/memb.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/multicast/uip-mcast6-route.h"
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+#include "net/ipv6/multicast/uip-mld.h"
+#endif
 
 #include <stdint.h>
 #include <string.h>
@@ -80,6 +83,10 @@ uip_mcast6_route_lookup(uip_ipaddr_t *group)
 uip_mcast6_route_t *
 uip_mcast6_route_add(uip_ipaddr_t *group)
 {
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+  uint8_t new_route = 0;
+#endif
+
   /* _lookup must return NULL, i.e. the prefix does not exist in our table */
   locmcastrt = uip_mcast6_route_lookup(group);
   if(locmcastrt == NULL) {
@@ -89,12 +96,20 @@ uip_mcast6_route_add(uip_ipaddr_t *group)
       return NULL;
     }
     list_add(mcast_route_list, locmcastrt);
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+    new_route = 1;
+#endif
   }
 
   /* Reaching here means we either found the prefix or allocated a new one */
 
   uip_ipaddr_copy(&(locmcastrt->group), group);
 
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+  if(new_route) {
+    uip_icmp6_mldv1_schedule_route_report(locmcastrt);
+  }
+#endif
   return locmcastrt;
 }
 /*---------------------------------------------------------------------------*/
@@ -106,6 +121,9 @@ uip_mcast6_route_rm(uip_mcast6_route_t *route)
       locmcastrt != NULL;
       locmcastrt = list_item_next(locmcastrt)) {
     if(locmcastrt == route) {
+#if UIP_CONF_MLD_PUBLISH_ROUTES
+      uip_icmp6_mldv1_done(&route->group);
+#endif
       list_remove(mcast_route_list, route);
       memb_free(&mcast_route_memb, route);
       return;

@@ -92,6 +92,9 @@ node_info_init(void);
 void
 node_info_config(void);
 
+void
+node_info_update_all(void);
+
 node_info_t *node_info_add(uip_ipaddr_t * ipaddr);
 
 void

@@ -42,8 +42,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "rpl-private.h"
-
 #include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "nvm-itf.h"
@@ -175,6 +173,23 @@ check_nvm(nvm_data_t * nvm_data, int reset)
 
     flash = 1;
   }
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_3)
+  {
+    if (!reset) {
+      LOG6LBR_WARN("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_3);
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_3;
+
+    nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
+
+    nvm_data->udp_server_port = CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT;
+    nvm_data->nvm_proxy_port = CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT;
+
+    nvm_data->node_config_first_coap_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP;
+    nvm_data->node_config_first_http_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP;
+
+    flash = 1;
+  }
 
   if(flash) {
     nvm_data_write();
@@ -196,4 +211,15 @@ void
 store_nvm_config(void)
 {
   nvm_data_write();
+}
+
+void
+reset_nvm_config(void)
+{
+  int force_reset;
+
+  LOG6LBR_INFO("Reseting NVM...\n");
+  force_reset = nvm_data_reset();
+
+  check_nvm(&nvm_data, force_reset);
 }

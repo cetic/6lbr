@@ -46,13 +46,13 @@
 #include "packet-forwarding-engine.h"
 #include "sicslow-ethernet.h"
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
 #endif
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
-#if !CETIC_6LBR_IP64
+#if !CETIC_6LBR_WITH_IP64
 //We alias ethernet_tmp_buf to uip_buf in order to save memory
 #define ethernet_tmp_buf uip_buf
 #endif
@@ -74,7 +74,7 @@ eth_drv_input(uint8_t *packet, uint16_t len)
   LOG6LBR_PRINTF(PACKET, ETH_IN, "read: %d\n", uip_len + UIP_LLH_LEN);
   LOG6LBR_DUMP_PACKET(ETH_IN, uip_buf, uip_len + UIP_LLH_LEN);
 
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
       (((struct uip_eth_hdr *)packet)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
     IP64_INPUT(packet, len);

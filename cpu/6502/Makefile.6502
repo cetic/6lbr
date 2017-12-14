@@ -31,8 +31,8 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-ifndef CC65_HOME
-  ${error CC65_HOME not defined! You must specify where cc65 resides}
+ifdef SLIP
+  DEFINES += WITH_SLIP
 endif
 
 .SUFFIXES:
@@ -43,7 +43,7 @@ CONTIKI_CPU_DIRS    = . lib sys ctk net
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
 CONTIKI_CPU_SOURCEFILES    += log.c error.c unload.c config.c ctk-mouse.c \
                               clock.c mtarch.c mtarch-asm.S lc-asm.S \
-                              uip_arch.c ethernet-drv.c ethernet.c
+                              uip_arch.c slip_arch.c ethernet-drv.c ethernet.c
 
 ETHERNET_SOURCEFILES = cs8900a.S lan91c96.S w5100.S
 
@@ -67,6 +67,8 @@ AR = ar65
 # The apps coming with Contiki run even on a 0x100 byte stack.
 
 ASFLAGS = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or -W -unused-param
+CFLAGS += -t $(TARGET) -Ors -W -unused-param
 LDFLAGS = -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
+
+CC65_TARGET_DIR := $(shell $(CC) --print-target-path)/$(TARGET)

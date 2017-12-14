@@ -48,6 +48,15 @@
 #include "cmd.h"
 #include "slip-radio.h"
 #include "packetutils.h"
+#include "no-framer.h"
+
+#if WITH_TSCH
+#include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-private.h"
+#include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-log.h"
+#include "tsch-rpl.h"
+#endif
 
 #ifdef SLIP_RADIO_CONF_SENSORS
 extern const struct slip_radio_sensors SLIP_RADIO_CONF_SENSORS;
@@ -67,8 +76,6 @@ int cmd_handler_cc2420(const uint8_t *data, int len);
 int cmd_handler_rf230(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_ECONOTAG
 int cmd_handler_mc1322x(const uint8_t *data, int len);
-#elif CONTIKI_TARGET_CC2538DK
-int cmd_handler_cc2538(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_COOJA
 int cmd_handler_cooja(const uint8_t *data, int len);
 #else /* Leave CC2420 as default */
@@ -109,11 +116,26 @@ packet_sent(void *ptr, int status, int transmissions)
 static int
 slip_radio_cmd_handler(const uint8_t *data, int len)
 {
+#if SLIP_RADIO_IP
+  linkaddr_t dest;
+#endif
   int i;
   if(data[0] == '!') {
     /* should send out stuff to the radio - ignore it as IP */
     /* --- s e n d --- */
     if(data[1] == 'S') {
+#if SLIP_RADIO_IP
+      uint8_t sid = data[2];
+      memcpy(&dest, &data[3], sizeof(uip_lladdr_t));
+      memmove(&uip_buf[UIP_LLH_LEN], &data[3 + sizeof(uip_lladdr_t)], len - 3 - sizeof(uip_lladdr_t));
+      uip_len = len - 3 - sizeof(uip_lladdr_t);
+      if(linkaddr_cmp(&dest, &linkaddr_null)) {
+        tcpip_output(NULL);
+      } else {
+        tcpip_output((uip_lladdr_t *)&dest);
+      }
+      packet_sent((void *)&sid, 0, 1);
+#else /* SLIP_RADIO_IP */
       int pos = 0;
       packet_ids[packet_pos] = data[2];
 
@@ -144,6 +166,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       if(packet_pos >= sizeof(packet_ids)) {
 	packet_pos = 0;
       }
+#endif /* SLIP_RADIO_IP */
       return 1;
     } else if(data[1] == 'R' && len == 2) {
 #if !CONTIKI_TARGET_CC2538DK
@@ -151,6 +174,19 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       watchdog_reboot();
 #endif
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
+    } else if(data[1] == 'P' && len == 4) {
+      uint16_t pan_id = data[2] + (data[3] << 8);
+      PRINTF("CMD: setting pan-id: %x\n", pan_id);
+      frame802154_set_pan_id(pan_id);
+      no_framer_set_pan_id(pan_id);
+      NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, pan_id);
+      return 1;
+    } else if(data[1] == 'C' && len == 3) {
+      uint8_t channel = data[2];
+      NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
+      return 1;
+#endif
     }
   } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
@@ -164,6 +200,25 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       uip_len = 10;
       cmd_send(uip_buf, uip_len);
       return 1;
+#if !(RADIO_DEVICE_cc2420 || CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1 || CONTIKI_TARGET_NOOLIBERRY || CONTIKI_TARGET_ECONOTAG || CONTIKI_TARGET_COOJA)
+    } else if(data[1] == 'P' && len == 2) {
+      uint16_t pan_id = no_framer_get_pan_id();
+      uip_buf[0] = '!'; uip_buf[1] = 'P';
+      uip_buf[2] = pan_id & 0xFF;
+      uip_buf[3] = (pan_id >> 8) & 0xFF;
+      uip_len = 4;
+      cmd_send(uip_buf, uip_len);
+      return 1;
+    } else if(data[1] == 'C' && len == 2) {
+      radio_value_t value = 0;
+      NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &value);
+      uip_buf[0] = '!';
+      uip_buf[1] = 'C';
+      uip_buf[2] = value;
+      uip_len = 3;
+      cmd_send(uip_buf, uip_len);
+      return 1;
+#endif
     }
   }
   return 0;
@@ -190,6 +245,19 @@ slip_input_callback(void)
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
+#if SLIP_RADIO_IP
+static void
+slip_output()
+{
+  if(uip_len > 0) {
+    memmove(&uip_buf[UIP_LLH_LEN + sizeof(uip_lladdr_t) * 2], &uip_buf[UIP_LLH_LEN], uip_len);
+    memcpy(&uip_buf[UIP_LLH_LEN], packetbuf_addr(PACKETBUF_ADDR_SENDER), sizeof(uip_lladdr_t));
+    memcpy(&uip_buf[UIP_LLH_LEN + sizeof(uip_lladdr_t)], packetbuf_addr(PACKETBUF_ADDR_RECEIVER), sizeof(uip_lladdr_t));
+    slip_send_packet(&uip_buf[UIP_LLH_LEN], uip_len + sizeof(uip_lladdr_t) * 2);
+  }
+}
+#endif
+/*---------------------------------------------------------------------------*/
 static void
 init(void)
 {
@@ -200,6 +268,9 @@ init(void)
   process_start(&slip_process, NULL);
   slip_set_input_callback(slip_input_callback);
   packet_pos = 0;
+#if SLIP_RADIO_IP
+  tcpip_set_inputfunc(slip_output);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 #if !SLIP_RADIO_CONF_NO_PUTCHAR
@@ -243,6 +314,13 @@ PROCESS_THREAD(slip_radio_process, ev, data)
   SLIP_RADIO_CONF_SENSORS.init();
 #endif
   printf("Slip Radio started...\n");
+
+#if WITH_TSCH
+  tsch_set_coordinator(1);
+  tsch_set_eb_period(TSCH_EB_PERIOD);
+  tsch_set_join_priority(0);
+  NETSTACK_MAC.on();
+#endif
 
   etimer_set(&et, CLOCK_SECOND * 3);
 

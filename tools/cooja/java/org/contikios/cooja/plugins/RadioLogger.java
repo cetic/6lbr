@@ -509,7 +509,7 @@ public class RadioLogger extends VisPlugin {
     adjuster.setDynamicAdjustment(true);
     adjuster.packColumns();
 
-    radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
+    radioMedium.addRadioTransmissionObserver(radioMediumObserver = new Observer() {
       @Override
       public void update(Observable obs, Object obj) {
         RadioConnection conn = radioMedium.getLastConnection();
@@ -517,10 +517,12 @@ public class RadioLogger extends VisPlugin {
           return;
         }
         final RadioConnectionLog loggedConn = new RadioConnectionLog();
+        loggedConn.packet = conn.getSource().getLastPacketTransmitted();
+        if (loggedConn.packet == null)
+          return;
         loggedConn.startTime = conn.getStartTime();
         loggedConn.endTime = simulation.getSimulationTime();
         loggedConn.connection = conn;
-        loggedConn.packet = conn.getSource().getLastPacketTransmitted();
         java.awt.EventQueue.invokeLater(new Runnable() {
           @Override
           public void run() {
@@ -692,8 +694,8 @@ public class RadioLogger extends VisPlugin {
     StringBuilder verbose = new StringBuilder();
 
     /* default analyzer */
-    PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL);
-
+    PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL,
+                                                             simulation.convertSimTimeToActualTime(conn.startTime));
     if (analyzePacket(packet, brief, verbose)) {
       if (packet.hasMoreData()) {
         byte[] payload = packet.getPayload();
@@ -784,7 +786,7 @@ public class RadioLogger extends VisPlugin {
   @Override
   public void closePlugin() {
     if (radioMediumObserver != null) {
-      radioMedium.deleteRadioMediumObserver(radioMediumObserver);
+      radioMedium.deleteRadioTransmissionObserver(radioMediumObserver);
     }
   }
 

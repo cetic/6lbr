@@ -35,7 +35,7 @@
 #ifndef LLSEC_WRAPPER_H_
 #define LLSEC_WRAPPER_H_
 
-#include "net/llsec/llsec.h"
+#include "llsec.h"
 
 extern const struct llsec_driver llsec_wrapper_driver;
 

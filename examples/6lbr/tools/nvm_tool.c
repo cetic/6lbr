@@ -72,7 +72,7 @@ typedef uip_ip6addr_t uip_ipaddr_t;
 
 /*---------------------------------------------------------------------------*/
 
-#define NVM_SIZE 0x100
+#define NVM_SIZE 0x800
 static uint8_t nvm_mem[NVM_SIZE];
 
 nvm_data_t *nvm_data = (nvm_data_t *) nvm_mem;
@@ -475,6 +475,23 @@ migrate_nvm(uint8_t print_info)
 
     CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(&loc_fipaddr);
     memcpy(&nvm_data->dns_server, &loc_fipaddr.u8, 16);
+    nvm_data->log_level = CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL;
+    nvm_data->log_services = CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES;
+  }
+  if ( nvm_data->version < CETIC_6LBR_NVM_VERSION_3)
+  {
+    if (print_info) {
+      printf("Migrate NVM version %d towards %d\n", nvm_data->version, CETIC_6LBR_NVM_VERSION_3);
+    }
+    nvm_data->version = CETIC_6LBR_NVM_VERSION_3;
+
+    nvm_data->multicast_engine = CETIC_6LBR_MULTICAST_NONE;
+
+    nvm_data->udp_server_port = CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT;
+    nvm_data->nvm_proxy_port = CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT;
+
+    nvm_data->node_config_first_coap_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP;
+    nvm_data->node_config_first_http_port = CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP;
   }
 }
 
@@ -571,6 +588,16 @@ print_bool(uint16_t value, uint16_t mask)
   }
 }
 
+void
+print_bool_inv(uint16_t value, uint16_t mask)
+{
+  if((value & mask) != 0) {
+    printf("False");
+  } else {
+    printf("True");
+  }
+}
+
 #define PRINT_INT(text, option) \
   printf(text " : "); \
   print_int(nvm_data->option); \
@@ -605,6 +632,11 @@ print_bool(uint16_t value, uint16_t mask)
 #define PRINT_BOOL(text, option, flag) \
   printf(text " : "); \
   print_bool(nvm_data->option, flag); \
+  printf("\n");
+
+#define PRINT_BOOL_INV(text, option, flag) \
+  printf(text " : "); \
+  print_bool_inv(nvm_data->option, flag); \
   printf("\n");
 
 void
@@ -644,7 +676,7 @@ print_nvm(void)
   PRINT_INT("RA RIO lifetime", ra_rio_lifetime);
   printf("\n");
 
-  //RPL Configuration
+  //DODAG Configuration
   PRINT_INT("RPL instance ID", rpl_instance_id);
   PRINT_BOOL("RPL DODAG ID manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG);
   PRINT_IP("RPL DODAG ID", rpl_dodag_id);
@@ -659,16 +691,24 @@ print_nvm(void)
   PRINT_INT("RPL minimum rank increment", rpl_min_hoprankinc);
   PRINT_INT("RPL lifetime unit", rpl_lifetime_unit);
   printf("\n");
+  //RPL Behavior
+  PRINT_BOOL("RPL Non Storing", rpl_config, CETIC_6LBR_RPL_NON_STORING);
+  PRINT_BOOL("RPL DAO ACK", rpl_config, CETIC_6LBR_RPL_DAO_ACK);
+  PRINT_BOOL("RPL DAO ACK local repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR);
+  PRINT_BOOL_INV("DIO triggers route refresh", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH);
 
   //MAC Configuration
   PRINT_INT("MAC layer", mac_layer);
 
+  //Multicast Configuration
+  PRINT_INT("Multicast engine", multicast_engine);
+
   //Security Configuration
   PRINT_INT("Security layer", security_layer);
   PRINT_INT("Security level", security_level);
-  PRINT_KEY("Security key", noncoresec_key, 16);
-  PRINT_BOOL("Noncoresec anti-replay enabled", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
-  PRINT_BOOL("Noncoresec anti-replay workaround", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
+  PRINT_KEY("Network key", noncoresec_key, 16);
+  PRINT_BOOL("Noncoresec anti-replay enabled (Legacy)", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY);
+  PRINT_BOOL("Noncoresec anti-replay workaround (Legacy)", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND);
   PRINT_BOOL("Filter unknown nodes", global_flags, CETIC_GLOBAL_FILTER_NODES);
   PRINT_BOOL("Disable NUD", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD);
   printf("\n");
@@ -682,13 +722,21 @@ print_nvm(void)
   PRINT_IP4("NAT 64 address", eth_ip64_addr);
   PRINT_IP4("NAT 64 netmask", eth_ip64_netmask);
   PRINT_IP4("NAT 64 gateway", eth_ip64_gateway);
+  PRINT_INT("First CoAP port", node_config_first_coap_port);
+  PRINT_INT("First HTTP port", node_config_first_http_port);
   printf("\n");
 
   //Misc
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
   PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
   PRINT_BOOL("Webserver configuration page disabled", global_flags, CETIC_GLOBAL_DISABLE_CONFIG);
+  PRINT_BOOL_INV("Webserver enabled", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER);
   PRINT_INT("Webserver port", webserver_port);
+  PRINT_BOOL_INV("UDP Server enabled", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER);
+  PRINT_INT("UDP Server port", udp_server_port);
+  PRINT_BOOL_INV("CoAP server enabled", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER);
+  PRINT_BOOL_INV("DNS Proxy enabled", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY);
+  PRINT_INT("NVM Proxy port", nvm_proxy_port);
   printf("\n");
 }
 
@@ -741,7 +789,7 @@ print_nvm(void)
 #define ra_rio_en_option 9000
 #define ra_rio_lifetime_option 9001
 
-//RPL Configuration
+//DODAG Configuration
 #define rpl_instance_id_option 10000
 #define rpl_manual_dodag_id_option 10001
 #define rpl_dodag_id_option 10002
@@ -755,9 +803,21 @@ print_nvm(void)
 #define rpl_lifetime_unit_option 10010
 #define rpl_preference_option 10011
 
+//RPL Behavior
+#define rpl_dao_ack_option 10100
+#define rpl_dao_ack_repair_option 10101
+#define rpl_dio_refresh_routes_option 10102
+#define rpl_non_storing_option 10103
+
 //Global flags
 #define disable_config_option 11001
-#define webserver_port_option 11002
+#define webserver_enable_option 11002
+#define webserver_port_option 11003
+#define udp_server_enable_option 11004
+#define udp_server_port_option 11005
+#define coap_server_enable_option 11006
+#define dns_proxy_enable_option 11007
+#define nvm_proxy_port_option 11008
 
 //Security
 #define security_layer_option 12000
@@ -775,9 +835,14 @@ print_nvm(void)
 #define eth_ip64_netmask_option 13004
 #define eth_ip64_gateway_option 13005
 #define nat64_rfc_6052_option 13006
+#define node_config_first_coap_port_option 13007
+#define node_config_first_http_port_option 13008
 
 //MAC
 #define mac_layer_option 14000
+
+//Multicast
+#define multicast_engine_option 15000
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
@@ -821,7 +886,7 @@ static struct option long_options[] = {
   {"ra-rio-en", required_argument, 0, ra_rio_en_option},
   {"ra-rio-lifetime", required_argument, 0, ra_rio_lifetime_option},
 
-  //RPL Configuration
+  //DODAG Configuration
   {"rpl-instance-id", required_argument, 0, rpl_instance_id_option},
   {"rpl-manual-dodag-id", required_argument, 0, rpl_manual_dodag_id_option},
   {"rpl-dodag-id", required_argument, 0, rpl_dodag_id_option},
@@ -836,6 +901,12 @@ static struct option long_options[] = {
   {"rpl-min-rank-inc", required_argument, 0, rpl_min_hoprankinc_option},
   {"rpl-lifetime-unit", required_argument, 0, rpl_lifetime_unit_option},
 
+  //RPL Behavior
+  {"rpl-non-storing", required_argument, 0, rpl_non_storing_option},
+  {"rpl-dao-ack", required_argument, 0, rpl_dao_ack_option},
+  {"rpl-dao-ack-repair", required_argument, 0, rpl_dao_ack_repair_option},
+  {"rpl-dio-refresh-routes", required_argument, 0, rpl_dio_refresh_routes_option},
+
   //Security
   {"security-layer", required_argument, 0, security_layer_option},
   {"security-level", required_argument, 0, security_level_option},
@@ -847,7 +918,10 @@ static struct option long_options[] = {
   //MAC
   {"mac-layer", required_argument, 0, mac_layer_option},
 
-// NAT64
+  //Multicast engine
+  {"mcast-engine", required_argument, 0, multicast_engine_option},
+
+  // NAT64
   {"nat64-enable", required_argument, 0, nat64_enable_option},
   {"nat64-dhcp-enable", required_argument, 0, nat64_dhcp_enable_option},
   {"nat64-static-ports-enable", required_argument, 0, nat64_static_ports_enable_option},
@@ -855,12 +929,20 @@ static struct option long_options[] = {
   {"nat64-netmask", required_argument, 0, eth_ip64_netmask_option},
   {"nat64-gateway", required_argument, 0, eth_ip64_gateway_option},
   {"nat64-rfc-6052", required_argument, 0, nat64_rfc_6052_option},
+  {"nat64-first-coap-port", required_argument, 0, node_config_first_coap_port_option},
+  {"nat64-first-http-port", required_argument, 0, node_config_first_http_port_option},
 
   //Global flags
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
   {"smart-multi-br", required_argument, 0, smart_multi_br_option},
   {"disable-config", required_argument, 0, disable_config_option},
+  {"webserver-enable", required_argument, 0, webserver_enable_option},
   {"webserver-port", required_argument, 0, webserver_port_option},
+  {"udp-server-enable", required_argument, 0, udp_server_enable_option},
+  {"udp-server-port", required_argument, 0, udp_server_port_option},
+  {"coap-server-enable", required_argument, 0, coap_server_enable_option},
+  {"dns-proxy-enable", required_argument, 0, dns_proxy_enable_option},
+  {"nvm-proxy-port", required_argument, 0, nvm_proxy_port_option},
 
   {"fit", no_argument, 0, fit_option},
 };
@@ -954,19 +1036,28 @@ help(char const *name)
   printf("\t--rpl-min-rank-inc <number> \t RPL Minimum Rank increment\n");
   printf("\t--rpl-lifetime-unit <seconds> \t RPL lifetime unit\n");
   printf("\n");
+  printf("\t--rpl-non-storing <0|1>\t\t Enable Non Storing mode\n");
+  printf("\t--rpl-dao-ack <0|1>\t\t Enable DAO Acknowledgment\n");
+  printf("\t--rpl-dao-ack-repair <0|1>\t Trigger local repair when DAO NACK is received\n");
+  printf("\t--rpl-dio-refresh-routes <0|1>\t Enable DTSN increment in DIO\n");
 
   //MAC
   printf("\nMAC :\n");
-  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA)\n");
+  printf("\t--mac-layer <0|1>\t\t MAC layer (0: None, 1: CSMA, 2: NullMAC)\n");
+  printf("\n");
+
+  //Multicast
+  printf("\nMulticast :\n");
+  printf("\t--mcast-layer <0|1|2>\t\t Multicast engine (0: None, 1: SMRF, 2: ROLL-TM, 3: ESMRF)\n");
   printf("\n");
 
   //Security
   printf("\nSecurity :\n");
-  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: Noncoresec security)\n");
+  printf("\t--security-layer <0|1>\t\t Security mode (0: No security, 1: Legacy noncoresec, 2: Adaptivesec (noncore))\n");
   printf("\t--security-level <0..7>\t\t Security level\n");
-  printf("\t--security-key <16 bytes key>\t Security key\n");
-  printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay\n");
-  printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround\n");
+  printf("\t--security-key <16 bytes key>\t Network key\n");
+  printf("\t--noncoresec-dis-ar <0|1>\t Disable Noncoresec anti-replay (Legacy)\n");
+  printf("\t--noncoresec-ar-wa <0|1>\t Enable Noncoresec anti-replay workaround (Legacy)\n");
   printf("\t--filter-nodes <0|1>\t\t Filter unknown nodes\n");
   printf("\n");
 
@@ -979,6 +1070,8 @@ help(char const *name)
   printf("\t--nat64-addr <ipv4 address>\t NAT64 ip address\n");
   printf("\t--nat64-netmask <ipv4 netmask>\t NAT64 netmask\n");
   printf("\t--nat64-gateway <ipv4 address>\t NAT64 gateway\n");
+  printf("\t--nat64-first-coap-port <port>\t NAT64 first CoAP port for static mapping\n");
+  printf("\t--nat64-first-http-port <port>\t NAT64 first HTTP port for static mapping\n");
   printf("\n");
 
   printf("\nMisc :\n");
@@ -987,7 +1080,13 @@ help(char const *name)
   printf("\n");
   //Global flags
   printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
+  printf("\t--webserver-enable <0|1> \t Enable webserver\n");
   printf("\t--webserver-port <port> \t Configure Webserver port\n");
+  printf("\t--udp-server-enable <0|1> \t Enable UDP server\n");
+  printf("\t--udp-server-port <port> \t Configure UDP server port\n");
+  printf("\t--coap-server-enable <0|1> \t Enable CoAP server\n");
+  printf("\t--dns-proxy-enable <0|1> \t Enable DNS proxy\n");
+  printf("\t--nvm-proxy-port <port> \t Configure NVM proxy port\n");
   printf("\n");
 
   printf
@@ -1016,6 +1115,11 @@ help(char const *name)
 #define UPDATE_FLAG(arg_name, option, mode, mask) \
 	if(option) { \
 	  nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? mask : 0); \
+    }
+
+#define UPDATE_FLAG_INV(arg_name, option, mode, mask) \
+    if(option) { \
+      nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? 0 : mask); \
     }
 
 #define UPDATE_IP(arg_name, option) \
@@ -1087,7 +1191,7 @@ main(int argc, char *argv[])
   char *ra_rio_en = NULL;
   char *ra_rio_lifetime = NULL;
 
-  //RPL Configuration
+  //DODAG Configuration
   char *rpl_instance_id = NULL;
   char *rpl_manual_dodag_id = NULL;
   char *rpl_dodag_id = NULL;
@@ -1102,8 +1206,17 @@ main(int argc, char *argv[])
   char *rpl_min_hoprankinc = NULL;
   char *rpl_lifetime_unit = NULL;
 
+  //RPL Behavior
+  char *rpl_non_storing = NULL;
+  char *rpl_dao_ack = NULL;
+  char *rpl_dao_ack_repair = NULL;
+  char *rpl_dio_refresh_routes = NULL;
+
   //MAC
   char *mac_layer = NULL;
+
+  //Multicast
+  char *multicast_engine = NULL;
 
   //Security
   char *security_layer = NULL;
@@ -1121,10 +1234,18 @@ main(int argc, char *argv[])
   char *eth_ip64_addr = NULL;
   char *eth_ip64_netmask = NULL;
   char *eth_ip64_gateway = NULL;
+  char *node_config_first_coap_port = NULL;
+  char *node_config_first_http_port = NULL;
 
   //Global flags
   char *disable_config = NULL;
+  char *webserver_enable = NULL;
   char *webserver_port = NULL;
+  char *udp_server_enable = NULL;
+  char *udp_server_port = NULL;
+  char *coap_server_enable = NULL;
+  char *dns_proxy_enable = NULL;
+  char *nvm_proxy_port = NULL;
 
   int file_nb;
 
@@ -1184,7 +1305,7 @@ main(int argc, char *argv[])
     CASE_OPTION(ra_rio_en)
     CASE_OPTION(ra_rio_lifetime)
 
-    //RPL Configuration
+    //DODAG Configuration
     CASE_OPTION(rpl_instance_id)
     CASE_OPTION(rpl_manual_dodag_id)
     CASE_OPTION(rpl_dodag_id)
@@ -1199,8 +1320,17 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_min_hoprankinc)
     CASE_OPTION(rpl_lifetime_unit)
 
-    //Security
+    //RPL Behavior
+    CASE_OPTION(rpl_non_storing)
+    CASE_OPTION(rpl_dao_ack)
+    CASE_OPTION(rpl_dao_ack_repair)
+    CASE_OPTION(rpl_dio_refresh_routes)
+
+    //MAC
     CASE_OPTION(mac_layer)
+
+    //Multicast
+    CASE_OPTION(multicast_engine)
 
     //Security
     CASE_OPTION(security_layer)
@@ -1218,10 +1348,18 @@ main(int argc, char *argv[])
     CASE_OPTION(eth_ip64_addr)
     CASE_OPTION(eth_ip64_netmask)
     CASE_OPTION(eth_ip64_gateway)
+    CASE_OPTION(node_config_first_coap_port)
+    CASE_OPTION(node_config_first_http_port)
 
     //Global flags
     CASE_OPTION(disable_config)
+    CASE_OPTION(webserver_enable)
     CASE_OPTION(webserver_port)
+    CASE_OPTION(udp_server_enable)
+    CASE_OPTION(udp_server_port)
+    CASE_OPTION(coap_server_enable)
+    CASE_OPTION(dns_proxy_enable)
+    CASE_OPTION(nvm_proxy_port)
 
     case fit_option:
       fit = 1;
@@ -1309,7 +1447,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("ra-rio-en", ra_rio_en, ra_rio_flags, CETIC_6LBR_MODE_SEND_RIO)
     UPDATE_INT("ra-rio-lifetime", ra_rio_lifetime)
 
-    //RPL Configuration
+    //DODAG Configuration
     UPDATE_INT("rpl-instance-id", rpl_instance_id)
     UPDATE_FLAG("rpl-manual-dodag-id", rpl_manual_dodag_id, rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG)
     UPDATE_IP("rpl-dodag-id", rpl_dodag_id)
@@ -1324,8 +1462,17 @@ main(int argc, char *argv[])
     UPDATE_INT("rpl-min-rank-inc", rpl_min_hoprankinc)
     UPDATE_INT("rpl-lifetime-unit", rpl_lifetime_unit)
 
-    //Security
+    //RPL Behavior
+    UPDATE_FLAG("rpl-non-storing", rpl_non_storing, rpl_config, CETIC_6LBR_RPL_NON_STORING)
+    UPDATE_FLAG("rpl-dao-ack", rpl_dao_ack, rpl_config, CETIC_6LBR_RPL_DAO_ACK)
+    UPDATE_FLAG("rpl-dao-ack-repair", rpl_dao_ack_repair, rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR)
+    UPDATE_FLAG_INV("rpl-dio-refresh-routes", rpl_dio_refresh_routes, rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)
+
+    //MAC
     UPDATE_INT("mac-layer", mac_layer)
+
+    //Multicast
+    UPDATE_INT("mcast-engine", multicast_engine)
 
     //Security
     UPDATE_INT("security-layer", security_layer)
@@ -1343,10 +1490,18 @@ main(int argc, char *argv[])
     UPDATE_IP4("nat64-ip-addr", eth_ip64_addr)
     UPDATE_IP4("nat64-ip-netmask", eth_ip64_netmask)
     UPDATE_IP4("nat64-ip-gateway", eth_ip64_gateway)
+    UPDATE_INT("nat64-first-coap-port", node_config_first_coap_port)
+    UPDATE_INT("nat64-first-http-port", node_config_first_http_port)
 
     //Global flags
     UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)
+    UPDATE_FLAG_INV("webserver-enable", webserver_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
     UPDATE_INT("webserver-port", webserver_port)
+    UPDATE_FLAG_INV("udp-server-enable", udp_server_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_INT("udp-server-port", udp_server_port)
+    UPDATE_FLAG_INV("coap-server-enable", coap_server_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_FLAG_INV("dns-proxy-enable", dns_proxy_enable, global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER)
+    UPDATE_INT("nvm-proxy-port", nvm_proxy_port)
   }
 
   print_nvm();

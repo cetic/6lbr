@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26XX BMP280 Altimeter / Pressure Sensor
+ *  Driver for the Sensortag BMP280 Altimeter / Pressure Sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
@@ -88,7 +88,6 @@
 /*---------------------------------------------------------------------------*/
 /* Misc. */
 #define MEAS_DATA_SIZE                      6
-#define CALIB_DATA_SIZE                     24
 /*---------------------------------------------------------------------------*/
 #define RES_OFF                             0
 #define RES_ULTRA_LOW_POWER                 1
@@ -121,6 +120,7 @@ typedef struct bmp_280_calibration {
   int32_t t_fine;
 } bmp_280_calibration_t;
 /*---------------------------------------------------------------------------*/
+#define CALIB_DATA_SIZE (sizeof(bmp_280_calibration_t))
 static uint8_t calibration_data[CALIB_DATA_SIZE];
 /*---------------------------------------------------------------------------*/
 #define SENSOR_STATUS_DISABLED     0
@@ -148,7 +148,7 @@ notify_ready(void *not_used)
 }
 /*---------------------------------------------------------------------------*/
 static void
-select(void)
+select_on_bus(void)
 {
   /* Set up I2C */
   board_i2c_select(BOARD_I2C_INTERFACE_0, BMP280_I2C_ADDRESS);
@@ -162,7 +162,7 @@ init(void)
 {
   uint8_t val;
 
-  select();
+  select_on_bus();
 
   /* Read and store calibration data */
   sensor_common_read_reg(ADDR_CALIB, calibration_data, CALIB_DATA_SIZE);
@@ -183,7 +183,7 @@ enable_sensor(bool enable)
 {
   uint8_t val;
 
-  select();
+  select_on_bus();
 
   if(enable) {
     /* Enable forced mode */
@@ -205,7 +205,7 @@ read_data(uint8_t *data)
 {
   bool success;
 
-  select();
+  select_on_bus();
 
   success = sensor_common_read_reg(ADDR_PRESS_MSB, data, MEAS_DATA_SIZE);
   if(!success) {
@@ -286,7 +286,7 @@ convert(uint8_t *data, int32_t *temp, uint32_t *press)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Returns a reading from the sensor
- * \param BMP_280_SENSOR_TYPE_TEMP or BMP_280_SENSOR_TYPE_PRESS
+ * \param type BMP_280_SENSOR_TYPE_TEMP or BMP_280_SENSOR_TYPE_PRESS
  * \return Temperature (centi degrees C) or Pressure (Pascal).
  */
 static int

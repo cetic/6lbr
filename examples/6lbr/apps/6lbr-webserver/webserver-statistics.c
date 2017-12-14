@@ -37,8 +37,10 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
-#include "net/ip/uip.h"
-#include "net/rpl/rpl-private.h"
+#include "uip.h"
+#if CETIC_6LBR_WITH_RPL
+#include "rpl-private.h"
+#endif
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
@@ -58,7 +60,9 @@
 #endif
 
 #if CETIC_6LBR_LLSEC_STATS
-#include "net/llsec/noncoresec/noncoresec.h"
+#if CETIC_6LBR_WITH_NONCORESEC
+#include "noncoresec/noncoresec.h"
+#endif
 #endif
 
 #define PRINT_UIP_STAT(name, text) add(text " : %d<br />", uip_stat.name)
@@ -140,7 +144,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #else
   add("<h3>IP statistics are deactivated</h3>");
 #endif /* UIP_STATISTICS */
-#if UIP_CONF_IPV6_RPL
+#if CETIC_6LBR_WITH_RPL
   add("<h2>RPL</h2>");
 #if RPL_CONF_STATS
   PRINT_RPL_STAT( mem_overflows, "Memory overflow");
@@ -163,7 +167,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #else
   add("<h3>RPL statistics are deactivated</h3>");
 #endif
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* CETIC_6LBR_WITH_RPL */
 #if CONTIKI_TARGET_NATIVE
   if(!sixlbr_config_slip_ip)
 #endif
@@ -172,8 +176,8 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("<h2>CSMA</h2>");
   add("Allocated packets : %d<br />", csma_allocated_packets());
   add("Allocated neighbors : %d<br />", csma_allocated_neighbors());
-  add("Packet overflow : %d<br />", packet_overflow);
-  add("Neighbor overflow : %d<br />", neighbor_overflow);
+  add("Packet overflow : %d<br />", csma_packet_overflow);
+  add("Neighbor overflow : %d<br />", csma_neighbor_overflow);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -183,13 +187,13 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
   add("Collisions : %d<br />", csma_collisions);
   add("Retransmissions : %d<br />", csma_retransmissions);
   add("Dropped packets : %d<br />", csma_dropped);
-  add("Deferred packets : %d<br />", csma_deferred);
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
   }
 #if CETIC_6LBR_LLSEC_STATS
+#if CETIC_6LBR_WITH_NONCORESEC
   if(nvm_data.security_layer == CETIC_6LBR_SECURITY_LAYER_NONCORESEC) {
     add("<h2>LLSEC</h2>");
     add("Invalid level : %d<br />", noncoresec_invalid_level);
@@ -200,6 +204,7 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
     SEND_STRING(&s->sout, buf);
     reset_buf();
   }
+#endif
 #endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>RDC</h2>");
@@ -212,11 +217,16 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
 #endif
 #if CONTIKI_TARGET_NATIVE
   add("<h2>SLIP</h2>");
+#if CETIC_6LBR_MULTI_RADIO
   for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
     network_itf_t *network_itf = network_itf_get_itf(ifindex);
     if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
       slip_device = find_slip_dev(ifindex);
       if(slip_device != NULL) {
+#else
+        slip_device = slip_default_device;
+        ifindex = 0;
+#endif
         add("<h3>slip-%d</h3>", ifindex);
         add("Messages sent : %d<br />", slip_device->message_sent);
         add("Messages received : %d<br />", slip_device->message_received);
@@ -228,9 +238,11 @@ PT_THREAD(generate_statistics(struct httpd_state *s))
         add("<br />");
         SEND_STRING(&s->sout, buf);
         reset_buf();
+#if CETIC_6LBR_MULTI_RADIO
       }
     }
   }
+#endif
 #endif
 
   PSOCK_END(&s->sout);

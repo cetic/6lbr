@@ -52,13 +52,13 @@ int
 cmd_handler_rf230(const uint8_t *data, int len)
 {
   if(data[0] == '!') {
-    if(data[1] == 'C' && len == 3) {
+    if(data[1] == 'C') {
       PRINTF("CMD: Setting channel: %d\n", data[2]);
       rf230_set_channel(data[2]);
       return 1;
     }
   } else if(data[0] == '?') {
-    if(data[1] == 'C' && len == 2) {
+    if(data[1] == 'C') {
       uint8_t buf[4];
       PRINTF("CMD: Getting channel: %d\n", data[2]);
       buf[0] = '!';

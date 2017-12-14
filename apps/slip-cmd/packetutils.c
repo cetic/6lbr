@@ -45,7 +45,7 @@ packetutils_serialize_atts(uint8_t *data, int size)
   PRINTF("packetutils: serializing packet atts");
   for(i = 0; i < PACKETBUF_NUM_ATTRS; i++) {
     val = packetbuf_attr(i);
-#if CETIC_6LBR
+#if CETIC_6LBR_WITH_LLSEC
     //Drop all the security related packets
     if(i < PACKETBUF_ATTR_SECURITY_LEVEL)
 #endif

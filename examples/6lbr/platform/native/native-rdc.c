@@ -41,11 +41,11 @@
 
 #define LOG6LBR_MODULE "BR-RDC"
 
-#include "net/packetbuf.h"
-#include "net/queuebuf.h"
-#include "net/netstack.h"
+#include "packetbuf.h"
+#include "queuebuf.h"
+#include "netstack.h"
 #include "packetutils.h"
-#include "sys/ctimer.h"
+#include "ctimer.h"
 #include "slip-dev.h"
 #include "slip-cmds.h"
 #include "cetic-6lbr.h"
@@ -58,6 +58,8 @@
 #include <string.h>
 
 PROCESS(native_rdc_process, "Native RDC process");
+
+static int report_slip_error = 0;
 
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 0
@@ -189,8 +191,8 @@ setup_callback(slip_descr_t *slip_device, mac_callback_t sent, void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-send_ip_packet(const uip_lladdr_t *localdest)
+uint8_t
+native_rdc_send_ip_packet(const uip_lladdr_t *localdest)
 {
   uint8_t buf[UIP_BUFSIZE + 3 + sizeof(uip_lladdr_t)];
   int sid;
@@ -247,10 +249,14 @@ send_packet(mac_callback_t sent, void *ptr)
     return;
   }
 
+#if !CETIC_6LBR_MULTI_RADIO
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+#endif
+
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-  if(NETSTACK_FRAMER.create_and_secure() < 0) {
+  if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
     LOG6LBR_ERROR("br-rdc: send failed, too large header\n");
     mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
@@ -297,18 +303,60 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+native_rdc_packet_input(slip_descr_t *slip_device, unsigned char *data, int len)
+{
+  multi_radio_input_ifindex = slip_device->ifindex;
+  packetbuf_clear();
+
+  if(sixlbr_config_slip_ip) {
+    uip_lladdr_t src;
+    uip_lladdr_t dest;
+
+    memcpy(&src, data, sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&src);
+    memcpy(&dest, data + sizeof(uip_lladdr_t), sizeof(uip_lladdr_t));
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&dest);
+    memcpy(&uip_buf[UIP_LLH_LEN], data + sizeof(uip_lladdr_t) * 2, len - sizeof(uip_lladdr_t) * 2);
+    uip_len = len  - sizeof(uip_lladdr_t)  * 2;
+
+    LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", uip_len);
+    LOG6LBR_DUMP_PACKET(RADIO_IN, &uip_buf[UIP_LLH_LEN], uip_len);
+
+    tcpip_input();
+  } else {
+    if(slip_device->deserialize_rx_attrs) {
+      int pos = packetutils_deserialize_atts(data, len);
+      if(pos < 0) {
+        LOG6LBR_ERROR("illegal packet attributes\n");
+        return;
+      }
+      len -= pos;
+      if(len > PACKETBUF_SIZE) {
+        len = PACKETBUF_SIZE;
+      }
+      memcpy(packetbuf_dataptr(), &data[pos], len);
+      packetbuf_set_datalen(len);
+    } else {
+      packetbuf_copyfrom(data, len);
+    }
+    LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
+    LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
+
+    if(NETSTACK_FRAMER.parse() < 0) {
+      LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
+      native_rdc_parse_error++;
+    } else {
+      NETSTACK_MAC.input();
+    }
+  }
+  multi_radio_input_ifindex = NETWORK_ITF_UNKNOWN;
+}
+/*---------------------------------------------------------------------------*/
 static void
 packet_input(void)
 {
-  LOG6LBR_PRINTF(PACKET, RADIO_IN, "read: %d\n", packetbuf_datalen());
-  LOG6LBR_DUMP_PACKET(RADIO_IN, packetbuf_dataptr(), packetbuf_datalen());
-
-  if(NETSTACK_FRAMER.parse() < 0) {
-    LOG6LBR_ERROR("br-rdc: failed to parse %u\n", packetbuf_datalen());
-    native_rdc_parse_error++;
-  } else {
-    NETSTACK_MAC.input();
-  }
+  //Should never be called
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -361,7 +409,9 @@ slip_got_mac(const uint8_t * data)
     linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
     linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
   }
+#if CETIC_6LBR_MULTI_RADIO
   network_itf_set_mac(multi_radio_input_ifindex, (uip_lladdr_t *)data);
+#endif
   radio_mac_addr_ready = 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -384,14 +434,35 @@ slip_set_mac(linkaddr_t const * mac_addr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-slip_set_rf_channel(slip_descr_t *slip_device, uint8_t channel)
+slip_set_rf_channel(uint8_t channel, uint8_t *msg, int *len)
 {
-  static uint8_t msg[3];
-
   msg[0] = '!';
   msg[1] = 'C';
   msg[2] = channel;
-  write_to_slip(slip_device, msg, 3);
+  *len = 3;
+}
+/*---------------------------------------------------------------------------*/
+static void
+slip_set_pan_id(uint16_t pan_id, uint8_t *msg, int *len)
+{
+  msg[0] = '!';
+  msg[1] = 'P';
+  msg[2] = pan_id & 0xFF;
+  msg[3] = (pan_id >> 8) & 0xFF;
+  *len = 4;
+}
+/*---------------------------------------------------------------------------*/
+PT_THREAD(send_slip_cmd(struct pt * pt, process_event_t ev, slip_descr_t *slip_device, uint8_t const *msg, int len, int reply, int *status))
+{
+  static struct etimer et;
+  PT_BEGIN(pt);
+  report_slip_error = 1;
+  etimer_set(&et, slip_device->timeout);
+  write_to_slip(slip_device, msg, len);
+  PT_YIELD_UNTIL(pt, etimer_expired(&et) || ev == PROCESS_EVENT_POLL);
+  *status = (ev == PROCESS_EVENT_POLL);
+  report_slip_error = 0;
+  PT_END(pt);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -408,24 +479,40 @@ native_rdc_reset_slip(void)
   process_poll(&native_rdc_process);
 }
 /*---------------------------------------------------------------------------*/
+void
+slip_error_callback(const uint8_t * buf)
+{
+  if(report_slip_error) {
+    process_poll(&native_rdc_process);
+  }
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(native_rdc_process, ev, data)
 {
   PROCESS_BEGIN();
 
   static struct etimer et;
+  static struct pt pt;
+  static uint8_t buf[255];
+  static int len;
+  static int status;
   static uint8_t ifindex;
   static slip_descr_t *slip_device;
   do
   {
     if(sixlbr_config_slip_ip) {
       LOG6LBR_INFO("SLIP RADIO configured as IP\n");
-      tcpip_set_outputfunc(send_ip_packet);
+      tcpip_set_outputfunc(native_rdc_send_ip_packet);
     } else {
       LOG6LBR_INFO("SLIP RADIO configured as RADIO\n");
     }
+#if CETIC_6LBR_MULTI_RADIO
     for(ifindex = 0; ifindex < NETWORK_ITF_NBR; ++ifindex) {
       network_itf_t *network_itf = network_itf_get_itf(ifindex);
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
+#else
+        ifindex = 0;
+#endif
         slip_device = get_slip_device(ifindex);
         if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
           slip_reboot(slip_device);
@@ -436,12 +523,26 @@ PROCESS_THREAD(native_rdc_process, ev, data)
           slip_request_mac(slip_device);
           PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
         }
-        //Set radio channel
+        //Set radio channel and PAN-ID
         if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
-          slip_set_rf_channel(slip_device, nvm_data.channel);
+          slip_set_rf_channel(nvm_data.channel, buf, &len);
+          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          if(status != 0) {
+            LOG6LBR_ERROR("Set channel failed\n");
+          }
         }
+        if((slip_device->features & SLIP_RADIO_FEATURE_PAN_ID) != 0) {
+          frame802154_set_pan_id(nvm_data.pan_id);
+          slip_set_pan_id(nvm_data.pan_id, buf, &len);
+          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          if(status != 0) {
+            LOG6LBR_ERROR("Set PAN-ID failed\n");
+          }
+        }
+#if CETIC_6LBR_MULTI_RADIO
       }
     }
+#endif
     radio_ready = 1;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
   } while(1);

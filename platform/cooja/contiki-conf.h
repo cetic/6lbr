@@ -76,6 +76,19 @@
 #define NULLRDC_CONF_ACK_WAIT_TIME                RTIMER_SECOND / 500
 #define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME 0
 
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
+#define CONTIKIMAC_CONF_SEND_SW_ACK 1
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+#endif
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME            (RTIMER_ARCH_SECOND / 500)
+#define CONTIKIMAC_CONF_SEND_SW_ACK               1
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME 0
+
+#define RTIMER_CONF_GUARD_TIME 2
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
@@ -146,6 +159,9 @@
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   300
 #endif /* UIP_CONF_MAX_ROUTES */
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM 300
+#endif /* RPL_NS_CONF_LINK_NUM */
 
 #define TCPIP_CONF_ANNOTATE_TRANSMISSIONS 1
 
@@ -178,9 +194,6 @@
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   8
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
@@ -193,7 +206,6 @@
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 #define CC_CONF_INLINE inline
 
@@ -211,8 +223,12 @@ typedef unsigned short uip_stats_t;
 
 #define CLOCK_CONF_SECOND 1000L
 typedef unsigned long clock_time_t;
-typedef unsigned long rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
+typedef uint64_t rtimer_clock_t;
+#define RTIMER_CLOCK_DIFF(a,b)     ((int64_t)((a)-(b)))
+
+#define RADIO_DELAY_BEFORE_TX 0
+#define RADIO_DELAY_BEFORE_RX 0
+#define RADIO_DELAY_BEFORE_DETECT 0
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32

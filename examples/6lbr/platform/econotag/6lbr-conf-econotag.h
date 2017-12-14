@@ -45,7 +45,7 @@
 
 #define LOG6LBR_SERVICE_DEFAULT   LOG6LBR_SERVICE_ALL
 
-#if WEBSERVER
+#if CETIC_6LBR_WITH_WEBSERVER
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     10
 
@@ -60,10 +60,10 @@
 
 #else
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     50
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     30
 
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   50
+#define UIP_CONF_MAX_ROUTES   30
 
 #endif
 
@@ -73,23 +73,12 @@
 
 #define WEBSERVER_CONF_CFS_CONNS        1
 
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-
 #define CETIC_CSMA_STATS      0
-
-#define CETIC_6LBR_LLSEC_WRAPPER        0
-
-#undef CETIC_6LBR_IP64
-#define CETIC_6LBR_IP64      0
 
 /* Do not change lines below */
 
 #define LOG6LBR_TIMESTAMP           0
 #define LOG6LBR_STATIC              1
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
 
 #if CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_LEARN_RPL_MAC
 //Setup 802.15.4 interface in promiscuous mode

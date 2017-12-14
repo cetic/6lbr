@@ -53,6 +53,9 @@ PROCESS_NAME(webserver_nogui_process);
 #if UDPCLIENT
 PROCESS_NAME(udp_client_process);
 #endif
+#if MULTICAST_CLIENT
+extern void multicast_client_init(void);
+#endif
 
 /*---------------------------------------------------------------------------*/
 #define INIT_USER_MOD(module) \
@@ -64,6 +67,10 @@ start_apps(void)
 {
 #if UDPCLIENT
   process_start(&udp_client_process, NULL);
+#endif
+
+#if MULTICAST_CLIENT
+  multicast_client_init();
 #endif
 
 #if WEBSERVER

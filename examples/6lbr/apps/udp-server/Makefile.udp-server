@@ -1,2 +1,2 @@
-CFLAGS += -DUDPSERVER=1
+CFLAGS += -DCETIC_6LBR_WITH_UDPSERVER=1
 udp-server_src = udp-server.c 

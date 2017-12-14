@@ -37,8 +37,8 @@
 
 #define LOG6LBR_MODULE "TAP"
 
-#include "net/ip/uip.h"
-#include "net/ipv6/uip-ds6.h"
+#include "uip.h"
+#include "uip-ds6.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -76,8 +76,8 @@ struct ifreq if_idx;
 #include <ifaddrs.h>
 #endif
 
-#include "net/netstack.h"
-#include "net/packetbuf.h"
+#include "netstack.h"
+#include "packetbuf.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "cetic-6lbr.h"

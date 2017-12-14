@@ -162,6 +162,7 @@ inline static int get_pressure_temp(void) {
 inline static int get_illuminance(void) {
   int
   value = opt_3001_sensor.value(0);
+  SENSORS_ACTIVATE(opt_3001_sensor);
 
   if(value == CC26XX_SENSOR_READING_ERROR) {
     printf("Illuminance Read Error\n");

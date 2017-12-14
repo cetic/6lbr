@@ -3,8 +3,11 @@ PROJECT?=6lbr-demo
 # Configuration
 
 WITH_RPL?=1
+RPL_NON_STORING?=0
 WITH_LLSEC?=0
+WITH_ADAPTIVESEC?=0
 WITH_TCP?=0
+WITH_TSCH?=0
 
 # Applications
 
@@ -16,6 +19,7 @@ WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
 WITH_COAP_PROFILE?=IPSO_APP_FW
+WITH_MULTICAST_CLIENT?=0
 
 # UDP client configuration
 
@@ -24,7 +28,7 @@ WITH_UDP_CLIENT_AUTOSTART?=1
 
 # Platform specific
 
-CC2538DK_FW=bin
+CC2538_FW=bin
 
 # End of user configuration section
 
@@ -47,8 +51,14 @@ ifneq ($(RF_CHANNEL),)
 CFLAGS +=-DRF_CHANNEL=$(RF_CHANNEL) -DUSER_RF_CHANNEL
 endif
 
+ifeq ($(WITH_TSCH),1)
+CFLAGS +=-DWITH_TSCH=1
+MODULES+=core/net/mac/tsch
+endif
+
 ifeq ($(WITH_RPL),1)
 CONTIKI_WITH_RPL = 1
+CFLAGS += -DRPL_NON_STORING=$(RPL_NON_STORING)
 else
 CONTIKI_WITH_RPL = 0
 endif
@@ -100,6 +110,15 @@ $(error Invalid CoAP Profile)
 endif
 endif
 
+ifneq ($(WITH_MULTICAST_CLIENT),0)
+CFLAGS += -DMULTICAST_CLIENT=1
+PROJECTDIRS += $(PROJECTDIR)/apps/multicast-client
+PROJECT_SOURCEFILES += multicast-client.c
+MODULES += core/net/ipv6/multicast
+else
+CFLAGS += -DMULTICAST_CLIENT=0
+endif
+
 ifneq ($(WITH_TCP),1)
 CFLAGS += -DUIP_CONF_TCP=0
 endif
@@ -117,8 +136,9 @@ CFLAGS += -DUDP_CLIENT_AUTOSTART=1
 endif
 
 ifneq ($(WITH_LLSEC),0)
-CFLAGS += -DWITH_LLSEC=1
+CFLAGS += -DWITH_LLSEC=1 -DWITH_ADAPTIVESEC=$(WITH_ADAPTIVESEC)
 MODULES += core/net/llsec/noncoresec
+MODULES += core/net/llsec/adaptivesec
 endif
 
 ifneq ($(WITH_TINYDTLS), 0)
@@ -176,8 +196,15 @@ PROJECT_SOURCEFILES += cc2538dk-nvm.c
 endif
 endif
 
+ifeq ($(TARGET),zoul)
+WITH_CETIC_6LN_NVM?=0
+ifeq ($(WITH_CETIC_6LN_NVM),1)
+PROJECT_SOURCEFILES += zoul-nvm.c
+endif
+endif
+
 ifeq ($(TARGET),srf06-cc26xx)
-ifeq ($(BOARD),sensortag)
+ifeq ($(BOARD),sensortag/cc2650)
 WITH_CETIC_6LN_NVM?=0
 CFLAGS+=-DWITH_CETIC_6LN_NVM=$(WITH_CETIC_6LN_NVM)
 ifeq ($(WITH_CETIC_6LN_NVM),1)
@@ -247,10 +274,17 @@ endif
 CLEAN+=$(PROJECTDIR)/dyn_resources/* $(PROJECTDIR)/dynamic-resources.mk
 .PHONY: $(FULL_RESOURCE_FILES)
 
-all_sky: bin_sky/6lbr-demo-webserver.sky bin_sky/6lbr-demo-coapserver.sky
-all_z1: bin_z1/6lbr-demo-coapserver.z1
+all_sky: bin_sky/6lbr-demo.sky
+all_z1: bin_z1/6lbr-demo-webserver.z1 bin_z1/6lbr-demo-coapserver.z1
 all_econotag: bin_econotag/6lbr-demo-coapserver.econotag
 all_cc2538dk: bin_cc2538dk/6lbr-demo-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk
+all_zoul: bin_zoul/6lbr-demo-coapserver.zoul bin_zoul/6lbr-demo-llsec-coapserver.zoul bin_zoul/6lbr-demo-dtls-coapserver.zoul
+
+bin_sky/6lbr-demo.sky:
+	mkdir -p bin_sky
+	$(MAKE) TARGET=sky clean
+	$(MAKE) TARGET=sky RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.sky bin_sky/6lbr-demo.sky
 
 bin_sky/6lbr-demo-webserver.sky:
 	mkdir -p bin_sky
@@ -263,6 +297,12 @@ bin_sky/6lbr-demo-coapserver.sky:
 	$(MAKE) TARGET=sky clean
 	$(MAKE) TARGET=sky WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
 	cp 6lbr-demo.sky bin_sky/6lbr-demo-coapserver.sky
+
+bin_z1/6lbr-demo-webserver.z1:
+	mkdir -p bin_z1
+	$(MAKE) TARGET=z1 clean
+	$(MAKE) TARGET=z1 WITH_UDPCLIENT=0 WITH_WEBSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.z1 bin_z1/6lbr-demo-webserver.z1
 
 bin_z1/6lbr-demo-coapserver.z1:
 	mkdir -p bin_z1
@@ -280,20 +320,38 @@ bin_cc2538dk/6lbr-demo-llsec-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_LLSEC=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-llsec-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-llsec-coapserver.$(CC2538_FW)
 
 bin_cc2538dk/6lbr-demo-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-coapserver.$(CC2538_FW)
 
 bin_cc2538dk/6lbr-demo-dtls-coapserver.cc2538dk:
 	mkdir -p bin_cc2538dk
 	$(MAKE) TARGET=cc2538dk clean
 	$(MAKE) TARGET=cc2538dk WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
-	cp 6lbr-demo.$(CC2538DK_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538DK_FW)
+	cp 6lbr-demo.$(CC2538_FW) bin_cc2538dk/6lbr-demo-dtls-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-llsec-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_LLSEC=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-llsec-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-coapserver.$(CC2538_FW)
+
+bin_zoul/6lbr-demo-dtls-coapserver.zoul:
+	mkdir -p bin_zoul
+	$(MAKE) TARGET=zoul clean
+	$(MAKE) TARGET=zoul WITH_UDPCLIENT=0 WITH_COAPSERVER=1 WITH_TINYDTLS=1 WITH_DTLS_COAP=1 RF_CHANNEL=$(RF_CHANNEL)
+	cp 6lbr-demo.$(CC2538_FW) bin_zoul/6lbr-demo-dtls-coapserver.$(CC2538_FW)
 
 include $(CONTIKI)/Makefile.include
 
-.PHONY: all_sky all_z1 all_econotag all_cc2538dk bin_sky/* bin_z1/* bin_econotag/* bin_cc2538dk/*
+.PHONY: all_sky all_z1 all_econotag all_cc2538dk all_zoul bin_sky/* bin_z1/* bin_econotag/* bin_cc2538dk/* bin_zoul/*

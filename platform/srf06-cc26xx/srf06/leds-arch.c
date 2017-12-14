@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- * Driver for the SmartRF06EB LEDs when a CC26xx is mounted on the board
+ * Driver for the SmartRF06EB LEDs when a CC13xx/CC26xx EM is mounted on it
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -56,7 +56,7 @@ leds_arch_init(void)
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_LED_3);
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_LED_4);
 
-  ti_lib_gpio_pin_write(BOARD_LED_ALL, 0);
+  ti_lib_gpio_clear_multi_dio(BOARD_LED_ALL);
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
@@ -71,19 +71,19 @@ leds_arch_set(unsigned char leds)
   c = leds;
 
   /* Clear everything */
-  ti_lib_gpio_pin_write(BOARD_LED_ALL, 0);
+  ti_lib_gpio_clear_multi_dio(BOARD_LED_ALL);
 
   if((leds & LEDS_RED) == LEDS_RED) {
-    ti_lib_gpio_pin_write(BOARD_LED_1, 1);
+    ti_lib_gpio_set_dio(BOARD_IOID_LED_1);
   }
   if((leds & LEDS_YELLOW) == LEDS_YELLOW) {
-    ti_lib_gpio_pin_write(BOARD_LED_2, 1);
+    ti_lib_gpio_set_dio(BOARD_IOID_LED_2);
   }
   if((leds & LEDS_GREEN) == LEDS_GREEN) {
-    ti_lib_gpio_pin_write(BOARD_LED_3, 1);
+    ti_lib_gpio_set_dio(BOARD_IOID_LED_3);
   }
   if((leds & LEDS_ORANGE) == LEDS_ORANGE) {
-    ti_lib_gpio_pin_write(BOARD_LED_4, 1);
+    ti_lib_gpio_set_dio(BOARD_IOID_LED_4);
   }
 }
 /*---------------------------------------------------------------------------*/

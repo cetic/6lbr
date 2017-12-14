@@ -30,8 +30,10 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/rpl/rpl.h"
-#include "net/ip/uip.h"
+#if UIP_CONF_IPV6_RPL
+#include "rpl.h"
+#endif
+#include "uip.h"
 #include "lib/random.h"
 
 #if UDP_CLIENT_STORE_RADIO_INFO
@@ -42,7 +44,7 @@
 #include <stdlib.h>
 
 #define DEBUG 0
-#include "net/ip/uip-debug.h"
+#include "uip-debug.h"
 
 #ifndef CETIC_6LBR_UDP_PERIOD
 #define CETIC_6LBR_UDP_PERIOD 15

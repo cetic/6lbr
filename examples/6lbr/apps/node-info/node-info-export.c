@@ -54,7 +54,7 @@ int node_info_export_global = 0;
 
 static native_config_callback_t node_info_export_config_cb;
 
-#if WEBSERVER
+#if CETIC_6LBR_WITH_WEBSERVER
 #include "httpd-cgi.h"
 HTTPD_GROUP_NAME(sensors_group);
 HTTPD_CGI_CALL_NAME(webserver_node_info_export);
@@ -301,7 +301,7 @@ void
 node_info_export_init(void)
 {
   process_start(&node_info_export_process, NULL);
-#if WEBSERVER
+#if CETIC_6LBR_WITH_WEBSERVER
   httpd_group_add_page(&sensors_group, &webserver_node_info_export);
   httpd_cgi_command_add(&webserver_node_info_export_toggle_cmd);
   httpd_cgi_command_add(&webserver_node_info_export_config_cmd);

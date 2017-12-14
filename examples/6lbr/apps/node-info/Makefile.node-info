@@ -1,8 +1,8 @@
-CFLAGS += -DCETIC_NODE_INFO=1
+CFLAGS += -DCETIC_6LBR_NODE_INFO=1
 node-info_src = node-info.c
 
 ifeq ($(TARGET),native)
-CFLAGS += -DCETIC_NODE_INFO_EXPORT=1
+CFLAGS += -DCETIC_6LBR_NODE_INFO_EXPORT=1
 node-info_src += node-info-export.c
 ifneq ($(WITH_WEBSERVER),0)
 node-info_src += webserver-node-info-export.c
@@ -10,7 +10,7 @@ endif
 endif
 
 ifeq ($(TARGET),cooja)
-CFLAGS += -DCETIC_NODE_INFO_EXPORT=1
+CFLAGS += -DCETIC_6LBR_NODE_INFO_EXPORT=1
 node-info_src += node-info-export.c
 ifneq ($(WITH_WEBSERVER),0)
 node-info_src += webserver-node-info-export.c

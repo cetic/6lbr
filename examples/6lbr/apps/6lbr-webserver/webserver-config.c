@@ -45,7 +45,7 @@
 #include "nvm-config.h"
 #include "log-6lbr.h"
 
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
 #endif
 
@@ -79,6 +79,17 @@ HTTPD_CGI_CALL_NAME(webserver_config)
         (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
   } else { \
     add(text " : %s<br />", (nvm_data.nvm_name & (flag)) != 0 ? "on" : "off" ); \
+  }
+
+#define INPUT_FLAG_INV_CB(name, nvm_name, flag, text) \
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) { \
+      add(text " : <br />" \
+            "<input type=\"radio\" name=\""name"\" value=\"1\" %s> on ", \
+            (nvm_data.nvm_name & (flag)) == 0 ? "checked" : ""); \
+          add("<input type=\"radio\" name=\""name"\" value=\"0\" %s> off <br />", \
+        (nvm_data.nvm_name & (flag)) != 0 ? "checked" : ""); \
+  } else { \
+    add(text " : %s<br />", (nvm_data.nvm_name & (flag)) == 0 ? "on" : "off" ); \
   }
 
 #define INPUT_IPADDR(name, nvm_name, text) \
@@ -160,16 +171,15 @@ PT_THREAD(generate_config(struct httpd_state *s))
   {
   add("<h3>802.15.4 configuration</h3>");
   INPUT_INT("channel", channel, "Channel");
-#if !CONTIKI_TARGET_NATIVE
   INPUT_HEX("panid", pan_id, "PAN ID");
-#endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   add("<br /><h3>802.15.4 Security</h3>");
   add("Link-layer security : <select name=\"llsec\">");
   SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONE, "None");
-  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Pre-shared Key");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_NONCORESEC, "Legacy");
+  SELECT_OPTION(security_layer, CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC, "AKES (noncore)");
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -185,7 +195,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  INPUT_KEY("psk", noncoresec_key, 16, "Pre-shared key");
+  INPUT_KEY("psk", noncoresec_key, 16, "Network key");
   INPUT_FLAG_CB("sec_dis_ar", noncoresec_flags, CETIC_6LBR_NONCORESEC_ENABLE_ANTIREPLAY, "Enable anti-replay");
   INPUT_FLAG_CB("sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, "Enable anti-replay workaround");
   SEND_STRING(&s->sout, buf);
@@ -195,6 +205,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("MAC Layer : <select name=\"mac\">");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NONE, "None");
   SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_CSMA, "CSMA");
+  SELECT_OPTION(mac_layer, CETIC_6LBR_MAC_LAYER_NULLMAC, "NullMAC");
   add("</select><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -217,6 +228,16 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IPADDR("wsn_addr", wsn_ip_addr, "Manual address");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+#if CETIC_6LBR_MULTICAST_WRAPPER
+  add("Multicast engine : <select name=\"mcast\">");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_NONE, "None");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_SMRF, "SMRF");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_ROLL_TM, "ROLL-TM");
+  SELECT_OPTION(multicast_engine, CETIC_6LBR_MULTICAST_ESMRF, "ESMRF");
+  add("</select><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
 #if CONTIKI_TARGET_NATIVE
   if(!sixlbr_config_slip_ip)
 #endif
@@ -231,7 +252,9 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
 #endif
   INPUT_IPADDR("dns", dns_server, "DNS server");
-#if CETIC_NODE_CONFIG
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#if CETIC_6LBR_NODE_CONFIG
   INPUT_FLAG_CB("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, "Filter nodes");
 #endif
   INPUT_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, "NDP NUD", "disabled", "enabled");
@@ -254,7 +277,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   add("<br /><h3>IP64</h3>");
   INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
   INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
@@ -264,7 +287,11 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
   INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
   INPUT_FLAG_CB("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, "RFC 6052 prefix" );
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   INPUT_FLAG_CB("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, "Static port mapping" );
+  INPUT_INT("ip64_coap_port", node_config_first_coap_port, "First CoAP port");
+  INPUT_INT("ip64_http_port", node_config_first_http_port, "First HTTP port");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -309,8 +336,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if UIP_CONF_IPV6_RPL && (CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE)
+#if CETIC_6LBR_WITH_RPL
   add("<br /><h2>RPL Configuration</h2>");
+#if CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE
+  add("<br /><h3>DODAG Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
   INPUT_FLAG_CB( "dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, "Manual DODAG ID");
   INPUT_IPADDR("dodag_id", rpl_dodag_id, "DODAG ID");
@@ -330,18 +359,32 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+  add("<br /><h3>RPL Behavior</h3>");
+#if CETIC_6LBR_WITH_MULTI_RPL
+  INPUT_FLAG( "non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, "RPL Mode", "Non storing", "Storing");
+#endif
+  INPUT_FLAG_CB( "dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, "DAO Ack");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_FLAG_CB( "dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, "DAO Ack local repair");
+  INPUT_FLAG_INV_CB( "dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, "Route refresh with DIO");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
 
   add("<br /><h2>Global configuration</h2>");
   INPUT_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, "Webserver", "disabled", "enabled" );
+  INPUT_INT( "web_port", webserver_port, "Webserver port");
 #if WITH_COAPSERVER
   INPUT_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, "CoAP server", "disabled", "enabled" );
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#if UDPSERVER
+#if CETIC_6LBR_WITH_UDPSERVER
   INPUT_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, "UDP server", "disabled", "enabled" );
+  INPUT_INT( "udp_port", udp_server_port, "UDP server port");
 #endif
-#if WITH_DNS_PROXY
+#if CETIC_6LBR_WITH_DNS_PROXY
   INPUT_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, "DNS Proxy", "disabled", "enabled" );
 #endif
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
@@ -367,6 +410,21 @@ else if(strcmp(param, name) == 0) { \
     do_update = 0; \
   } \
 }
+
+#define UPDATE_FLAG_INV(name, nvm_name, flag, reboot) \
+else if(strcmp(param, name) == 0) { \
+  if(strcmp(value, "0") == 0) { \
+    nvm_data.nvm_name |= (flag); \
+    *reboot_needed |= (reboot); \
+  } else if(strcmp(value, "1") == 0) { \
+    nvm_data.nvm_name &= ~(flag); \
+    *reboot_needed |= (reboot); \
+  } else { \
+        LOG6LBR_WARN("Invalid value for %s : '%s'\n", param, value); \
+    do_update = 0; \
+  } \
+}
+
 #define UPDATE_INT(name, nvm_name, reboot) \
   else if(strcmp(param, name) == 0) { \
     nvm_data.nvm_name = atoi(value); \
@@ -429,7 +487,7 @@ update_config(const char *name, uint8_t *reboot_needed)
   char *next;
   uint8_t do_update = 1;
   uip_ipaddr_t loc_fipaddr;
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
   uip_ip4addr_t loc_fip4addr;
 #endif
 
@@ -470,6 +528,9 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG( "sec_ar_wa", noncoresec_flags, CETIC_6LBR_NONCORESEC_ANTIREPLAY_WORKAROUND, 1)
     UPDATE_IPADDR("wsn_pre", wsn_net_prefix, 1)
     UPDATE_INT("wsn_pre_len", wsn_net_prefix_len, 1)
+#if CETIC_6LBR_MULTICAST_WRAPPER
+    UPDATE_INT("mcast", multicast_engine, 1)
+#endif
     UPDATE_IPADDR("wsn_context_0", wsn_6lowpan_context_0, 1)
     UPDATE_FLAG("wsn_auto", mode, CETIC_MODE_WSN_AUTOCONF, 1)
     UPDATE_IPADDR("wsn_addr", wsn_ip_addr, 1)
@@ -481,7 +542,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IPADDR("eth_dft", eth_dft_router, 1)
     UPDATE_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, 1)
     UPDATE_FLAG("rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK, 1)
-#if CETIC_6LBR_IP64
+#if CETIC_6LBR_WITH_IP64
     UPDATE_FLAG("ip64", global_flags, CETIC_GLOBAL_IP64, 1)
     UPDATE_FLAG("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, 1)
     UPDATE_IP4ADDR("ip64_addr", eth_ip64_addr, 1)
@@ -489,6 +550,8 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_IP4ADDR("ip64_gateway", eth_ip64_gateway, 1)
     UPDATE_FLAG("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, 1)
     UPDATE_FLAG("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, 1)
+    UPDATE_INT( "ip64_coap_port", node_config_first_coap_port, 1)
+    UPDATE_INT( "ip64_http_port", node_config_first_http_port, 1)
 #endif
 #if RESOLV_CONF_SUPPORTS_MDNS
     UPDATE_FLAG("mdns", global_flags, CETIC_GLOBAL_MDNS, 1)
@@ -497,7 +560,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, 1)
 #endif
 #endif
-#if CETIC_NODE_CONFIG
+#if CETIC_6LBR_NODE_CONFIG
     UPDATE_FLAG("nc_filter", global_flags, CETIC_GLOBAL_FILTER_NODES, 1)
 #endif
     UPDATE_FLAG("ndp_nud", global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD, 1)
@@ -518,6 +581,10 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_instance_id", rpl_instance_id, 1)
     UPDATE_FLAG("dodag_manual", rpl_config, CETIC_6LBR_MODE_MANUAL_DODAG, 1)
     UPDATE_FLAG("dodag_global", rpl_config, CETIC_6LBR_MODE_GLOBAL_DODAG, 1)
+    UPDATE_FLAG("non_storing", rpl_config, CETIC_6LBR_RPL_NON_STORING, 1)
+    UPDATE_FLAG("dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, 1)
+    UPDATE_FLAG("dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, 1)
+    UPDATE_FLAG_INV("dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, 1)
     UPDATE_IPADDR("dodag_id", rpl_dodag_id, 1)
     UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)
@@ -529,8 +596,10 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_INT( "rpl_lifetime_unit", rpl_lifetime_unit, 1)
 
     UPDATE_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, 1)
+    UPDATE_INT( "web_port", webserver_port, 1)
     UPDATE_FLAG("coap_server", global_flags, CETIC_GLOBAL_DISABLE_COAP_SERVER, 1)
     UPDATE_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, 1)
+    UPDATE_INT( "udp_port", udp_server_port, 1)
     UPDATE_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, 1)
 
 #if !LOG6LBR_STATIC
@@ -581,7 +650,7 @@ webserver_config_set(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_config_reset(struct httpd_state *s)
 {
-  check_nvm(&nvm_data, 1);
+  reset_nvm_config();
   cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
   webserver_result_title = "Configuration";
   webserver_result_text = "Configuration reset, restarting BR...";

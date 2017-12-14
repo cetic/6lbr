@@ -40,21 +40,14 @@
 #include "../cc2538dk/6lbr-conf-cc2538dk.h"
 
 /*------------------------------------------------------------------*/
-/* ZOUL 6LBR                                                        */
+/* ZOUL 6LBR                                                    */
 /*------------------------------------------------------------------*/
 
-/* Do not change lines below */
 
-#define CC2538_ENC28J60_CONF_CLK_PORT   GPIO_C_BASE
-#define CC2538_ENC28J60_CONF_CLK_PIN    4
+#define CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS (CETIC_6LBR_IP64_DHCP |           \
+                                           CETIC_6LBR_IP64_SPECIAL_PORTS)
 
-#define CC2538_ENC28J60_CONF_MOSI_PORT  GPIO_C_BASE
-#define CC2538_ENC28J60_CONF_MOSI_PIN   5
-
-#define CC2538_ENC28J60_CONF_MISO_PORT  GPIO_C_BASE
-#define CC2538_ENC28J60_CONF_MISO_PIN   6
-
-#define CC2538_ENC28J60_CONF_CS_PORT    GPIO_A_BASE
-#define CC2538_ENC28J60_CONF_CS_PIN     7
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS (CETIC_GLOBAL_DISABLE_WSN_NUD | \
+                                             CETIC_GLOBAL_IP64)
 
 #endif /* SIXLBR_CONF_ZOUL */

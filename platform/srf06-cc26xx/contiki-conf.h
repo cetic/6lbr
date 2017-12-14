@@ -45,16 +45,6 @@
 #endif /* PROJECT_CONF_H */
 /*---------------------------------------------------------------------------*/
 /**
- * \name CC26xx flavour selection
- * @{
- */
-#ifndef CC26XX_MODEL_CONF_CPU_VARIANT
-#define CC26XX_MODEL_CONF_CPU_VARIANT 2650 /**< 2650 => CC2650, 2630 => CC2630 */
-
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
  * \name Network Stack Configuration
  *
  * @{
@@ -75,9 +65,16 @@
 #define NETSTACK_CONF_RDC     contikimac_driver
 #endif
 
+/*
+ * If set, the systems keeps the HF crystal oscillator on even when the radio is off.
+ * You need to set this to 1 to use TSCH with its default 2.2ms or larger guard time.
+ */
+#ifndef CC2650_FAST_RADIO_STARTUP
+#define CC2650_FAST_RADIO_STARTUP               0
+#endif
+
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#define NULLRDC_CONF_802154_AUTOACK             1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
@@ -92,7 +89,55 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
-#define NETSTACK_CONF_RADIO   cc26xx_rf_driver
+#ifdef RF_CHANNEL
+#define RF_CORE_CONF_CHANNEL             RF_CHANNEL
+#endif
+
+/* Number of Prop Mode RX buffers */
+#ifndef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_CONF_RX_BUF_CNT        4
+#endif
+
+/*
+ * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
+ * project has specified otherwise. Depending on the final mode, determine a
+ * default channel (again, if unspecified) and configure RDC params
+ */
+#if CPU_FAMILY_CC13XX
+#ifndef CC13XX_CONF_PROP_MODE
+#define CC13XX_CONF_PROP_MODE 1
+#endif /* CC13XX_CONF_PROP_MODE */
+#endif /* CPU_FAMILY_CC13XX */
+
+#if CC13XX_CONF_PROP_MODE
+#define NETSTACK_CONF_RADIO        prop_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                      0
+#endif
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                (RTIMER_SECOND / 400)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 1000)
+#define NULLRDC_CONF_802154_AUTOACK_HW            0
+#define NULLRDC_CONF_SEND_802154_ACK              1
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME            (RTIMER_ARCH_SECOND / 1600)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME            (RTIMER_ARCH_SECOND / 210)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
+#define CONTIKIMAC_CONF_SEND_SW_ACK               1
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 920)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 220)
+#else
+#define NETSTACK_CONF_RADIO        ieee_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                     25
+#endif
+
+#define NULLRDC_CONF_802154_AUTOACK_HW            1
+#define NULLRDC_CONF_SEND_802154_ACK              0
+#endif
+
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN        125
 
 /* 6LoWPAN */
@@ -136,37 +181,16 @@
 #define IEEE802154_CONF_PANID           0xABCD /**< Default PAN ID */
 #endif
 
-#ifndef CC26XX_RF_CONF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL              25 /**< Default RF channel */
+#ifndef IEEE_MODE_CONF_AUTOACK
+#define IEEE_MODE_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
 #endif
 
-#ifndef CC26XX_RF_CONF_AUTOACK
-#define CC26XX_RF_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
+#ifndef IEEE_MODE_CONF_PROMISCOUS
+#define IEEE_MODE_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
 #endif
 
-#ifndef CC26XX_RF_CONF_PROMISCOUS
-#define CC26XX_RF_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
-#endif
-
-#ifndef CC26XX_RF_CONF_BLE_SUPPORT
-#define CC26XX_RF_CONF_BLE_SUPPORT           0 /**< 0 to disable BLE support */
-#endif
-
-/*
- * Patch Management for the CPE itself and for BLE and IEEE modes
- *
- * Don't change these unless you know what you're doing
- */
-#ifndef CC26XX_CONF_CPE_HAS_PATCHES
-#define CC26XX_CONF_CPE_HAS_PATCHES          0 /**< 1 to enable patching the CPE */
-#endif
-
-#ifndef CC26XX_CONF_BLE_HAS_PATCHES
-#define CC26XX_CONF_BLE_HAS_PATCHES          0 /**< 1 to enable patching BLE mode */
-#endif
-
-#ifndef CC26XX_CONF_IEEE_HAS_PATCHES
-#define CC26XX_CONF_IEEE_HAS_PATCHES         0 /**< 1 to enable patching IEEE mode */
+#ifndef RF_BLE_CONF_ENABLED
+#define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -205,10 +229,6 @@
 #endif
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
@@ -263,6 +283,11 @@
 #define CC26XX_UART_CONF_BAUD_RATE    115200 /**< Default UART0 baud rate */
 #endif
 
+/* Enable I/O over the Debugger Devpack - Only relevant for the SensorTag */
+#ifndef BOARD_CONF_DEBUGGER_DEVPACK
+#define BOARD_CONF_DEBUGGER_DEVPACK        1
+#endif
+
 /* Turn off example-provided putchars */
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR        1
 #define SLIP_RADIO_CONF_NO_PUTCHAR         1
@@ -276,6 +301,19 @@
 #if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name ROM Bootloader configuration
+ *
+ * Enable/Disable the ROM bootloader in your image, if the board supports it.
+ * Look in board.h to choose the DIO and corresponding level that will cause
+ * the chip to enter bootloader mode.
+ * @{
+ */
+#ifndef ROM_BOOTLOADER_ENABLE
+#define ROM_BOOTLOADER_ENABLE              0
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -324,10 +362,62 @@ typedef uint32_t uip_stats_t;
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
+
+/* --------------------------------------------------------------------- */
+/* TSCH related defines */
+
+/* Delay between GO signal and SFD */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(81))
+/* Delay between GO signal and start listening.
+ * This value is so small because the radio is constantly on within each timeslot. */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(15))
+/* Delay between the SFD finishes arriving and it is detected in software. */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(352))
+
+/* Timer conversion; radio is running at 4 MHz */
+#define RADIO_TIMER_SECOND   4000000u
+#if (RTIMER_SECOND % 256) || (RADIO_TIMER_SECOND % 256)
+#error RADIO_TO_RTIMER macro must be fixed!
+#endif
+#define RADIO_TO_RTIMER(X)   ((uint32_t)(((uint64_t)(X) * (RTIMER_SECOND / 256)) / (RADIO_TIMER_SECOND / 256)))
+#define USEC_TO_RADIO(X)     ((X) * 4)
+
+/* The PHY header (preamble + SFD, 4+1 bytes) duration is equivalent to 10 symbols */
+#define RADIO_IEEE_802154_PHY_HEADER_DURATION_USEC 160
+
+/* Do not turn off TSCH within a timeslot: not enough time */
+#define TSCH_CONF_RADIO_ON_DURING_TIMESLOT 1
+
+/* Disable TSCH frame filtering */
+#define TSCH_CONF_HW_FRAME_FILTERING	0
+
+/* Use hardware timestamps */
+#ifndef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
+#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
+#define TSCH_CONF_TIMESYNC_REMOVE_JITTER 0
+#endif
+
+#ifndef TSCH_CONF_BASE_DRIFT_PPM
+/* The drift compared to "true" 10ms slots.
+ * Enable adaptive sync to enable compensation for this. */
+#define TSCH_CONF_BASE_DRIFT_PPM -977
+#endif
+
+/* 10 times per second */
+#ifndef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CONF_CHANNEL_SCAN_DURATION (CLOCK_SECOND / 10)
+#endif
+
+/* Slightly reduce the TSCH guard time (from 2200 usec to 1800 usec) to make sure
+ * the CC26xx radio has sufficient time to start up. */
+#ifndef TSCH_CONF_RX_WAIT
+#define TSCH_CONF_RX_WAIT 1800
+#endif
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */

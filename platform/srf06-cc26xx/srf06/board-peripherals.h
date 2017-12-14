@@ -28,22 +28,28 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/** \addtogroup srf06-cc26xx-peripherals
+/** \addtogroup cc26xx-srf-tag
  * @{
  *
- * \file
- * Header file with definitions related to the Srf06EB peripherals
+ * \defgroup srf06-common-peripherals SmartRF06EB + CC13xx/CC26xx common
  *
- * \note   Do not include this file directly.
+ * Defines related to the SmartRF06 Evaluation Board irrespective of the EM
+ * mounted on it
+ *
+ * This file provides connectivity information on LEDs, Buttons, UART and
+ * other peripherals
+ *
+ * @{
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BOARD_PERIPHERALS_H_
 #define BOARD_PERIPHERALS_H_
 /*---------------------------------------------------------------------------*/
-/* ToDo: Include things here */
+#include "als-sensor.h"
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_PERIPHERALS_H_ */
 /*---------------------------------------------------------------------------*/
 /**
+ * @}
  * @}
  */

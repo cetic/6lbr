@@ -81,24 +81,105 @@
 #define RF_CHANNEL 26
 #endif
 
+#undef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL RF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL RF_CHANNEL
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL RF_CHANNEL
+#undef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL RF_CHANNEL
 
 /*---------------------------------------------------------------------------*/
 /* Security                                                                  */
 /*---------------------------------------------------------------------------*/
 
+#if WITH_TSCH
+
+/* Netstack layers */
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     tschmac_driver
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC     nordc_driver
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER  framer_802154
+
+/* IEEE802.15.4 frame version */
+#undef FRAME802154_CONF_VERSION
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
+/* TSCH and RPL callbacks */
+#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
+#define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
+#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
+#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
+
+/* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
+ * log messages from interrupt */
+#undef TSCH_LOG_CONF_LEVEL
+#define TSCH_LOG_CONF_LEVEL 2
+
+/* Start TSCH at init */
+#undef TSCH_CONF_AUTOSTART
+#define TSCH_CONF_AUTOSTART 1
+
+/* 6TiSCH minimal schedule length.
+ * Larger values result in less frequent active slots: reduces capacity and saves energy. */
+#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 3
+
+/* Hardware configuration */
+
+/* Needed for CC2538 platforms only */
+/* For TSCH we have to use the more accurate crystal oscillator
+ * by default the RC oscillator is activated */
+#undef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
+
+/* Needed for cc2420 platforms only */
+/* Disable DCO calibration (uses timerB) */
+#undef DCOSYNCH_CONF_ENABLED
+#define DCOSYNCH_CONF_ENABLED 0
+
+/* Enable SFD timestamps (uses timerB) */
+#undef CC2420_CONF_SFD_TIMESTAMPS
+#define CC2420_CONF_SFD_TIMESTAMPS 1
+
+#if CONTIKI_TARGET_CC2538DK || CONTIKI_TARGET_ZOUL || \
+  CONTIKI_TARGET_OPENMOTE_CC2538
+#define TSCH_CONF_HW_FRAME_FILTERING    0
+#endif /* CONTIKI_TARGET_CC2538DK || CONTIKI_TARGET_ZOUL \
+       || CONTIKI_TARGET_OPENMOTE_CC2538 */
+
+#if CONTIKI_TARGET_COOJA
+#define COOJA_CONF_SIMULATE_TURNAROUND 0
+#endif /* CONTIKI_TARGET_COOJA */
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+/* Security                                                                  */
+/*---------------------------------------------------------------------------*/
+
+#ifndef WITH_ADAPTIVESEC
+#define WITH_ADAPTIVESEC 1
+#endif
+
 #if WITH_LLSEC
 
-#undef NETSTACK_LLSEC
-#define NETSTACK_LLSEC noncoresec_driver
+#if WITH_ADAPTIVESEC
 
-#undef LLSEC802154_CONF_SECURITY
-#define LLSEC802154_CONF_SECURITY 1
-#ifndef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL 6
+#include "noncoresec-autoconf.h"
+
+#else /* WITH_ADAPTIVESEC */
+
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER noncoresec_framer
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC noncoresec_driver
+
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED 1
+#ifndef NONCORESEC_CONF_SEC_LVL
+#define NONCORESEC_CONF_SEC_LVL 6
 #endif
 
 #undef AES_128_CONF
@@ -107,18 +188,20 @@
 #define LLSEC_ANTIREPLAY_ENABLED 1
 #define LLSEC_REBOOT_WORKAROUND_ENABLED 1
 
-#else
+#endif /* WITH_ADAPTIVESEC */
 
-#undef NETSTACK_LLSEC
-#define NETSTACK_LLSEC nullsec_driver
+#else /* WITH_LLSEC */
 
-#endif
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC nullsec_driver
+
+#endif /* WITH_LLSEC */
 
 /*---------------------------------------------------------------------------*/
 /* 6LoWPAN                                                                   */
 /*---------------------------------------------------------------------------*/
 
-#define CETIC_6LBR_6LOWPAN_CONTEXT_0  { 0xAA, 0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+#define CETIC_6LBR_6LOWPAN_CONTEXT_0  { 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 
 /*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
@@ -151,6 +234,22 @@
 
 /* Report LQI and RSSI only for parent node */
 #define UDP_CLIENT_STORE_RADIO_INFO 1
+
+/*---------------------------------------------------------------------------*/
+/* MULTICAST-CLIENT                                                          */
+/*---------------------------------------------------------------------------*/
+
+#if MULTICAST_CLIENT
+
+#define MCAST_SINK_UDP_PORT 3001
+
+#undef UIP_MCAST6_CONF_ENGINE
+#define UIP_MCAST6_CONF_ENGINE  UIP_MCAST6_ENGINE_ESMRF
+
+#undef UIP_MCAST6_ROUTE_CONF_ROUTES
+#define UIP_MCAST6_ROUTE_CONF_ROUTES    1
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* DTLS                                                                      */
@@ -218,14 +317,6 @@
 #define SKY_CONF_MAX_TX_POWER 	31
 #endif
 
-#if CONTIKI_TARGET_ECONOTAG
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK_HW     1
-#else
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK	1
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* RPL & Network                                                             */
 /*---------------------------------------------------------------------------*/
@@ -255,7 +346,26 @@
 // Always use infinite upward route
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME    1
 
+//Select RPL MOP
+#undef RPL_CONF_MOP
+#if RPL_NON_STORING
+#define RPL_CONF_MOP RPL_MOP_NON_STORING
+#elif MULTICAST_CLIENT
+#define RPL_CONF_MOP RPL_MOP_STORING_MULTICAST
+#else
+#define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
+#endif
+
+// Enable DAO-Ack
+#define RPL_CONF_WITH_DAO_ACK       1
+
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    0
+
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     0
+
 /* Z1 platform has limited RAM */
+
+#if !CUSTOM_CONFIG
 
 #if defined CONTIKI_TARGET_Z1
 
@@ -270,7 +380,7 @@
 #define UIP_CONF_MAX_ROUTES   12
 #endif
 
-#else
+#else /* CONTIKI_TARGET_Z1 */
 
 #define RPL_CONF_MAX_PARENTS_PER_DAG    24
 #define NEIGHBOR_CONF_MAX_NEIGHBORS     24
@@ -279,9 +389,25 @@
 #define UIP_CONF_DS6_NBR_NBU     24
 #endif
 
+#endif /* CONTIKI_TARGET_Z1 */
+
+#if RPL_NON_STORING
+
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES 0
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM   24
+#endif
+
+#else /* RPL_NON_STORING */
+
+#undef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM   0
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
 #endif
+
+#endif /* RPL_NON_STORING */
 
 #endif
 

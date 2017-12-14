@@ -44,7 +44,11 @@
 #include <stdio.h>
 #include <termios.h>
 
+#if CETIC_6LBR_MULTI_RADIO
 #define SLIP_MAX_DEVICE NETWORK_ITF_NBR
+#else
+#define SLIP_MAX_DEVICE 1
+#endif
 
 typedef struct {
   uint8_t isused;
@@ -98,5 +102,7 @@ void slip_init_all_dev(void);
 void write_to_slip(slip_descr_t * slip_device, const uint8_t * buf, int len);
 
 speed_t convert_baud_rate(int baudrate);
+
+void slip_error_callback(const uint8_t *buf);
 
 #endif /* NATIVE_SLIP_H_ */

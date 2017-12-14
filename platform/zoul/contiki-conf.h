@@ -71,11 +71,17 @@ typedef uint32_t uip_stats_t;
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
 /** @} */
+/*---------------------------------------------------------------------------*/
+/* 352us from calling transmit() until the SFD byte has been sent */
+#define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(352))
+/* 192us as in datasheet but ACKs are not always received, so adjusted to 250us */
+#define RADIO_DELAY_BEFORE_RX     ((unsigned)US_TO_RTIMERTICKS(250))
+#define RADIO_DELAY_BEFORE_DETECT 0
 /*---------------------------------------------------------------------------*/
 /**
  * \name Serial Boot Loader Backdoor configuration
@@ -94,7 +100,16 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * \name CC2538 System Control configuration
+ *
+ * @{
+ */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1 /**< Use the on-board 32.768-kHz crystal */
+#endif
+/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name CFS configuration
@@ -104,15 +119,6 @@ typedef uint32_t rtimer_clock_t;
 #ifndef COFFEE_CONF_SIZE
 #define COFFEE_CONF_SIZE            (4 * COFFEE_SECTOR_SIZE)
 #endif
-
-#ifndef FLASH_CONF_ORIGIN
-#define FLASH_CONF_ORIGIN  0x00200000
-#endif
-
-#ifndef FLASH_CONF_SIZE
-#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
-#endif
-
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -191,10 +197,6 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_ARCH_CONF_USB          0 /**< SLIP over UART by default */
 #endif
 
-#ifndef CC2538_RF_CONF_SNIFFER_USB
-#define CC2538_RF_CONF_SNIFFER_USB  0 /**< Sniffer out over UART by default */
-#endif
-
 #ifndef DBG_CONF_USB
 #define DBG_CONF_USB                0 /**< All debugging over UART by default */
 #endif
@@ -206,12 +208,6 @@ typedef uint32_t rtimer_clock_t;
 #if !SLIP_ARCH_CONF_USB
 #ifndef SLIP_ARCH_CONF_UART
 #define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
-#endif
-#endif
-
-#if !CC2538_RF_CONF_SNIFFER_USB
-#ifndef CC2538_RF_CONF_SNIFFER_UART
-#define CC2538_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
 #endif
 #endif
 
@@ -241,15 +237,6 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #endif
 
-/*
- * When set, the radio turns off address filtering and sends all captured
- * frames down a peripheral (UART or USB, depending on the value of
- * CC2538_RF_CONF_SNIFFER_USB)
- */
-#ifndef CC2538_RF_CONF_SNIFFER
-#define CC2538_RF_CONF_SNIFFER      0
-#endif
-
 /**
  * \brief Define this as 1 to build a headless node.
  *
@@ -270,12 +257,6 @@ typedef uint32_t rtimer_clock_t;
 
 #undef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        0
-
-/* Little sanity check: We can't have quiet sniffers */
-#if CC2538_RF_CONF_SNIFFER
-#error "CC2538_RF_CONF_SNIFFER == 1 and CC2538_CONF_QUIET == 1"
-#error "These values are conflicting. Please set either to 0"
-#endif
 #endif /* CC2538_CONF_QUIET */
 
 /**
@@ -284,8 +265,7 @@ typedef uint32_t rtimer_clock_t;
 #ifndef USB_SERIAL_CONF_ENABLE
 #define USB_SERIAL_CONF_ENABLE \
   ((SLIP_ARCH_CONF_USB & SLIP_ARCH_CONF_ENABLED) | \
-   DBG_CONF_USB | \
-   (CC2538_RF_CONF_SNIFFER & CC2538_RF_CONF_SNIFFER_USB))
+   DBG_CONF_USB)
 #endif
 
 /*
@@ -305,9 +285,6 @@ typedef uint32_t rtimer_clock_t;
 #define UART_IN_USE_BY_SLIP(u)        (SLIP_ARCH_CONF_ENABLED && \
                                        !SLIP_ARCH_CONF_USB && \
                                        SLIP_ARCH_CONF_UART == (u))
-#define UART_IN_USE_BY_RF_SNIFFER(u)  (CC2538_RF_CONF_SNIFFER && \
-                                       !CC2538_RF_CONF_SNIFFER_USB && \
-                                       CC2538_RF_CONF_SNIFFER_UART == (u))
 #define UART_IN_USE_BY_DBG(u)         (!DBG_CONF_USB && DBG_CONF_UART == (u))
 #define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
 
@@ -315,7 +292,6 @@ typedef uint32_t rtimer_clock_t;
   UART_CONF_ENABLE && \
   (UART_IN_USE_BY_SERIAL_LINE(u) || \
    UART_IN_USE_BY_SLIP(u) || \
-   UART_IN_USE_BY_RF_SNIFFER(u) || \
    UART_IN_USE_BY_DBG(u) || \
    UART_IN_USE_BY_UART1(u)) \
 )
@@ -346,8 +322,10 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#ifndef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK             1
+#endif /* NULLRDC_CONF_802154_AUTOACK */
+#define NULLRDC_CONF_802154_AUTOACK_HW			    1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
@@ -364,6 +342,26 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_FRAMER  contikimac_framer
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_FRAMER */
+
+#if CC1200_CONF_SUBGHZ_50KBPS_MODE
+#define NETSTACK_CONF_RADIO                                 cc1200_driver
+#define CC1200_CONF_RF_CFG                                  cc1200_802154g_863_870_fsk_50kbps
+#define ANTENNA_SW_SELECT_DEF_CONF                          ANTENNA_SW_SELECT_SUBGHZ
+#define CC1200_CONF_USE_GPIO2                               0
+#define CC1200_CONF_USE_RX_WATCHDOG                         0
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                          (RTIMER_SECOND / 200)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME           (RTIMER_SECOND / 1500)
+#define NULLRDC_CONF_802154_AUTOACK                         1
+#define NULLRDC_CONF_802154_AUTOACK_HW                      1
+#define NULLRDC_CONF_SEND_802154_ACK                        0
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME                      (RTIMER_ARCH_SECOND / 800)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME                      (RTIMER_ARCH_SECOND / 120)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED   (RTIMER_ARCH_SECOND / 8)
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME        (RTIMER_SECOND / 300)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL               (RTIMER_SECOND / 200)
+#endif
 
 /* This can be overriden to use the cc1200_driver instead */
 #ifndef NETSTACK_CONF_RADIO
@@ -405,7 +403,7 @@ typedef uint32_t rtimer_clock_t;
  * 0 for PM0, 1 for PM1 and 2 for PM2
  */
 #ifndef LPM_CONF_MAX_PM
-#define LPM_CONF_MAX_PM       1
+#define LPM_CONF_MAX_PM       2
 #endif
 
 #ifndef LPM_CONF_STATS
@@ -457,6 +455,10 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL      RF_CHANNEL
+#endif
+
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              26
 #endif /* CC2538_RF_CONF_CHANNEL */
@@ -482,7 +484,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
 #ifndef NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_WITH_IPV6                        0
+#define NETSTACK_CONF_WITH_IPV6              0
 #endif
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -490,6 +492,9 @@ typedef uint32_t rtimer_clock_t;
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
+#ifndef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN                     0
+#endif
 #define UIP_CONF_NETIF_MAX_ADDRESSES         3
 
 /* TCP, UDP, ICMP */
@@ -499,7 +504,9 @@ typedef uint32_t rtimer_clock_t;
 #ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS                    64
 #endif
+#ifndef UIP_CONF_UDP
 #define UIP_CONF_UDP                         1
+#endif
 #define UIP_CONF_UDP_CHECKSUMS               1
 #define UIP_CONF_ICMP6                       1
 
@@ -508,21 +515,20 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ROUTER                      1
 #endif
 
+#ifndef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA                 0
+#endif
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        16
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES                 20
+#define UIP_CONF_MAX_ROUTES                 16
 #endif
 
 /* uIP */
@@ -549,8 +555,8 @@ typedef uint32_t rtimer_clock_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
+  addr_contexts[0].prefix[0] = UIP_DS6_DEFAULT_PREFIX_0; \
+  addr_contexts[0].prefix[1] = UIP_DS6_DEFAULT_PREFIX_1; \
 }
 #endif
 
@@ -584,6 +590,35 @@ typedef uint32_t rtimer_clock_t;
  */
 #ifndef CRYPTO_CONF_INIT
 #define CRYPTO_CONF_INIT        1 /**< Whether to init cryptoprocessor */
+#endif
+
+#ifndef AES_128_CONF
+#define AES_128_CONF            cc2538_aes_128_driver /**< AES-128 driver */
+#endif
+
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name RTC
+ *
+ * @{
+ */
+#ifdef PLATFORM_HAS_RTC
+
+#ifndef RTC_CONF_INIT
+#define RTC_CONF_INIT   0 /**< Whether to initialize the RTC */
+#endif
+
+#ifndef RTC_CONF_SET_FROM_SYS
+#define RTC_CONF_SET_FROM_SYS    0 /**< Whether to set the RTC from the build system */
+#endif
+
+#else
+#undef RTC_CONF_INIT
+#define RTC_CONF_INIT   0
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/

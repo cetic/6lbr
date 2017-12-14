@@ -35,7 +35,7 @@
 #ifndef PLATFORM_INIT_H_
 #define PLATFORM_INIT_H_
 
-#include "net/linkaddr.h"
+#include "linkaddr.h"
 
 typedef enum {
   /* Triggered immediately after boot or startup */

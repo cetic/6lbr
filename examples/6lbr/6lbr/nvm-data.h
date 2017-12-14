@@ -100,6 +100,17 @@ typedef struct {
   //Log
   uint8_t log_level;
   uint32_t log_services;
+
+  //Version 3 configuration data
+  //Multicast
+  uint8_t multicast_engine;
+
+  //Ports
+  uint16_t udp_server_port;
+  uint16_t nvm_proxy_port;
+
+  uint16_t node_config_first_coap_port;
+  uint16_t node_config_first_http_port;
 } nvm_data_t;
 
 /*---------------------------------------------------------------------------*/
@@ -110,8 +121,9 @@ typedef struct {
 #define CETIC_6LBR_NVM_VERSION_0	0
 #define CETIC_6LBR_NVM_VERSION_1	1
 #define CETIC_6LBR_NVM_VERSION_2    5
+#define CETIC_6LBR_NVM_VERSION_3    6
 
-#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_2
+#define CETIC_6LBR_NVM_CURRENT_VERSION	CETIC_6LBR_NVM_VERSION_3
 
 //Global Mode flags
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
@@ -134,6 +146,10 @@ typedef struct {
 
 //RA Mode flags
 
+//Avoid inclusion of contiki headers
+#define UIP_ND6_RA_FLAG_ONLINK          0x80
+#define UIP_ND6_RA_FLAG_AUTONOMOUS      0x40
+
 //RA PIO mode flags
 #define CETIC_6LBR_MODE_SEND_PIO		0x0100
 
@@ -148,6 +164,8 @@ typedef struct {
 //Security
 #define CETIC_6LBR_SECURITY_LAYER_NONE  0
 #define CETIC_6LBR_SECURITY_LAYER_NONCORESEC  1
+#define CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_NONCORESEC  2
+#define CETIC_6LBR_SECURITY_LAYER_ADAPTIVE_CORESEC  3
 
 #define CETIC_6LBR_SECURITY_LEVEL_NO_SECURITY           0
 #define CETIC_6LBR_SECURITY_LEVEL_AES_CBC_MAC_32        1
@@ -165,22 +183,34 @@ typedef struct {
 
 #define CETIC_6LBR_MODE_MANUAL_DODAG                0x0001
 #define CETIC_6LBR_MODE_GLOBAL_DODAG                0x0002
+#define CETIC_6LBR_RPL_DAO_ACK                      0x0004
+#define CETIC_6LBR_RPL_DAO_ACK_REPAIR               0x0008
+#define CETIC_6LBR_RPL_DAO_DISABLE_REFRESH          0x0010
+#define CETIC_6LBR_RPL_NON_STORING                  0x0020
 
 // DNS
 #define CETIC_6LBR_DNS_DNS_SD             0x01
 
 //MAC
-#define CETIC_6LBR_MAC_LAYER_NONE  0
-#define CETIC_6LBR_MAC_LAYER_CSMA  1
+#define CETIC_6LBR_MAC_LAYER_NONE     0
+#define CETIC_6LBR_MAC_LAYER_CSMA     1
+#define CETIC_6LBR_MAC_LAYER_NULLMAC  2
+#define CETIC_6LBR_MAC_LAYER_TSCH     3
+
+//MULTICAST
+#define CETIC_6LBR_MULTICAST_NONE     0
+#define CETIC_6LBR_MULTICAST_SMRF     1
+#define CETIC_6LBR_MULTICAST_ROLL_TM  2
+#define CETIC_6LBR_MULTICAST_ESMRF    3
 
 /*---------------------------------------------------------------------------*/
 
 //Default values
 
-#define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_RA_DAEMON | CETIC_MODE_REWRITE_ADDR_MASK )
-#define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		RPL_LOLLIPOP_INIT
-#define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0)
-#define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100)
+#define CETIC_6LBR_NVM_DEFAULT_MODE					( CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_ROUTER_RA_DAEMON | CETIC_MODE_REWRITE_ADDR_MASK )
+#define CETIC_6LBR_NVM_DEFAULT_RPL_VERSION_ID		240
+#define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX(a)	uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x0)
+#define CETIC_6LBR_NVM_DEFAULT_WSN_IP_ADDR(a)		uip_ip6addr(a, 0xfd00, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_NET_PREFIX(a)	uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_IP_ADDR(a)		uip_ip6addr(a, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100)
 #define CETIC_6LBR_NVM_DEFAULT_ETH_DFT_ROUTER(a)	uip_create_unspecified(a)
@@ -188,13 +218,17 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_PANID                            0xABCD
 
 //IP64 Configuration
+#ifndef CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS
 #define CETIC_6LBR_NVM_DEFAULT_IP64_FLAGS               0
+#endif
 #define CETIC_6LBR_NVM_DEFAULT_IP64_ADDRESS(a)          uip_ipaddr(a, 172, 16, 0, 2)
 #define CETIC_6LBR_NVM_DEFAULT_IP64_NETMASK(a)          uip_ipaddr(a, 255, 255, 255, 0)
 #define CETIC_6LBR_NVM_DEFAULT_IP64_GATEWAY(a)          uip_ipaddr(a, 172, 16, 0, 1)
 
 //Version 1 configuration data
-#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS			(CETIC_GLOBAL_DISABLE_WSN_NUD)
+#ifndef CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS
+#define CETIC_6LBR_NVM_DEFAULT_GLOBAL_FLAGS             (CETIC_GLOBAL_DISABLE_WSN_NUD)
+#endif
 
 //WSN Configuration
 #define CETIC_6LBR_NVM_DEFAULT_WSN_NET_PREFIX_LEN	64
@@ -217,7 +251,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_RA_RIO_LIFETIME		(3 * CETIC_6LBR_NVM_DEFAULT_RA_MAX_INTERVAL)
 
 //RPL Configuration
-#define CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG                       CETIC_6LBR_MODE_GLOBAL_DODAG
+#define CETIC_6LBR_NVM_DEFAULT_RPL_CONFIG               (CETIC_6LBR_MODE_GLOBAL_DODAG | CETIC_6LBR_RPL_DAO_ACK | CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)
 #define CETIC_6LBR_NVM_DEFAULT_RPL_INSTANCE_ID			0x1e
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DIO_INT_DOUBLING		8
 #define CETIC_6LBR_NVM_DEFAULT_RPL_DIO_MIN_INT			12
@@ -248,7 +282,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_MAC_LAYER CETIC_6LBR_MAC_LAYER_CSMA
 
 #define CETIC_6LBR_NVM_DEFAULT_6LOWPAN_CONTEXT_0 \
-  { 0xAA, 0xAA, 0x00, 0x00, \
+  { 0xFD, 0x00, 0x00, 0x00, \
     0x00, 0x00, 0x00, 0x00 }
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_SERVER(a)    uip_create_unspecified(a)
@@ -256,6 +290,12 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_LOG_LEVEL 0xFF
 
 #define CETIC_6LBR_NVM_DEFAULT_LOG_SERVICES 0xFFFFFFFF
+
+//Ports
+#define CETIC_6LBR_NVM_DEFAULT_UDP_SERVER_PORT    3000
+#define CETIC_6LBR_NVM_DEFAULT_NVM_PROXY_PORT    4000
+#define CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_COAP    20000
+#define CETIC_6LBR_NVM_DEFAULT_NODE_CONFIG_FIRST_HTTP    25000
 
 /*---------------------------------------------------------------------------*/
 

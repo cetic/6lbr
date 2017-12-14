@@ -6,7 +6,7 @@ from time import sleep
 
 class RouterLlsec(config.scenarios, unittest.TestCase):
     def modeSetUp(self):
-        config.security_layer=1
+        config.security_layer=2
         self.support.backbone.prefix=config.eth_prefix
         self.support.wsn.prefix=config.wsn_prefix
         self.br = self.support.add_6lbr()

@@ -36,6 +36,9 @@
 
 #define LOG6LBR_MODULE "CONFIG"
 
+#include "contiki.h"
+#include "list.h"
+
 #include "native-config.h"
 #include "log-6lbr.h"
 #include "stdio.h"
