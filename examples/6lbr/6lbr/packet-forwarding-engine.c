@@ -41,6 +41,7 @@
 #define LOG6LBR_MODULE "PFE"
 
 #include "contiki-net.h"
+#include "netstack.h"
 #include "uip-ds6.h"
 #include "uip-nd6.h"
 #include "packetbuf.h"
@@ -119,6 +120,7 @@ extern const struct network_driver sicslowpan_driver;
 static int rpl_mac_known = 0;
 #endif
 
+static int packet_handled = 0;
 /*---------------------------------------------------------------------------*/
 static void
 send_to_uip(void)
@@ -161,6 +163,9 @@ wireless_input(void)
 {
   int processFrame = 0;
   int forwardFrame = 0;
+
+  // Flag that the packet has entered the PFE to avoid infinite recursion
+  packet_handled = 1;
 
 #if CETIC_6LBR_WITH_IP64
   if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
@@ -245,7 +250,7 @@ wireless_input(void)
     uip_len = 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 uint8_t
 wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
@@ -318,9 +323,7 @@ wireless_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 #endif
   return ret;
 }
-
 /*---------------------------------------------------------------------------*/
-
 void
 eth_input(void)
 {
@@ -328,12 +331,13 @@ eth_input(void)
   uip_lladdr_t srcAddr;
 #endif
 
-  packet_filter_eth_packet = 1;
-  packet_filter_wsn_packet = 0;
-
   uip_lladdr_t destAddr;
   int processFrame = 0;
   int forwardFrame = 0;
+
+  packet_filter_eth_packet = 1;
+  packet_filter_wsn_packet = 0;
+  packet_handled = 1;
 
   //Packet type filtering
   //---------------------
@@ -457,7 +461,7 @@ eth_input(void)
     uip_len = 0;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static int
 eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 {
@@ -599,9 +603,7 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 
   return 1;
 }
-
 /*---------------------------------------------------------------------------*/
-
 #if !CETIC_6LBR_ROUTER
 
 static uint8_t
@@ -724,9 +726,20 @@ bridge_output(const uip_lladdr_t * dest)
   return 0;
 }
 #endif
-
 /*---------------------------------------------------------------------------*/
-#if !WITH_CONTIKI
+#if WITH_CONTIKI
+void
+packet_filter_init(void)
+{
+  wireless_outputfunc = tcpip_get_outputfunc();
+  tcpip_set_outputfunc(bridge_output);
+
+  tcpip_inputfunc = tcpip_get_inputfunc();
+
+  tcpip_set_inputfunc(wireless_input);
+}
+/*---------------------------------------------------------------------------*/
+#else /* WITH_CONTIKI */
 static void
 init(void)
 {
@@ -738,7 +751,7 @@ init(void)
   sicslowpan_driver.init();
 #endif
 }
-
+/*---------------------------------------------------------------------------*/
 static void
 input(void)
 {
@@ -752,27 +765,39 @@ input(void)
   sicslowpan_driver.input();
 #endif
 }
-#endif
+/*---------------------------------------------------------------------------*/
+static enum netstack_ip_action
+ip_input(void)
+{
+  if(packet_handled) {
+    //Packet has been processed by wireless_input() or eth_input(), simply
+    //forward it to the upper layer.
+    packet_handled = 0;
+    return NETSTACK_IP_PROCESS;
+  } else {
+    wireless_input();
+    //Packet has been resent to tcpip_input() inside wireless_input()
+    //so we must drop it here
+    return NETSTACK_IP_DROP;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static struct netstack_ip_packet_processor packet_processor = {
+  .process_input = ip_input,
+  .process_output = NULL
+};
 /*---------------------------------------------------------------------------*/
 void
 packet_filter_init(void)
 {
-#if WITH_CONTIKI
-  wireless_outputfunc = tcpip_get_outputfunc();
-  tcpip_set_outputfunc(bridge_output);
-
-  tcpip_inputfunc = tcpip_get_inputfunc();
-
-  tcpip_set_inputfunc(wireless_input);
-#endif
+  netstack_ip_packet_processor_add(&packet_processor);
 }
 /*---------------------------------------------------------------------------*/
-#if !WITH_CONTIKI
 const struct network_driver pfe_driver = {
   "pfe",
   init,
   input,
   (uint8_t (*)(const linkaddr_t *))bridge_output
 };
-#endif
+#endif /* WITH_CONTIKI */
 /*---------------------------------------------------------------------------*/
