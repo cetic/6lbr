@@ -98,7 +98,7 @@
 
 #define SLIP_CONF_CRC_ON 1
 
-#define SELECT_CALLBACK 1
+#define SELECT_CONF_STDIN 0
 
 #define SELECT_CONF_MAX FD_SETSIZE
 
