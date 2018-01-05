@@ -1005,14 +1005,15 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  *
  * \hideinitializer
  */
+
 #ifndef uip_ipaddr_copy
-#define uip_ipaddr_copy(dest, src) (*(dest) = *(src))
+#define uip_ipaddr_copy(dest, src) memcpy(dest, src, sizeof(*dest))
 #endif
 #ifndef uip_ip4addr_copy
-#define uip_ip4addr_copy(dest, src) (*((uip_ip4addr_t *)dest) = *((uip_ip4addr_t *)src))
+#define uip_ip4addr_copy(dest, src) memcpy(dest, src, sizeof(uip_ip4addr_t))
 #endif
 #ifndef uip_ip6addr_copy
-#define uip_ip6addr_copy(dest, src) (*((uip_ip6addr_t *)dest) = *((uip_ip6addr_t *)src))
+#define uip_ip6addr_copy(dest, src) memcpy(dest, src, sizeof(uip_ip6addr_t))
 #endif
 
 /**

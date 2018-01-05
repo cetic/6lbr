@@ -1134,6 +1134,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   }
 
   RPL_LOLLIPOP_INCREMENT(dao_sequence);
+#if RPL_WITH_DAO_ACK
   if(RPL_WITH_DAO_ACK_TEST) {
   /* set up the state since this will be the first transmission of DAO */
   /* retransmissions will call directly to dao_output_target_seq */
@@ -1152,6 +1153,11 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
       that we have a down-link - unless this is a zero lifetime one */
   parent->dag->instance->has_downward_route = lifetime != RPL_ZERO_LIFETIME;
   }
+#else
+   /* We know that we have tried to register so now we are assuming
+      that we have a down-link - unless this is a zero lifetime one */
+  parent->dag->instance->has_downward_route = lifetime != RPL_ZERO_LIFETIME;
+#endif
   /* Sending a DAO with own prefix as target */
   dao_output_target(parent, &prefix, 128, lifetime);
 }
@@ -1219,11 +1225,13 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 #if RPL_DAO_SPECIFY_DAG
   buffer[pos] |= RPL_DAO_D_FLAG;
 #endif /* RPL_DAO_SPECIFY_DAG */
+#if RPL_WITH_DAO_ACK
   if(RPL_WITH_DAO_ACK_TEST) {
   if(lifetime != RPL_ZERO_LIFETIME) {
     buffer[pos] |= RPL_DAO_K_FLAG;
   }
   }
+#endif /* RPL_WITH_DAO_ACK */
   ++pos;
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = seq_no;
@@ -1279,6 +1287,7 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 static void
 dao_ack_input(void)
 {
+#if RPL_WITH_DAO_ACK
   if(!RPL_WITH_DAO_ACK_TEST) {
     uip_clear_buf();
     return;
@@ -1374,6 +1383,7 @@ dao_ack_input(void)
       PRINTF("RPL: No route entry found to forward DAO ACK (seqno %u)\n", sequence);
     }
   }
+#endif /* RPL_WITH_DAO_ACK */
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
@@ -1381,6 +1391,7 @@ void
 dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
                uint8_t status)
 {
+#if RPL_WITH_DAO_ACK
   if(!RPL_WITH_DAO_ACK_TEST) {
     return;
   }
@@ -1398,6 +1409,7 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
   buffer[3] = status;
 
   uip_icmp6_send(dest, ICMP6_RPL, RPL_CODE_DAO_ACK, 4);
+#endif /* RPL_WITH_DAO_ACK */
 }
 /*---------------------------------------------------------------------------*/
 void

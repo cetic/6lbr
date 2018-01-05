@@ -179,7 +179,45 @@ create_llao(uint8_t *llao, uint8_t type) {
   memset(&llao[UIP_ND6_OPT_DATA_OFFSET + UIP_LLADDR_LEN], 0,
          UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
 }
-
+/*------------------------------------------------------------------*/
+#if !UIP_CONF_ROUTER
+static uint16_t
+get16(void *ptr)
+{
+  uint8_t *buffer = ptr;
+  return (uint16_t)buffer[0] << 8 | buffer[1];
+}
+/*------------------------------------------------------------------*/
+static uint32_t
+get32(void *ptr)
+{
+  uint8_t *buffer = ptr;
+  return ((uint32_t)buffer[0] << 24 | (uint32_t)buffer[1] << 16 |
+          (uint32_t)buffer[2] << 8 | buffer[3]);
+}
+#endif /* !UIP_CONF_ROUTER */
+/*------------------------------------------------------------------*/
+#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
+static void
+set16(void *ptr, uint16_t value)
+{
+  uint8_t *buffer = ptr;
+  buffer[0] = value >> 8;
+  buffer[1] = value & 0xff;
+}
+#endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
+/*------------------------------------------------------------------*/
+#if UIP_ND6_SEND_RA || UIP_ND6_SEND_NS
+static void
+set32(void *ptr, uint32_t value)
+{
+  uint8_t *buffer = ptr;
+  buffer[0] = value >> 24;
+  buffer[1] = (value >> 16) & 0xff;
+  buffer[2] = (value >> 8) & 0xff;
+  buffer[3] = value & 0xff;
+}
+#endif /* UIP_ND6_SEND_RA || UIP_ND6_SEND_NS */
 /*------------------------------------------------------------------*/
  /**
  * Neighbor Solicitation Processing
@@ -432,7 +470,7 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
   }
   UIP_ICMP_BUF->type = ICMP6_NS;
   UIP_ICMP_BUF->icode = 0;
-  UIP_ND6_NS_BUF->reserved = 0;
+  set32(&UIP_ND6_NS_BUF->reserved, 0);
   uip_ipaddr_copy((uip_ipaddr_t *) &UIP_ND6_NS_BUF->tgtipaddr, tgt);
   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
   /*
@@ -848,11 +886,11 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   UIP_ND6_RA_BUF->flags_reserved =
     (UIP_ND6_M_FLAG << 7) | (UIP_ND6_O_FLAG << 6);
 
-  UIP_ND6_RA_BUF->router_lifetime = uip_htons(UIP_ND6_ROUTER_LIFETIME);
+  set16(&UIP_ND6_RA_BUF->router_lifetime, UIP_ND6_ROUTER_LIFETIME);
   //UIP_ND6_RA_BUF->reachable_time = uip_htonl(uip_ds6_if.reachable_time);
   //UIP_ND6_RA_BUF->retrans_timer = uip_htonl(uip_ds6_if.retrans_timer);
-  UIP_ND6_RA_BUF->reachable_time = 0;
-  UIP_ND6_RA_BUF->retrans_timer = 0;
+  set32(&UIP_ND6_RA_BUF->reachable_time, 0);
+  set32(&UIP_ND6_RA_BUF->retrans_timer, 0);
 
   uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_RA_LEN;
   nd6_opt_offset = UIP_ND6_RA_LEN;
@@ -866,9 +904,9 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
       UIP_ND6_OPT_PREFIX_BUF->flagsreserved1 = prefix->l_a_reserved;
-      UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime);
-      UIP_ND6_OPT_PREFIX_BUF->preferredlt = uip_htonl(prefix->plifetime);
-      UIP_ND6_OPT_PREFIX_BUF->reserved2 = 0;
+      set32(&UIP_ND6_OPT_PREFIX_BUF->validlt, prefix->vlifetime);
+      set32(&UIP_ND6_OPT_PREFIX_BUF->preferredlt, prefix->plifetime);
+      set32(&UIP_ND6_OPT_PREFIX_BUF->reserved2, 0);
       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
       nd6_opt_offset += UIP_ND6_OPT_PREFIX_INFO_LEN;
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
@@ -884,9 +922,9 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   /* MTU */
   UIP_ND6_OPT_MTU_BUF->type = UIP_ND6_OPT_MTU;
   UIP_ND6_OPT_MTU_BUF->len = UIP_ND6_OPT_MTU_LEN >> 3;
-  UIP_ND6_OPT_MTU_BUF->reserved = 0;
+  set16(&UIP_ND6_OPT_MTU_BUF->reserved, 0);
   //UIP_ND6_OPT_MTU_BUF->mtu = uip_htonl(uip_ds6_if.link_mtu);
-  UIP_ND6_OPT_MTU_BUF->mtu = uip_htonl(1500);
+  set32(&UIP_ND6_OPT_MTU_BUF->mtu, 1500);
 
   uip_len += UIP_ND6_OPT_MTU_LEN;
   nd6_opt_offset += UIP_ND6_OPT_MTU_LEN;
@@ -909,14 +947,16 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 #if UIP_ND6_RA_RDNSS
   if(uip_nameserver_count() > 0) {
     uint8_t i = 0;
+    uint32_t lifetime;
     uip_ipaddr_t *ip = &UIP_ND6_OPT_RDNSS_BUF->ip;
     uip_ipaddr_t *dns = NULL;
     UIP_ND6_OPT_RDNSS_BUF->type = UIP_ND6_OPT_RDNSS;
-    UIP_ND6_OPT_RDNSS_BUF->reserved = 0;
-    UIP_ND6_OPT_RDNSS_BUF->lifetime = uip_nameserver_next_expiration();
-    if(UIP_ND6_OPT_RDNSS_BUF->lifetime != UIP_NAMESERVER_INFINITE_LIFETIME) {
-      UIP_ND6_OPT_RDNSS_BUF->lifetime -= clock_seconds();
+    set16(&UIP_ND6_OPT_RDNSS_BUF->reserved, 0);
+    lifetime = uip_nameserver_next_expiration();
+    if(lifetime != UIP_NAMESERVER_INFINITE_LIFETIME) {
+      lifetime -= clock_seconds();
     }
+    set32(&UIP_ND6_OPT_RDNSS_BUF->lifetime, lifetime);
     while((dns = uip_nameserver_get(i)) != NULL) {
       uip_ipaddr_copy(ip++, dns);
       i++;
@@ -962,6 +1002,7 @@ uip_nd6_rs_output(void)
   UIP_ICMP_BUF->icode = 0;
   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
 
+  set32((uint8_t *)&UIP_ND6_RS_BUF->reserved, 0);
   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
     UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_RS_LEN;
     uip_len = uip_l3_icmp_hdr_len + UIP_ND6_RS_LEN;
@@ -999,6 +1040,11 @@ void
 ra_input(void)
 {
   uip_lladdr_t lladdr_aligned;
+  uint16_t router_lifetime;
+  uint32_t reachable_time;
+  uint32_t retrans_timer;
+  uint32_t validlt;
+  uint32_t preferredlt;
 
   PRINTF("Received RA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -1027,15 +1073,17 @@ ra_input(void)
     PRINTF("uip_ds6_if.cur_hop_limit %u\n", uip_ds6_if.cur_hop_limit);
   }
 
-  if(UIP_ND6_RA_BUF->reachable_time != 0) {
-    if(uip_ds6_if.base_reachable_time !=
-       uip_ntohl(UIP_ND6_RA_BUF->reachable_time)) {
-      uip_ds6_if.base_reachable_time = uip_ntohl(UIP_ND6_RA_BUF->reachable_time);
+  reachable_time = get32(&UIP_ND6_RA_BUF->reachable_time);
+  if(reachable_time != 0) {
+    if(uip_ds6_if.base_reachable_time != reachable_time) {
+      uip_ds6_if.base_reachable_time = reachable_time;
       uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
     }
   }
-  if(UIP_ND6_RA_BUF->retrans_timer != 0) {
-    uip_ds6_if.retrans_timer = uip_ntohl(UIP_ND6_RA_BUF->retrans_timer);
+
+  retrans_timer = get32(&UIP_ND6_RA_BUF->retrans_timer);
+  if(retrans_timer != 0) {
+    uip_ds6_if.retrans_timer = retrans_timer;
   }
 
   /* Options processing */
@@ -1080,14 +1128,14 @@ ra_input(void)
       break;
     case UIP_ND6_OPT_MTU:
       PRINTF("Processing MTU option in RA\n");
-      uip_ds6_if.link_mtu =
-        uip_ntohl(((uip_nd6_opt_mtu *) UIP_ND6_OPT_HDR_BUF)->mtu);
+      uip_ds6_if.link_mtu = get32(&UIP_ND6_OPT_MTU_BUF->mtu);
       break;
     case UIP_ND6_OPT_PREFIX_INFO:
       PRINTF("Processing PREFIX option in RA\n");
       nd6_opt_prefix_info = (uip_nd6_opt_prefix_info *) UIP_ND6_OPT_HDR_BUF;
-      if((uip_ntohl(nd6_opt_prefix_info->validlt) >=
-          uip_ntohl(nd6_opt_prefix_info->preferredlt))
+      validlt = get32(&nd6_opt_prefix_info->validlt);
+      preferredlt = get32(&nd6_opt_prefix_info->preferredlt);
+      if(validlt >= preferredlt
          && (!uip_is_addr_linklocal(&nd6_opt_prefix_info->prefix))) {
         /* on-link flag related processing */
 #if !CETIC_6LBR_SMARTBRIDGE
@@ -1096,19 +1144,18 @@ ra_input(void)
             uip_ds6_prefix_lookup(&nd6_opt_prefix_info->prefix,
                                   nd6_opt_prefix_info->preflen);
           if(prefix == NULL) {
-            if(nd6_opt_prefix_info->validlt != 0) {
-              if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
+            if(validlt != 0) {
+              if(validlt != UIP_ND6_INFINITE_LIFETIME) {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
                                             nd6_opt_prefix_info->preflen,
-                                            uip_ntohl(nd6_opt_prefix_info->
-                                                  validlt));
+                                            validlt);
               } else {
                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
                                             nd6_opt_prefix_info->preflen, 0);
               }
             }
           } else {
-            switch (nd6_opt_prefix_info->validlt) {
+            switch (validlt) {
             case 0:
               uip_ds6_prefix_rm(prefix);
               break;
@@ -1118,9 +1165,8 @@ ra_input(void)
             default:
               PRINTF("Updating timer of prefix ");
               PRINT6ADDR(&prefix->ipaddr);
-              PRINTF(" new value %lu\n", uip_ntohl(nd6_opt_prefix_info->validlt));
-              stimer_set(&prefix->vlifetime,
-                         uip_ntohl(nd6_opt_prefix_info->validlt));
+              PRINTF(" new value %lu\n", validlt);
+              stimer_set(&prefix->vlifetime, validlt);
               prefix->isinfinite = 0;
               break;
             }
@@ -1130,24 +1176,21 @@ ra_input(void)
         /* End of on-link flag related processing */
         /* autonomous flag related processing */
         if((nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_AUTONOMOUS)
-           && (nd6_opt_prefix_info->validlt != 0)
+           && (validlt != 0)
            && (nd6_opt_prefix_info->preflen == UIP_DEFAULT_PREFIX_LEN)) {
 
           uip_ipaddr_copy(&ipaddr, &nd6_opt_prefix_info->prefix);
           uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
           addr = uip_ds6_addr_lookup(&ipaddr);
           if((addr != NULL) && (addr->type == ADDR_AUTOCONF)) {
-            if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
+            if(validlt != UIP_ND6_INFINITE_LIFETIME) {
               /* The processing below is defined in RFC4862 section 5.5.3 e */
-              if((uip_ntohl(nd6_opt_prefix_info->validlt) > 2 * 60 * 60) ||
-                 (uip_ntohl(nd6_opt_prefix_info->validlt) >
-                  stimer_remaining(&addr->vlifetime))) {
+              if((validlt > 2 * 60 * 60) ||
+                 (validlt > stimer_remaining(&addr->vlifetime))) {
                 PRINTF("Updating timer of address ");
                 PRINT6ADDR(&addr->ipaddr);
-                PRINTF(" new value %lu\n",
-                       uip_ntohl(nd6_opt_prefix_info->validlt));
-                stimer_set(&addr->vlifetime,
-                           uip_ntohl(nd6_opt_prefix_info->validlt));
+                PRINTF(" new value %lu\n", validlt);
+                stimer_set(&addr->vlifetime, validlt);
               } else {
                 stimer_set(&addr->vlifetime, 2 * 60 * 60);
                 PRINTF("Updating timer of address ");
@@ -1159,12 +1202,10 @@ ra_input(void)
               addr->isinfinite = 1;
             }
           } else {
-            if(uip_ntohl(nd6_opt_prefix_info->validlt) ==
-               UIP_ND6_INFINITE_LIFETIME) {
+            if(validlt == UIP_ND6_INFINITE_LIFETIME) {
               uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
             } else {
-              uip_ds6_addr_add(&ipaddr, uip_ntohl(nd6_opt_prefix_info->validlt),
-                               ADDR_AUTOCONF);
+              uip_ds6_addr_add(&ipaddr, validlt, ADDR_AUTOCONF);
             }
           }
 #if CETIC_6LBR_SMARTBRIDGE
@@ -1205,17 +1246,17 @@ ra_input(void)
   }
 
   defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
-  if(UIP_ND6_RA_BUF->router_lifetime != 0) {
+  router_lifetime = get16(&UIP_ND6_RA_BUF->router_lifetime);
+  if(router_lifetime != 0) {
     if(nbr != NULL) {
       nbr->isrouter = 1;
     }
     if(defrt == NULL) {
       uip_ds6_defrt_add(&UIP_IP_BUF->srcipaddr,
-                        (unsigned
-                         long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
+                        (unsigned long)router_lifetime);
     } else {
       stimer_set(&(defrt->lifetime),
-                 (unsigned long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
+                 (unsigned long)router_lifetime);
     }
   } else {
     if(defrt != NULL) {
