@@ -86,4 +86,8 @@
 #undef LPM_CONF_MAX_PM
 #define LPM_CONF_MAX_PM       1
 
+// Disable Coffee as it is not used and can make the platform unbootable
+#undef COFFEE_CONF_SIZE
+#define COFFEE_CONF_SIZE 0
+
 #endif /* SIXLBR_CONF_CC2538DK_H */
