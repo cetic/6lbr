@@ -1005,6 +1005,9 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  *
  * \hideinitializer
  */
+#define uip_ipaddr_copy(dest, src)              \
+    memcpy(dest, src, sizeof(*dest))
+
 #ifndef uip_ipaddr_copy
 #define uip_ipaddr_copy(dest, src) (*(dest) = *(src))
 #endif
