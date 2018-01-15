@@ -309,7 +309,7 @@ node_info_analyze_packet(void)
     case UIP_PROTO_TCP:
       stat->tcp++;
       break;
-    case UIP_PROTO_ICMP:
+    case UIP_PROTO_ICMP6:
       stat->icmp++;
       break;
     case UIP_PROTO_HBHO:
