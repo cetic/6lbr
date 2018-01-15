@@ -128,6 +128,7 @@ node_info_add(uip_ipaddr_t * ipaddr)
     node->isused = 1;
     uip_ipaddr_copy(&(node->ipaddr), ipaddr);
     node->stats_start = clock_time();
+    node->last_seen = clock_time();
     LOG6LBR_6ADDR(DEBUG, ipaddr, "New node created ");
   } else {
     LOG6LBR_6ADDR(ERROR, ipaddr, "Not enough memory to create node ");
@@ -227,7 +228,6 @@ node_info_node_seen(uip_ipaddr_t * ipaddr, int hop_count)
   node_info_t *node = NULL;
   node = node_info_lookup(ipaddr);
   if ( node != NULL ) {
-    node->last_seen = clock_time();
     if(hop_count != -1) {
       node->hop_count = hop_count;
     }
@@ -243,7 +243,6 @@ node_info_set_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
     node = node_info_add(ipaddr);
   }
   if ( node != NULL ) {
-    node->last_seen = clock_time();
     node->flags |= flags;
   }
 }
@@ -257,7 +256,6 @@ node_info_clear_flags(uip_ipaddr_t * ipaddr, uint32_t flags)
     node = node_info_add(ipaddr);
   }
   if ( node != NULL ) {
-    node->last_seen = clock_time();
     node->flags &= ~flags;
   }
 }
