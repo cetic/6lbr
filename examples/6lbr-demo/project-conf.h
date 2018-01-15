@@ -323,13 +323,19 @@
 
 #if UIP_CONF_IPV6_RPL
 
+#undef UIP_CONF_ND6_SEND_NS
+#define UIP_CONF_ND6_SEND_NS   0
+
 #undef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA   0
+#define UIP_CONF_ND6_SEND_NA   1
 
 #else
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER        0
+
+#undef UIP_CONF_ND6_SEND_NS
+#define UIP_CONF_ND6_SEND_NS   1
 
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA   1
@@ -356,12 +362,18 @@
 #define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
 #endif
 
+#ifndef RPL_CONF_WITH_DAO_ACK
 // Enable DAO-Ack
 #define RPL_CONF_WITH_DAO_ACK       1
+#endif
 
+#ifndef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
 #define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    0
+#endif
 
+#ifndef RPL_CONF_DIO_REFRESH_DAO_ROUTES
 #define RPL_CONF_DIO_REFRESH_DAO_ROUTES     0
+#endif
 
 /* Z1 platform has limited RAM */
 
@@ -395,14 +407,15 @@
 
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES 0
-#ifndef RPL_NS_CONF_LINK_NUM
-#define RPL_NS_CONF_LINK_NUM   24
-#endif
+
+#undef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM   0
 
 #else /* RPL_NON_STORING */
 
 #undef RPL_NS_CONF_LINK_NUM
 #define RPL_NS_CONF_LINK_NUM   0
+
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   24
 #endif
