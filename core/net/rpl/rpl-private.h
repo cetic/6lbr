@@ -244,7 +244,7 @@
 #endif
 
 #if RPL_WITH_NON_STORING && (RPL_NS_LINK_NUM == 0)
-#error "RPL with non-storing mode included but #links == 0. Set RPL_NS_CONF_LINK_NUM accordingly."
+//#error "RPL with non-storing mode included but #links == 0. Set RPL_NS_CONF_LINK_NUM accordingly."
 #if !RPL_WITH_STORING && (UIP_DS6_ROUTE_NB > 0)
 #error "You might also want to set UIP_CONF_MAX_ROUTES to 0."
 #endif
