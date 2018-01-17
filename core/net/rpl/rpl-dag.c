@@ -262,9 +262,8 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
 }
 /*---------------------------------------------------------------------------*/
 /* Greater-than function for the lollipop counter.                      */
-/*---------------------------------------------------------------------------*/
-static int
-lollipop_greater_than(int a, int b)
+int
+rpl_lollipop_greater_than(int a, int b)
 {
   /* Check if we are comparing an initial value with an old value */
   if(a > RPL_LOLLIPOP_CIRCULAR_REGION && b <= RPL_LOLLIPOP_CIRCULAR_REGION) {
@@ -321,7 +320,7 @@ should_refresh_routes(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   }
   /* check if the new DTSN is more recent */
   return p == instance->current_dag->preferred_parent &&
-    (lollipop_greater_than(dio->dtsn, p->dtsn));
+    (rpl_lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -624,6 +623,9 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
       dag->min_rank = INFINITE_RANK;
       dag->instance = instance;
       dag->lifetime = RPL_DAG_LIFETIME;
+#if RPL_DAO_PATH_SEQUENCE
+      dag->path_sequence = RPL_PATH_SEQUENCE_INIT;
+#endif
       return dag;
     }
   }
@@ -1495,7 +1497,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 #endif
 
   if(dag != NULL && instance != NULL) {
-    if(lollipop_greater_than(dio->version, dag->version)) {
+    if(rpl_lollipop_greater_than(dio->version, dag->version)) {
       if(dag->rank == ROOT_RANK(instance)) {
         PRINTF("RPL: Root received inconsistent DIO version number (current: %u, received: %u)\n", dag->version, dio->version);
         dag->version = dio->version;
@@ -1518,7 +1520,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       return;
     }
 
-    if(lollipop_greater_than(dag->version, dio->version)) {
+    if(rpl_lollipop_greater_than(dag->version, dio->version)) {
       /* The DIO sender is on an older version of the DAG. */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {

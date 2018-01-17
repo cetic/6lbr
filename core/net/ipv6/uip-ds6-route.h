@@ -44,6 +44,9 @@
 #include "net/nbr-table.h"
 #include "sys/stimer.h"
 #include "lib/list.h"
+#if UIP_CONF_IPV6_RPL
+#include "rpl/rpl-conf.h"
+#endif
 
 NBR_TABLE_DECLARE(nbr_routes);
 
@@ -141,6 +144,9 @@ typedef struct rpl_route_entry {
   uint8_t dao_seqno_out;
   uint8_t dao_seqno_in;
   uint8_t state_flags;
+#if RPL_DAO_PATH_SEQUENCE
+  uint8_t path_sequence;
+#endif
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 

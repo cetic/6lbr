@@ -143,6 +143,9 @@ struct rpl_dag {
   uint8_t joined;
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
+#if RPL_DAO_PATH_SEQUENCE
+  uint8_t path_sequence;
+#endif
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
   uint32_t lifetime;
@@ -294,6 +297,7 @@ uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
 void rpl_print_neighbor_list(void);
 int rpl_process_srh_header(void);
 int rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr);
+int rpl_lollipop_greater_than(int a, int b);
 
 /* Per-parent RPL information */
 NBR_TABLE_DECLARE(rpl_parents);

@@ -56,6 +56,9 @@ typedef struct rpl_ns_node {
   /* Store only IPv6 link identifiers as all nodes in the DAG share the same prefix */
   unsigned char link_identifier[8];
   struct rpl_ns_node *parent;
+#if RPL_DAO_PATH_SEQUENCE
+  uint8_t path_sequence;
+#endif
 } rpl_ns_node_t;
 
 int rpl_ns_num_nodes(void);

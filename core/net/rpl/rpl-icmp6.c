@@ -650,6 +650,9 @@ dao_input_storing(void)
   unsigned char *buffer;
   uint16_t sequence;
   uint8_t instance_id;
+#if RPL_DAO_PATH_SEQUENCE
+  uint8_t path_sequence;
+#endif
   uint8_t lifetime;
   uint8_t prefixlen;
   uint8_t flags;
@@ -683,6 +686,9 @@ dao_input_storing(void)
 
   instance = rpl_get_instance(instance_id);
 
+#if RPL_DAO_PATH_SEQUENCE
+  path_sequence = RPL_LOLLIPOP_INIT;
+#endif
   lifetime = instance->default_lifetime;
 
   flags = buffer[pos++];
@@ -752,11 +758,12 @@ dao_input_storing(void)
         memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
         break;
       case RPL_OPTION_TRANSIT:
-        /* The path sequence and control are ignored. */
-        /*      pathcontrol = buffer[i + 3];
-                pathsequence = buffer[i + 4];*/
+        /* path_control = buffer[i + 3]; */
+#if RPL_DAO_PATH_SEQUENCE
+        path_sequence = buffer[i + 4];
+#endif
         lifetime = buffer[i + 5];
-        /* The parent address is also ignored. */
+        /* The parent address is ignored. */
         break;
     }
   }
@@ -784,6 +791,13 @@ dao_input_storing(void)
 #endif
 
   rep = uip_ds6_route_lookup(&prefix);
+
+#if RPL_DAO_PATH_SEQUENCE
+  if(rep != NULL && rpl_lollipop_greater_than(rep->state.path_sequence, path_sequence)) {
+    printf("RPL: Ignoring obsolete route information\n");
+    return;
+  }
+#endif
 
   if(lifetime == RPL_ZERO_LIFETIME) {
     PRINTF("RPL: No-Path DAO received\n");
@@ -873,6 +887,9 @@ dao_input_storing(void)
   /* set lifetime and clear NOPATH bit */
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
+#if RPL_DAO_PATH_SEQUENCE
+  rep->state.path_sequence = path_sequence;
+#endif
 
 #if RPL_WITH_MULTICAST
 fwd_dao:
@@ -941,6 +958,10 @@ dao_input_nonstoring(void)
   unsigned char *buffer;
   uint16_t sequence;
   uint8_t instance_id;
+#if RPL_DAO_PATH_SEQUENCE
+  rpl_ns_node_t *node;
+  uint8_t path_sequence;
+#endif
   uint8_t lifetime;
   uint8_t prefixlen;
   uint8_t flags;
@@ -962,6 +983,10 @@ dao_input_nonstoring(void)
   pos = 0;
   instance_id = buffer[pos++];
   instance = rpl_get_instance(instance_id);
+
+#if RPL_DAO_PATH_SEQUENCE
+  path_sequence = RPL_LOLLIPOP_INIT;
+#endif
   lifetime = instance->default_lifetime;
 
   flags = buffer[pos++];
@@ -997,9 +1022,10 @@ dao_input_nonstoring(void)
         memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
         break;
       case RPL_OPTION_TRANSIT:
-        /* The path sequence and control are ignored. */
-        /*      pathcontrol = buffer[i + 3];
-                pathsequence = buffer[i + 4];*/
+        /*path_control = buffer[i + 3]; */
+#if RPL_DAO_PATH_SEQUENCE
+        path_sequence = buffer[i + 4];
+#endif
         lifetime = buffer[i + 5];
         if(len >= 20) {
           memcpy(&dao_parent_addr, buffer + i + 6, 16);
@@ -1007,6 +1033,14 @@ dao_input_nonstoring(void)
         break;
     }
   }
+
+#if RPL_DAO_PATH_SEQUENCE
+  node = rpl_ns_get_node(dag, &prefix);
+  if(node != NULL && rpl_lollipop_greater_than(node->path_sequence, path_sequence)) {
+    PRINTF("RPL: Ignoring obsolete route information\n");
+    return;
+  }
+#endif
 
   PRINTF("RPL: DAO lifetime: %u, prefix length: %u prefix: ",
          (unsigned)lifetime, (unsigned)prefixlen);
@@ -1024,6 +1058,12 @@ dao_input_nonstoring(void)
       return;
     }
   }
+#if RPL_DAO_PATH_SEQUENCE
+  node = rpl_ns_get_node(dag, &prefix);
+  if(node != NULL) {
+    node->path_sequence = path_sequence;
+  }
+#endif
 
   if(flags & RPL_DAO_K_FLAG) {
     PRINTF("RPL: Sending DAO ACK\n");
@@ -1134,6 +1174,9 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   }
 
   RPL_LOLLIPOP_INCREMENT(dao_sequence);
+#if RPL_DAO_PATH_SEQUENCE
+  RPL_LOLLIPOP_INCREMENT(parent->dag->path_sequence);
+#endif
 #if RPL_WITH_DAO_ACK
   if(RPL_WITH_DAO_ACK_TEST) {
   /* set up the state since this will be the first transmission of DAO */
@@ -1252,8 +1295,12 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
   buffer[pos++] = RPL_OPTION_TRANSIT;
   buffer[pos++] = (instance->mop != RPL_MOP_NON_STORING) ? 4 : 20;
   buffer[pos++] = 0; /* flags - ignored */
-  buffer[pos++] = 0; /* path control - ignored */
-  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = 0; /* No path control */
+#if RPL_DAO_PATH_SEQUENCE
+  buffer[pos++] = dag->path_sequence;
+#else
+  buffer[pos++] = 0; /* No path sequence */
+#endif
   buffer[pos++] = lifetime;
 
   if(instance->mop != RPL_MOP_NON_STORING) {
