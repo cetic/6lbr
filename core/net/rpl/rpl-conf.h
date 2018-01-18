@@ -289,6 +289,14 @@
 #define RPL_DAO_PATH_SEQUENCE 0
 #endif
 
+#ifdef RPL_CONF_DAO_PATH_SEQUENCE_TEST
+#define RPL_DAO_PATH_SEQUENCE_TEST RPL_CONF_DAO_PATH_SEQUENCE_TEST
+#undef RPL_DAO_PATH_SEQUENCE
+#define RPL_DAO_PATH_SEQUENCE 1
+#else
+#define RPL_DAO_PATH_SEQUENCE_TEST RPL_DAO_PATH_SEQUENCE
+#endif /* RPL_CONF_DAO_PATH_SEQUENCE_TEST */
+
 /*
  * Initial value of the Path Sequence counter of the RPL DAO Transit Information
  * */

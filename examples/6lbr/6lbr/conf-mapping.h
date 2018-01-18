@@ -92,6 +92,9 @@
 #undef RPL_CONF_DIO_REFRESH_DAO_ROUTES
 #define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
 
+#undef RPL_CONF_DAO_PATH_SEQUENCE_TEST
+#define RPL_CONF_DAO_PATH_SEQUENCE_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE) != 0)
+
 #if CETIC_6LBR_RPL_RUNTIME_MOP
 extern int cetic_6lbr_config_rpl_mop(void);
 #undef RPL_CONF_MOP

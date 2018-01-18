@@ -696,6 +696,7 @@ print_nvm(void)
   PRINT_BOOL("RPL DAO ACK", rpl_config, CETIC_6LBR_RPL_DAO_ACK);
   PRINT_BOOL("RPL DAO ACK local repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR);
   PRINT_BOOL_INV("DIO triggers route refresh", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH);
+  PRINT_BOOL("RPL DAO Check Path Sequence", rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE);
 
   //MAC Configuration
   PRINT_INT("MAC layer", mac_layer);
@@ -808,6 +809,7 @@ print_nvm(void)
 #define rpl_dao_ack_repair_option 10101
 #define rpl_dio_refresh_routes_option 10102
 #define rpl_non_storing_option 10103
+#define rpl_check_path_sequence_option 10104
 
 //Global flags
 #define disable_config_option 11001
@@ -906,6 +908,7 @@ static struct option long_options[] = {
   {"rpl-dao-ack", required_argument, 0, rpl_dao_ack_option},
   {"rpl-dao-ack-repair", required_argument, 0, rpl_dao_ack_repair_option},
   {"rpl-dio-refresh-routes", required_argument, 0, rpl_dio_refresh_routes_option},
+  {"rpl-dao-check-path-seq", required_argument, 0, rpl_check_path_sequence_option},
 
   //Security
   {"security-layer", required_argument, 0, security_layer_option},
@@ -1040,6 +1043,7 @@ help(char const *name)
   printf("\t--rpl-dao-ack <0|1>\t\t Enable DAO Acknowledgment\n");
   printf("\t--rpl-dao-ack-repair <0|1>\t Trigger local repair when DAO NACK is received\n");
   printf("\t--rpl-dio-refresh-routes <0|1>\t Enable DTSN increment in DIO\n");
+  printf("\t--rpl-dao-check-path-seq <0|1>\t Enable DAO Path Sequence check\n");
 
   //MAC
   printf("\nMAC :\n");
@@ -1211,6 +1215,7 @@ main(int argc, char *argv[])
   char *rpl_dao_ack = NULL;
   char *rpl_dao_ack_repair = NULL;
   char *rpl_dio_refresh_routes = NULL;
+  char *rpl_check_path_sequence = NULL;
 
   //MAC
   char *mac_layer = NULL;
@@ -1325,6 +1330,7 @@ main(int argc, char *argv[])
     CASE_OPTION(rpl_dao_ack)
     CASE_OPTION(rpl_dao_ack_repair)
     CASE_OPTION(rpl_dio_refresh_routes)
+    CASE_OPTION(rpl_check_path_sequence)
 
     //MAC
     CASE_OPTION(mac_layer)
@@ -1467,6 +1473,7 @@ main(int argc, char *argv[])
     UPDATE_FLAG("rpl-dao-ack", rpl_dao_ack, rpl_config, CETIC_6LBR_RPL_DAO_ACK)
     UPDATE_FLAG("rpl-dao-ack-repair", rpl_dao_ack_repair, rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR)
     UPDATE_FLAG_INV("rpl-dio-refresh-routes", rpl_dio_refresh_routes, rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH)
+    UPDATE_FLAG("rpl-dao-check-path-seq", rpl_check_path_sequence, rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE)
 
     //MAC
     UPDATE_INT("mac-layer", mac_layer)

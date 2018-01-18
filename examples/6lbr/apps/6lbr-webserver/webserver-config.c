@@ -368,6 +368,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   reset_buf();
   INPUT_FLAG_CB( "dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, "DAO Ack local repair");
   INPUT_FLAG_INV_CB( "dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, "Route refresh with DIO");
+  INPUT_FLAG_CB( "dao_ps", rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE, "Check DAO Path Sequence");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -585,6 +586,7 @@ update_config(const char *name, uint8_t *reboot_needed)
     UPDATE_FLAG("dao_ack", rpl_config, CETIC_6LBR_RPL_DAO_ACK, 1)
     UPDATE_FLAG("dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, 1)
     UPDATE_FLAG_INV("dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, 1)
+    UPDATE_FLAG("dao_ps", rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE, 1)
     UPDATE_IPADDR("dodag_id", rpl_dodag_id, 1)
     UPDATE_INT( "rpl_preference", rpl_preference, 1)
     UPDATE_INT( "rpl_dio_intdoubl", rpl_dio_intdoubl, 1)

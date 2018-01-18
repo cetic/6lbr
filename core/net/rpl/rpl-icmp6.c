@@ -793,9 +793,11 @@ dao_input_storing(void)
   rep = uip_ds6_route_lookup(&prefix);
 
 #if RPL_DAO_PATH_SEQUENCE
+  if(RPL_DAO_PATH_SEQUENCE_TEST) {
   if(rep != NULL && rpl_lollipop_greater_than(rep->state.path_sequence, path_sequence)) {
     printf("RPL: Ignoring obsolete route information\n");
     return;
+  }
   }
 #endif
 
@@ -1035,10 +1037,12 @@ dao_input_nonstoring(void)
   }
 
 #if RPL_DAO_PATH_SEQUENCE
+  if(RPL_DAO_PATH_SEQUENCE_TEST) {
   node = rpl_ns_get_node(dag, &prefix);
   if(node != NULL && rpl_lollipop_greater_than(node->path_sequence, path_sequence)) {
     PRINTF("RPL: Ignoring obsolete route information\n");
     return;
+  }
   }
 #endif
 
