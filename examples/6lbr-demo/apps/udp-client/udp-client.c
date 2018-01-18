@@ -138,7 +138,7 @@ timeout_handler(void)
       globaladdr = &addr_desc->ipaddr;
 #if UIP_CONF_IPV6_RPL
       rpl_dag_t *dag = rpl_get_any_dag();
-      if(dag) {
+      if(dag != NULL && dag->instance->has_downward_route) {
         uip_ipaddr_copy(&dest_addr, globaladdr);
         memcpy(&dest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
         has_dest = 1;
