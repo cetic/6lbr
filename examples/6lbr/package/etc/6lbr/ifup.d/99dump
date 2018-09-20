@@ -9,8 +9,23 @@ MODE_6LBR=$2
 DEV=$3
 OS=`uname`
 
-if [ $MODE_6LBR = "tap" -a "$BRIDGE" = "1" ]; then
-	/sbin/ifconfig $DEV_BRIDGE
-fi
 
-/sbin/ifconfig $DEV
+case $OS in
+    Linux)
+        if [ $MODE_6LBR = "tap" -a "$BRIDGE" = "1" ]; then
+            ip addr show $DEV_BRIDGE
+        fi
+        ip addr show $DEV
+        ;;
+
+    Darwin)
+        if [ $MODE_6LBR = "tap" -a "$BRIDGE" = "1" ]; then
+            /sbin/ifconfig $DEV_BRIDGE
+        fi
+        /sbin/ifconfig $DEV
+        ;;
+
+    *)
+        echo Unknown OS
+        ;;
+esac
