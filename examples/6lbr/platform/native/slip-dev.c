@@ -67,9 +67,6 @@
 //Temporary until proper multi mac layer configuration
 extern const struct mac_driver CETIC_6LBR_MULTI_RADIO_DEFAULT_MAC;
 
-static int devopen(const char *dev, int flags);
-
-
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while(0)
 
@@ -223,16 +220,6 @@ crc8_add(uint8_t acc, uint8_t byte)
   }
 
   return acc;
-}
-/*---------------------------------------------------------------------------*/
-static int
-devopen(const char *dev, int flags)
-{
-  char t[32];
-
-  strcpy(t, "/dev/");
-  strncat(t, dev, sizeof(t) - 5);
-  return open(t, flags);
 }
 /*---------------------------------------------------------------------------*/
 static void *
@@ -668,9 +655,9 @@ slip_init_dev(slip_descr_t *slip_device)
       /* Disable slip */
       return;
     }
-    slip_device->slipfd = devopen(slip_device->siodev, O_RDWR | O_NONBLOCK);
+    slip_device->slipfd = open(slip_device->siodev, O_RDWR | O_NONBLOCK);
     if(slip_device->slipfd == -1) {
-      LOG6LBR_FATAL( "can't open siodev /dev/%s : %s\n", slip_device->siodev, strerror(errno));
+      LOG6LBR_FATAL( "can't open siodev %s : %s\n", slip_device->siodev, strerror(errno));
       exit(1);
     }
 
@@ -685,7 +672,7 @@ slip_init_dev(slip_descr_t *slip_device)
     LOG6LBR_INFO("SLIP opened to %s:%s\n", slip_device->host,
            slip_device->port);
   } else {
-    LOG6LBR_INFO("SLIP started on /dev/%s\n", slip_device->siodev);
+    LOG6LBR_INFO("SLIP started on %s\n", slip_device->siodev);
     stty_telos(slip_device);
   }
 

@@ -113,19 +113,11 @@ native_args_handle_arguments(int argc, char **argv)
       if(!slip_default_device) {
         slip_default_device = slip_new_device();
       }
-      if(strncmp("/dev/", optarg, 5) == 0) {
-        slip_default_device->siodev = optarg + 5;
-      } else {
-        slip_default_device->siodev = optarg;
-      }
+      slip_default_device->siodev = optarg;
       break;
 
     case 't':
-      if(strncmp("/dev/", optarg, 5) == 0) {
-        strncpy(sixlbr_config_eth_device, optarg + 5, sizeof(sixlbr_config_eth_device));
-      } else {
-        strncpy(sixlbr_config_eth_device, optarg, sizeof(sixlbr_config_eth_device));
-      }
+      sixlbr_config_eth_device = optarg;
       break;
 
     case 'a':

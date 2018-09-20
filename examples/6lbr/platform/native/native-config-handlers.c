@@ -156,11 +156,7 @@ static int native_config_slip_radio_handler(config_level_t level, void* user, co
     slip_device->flowcontrol = atoi(value);
     return 1;
   } else if(strcmp(name, "device") == 0) {
-    if(strncmp("/dev/", value, 5) == 0) {
-      slip_device->siodev = strdup(value + 5);
-    } else {
-      slip_device->siodev = strdup(value);
-    }
+    slip_device->siodev = strdup(value);
     return 1;
   } else if(strcmp(name, "host") == 0) {
     slip_device->host = strdup(value);

@@ -318,7 +318,7 @@ eth_dev_init()
 
   select_set_callback(eth_fd, &eth_select_callback);
 
-  LOG6LBR_INFO("opened device /dev/%s\n", sixlbr_config_eth_device);
+  LOG6LBR_INFO("opened device %s\n", sixlbr_config_eth_device);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
