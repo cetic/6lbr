@@ -91,6 +91,9 @@
 
 #define UIP_MCAST6_ROUTE_CONF_ROUTES UIP_CONF_MAX_ROUTES
 
+#undef RPL_CONF_MAX_DAG_PER_INSTANCE
+#define RPL_CONF_MAX_DAG_PER_INSTANCE 32
+
 /* Do not change lines below */
 
 #define SLIP_CONF_CRC_ON 1
