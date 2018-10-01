@@ -45,15 +45,65 @@
 #include "lwm2m-device-object.h"
 #include "rd-client.h"
 
+#include "httpd.h"
+#include "httpd-cgi.h"
+#include "webserver-utils.h"
+#include "webserver.h"
+
 char const * lwm2m_objects_link = ""
     LWM2M_DEVICE_OBJECT_LINK
 ;
+
+static native_config_callback_t lwm2m_server_config_cb;
 
 static native_config_callback_t lwm2m_device_config_cb;
 char *lwm2m_device_manufacturer = "CETIC";
 char *lwm2m_device_model = "6LBR";
 
+static char const * status(void);
+
 /*---------------------------------------------------------------------------*/
+static
+PT_THREAD(generate_lwm2m(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  add("<br /><h2>LWM2M</h2>");
+  add("Address : ");
+  ipaddr_add_u8(rd_client_get_rd_address()->u8);
+  add(" : %d<br />", rd_client_get_rd_port());
+  add("Client status : %s<br />", status());
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  PSOCK_END(&s->sout);
+}
+HTTPD_CGI_CALL(webserver_lwm2m, "lwm2m.html", "LWM2M", generate_lwm2m, 0);
+/*---------------------------------------------------------------------------*/
+static int native_config_lwm2m_server_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  static uip_ipaddr_t server_ip;
+  static uint16_t server_port = COAP_DEFAULT_PORT;
+  if(level != CONFIG_LEVEL_APP) {
+    //Parse config only when in application init phase
+    return 1;
+  }
+  if(!name) {
+    //End of section, commit parameters
+    rd_client_set_rd_address(&server_ip, server_port);
+    return 1;
+  }
+  if(strcmp(name, "address") == 0) {
+    if(uiplib_ipaddrconv(value, &server_ip) == 0) {
+      LOG6LBR_ERROR("Invalid ip address : %s\n", value);
+      return 0;
+    }
+  } else if(strcmp(name, "port") == 0) {
+    server_port = atoi(value);
+  } else {
+     LOG6LBR_ERROR("Invalid parameter : %s\n", name);
+     return 0;
+   }
+   return 1;
+}/*---------------------------------------------------------------------------*/
 static int native_config_lwm2m_device_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
   if(level != CONFIG_LEVEL_APP) {
@@ -76,6 +126,7 @@ static int native_config_lwm2m_device_handler(config_level_t level, void* user, 
 }
 /*---------------------------------------------------------------------------*/
 static int load(void) {
+  native_config_add_callback(&lwm2m_server_config_cb, "lwm2m.server", native_config_lwm2m_server_handler, NULL);
   native_config_add_callback(&lwm2m_device_config_cb, "lwm2m.device", native_config_lwm2m_device_handler, NULL);
   return 0;
 }
@@ -84,6 +135,7 @@ static int init(void) {
   LOG6LBR_INFO("LWM2M Client init\n");
   lwm2m_init();
   lwm2m_set_resources_list(lwm2m_objects_link);
+  httpd_group_add_page(&status_group, &webserver_lwm2m);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
