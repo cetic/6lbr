@@ -8,6 +8,7 @@ SLIP_FIRMWARE?=slip-radio
 SIXLBR_LIST?=6lbr
 TARGET?=cooja
 SIXLBR_BIN?=bin/cetic_6lbr_router
+SIXLBR_PLUGINS?=${SIXLBR}/plugins/dummy/dummy.so ${SIXLBR}/plugins/lwm2m-client/lwm2m.so
 
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
@@ -73,7 +74,7 @@ clean-net:
 	@$(DEMO)/common/sim.sh --clean $(CSC) $(SIXLBR_LIST)
 
 run: $(CSC)
-	@CONTIKI=$(CONTIKI) SIXLBR=$(SIXLBR) COOJA=$(COOJA) $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
+	@CONTIKI=$(CONTIKI) SIXLBR=$(SIXLBR) COOJA=$(COOJA) SIXLBR_PLUGINS="$(SIXLBR_PLUGINS)" $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
 
 all: clean-6lbr clean-firmwares clean build-6lbr run
 
