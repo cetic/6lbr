@@ -1,7 +1,9 @@
 6lbr.ip*
 6lbr.timestamp
 nvm.dat
+factory.dat
 org/
 COOJA.*
 *.pcap
 gensetup.csc
+*.so
