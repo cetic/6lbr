@@ -222,6 +222,18 @@ rd_client_set_rd_address(uip_ipaddr_t const *ipaddr, uint16_t port)
   process_poll(&rd_client_process);
 }
 /*---------------------------------------------------------------------------*/
+uip_ipaddr_t const *
+rd_client_get_rd_address(void)
+{
+  return &rd_server_ipaddr;
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+rd_client_get_rd_port(void)
+{
+  return rd_server_port;
+}
+/*---------------------------------------------------------------------------*/
 void
 rd_client_set_resources_list(char const * new_list)
 {

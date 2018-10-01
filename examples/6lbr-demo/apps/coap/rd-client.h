@@ -71,4 +71,10 @@ rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr, uint16_t port
 void
 rd_client_set_resources_list(char const * resources_list);
 
+uip_ipaddr_t const *
+rd_client_get_rd_address(void);
+
+uint16_t
+rd_client_get_rd_port(void);
+
 #endif /* RD_CLIENT_H_ */
