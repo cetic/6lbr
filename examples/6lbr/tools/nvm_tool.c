@@ -83,7 +83,7 @@ void migrate_nvm(uint8_t print_info);
 /*---------------------------------------------------------------------------*/
 
 void
-load_nvm_file(char const *nvm_file,uint8_t verbose)
+load_nvm_file(char const *nvm_file, uint8_t verbose)
 {
   if (verbose)
   {
@@ -1121,49 +1121,49 @@ help(char const *name)
 
 #define UPDATE_INT(arg_name, option) \
 	if(option) { \
-    printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
 	  nvm_data->option = intconv(arg_name, option); \
 	}
 
 #define UPDATE_HEX(arg_name, option) \
         if(option) { \
-          printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           nvm_data->option = hexconv(arg_name, option); \
         }
 
 #define UPDATE_FLAG(arg_name, option, mode, mask) \
 	if(option) { \
-    printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option?"False" : "True");\
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option?"False" : "True");\
 	  nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? mask : 0); \
     }
 
 #define UPDATE_FLAG_INV(arg_name, option, mode, mask) \
     if(option) { \
-      printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option?"False" : "True");\
+      printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option?"False" : "True");\
       nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? 0 : mask); \
     }
 
 #define UPDATE_IP(arg_name, option) \
 	if(option) { \
-    printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
 	  ipaddrconv(arg_name, option, nvm_data->option); \
 	}
 
 #define UPDATE_IP4(arg_name, option) \
         if(option) { \
-          printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           ip4addrconv(arg_name, option, nvm_data->option); \
         }
 
 #define UPDATE_CONTEXT(arg_name, option) \
     if(option) { \
-      printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+      printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
       contextconv(arg_name, option, nvm_data->option); \
     }
 
 #define UPDATE_KEY(arg_name, option) \
         if(option) { \
-          printf("\n ---> \"%s\" has been set to \"%s\" <--- \n\n",arg_name,option);\
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           euiconv(arg_name, option, 16, nvm_data->option); \
         }
 
@@ -1392,7 +1392,6 @@ main(int argc, char *argv[])
     CASE_OPTION(dns_proxy_enable)
     CASE_OPTION(nvm_proxy_port)
 
-
     case fit_option:
       fit = 1;
       break;
@@ -1438,7 +1437,7 @@ main(int argc, char *argv[])
   }
 
   if(source_nvm_file) {
-    load_nvm_file(source_nvm_file,verbose);
+    load_nvm_file(source_nvm_file, verbose);
     migrate_nvm(1);
   } else {
     create_empty_nvm();
