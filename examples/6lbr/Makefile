@@ -8,7 +8,7 @@ CONTIKI_PROJECT = cetic-6lbr
 
 CONTIKI ?= $(6LBR)/../..
 
-APPDIRS = $(6LBR)/apps $(6LBR)/../6lbr-demo/apps
+APPDIRS += $(6LBR)/apps $(6LBR)/../6lbr-demo/apps
 
 PROJECTDIRS += $(6LBR) $(6LBR)/6lbr
 
@@ -275,6 +275,11 @@ ifeq ($(WITH_TCP),1)
 CFLAGS += -DCETIC_6LBR_WITH_TCP=1
 endif
 
+ifneq ($(6LBR_PLUGIN),)
+#Clear all apps if we are building a plugin, the apps to be included in the
+#plugin are specified in PLUGIN_APPS
+APPS=$(PLUGIN_APPS)
+endif
 
 ###############################################################################
 # Targets
