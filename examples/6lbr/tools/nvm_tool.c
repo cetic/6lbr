@@ -83,9 +83,12 @@ void migrate_nvm(uint8_t print_info);
 /*---------------------------------------------------------------------------*/
 
 void
-load_nvm_file(char const *nvm_file)
+load_nvm_file(char const *nvm_file, uint8_t verbose)
 {
-  printf("Reading nvm file '%s'\n", nvm_file);
+  if (verbose)
+  {
+    printf("Reading nvm file '%s'\n", nvm_file);
+  }
 
   create_empty_nvm();
 
@@ -101,9 +104,12 @@ load_nvm_file(char const *nvm_file)
 }
 
 void
-store_nvm_file(char const *nvm_file, uint8_t fit)
+store_nvm_file(char const *nvm_file, uint8_t fit, uint8_t verbose)
 {
-  printf("Writing nvm file '%s'\n", nvm_file);
+  if (verbose)
+  {
+    printf("Writing nvm file '%s'\n", nvm_file);
+  }
   int s = open(nvm_file, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
   if(s > 0) {
@@ -846,6 +852,9 @@ print_nvm(void)
 //Multicast
 #define multicast_engine_option 15000
 
+//Verbose
+#define verbose_option 16000
+
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
   {"new", no_argument, 0, new_nvm_action},
@@ -948,8 +957,11 @@ static struct option long_options[] = {
   {"nvm-proxy-port", required_argument, 0, nvm_proxy_port_option},
 
   {"fit", no_argument, 0, fit_option},
+  {"verbose", no_argument, 0, verbose_option}
 };
 
+
+//stderr when wrong use of the nvm_tool
 void
 usage(char const *name)
 {
@@ -1094,7 +1106,8 @@ help(char const *name)
   printf("\n");
 
   printf
-    ("\t--fit\t\t\t\t Size NVM output file to the actual size of the NVM data\n");
+      ("\t--fit\t\t\t\t Size NVM output file to the actual size of the NVM data\n");
+  printf("\t--verbose \t\t\t Display the modified file after an update\n");
   printf("\n");
   printf
     ("Please read the 6LBR documentation for a complete description of all the modes and parameters and their interactions\n");
@@ -1108,44 +1121,54 @@ help(char const *name)
 
 #define UPDATE_INT(arg_name, option) \
 	if(option) { \
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
 	  nvm_data->option = intconv(arg_name, option); \
 	}
 
 #define UPDATE_HEX(arg_name, option) \
         if(option) { \
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           nvm_data->option = hexconv(arg_name, option); \
         }
 
 #define UPDATE_FLAG(arg_name, option, mode, mask) \
 	if(option) { \
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option?"False" : "True");\
 	  nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? mask : 0); \
     }
 
 #define UPDATE_FLAG_INV(arg_name, option, mode, mask) \
     if(option) { \
+      printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option?"False" : "True");\
       nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? 0 : mask); \
     }
 
 #define UPDATE_IP(arg_name, option) \
 	if(option) { \
+    printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
 	  ipaddrconv(arg_name, option, nvm_data->option); \
 	}
 
 #define UPDATE_IP4(arg_name, option) \
         if(option) { \
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           ip4addrconv(arg_name, option, nvm_data->option); \
         }
 
 #define UPDATE_CONTEXT(arg_name, option) \
     if(option) { \
+      printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
       contextconv(arg_name, option, nvm_data->option); \
     }
 
 #define UPDATE_KEY(arg_name, option) \
         if(option) { \
+          printf("\n\"%s\" has been set to \"%s\"\n\n",arg_name,option);\
           euiconv(arg_name, option, 16, nvm_data->option); \
         }
 
+
+//Main Program
 int
 main(int argc, char *argv[])
 {
@@ -1155,7 +1178,8 @@ main(int argc, char *argv[])
   int print_nvm_file = 0;
   int update_nvm_file = 0;
   int fit = 0;
-
+  int verbose  = 0;
+  //Initialise pointers
   char *source_nvm_file = NULL;
   char *dest_nvm_file = NULL;
 
@@ -1270,6 +1294,7 @@ main(int argc, char *argv[])
 
     case print_nvm_action:
       print_nvm_file = 1;
+      verbose = 1;
       break;
 
     CASE_OPTION(channel)
@@ -1371,6 +1396,10 @@ main(int argc, char *argv[])
       fit = 1;
       break;
 
+    case verbose_option:
+      verbose = 1;
+      break;
+
     default:
       usage(argv[0]);
     }
@@ -1408,7 +1437,7 @@ main(int argc, char *argv[])
   }
 
   if(source_nvm_file) {
-    load_nvm_file(source_nvm_file);
+    load_nvm_file(source_nvm_file, verbose);
     migrate_nvm(1);
   } else {
     create_empty_nvm();
@@ -1511,10 +1540,12 @@ main(int argc, char *argv[])
     UPDATE_INT("nvm-proxy-port", nvm_proxy_port)
   }
 
-  print_nvm();
+  if (verbose){
+    print_nvm();
+  }
 
   if(dest_nvm_file) {
-    store_nvm_file(dest_nvm_file, fit);
+    store_nvm_file(dest_nvm_file, fit, verbose);
   }
 
   return 0;
