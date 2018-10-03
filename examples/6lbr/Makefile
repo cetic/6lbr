@@ -153,12 +153,15 @@ endif
 ifeq ($(WITH_CONTIKI),0)
 ifeq ($(WITH_LLSEC),1)
 $(error LLSEC is not supported with Contiki-NG)
+WITH_LLSEC=0
 endif
 ifeq ($(WITH_COAPSERVER),1)
-$(error CoAP Server is not supported with Contiki-NG)
+$(warning CoAP Server is not supported with Contiki-NG)
+WITH_COAPSERVER=0
 endif
 ifeq ($(WITH_TINYDTLS),1)
 $(error TinyDTLS is not supported with Contiki-NG)
+WITH_TINYDTLS=0
 endif
 endif
 
