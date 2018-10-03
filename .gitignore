@@ -19,6 +19,7 @@
 *.esb
 *.avr-raven
 *.openmote
+*.openmote-cc2538
 *.exp5438
 *.trxeb
 *.mbxxx

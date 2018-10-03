@@ -37,56 +37,12 @@ CC26XX_ENC28J60_ARCH?=gpio
 #ext is the external flash, only present on Sensortag and Launchpad
 CC26XX_NVM?=int
 
-CC26XX_FW?=bin
+TARGET_BIN?=bin_$(TARGET)
+TARGET_BIN_EXT?=bin
+TARGET_FW_EXT?=.bin
 
 PROJECTDIRS += platform/srf06-cc26xx dev/enc28j60
 
 PROJECT_SOURCEFILES += cc26xx-init.c cc26xx-$(CC26XX_NVM)-nvm.c enc28j60.c enc28j60-drv.c enc28j60-arch-$(CC26XX_ENC28J60_ARCH).c
 
-bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_SMARTBRIDGE=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC26XX_FW)
 
-bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_RPL_RELAY=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC26XX_FW)
-
-bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC26XX_FW)
-
-bin_$(TARGET)/cetic_6lbr_router.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_RPL_ROUTER=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_router.$(CC26XX_FW)
-
-bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_NDP_ROUTER=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC26XX_FW)
-
-bin_$(TARGET)/cetic_6lbr_6lr.$(CC26XX_FW):
-	$(MAKE) CETIC_6LBR_6LR=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(CC26XX_FW) bin_$(TARGET)/cetic_6lbr_6lr.$(CC26XX_FW)
-
-all:
-	rm -rf bin_$(TARGET)
-	mkdir -p bin_$(TARGET)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(CC26XX_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(CC26XX_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(CC26XX_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_router.$(CC26XX_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_ndp_router.$(CC26XX_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_6lr.$(CC26XX_FW)
-
-.PHONY: bin_$(TARGET)/*

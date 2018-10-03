@@ -26,58 +26,12 @@ WITH_DNS_PROXY?=1
 
 WITH_MULTI_RADIO=0
 
-ZOUL_FW?=bin
+TARGET_BIN?=bin_$(TARGET)
+TARGET_BIN_EXT?=bin
+TARGET_FW_EXT?=.bin
 
 BOARD = orion
 
 PROJECTDIRS += platform/zoul dev/enc28j60
 
 PROJECT_SOURCEFILES += zoul-init.c zoul-nvm.c enc28j60.c enc28j60-drv.c
-
-bin_$(TARGET)/cetic_6lbr_smart_bridge.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_SMARTBRIDGE=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(ZOUL_FW)
-
-bin_$(TARGET)/cetic_6lbr_rpl_relay.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_RPL_RELAY=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(ZOUL_FW)
-
-bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(ZOUL_FW)
-
-bin_$(TARGET)/cetic_6lbr_router.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_RPL_ROUTER=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_router.$(ZOUL_FW)
-
-bin_$(TARGET)/cetic_6lbr_ndp_router.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_NDP_ROUTER=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_ndp_router.$(ZOUL_FW)
-
-bin_$(TARGET)/cetic_6lbr_6lr.$(ZOUL_FW):
-	$(MAKE) CETIC_6LBR_6LR=1
-	mkdir -p bin_$(TARGET)
-	mv cetic-6lbr.$(ZOUL_FW) bin_$(TARGET)/cetic_6lbr_6lr.$(ZOUL_FW)
-
-all:
-	rm -rf bin_$(TARGET)
-	mkdir -p bin_$(TARGET)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_smart_bridge.$(ZOUL_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_rpl_relay.$(ZOUL_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_full_transparent_bridge.$(ZOUL_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_router.$(ZOUL_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_ndp_router.$(ZOUL_FW)
-	$(MAKE) clean
-	$(MAKE) bin_$(TARGET)/cetic_6lbr_6lr.$(ZOUL_FW)
-
-.PHONY: bin_$(TARGET)/*

@@ -30,6 +30,11 @@ WITH_COAPSERVER?=1
 WITH_NVM_PROXY?=0
 WITH_DNS_PROXY?=1
 
+TARGET_BIN?=bin
+TARGET_BIN_EXT?=native
+TARGET_FW_EXT?=
+TARGET_CLEAN_EXTRA?=plugins-clean
+
 PLUGINS=${shell test -e plugins && cd plugins && find * -type d -prune}
 PLUGINS_DIRS=${addprefix plugins/,$(PLUGINS)}
 
@@ -52,60 +57,11 @@ PROJECT_SOURCEFILES += ini.c
 
 ifeq ($(6LBR_PLUGIN),)
 
-# 6LBR targets
-
-bin/cetic_6lbr_smart_bridge:
-	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge
-
-bin/cetic_6lbr_rpl_relay:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_RELAY=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_rpl_relay
-
-bin/cetic_6lbr_full_transparent_bridge:
-	$(MAKE) TARGET=native CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge
-
-bin/cetic_6lbr_router:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROUTER=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_router
-
-bin/cetic_6lbr_ndp_router:
-	$(MAKE) TARGET=native CETIC_6LBR_NDP_ROUTER=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_ndp_router
-
-bin/cetic_6lbr_6lr:
-	$(MAKE) TARGET=native CETIC_6LBR_6LR=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_6lr
-
-bin/cetic_6lbr_rpl_root:
-	$(MAKE) TARGET=native CETIC_6LBR_RPL_ROOT=1
-	mkdir -p bin
-	mv cetic-6lbr.native bin/cetic_6lbr_rpl_root
-
-all:
-	rm -rf bin
-	mkdir -p bin
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_smart_bridge
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_relay
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_full_transparent_bridge
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_router
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_ndp_router
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_6lr
-	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native bin/cetic_6lbr_rpl_root
+PLATFORM_TARGETS="\
+install\\n\
+plugins\\n\
+plugins-install\\n\
+plugins-clean"
 
 PKG_VERSION=0
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
@@ -198,4 +154,4 @@ endif
 
 CLEAN += *.so obj_$(TARGET)/*.so
 
-.PHONY: bin/* plugins ipk $(PLUGINS_DIRS)
+.PHONY: plugins ipk $(PLUGINS_DIRS)

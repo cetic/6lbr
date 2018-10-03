@@ -22,7 +22,24 @@ endif
 
 # Default target, must always be before platform include
 ifeq ($(6LBR_PLUGIN),)
-$(CONTIKI_PROJECT):
+help:
+	@echo "CETIC 6LBR make usage:"
+	@echo
+	@echo "make [TARGET=<target-name>] [<runtime-mode>|command]"
+	@echo
+	@echo "Commands:"
+	@echo " all:\t\tMake all the runtime mode variants"
+	@echo " clean:\t\tClean the project"
+	@echo " clean-all:\tClean the project and all the binaries"
+	@echo " tools:\t\tMake platform specific tools"
+	@echo
+	@echo "Platform specific commands:"
+	@echo "$(PLATFORM_TARGETS)"
+	@echo
+	@echo "Runtime mode variants supported:"
+	@echo " $(foreach target,$(RUNTIME_TARGETS),$(target)\\n)"
+
+custom: $(CONTIKI_PROJECT)
 endif
 
 -include $(6LBR)/platform/$(TARGET)/Makefile.$(TARGET)
@@ -65,6 +82,8 @@ WITH_DNS_PROXY?=0
 WITH_TINYDTLS?=0
 WITH_DTLSECHO?=0
 WITH_DTLS_COAP?=0
+
+RUNTIME_TARGETS?=cetic_6lbr_router cetic_6lbr_smart_bridge cetic_6lbr_rpl_root cetic_6lbr_6lr cetic_6lbr_rpl_relay cetic_6lbr_full_transparent_bridge cetic_6lbr_ndp_router
 
 ###############################################################################
 # Mod selection
@@ -400,6 +419,57 @@ LDGENFLAGS += $(CFLAGS)
 tools:
 	cd tools && $(MAKE)
 
+RUNTIME_TARGETS_CLEAN=$(foreach target, $(RUNTIME_TARGETS), $(target)-clean)
+
+$(RUNTIME_TARGETS):
+	$(MAKE) TARGET=$(TARGET) $(TARGET_BIN)/$@$(TARGET_FW_EXT)
+
+$(RUNTIME_TARGETS_CLEAN):
+	$(MAKE) TARGET=$(TARGET) clean
+	$(MAKE) TARGET=$(TARGET) $(TARGET_BIN)/$(subst -clean,,$@)$(TARGET_FW_EXT)
+
+clean-all: clean $(TARGET_CLEAN_EXTRA)
+	rm -rf $(TARGET_BIN)
+
+all: clean-all $(RUNTIME_TARGETS_CLEAN)
+
+# 6LBR Runtime Modes
+
+$(TARGET_BIN)/cetic_6lbr_smart_bridge$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_SMARTBRIDGE=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_rpl_relay$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_RPL_RELAY=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_full_transparent_bridge$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_FULL_TRANSPARENT_BRIDGE=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_router$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_RPL_ROUTER=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_ndp_router$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_NDP_ROUTER=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_6lr$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_6LR=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+$(TARGET_BIN)/cetic_6lbr_rpl_root$(TARGET_FW_EXT):
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_RPL_ROOT=1 cetic-6lbr
+	mkdir -p $(TARGET_BIN)
+	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
 CUSTOM_DEFAULT_TARGET=1
 
 include $(CONTIKI)/Makefile.include
@@ -407,4 +477,4 @@ include $(CONTIKI)/Makefile.include
 %: show_config %.$(TARGET)
 	@
 
-.PHONY: all tools
+.PHONY: $(TARGET_BIN)/* $(RUNTIME_TARGETS) $(RUNTIME_TARGETS_CLEAN) all clean clean-all tools help custom
