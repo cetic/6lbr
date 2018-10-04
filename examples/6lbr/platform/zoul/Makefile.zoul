@@ -34,4 +34,7 @@ BOARD = orion
 
 PROJECTDIRS += platform/zoul dev/enc28j60
 
+#Workaround to compile 6LR mode without IP64...
+PROJECTDIRS += $(CONTIKI)/core/net/ip64
+
 PROJECT_SOURCEFILES += zoul-init.c zoul-nvm.c enc28j60.c enc28j60-drv.c

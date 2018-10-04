@@ -496,6 +496,9 @@
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
 
+//Remove any fallback interface that could have been configured
+#undef UIP_FALLBACK_INTERFACE
+
 //Map 6LBR configuration onto Contiki configuration parameters
 #include "conf-mapping.h"
 
