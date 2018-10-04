@@ -347,6 +347,8 @@ endif
 # Targets
 ###############################################################################
 
+ifeq ($(6LBR_PLUGIN),) #Create targets only if we are not building a plugin
+
 to_bool = $(subst 1,Enabled,$(subst 0,Disabled,$(1)))
 
 to_bool_multi = $(subst 1,$(2),$(subst 0,Disabled,$(1)))
@@ -469,6 +471,8 @@ $(TARGET_BIN)/cetic_6lbr_rpl_root$(TARGET_FW_EXT):
 	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_RPL_ROOT=1 cetic-6lbr
 	mkdir -p $(TARGET_BIN)
 	mv cetic-6lbr.$(TARGET_BIN_EXT) $@
+
+endif # 6LBR_PLUGIN
 
 CUSTOM_DEFAULT_TARGET=1
 
