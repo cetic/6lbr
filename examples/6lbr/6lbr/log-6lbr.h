@@ -38,6 +38,11 @@
 #define LOG_6LBR_H
 
 #include "uip.h"
+
+#if !WITH_CONTIKI
+#include "linkaddr.h"
+#endif
+
 #include <stdio.h>
 
 #ifndef LOG6LBR_TIMESTAMP
@@ -48,9 +53,18 @@
 #define LOG6LBR_STATIC 0
 #endif
 
+#if WITH_CONTIKI
 //From "uip-debug.h"
 extern void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
 extern void uip_debug_lladdr_print(const uip_lladdr_t *addr);
+#else
+//From "log.h"
+extern void log_6addr(const uip_ipaddr_t *ipaddr);
+extern void log_lladdr(const linkaddr_t *lladdr);
+#define uip_debug_ipaddr_print(x) log_6addr(x)
+#define uip_debug_lladdr_print(x) log_lladdr((const linkaddr_t *)(x))
+#endif
+
 extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
 extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
 
