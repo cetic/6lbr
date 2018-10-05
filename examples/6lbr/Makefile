@@ -8,7 +8,11 @@ WITH_CONTIKI?=1
 
 6LBR?=.
 
+ifeq ($(WITH_CONTIKI),1)
 CONTIKI ?= $(6LBR)/../..
+else
+CONTIKI ?= $(6LBR)/../../../contiki-ng
+endif
 
 APPDIRS += $(6LBR)/apps $(6LBR)/../6lbr-demo/apps
 
