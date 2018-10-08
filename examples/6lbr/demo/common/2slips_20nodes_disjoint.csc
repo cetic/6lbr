@@ -26,8 +26,8 @@
 	  org.contikios.cooja.contikimote.ContikiMoteType
 	  <identifier>slipradio</identifier>
 	  <description>6LBR Slip Radio</description>
-	  <source EXPORT="discard">[CONFIG_DIR]/../firmwares/slip-radio/slip-radio.c</source>
-	  <commands EXPORT="discard">make slip-radio.cooja TARGET=cooja </commands>
+	  <source>[CONFIG_DIR]/../firmwares/slip-radio/slip-radio-dummy.c</source>
+	  <commands>make slip-radio-dummy.cooja TARGET=cooja CONTIKI=../../../../..</commands>
 	  <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
 	  <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
 	  <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -52,7 +52,7 @@
 	  <identifier>node</identifier>
 	  <description>6LBR Demo</description>
 	  <source EXPORT="discard">[CONFIG_DIR]/../firmwares/node/6lbr-demo.c</source>
-	  <commands EXPORT="discard">make 6lbr-demo.cooja TARGET=cooja </commands>
+	  <commands EXPORT="discard">make 6lbr-demo.cooja TARGET=cooja CONTIKI=../../../../..</commands>
 	  <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
 	  <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
 	  <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>

@@ -1,5 +1,13 @@
-CONTIKI?=../../../..
-SIXLBR?=${CONTIKI}/examples/6lbr
+WITH_CONTIKI?=1
+
+SIXLBR?=../..
+
+ifeq ($(WITH_CONTIKI),1)
+CONTIKI ?= $(SIXLBR)/../..
+else
+CONTIKI ?= $(SIXLBR)/../../../contiki-ng
+endif
+
 COOJA?=${CONTIKI}/tools/cooja
 DEMO=$(SIXLBR)/demo
 
@@ -7,8 +15,10 @@ NODE_FIRMWARE?=node
 SLIP_FIRMWARE?=slip-radio
 SIXLBR_LIST?=6lbr
 TARGET?=cooja
-SIXLBR_BIN?=bin/cetic_6lbr_router
+SIXLBR_BIN?=cetic_6lbr_router
 SIXLBR_PLUGINS?=${SIXLBR}/plugins/dummy/dummy.so ${SIXLBR}/plugins/lwm2m-client/lwm2m.so
+
+SHELL:=/bin/bash
 
 DEV_TAP_IP6?=
 DEV_TAP_IP4?=
@@ -33,17 +43,21 @@ help:
 	@echo
 	@echo "\t all : Clean, rebuild and launch demo"
 
-
-ifneq ($(SOURCE_CSC),)
-CSC?=gensetup.csc
-GEN_CSC=$(CSC)
-$(CSC): $(SOURCE_CSC)
-	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" -e "/\/firmwares\/slip-radio\/slip-radio.c/ s/\/slip-radio\//\/$(SLIP_FIRMWARE)\//" $(SOURCE_CSC) > $(CSC)
+ifeq ($(SOURCE_CSC),)
+SOURCE_CSC:=$(CSC)
 endif
 
-ifeq ($(CSC),)
+ifeq ($(SOURCE_CSC),)
 	$(error "No CSC configuration file specified")
 endif
+
+CSC=gensetup.csc
+GEN_CSC=$(CSC)
+$(CSC): $(SOURCE_CSC)
+	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" \
+	-e "/\/firmwares\/slip-radio\/slip-radio-dummy.c/ s/\/slip-radio\//\/$(SLIP_FIRMWARE)\//" \
+	-e "/<commands>/ s|CONTIKI=..\/..\/..\/..\/..|CONTIKI=../$(CONTIKI)|" \
+	$(SOURCE_CSC) > $(CSC)
 
 clean-cooja:
 	cd ${COOJA} && ant clean
@@ -56,7 +70,12 @@ clean-6lbr:
 	cd $(SIXLBR)/tools && make clean
 
 build-6lbr:
-	cd $(SIXLBR) && make $(SIXLBR_BIN)
+ifneq (,$(findstring :,$(SIXLBR_BIN)))
+	for BIN in $(subst :, ,$(SIXLBR_BIN)); do pushd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) clean && make WITH_CONTIKI=$(WITH_CONTIKI) $$BIN && popd; done
+else
+	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) $(SIXLBR_BIN)
+endif
+	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) plugins
 	cd $(SIXLBR)/tools && make
 
 clean-firmwares:

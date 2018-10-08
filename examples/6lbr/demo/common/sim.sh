@@ -2,14 +2,6 @@
 
 set -e
 
-# General environment variables
-
-#export CONTIKI=../../../..
-#export SIXLBR=${CONTIKI}/examples/6lbr
-#export COOJA=${CONTIKI}/tools/cooja
-
-#export JAVA_HOME=/usr/lib/jvm/default-java
-
 # Simulation configuration
 
 ACTION=run
