@@ -172,7 +172,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
       PRINTF(" %d with %s\n", rd_server_port, resources_list);
       coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
       coap_set_header_uri_path(request, "rd");
-      sprintf(query_buffer, "ep=%s&b=U&lt=%d", rd_client_name, RD_CLIENT_LIFETIME);
+      sprintf(query_buffer, "ep=%s&b=U&lt=%d&lwm2m=1", rd_client_name, RD_CLIENT_LIFETIME);
       coap_set_header_uri_query(request, query_buffer);
       coap_set_payload(request, (uint8_t *) resources_list, resources_list_size);
 
