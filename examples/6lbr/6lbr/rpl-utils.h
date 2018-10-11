@@ -37,9 +37,24 @@
 #ifndef RPL_UTILS
 #define RPL_UTILS
 
+#include "rpl.h"
+
 #if WITH_CONTIKI
 #define RPL_INFINITE_RANK INFINITE_RANK
 #endif
+
+
+extern rpl_dag_t *cetic_dag;
+
+extern int rpl_fast_startup;
+extern int rpl_wait_delay;
+int rpl_ignore_other_dodags;
+
+extern void
+cetic_6lbr_end_dodag_root(rpl_instance_t *instance);
+
+extern void
+cetic_6lbr_set_rpl_can_become_root(int can_become_root);
 
 int
 is_dodag_available(void);

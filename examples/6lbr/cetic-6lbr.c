@@ -64,7 +64,9 @@
 #include "nvm-config.h"
 #include "rio.h"
 #include "6lbr-hooks.h"
+#if CETIC_6LBR_WITH_RPL
 #include "rpl-utils.h"
+#endif
 
 #if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
