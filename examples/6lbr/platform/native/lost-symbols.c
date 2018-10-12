@@ -40,7 +40,7 @@
 #include "uip.h"
 #include "sensors.h"
 #if !WITH_CONTIKI
-#include "sys/int-master.h"
+#include "os/dev/spi.h"
 #endif
 
 #if !CETIC_6LBR_WITH_RPL
@@ -60,13 +60,10 @@ rpl_dag_t * rpl_get_any_dag(void) { return NULL; }
 const struct sensors_sensor *sensors[] = {NULL};
 unsigned char sensors_flags[SENSORS_NUM];
 
-void int_master_enable(void) {}
+spi_status_t spi_arch_select(spi_device_t *dev) { return SPI_DEV_STATUS_EINVAL; }
 
-int_master_status_t int_master_read_and_disable(void) { return 0; }
+spi_status_t spi_arch_deselect(spi_device_t *dev) { return SPI_DEV_STATUS_EINVAL; }
 
-void int_master_status_set(int_master_status_t status) { (void) status; }
-
-bool int_master_is_enabled(void) { return 1; }
 
 int _stack;
 int _stack_origin;
