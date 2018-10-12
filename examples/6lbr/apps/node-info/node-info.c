@@ -44,7 +44,11 @@
 #if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #if RPL_WITH_NON_STORING
+#if WITH_CONTIKI
 #include "rpl-ns.h"
+#else
+#include "net/ipv6/uip-sr.h"
+#endif
 #endif
 #endif
 
@@ -100,7 +104,8 @@ node_info_update_all(void)
 {
 #if RPL_WITH_NON_STORING
   if(RPL_IS_NON_STORING(default_instance)) {
-    static rpl_ns_node_t *link;
+#if WITH_CONTIKI
+    rpl_ns_node_t *link;
     for(link = rpl_ns_node_head(); link != NULL; link = rpl_ns_node_next(link)) {
       if(link->parent != NULL) {
         uip_ipaddr_t addr;
@@ -112,6 +117,20 @@ node_info_update_all(void)
         }
       }
     }
+#else
+    uip_sr_node_t *link;
+    for(link = uip_sr_node_head(); link != NULL; link = uip_sr_node_next(link)) {
+      if(link->parent != NULL) {
+        uip_ipaddr_t addr;
+        NETSTACK_ROUTING.get_sr_node_ipaddr(&addr, link);
+        if(uip_sr_is_addr_reachable(link->graph, &addr)) {
+          node_info_set_flags(&addr, NODE_INFO_HAS_ROUTE);
+        } else {
+          node_info_clear_flags(&addr, NODE_INFO_HAS_ROUTE);
+        }
+      }
+    }
+#endif
   }
 #endif
 }

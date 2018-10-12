@@ -65,7 +65,11 @@
 #if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
 #if RPL_WITH_NON_STORING
+#if WITH_CONTIKI
 #include "rpl-ns.h"
+#else
+#include "net/ipv6/uip-sr.h"
+#endif
 #endif
 #endif
 
@@ -139,7 +143,11 @@ PT_THREAD(generate_network(struct httpd_state *s))
   static uip_mcast6_route_t *mcast_route;
 #endif
 #if RPL_WITH_NON_STORING
+#if WITH_CONTIKI
   static rpl_ns_node_t *link;
+#else
+  static uip_sr_node_t *link;
+#endif
 #endif
 
   PSOCK_BEGIN(&s->sout);
@@ -296,13 +304,22 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
 #if RPL_WITH_NON_STORING
   add("</pre><h2>Links</h2><pre>");
+#if WITH_CONTIKI
   for(link = rpl_ns_node_head(); link != NULL; link = rpl_ns_node_next(link)) {
-    if(link->parent != NULL) {
+#else
+  for(link = uip_sr_node_head(); link != NULL; link = uip_sr_node_next(link)) {
+#endif
+   if(link->parent != NULL) {
       uip_ipaddr_t child_ipaddr;
       uip_ipaddr_t parent_ipaddr;
 
+#if WITH_CONTIKI
       rpl_ns_get_node_global_addr(&child_ipaddr, link);
       rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
+#else
+      NETSTACK_ROUTING.get_sr_node_ipaddr(&child_ipaddr, link);
+      NETSTACK_ROUTING.get_sr_node_ipaddr(&parent_ipaddr, link->parent);
+#endif
 #if CETIC_6LBR_NODE_CONFIG_HAS_NAME
       if ( node_config_loaded ) {
         add("%s (", node_config_get_name(node_config_find_by_ip(&child_ipaddr)));
