@@ -82,12 +82,16 @@ if [ "$BRIDGE" = "" ]; then
 	BRIDGE="1"
 fi
 
+if [ "$CREATE_BRIDGE" = "" ]; then
+	CREATE_BRIDGE="0"
+fi
+
 if [ "$CREATE_BRIDGE" != "0" -a "$CREATE_BRIDGE" != "LAZY" -a "$CREATE_BRIDGE" != "MANUAL" -a "$CREATE_BRIDGE" != "6LBR" ]; then
 	CREATE_BRIDGE="1"
 fi
 
 if [ "$ETH_JOIN_BRIDGE" = "" ]; then
-	ETH_JOIN_BRIDGE="1"
+	ETH_JOIN_BRIDGE="0"
 fi
 
 if [ "$BRIDGE_DISABLE_SNOOPING" = "" ]; then
