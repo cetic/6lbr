@@ -30,12 +30,6 @@ endif
 ifeq ($(TARGET),exp5438)
   PROJECT_SOURCEFILES += slip-radio-cc2420.c
 endif
-ifeq ($(TARGET),nooliberry)
-  PROJECT_SOURCEFILES += slip-radio-rf230.c
-endif
-ifeq ($(TARGET),econotag)
-  PROJECT_SOURCEFILES += slip-radio-mc1322x.c
-endif
 ifeq ($(TARGET),cooja)
   PROJECT_SOURCEFILES += slip-radio-cooja.c
   MODULES+=core/net/mac/contikimac
