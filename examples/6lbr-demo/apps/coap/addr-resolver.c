@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, CETIC.
+ * Copyright (c) 2018, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,59 +29,60 @@
 
 /**
  * \file
- *         Simple CoAP Library
+ *         Address resolver thread
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
-#ifndef RD_CLIENT_H_
-#define RD_CLIENT_H_
 
 #include "contiki.h"
 #include "contiki-net.h"
+#include "ip64-addr.h"
 
-#ifdef RD_CLIENT_CONF_ENABLED
-#define RD_CLIENT_ENABLED RD_CLIENT_CONF_ENABLED
-#else
-#define RD_CLIENT_ENABLED 1
-#endif
+#include "addr-resolver.h"
 
-#ifdef RD_CLIENT_CONF_LIFETIME
-#define RD_CLIENT_LIFETIME RD_CLIENT_CONF_LIFETIME
-#else
-#define RD_CLIENT_LIFETIME 60
-#endif
+#define DEBUG 0
+#include "net/ip/uip-debug.h"
 
-enum rd_client_status_t
+PT_THREAD(gethostbyname(struct pt *pt, process_event_t ev, void *data, char const *host, uip_ipaddr_t *ipaddr))
 {
-  RD_CLIENT_UNCONFIGURED,
-  RD_CLIENT_BOOTSTRAPPING,
-  RD_CLIENT_RESOLVING,
-  RD_CLIENT_REGISTERING,
-  RD_CLIENT_REGISTERED,
-};
-
-void
-rd_client_init(void);
-
-int
-rd_client_status(void);
-
-void
-rd_client_set_rd_host(char const *host, uint16_t port);
-
-void
-rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr, uint16_t port);
-
-void
-rd_client_set_resources_list(char const * resources_list);
-
-char const *
-rd_client_get_rd_host(void);
-
-uip_ipaddr_t const *
-rd_client_get_rd_address(void);
-
-uint16_t
-rd_client_get_rd_port(void);
-
-#endif /* RD_CLIENT_H_ */
+  PT_BEGIN(pt);
+  uip_ip4addr_t ip4addr;
+  uip_ipaddr_t *resolv_result;
+  if(uiplib_ip4addrconv(host, &ip4addr) != 0) {
+    ip64_addr_4to6(&ip4addr, ipaddr);
+  } else if(uiplib_ip6addrconv(host, ipaddr) != 0) {
+    /* IP address already un ipaddr */
+  } else {
+    resolv_status_t ret = resolv_lookup(host, &resolv_result);
+    if(ret == RESOLV_STATUS_UNCACHED || ret == RESOLV_STATUS_EXPIRED) {
+      resolv_query(host);
+      PRINTF("Resolving host '%s'\n", host);
+      while(1) {
+        PT_YIELD_UNTIL(pt, ev == resolv_event_found);
+        const char *name = data;
+        if(strcmp(name, host) == 0) {
+          if(resolv_lookup(name, &resolv_result) == RESOLV_STATUS_CACHED) {
+            PRINTF("Host '%s' resolved : ", host);
+            PRINT6ADDR(resolv_result);
+            PRINTF("\n");
+            uip_ipaddr_copy(ipaddr, resolv_result);
+           break;
+          } else {
+            PRINTF("Host '%s' not found\n", host);
+            uip_create_unspecified(ipaddr);
+            break;
+          }
+        }
+      }
+    } else if(ret == RESOLV_STATUS_CACHED) {
+      PRINTF("Found host '%s' in cache : ", host);
+      PRINT6ADDR(resolv_result);
+      PRINTF("\n");
+      uip_ipaddr_copy(ipaddr, resolv_result);
+    } else {
+      PRINTF("Host '%s' not found\n", host);
+      uip_create_unspecified(ipaddr);
+    }
+  }
+  PT_END(pt);
+}

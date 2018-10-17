@@ -42,6 +42,7 @@
 #include "core-interface.h"
 #include "block-transfer.h"
 #include "rd-client.h"
+#include "addr-resolver.h"
 
 #if WITH_CETIC_6LN_NVM
 #include "nvm-config.h"
@@ -58,6 +59,7 @@ PROCESS(rd_client_process, "RD Client");
 static char const * resources_list = ",";
 static int resources_list_size = 0;
 
+static char const * rd_server_hostname;
 static uip_ipaddr_t rd_server_ipaddr;
 static uint16_t rd_server_port;
 
@@ -160,9 +162,18 @@ PROCESS_THREAD(rd_client_process, ev, data)
   while(1) {
     new_address = 0;
     while(!registered) {
-      while(uip_is_addr_unspecified(&rd_server_ipaddr)) {
+      while(uip_is_addr_unspecified(&rd_server_ipaddr) && rd_server_hostname == NULL) {
         status = RD_CLIENT_UNCONFIGURED;
         PROCESS_YIELD();
+      }
+      status = RD_CLIENT_RESOLVING;
+      if(rd_server_hostname != NULL) {
+        while(uip_is_addr_unspecified(&rd_server_ipaddr)) {
+          static struct pt resolv_pt;
+          PT_SPAWN(process_pt, &resolv_pt, gethostbyname(&resolv_pt, ev, data, rd_server_hostname,  &rd_server_ipaddr));
+          etimer_set(&et, CLOCK_SECOND);
+          PROCESS_YIELD_UNTIL(etimer_expired(&et));
+        }
       }
       status = RD_CLIENT_REGISTERING;
       etimer_set(&et, CLOCK_SECOND);
@@ -212,14 +223,33 @@ rd_client_status(void)
 }
 /*---------------------------------------------------------------------------*/
 void
+rd_client_set_rd_host(char const *host, uint16_t port)
+{
+  if(rd_server_hostname == NULL || (strcmp(host, rd_server_hostname) != 0 || port != rd_server_port)) {
+    new_address = 1;
+    rd_server_hostname = host;
+    uip_create_unspecified(&rd_server_ipaddr);
+    rd_server_port = port;
+    process_poll(&rd_client_process);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
 rd_client_set_rd_address(uip_ipaddr_t const *ipaddr, uint16_t port)
 {
-  if(!uip_ipaddr_cmp(ipaddr, &rd_server_ipaddr)) {
+  if(!uip_ipaddr_cmp(ipaddr, &rd_server_ipaddr) || port != rd_server_port) {
     new_address = 1;
+    rd_server_hostname = NULL;
+    uip_ipaddr_copy(&rd_server_ipaddr, ipaddr);
+    rd_server_port = port;
+    process_poll(&rd_client_process);
   }
-  uip_ipaddr_copy(&rd_server_ipaddr, ipaddr);
-  rd_server_port = port;
-  process_poll(&rd_client_process);
+}
+/*---------------------------------------------------------------------------*/
+char const *
+rd_client_get_rd_host(void)
+{
+  return rd_server_hostname;
 }
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t const *
