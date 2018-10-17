@@ -300,7 +300,10 @@ cetic_6lbr_init(void)
     uip_ipaddr_t dns;
     memcpy(dns.u8, &nvm_data.dns_server,
            sizeof(nvm_data.dns_server));
-    uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
+    if(!uip_is_addr_unspecified(&dns)) {
+      LOG6LBR_6ADDR(INFO, &dns, "DNS Server ");
+      uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
+    }
   } else {                            //End manual configuration
     uip_create_unspecified(&wsn_net_prefix);
     wsn_net_prefix_len = 0;
@@ -327,7 +330,10 @@ cetic_6lbr_init(void)
   uip_ipaddr_t dns;
   memcpy(dns.u8, &nvm_data.dns_server,
          sizeof(nvm_data.dns_server));
-  uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
+  if(!uip_is_addr_unspecified(&dns)) {
+    LOG6LBR_6ADDR(INFO, &dns, "DNS Server ");
+    uip_nameserver_update(&dns, UIP_NAMESERVER_INFINITE_LIFETIME);
+  }
 
   //Ethernet network configuration
   memcpy(eth_net_prefix.u8, &nvm_data.eth_net_prefix,
