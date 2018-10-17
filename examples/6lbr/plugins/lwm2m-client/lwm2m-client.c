@@ -66,8 +66,15 @@ static char const * status(void);
 static
 PT_THREAD(generate_lwm2m(struct httpd_state *s))
 {
+  char const *host;
   PSOCK_BEGIN(&s->sout);
   add("<br /><h2>LWM2M</h2>");
+  host = rd_client_get_rd_host();
+  if(host != NULL) {
+    add("Host : %s<br />");
+  } else {
+    add("Host : -<br />");
+  }
   add("Address : ");
   ipaddr_add_u8(rd_client_get_rd_address()->u8);
   add(" : %d<br />", rd_client_get_rd_port());
@@ -80,6 +87,7 @@ HTTPD_CGI_CALL(webserver_lwm2m, "lwm2m.html", "LWM2M", generate_lwm2m, 0);
 /*---------------------------------------------------------------------------*/
 static int native_config_lwm2m_server_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
+  static char *server_host = NULL;
   static uip_ipaddr_t server_ip;
   static uint16_t server_port = COAP_DEFAULT_PORT;
   if(level != CONFIG_LEVEL_APP) {
@@ -88,10 +96,17 @@ static int native_config_lwm2m_server_handler(config_level_t level, void* user, 
   }
   if(!name) {
     //End of section, commit parameters
-    rd_client_set_rd_address(&server_ip, server_port);
+    if(server_host != NULL) {
+      rd_client_set_rd_host(server_host, server_port);
+    } else {
+      rd_client_set_rd_address(&server_ip, server_port);
+    }
+    server_host = NULL;
     return 1;
   }
-  if(strcmp(name, "address") == 0) {
+  if(strcmp(name, "host") == 0) {
+    server_host = strdup(value);
+  } else if(strcmp(name, "address") == 0) {
     if(uiplib_ipaddrconv(value, &server_ip) == 0) {
       LOG6LBR_ERROR("Invalid ip address : %s\n", value);
       return 0;
@@ -103,7 +118,8 @@ static int native_config_lwm2m_server_handler(config_level_t level, void* user, 
      return 0;
    }
    return 1;
-}/*---------------------------------------------------------------------------*/
+}
+/*---------------------------------------------------------------------------*/
 static int native_config_lwm2m_device_handler(config_level_t level, void* user, const char* section, const char* name,
     const char* value) {
   if(level != CONFIG_LEVEL_APP) {
@@ -153,6 +169,8 @@ status(void)
     return "Unconfigured";
   case RD_CLIENT_BOOTSTRAPPING:
     return "Boostrapping";
+  case RD_CLIENT_RESOLVING:
+    return "Resolving";
   case RD_CLIENT_REGISTERING:
     return "Registering";
   case RD_CLIENT_REGISTERED:
