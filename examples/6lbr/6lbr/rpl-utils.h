@@ -51,6 +51,9 @@ extern int rpl_wait_delay;
 int rpl_ignore_other_dodags;
 
 extern void
+cetic_6lbr_init_rpl(void);
+
+extern void
 cetic_6lbr_end_dodag_root(rpl_instance_t *instance);
 
 extern void
