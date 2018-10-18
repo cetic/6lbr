@@ -76,7 +76,10 @@ HTTPD_CGI_CMD_NAME(webserver_sensor_delete_node_cmd)
 #if CETIC_6LBR_NODE_CONFIG
 HTTPD_CGI_CALL_NAME(webserver_sensors_config)
 #endif
-HTTPD_CGI_CALL_NAME(webserver_config)
+HTTPD_CGI_CALL_NAME(webserver_config_network)
+HTTPD_CGI_CALL_NAME(webserver_config_radvd)
+HTTPD_CGI_CALL_NAME(webserver_config_rpl)
+HTTPD_CGI_CALL_NAME(webserver_config_services)
 HTTPD_CGI_CMD_NAME(webserver_config_set_cmd)
 HTTPD_CGI_CMD_NAME(webserver_config_reset_cmd)
 HTTPD_CGI_CALL_NAME(webserver_statistics)
@@ -114,7 +117,14 @@ webserver_init(void)
   httpd_group_add(&admin_group);
 
   httpd_group_add_page(&main_group, &webserver_main);
-  httpd_group_add_page(&config_group, &webserver_config);
+  httpd_group_add_page(&config_group, &webserver_config_network);
+#if CETIC_6LBR_ROUTER
+  httpd_group_add_page(&config_group, &webserver_config_radvd);
+#endif
+#if CETIC_6LBR_WITH_RPL
+  httpd_group_add_page(&config_group, &webserver_config_rpl);
+#endif
+  httpd_group_add_page(&config_group, &webserver_config_services);
 #if CETIC_6LBR_NODE_INFO
   httpd_group_add_page(&sensors_group, &webserver_sensors_info);
   httpd_cgi_add(&webserver_sensor);

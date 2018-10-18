@@ -158,7 +158,7 @@ HTTPD_CGI_CALL_NAME(webserver_config)
 #define SELECT_OPTION(nvm_name, value, name) add("<option value=\"%d\" %s>%s</option>", value, nvm_data.nvm_name == value ? "selected" : "", name)
 
 static
-PT_THREAD(generate_config(struct httpd_state *s))
+PT_THREAD(generate_config_network(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
 
@@ -305,8 +305,24 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
+
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
+
 #if CETIC_6LBR_ROUTER
-  add("<br /><h2>RA Daemon</h2>");
+static
+PT_THREAD(generate_config_radvd(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  add("<form action=\"config\" method=\"get\">");
+  add("<h2>RA Daemon</h2>");
   INPUT_FLAG("ra_daemon", mode, CETIC_MODE_ROUTER_RA_DAEMON, "RA Daemon", "active", "inactive");
   INPUT_INT("ra_lifetime", ra_router_lifetime, "Router lifetime");
   SEND_STRING(&s->sout, buf);
@@ -334,10 +350,25 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
 #endif
 
 #if CETIC_6LBR_WITH_RPL
-  add("<br /><h2>RPL Configuration</h2>");
+static
+PT_THREAD(generate_config_rpl(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  add("<form action=\"config\" method=\"get\">");
+  add("<h2>RPL Configuration</h2>");
 #if CETIC_6LBR_ROUTER || CETIC_6LBR_SMARTBRIDGE
   add("<br /><h3>DODAG Configuration</h2>");
   INPUT_INT( "rpl_instance_id", rpl_instance_id, "Instance ID");
@@ -371,9 +402,24 @@ PT_THREAD(generate_config(struct httpd_state *s))
   INPUT_FLAG_CB( "dao_ps", rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE, "Check DAO Path Sequence");
   SEND_STRING(&s->sout, buf);
   reset_buf();
+
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
 #endif
 
-  add("<br /><h2>Global configuration</h2>");
+static
+PT_THREAD(generate_config_services(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  add("<form action=\"config\" method=\"get\">");
+  add("<h2>Global services</h2>");
   INPUT_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, "Webserver", "disabled", "enabled" );
   INPUT_INT( "web_port", webserver_port, "Webserver port");
 #if WITH_COAPSERVER
@@ -661,6 +707,13 @@ webserver_config_reset(struct httpd_state *s)
   return &webserver_result_page;
 }
 
-HTTPD_CGI_CALL(webserver_config, "config.html", "Global", generate_config, 0);
+HTTPD_CGI_CALL(webserver_config_network, "config.html", "Network", generate_config_network, 0);
+#if CETIC_6LBR_ROUTER
+HTTPD_CGI_CALL(webserver_config_radvd, "config_radvd.html", "RA Daemon", generate_config_radvd, 0);
+#endif
+#if CETIC_6LBR_WITH_RPL
+HTTPD_CGI_CALL(webserver_config_rpl, "config_rpl.html", "RPL", generate_config_rpl, 0);
+#endif
+HTTPD_CGI_CALL(webserver_config_services, "config_services.html", "Services", generate_config_services, 0);
 HTTPD_CGI_CMD(webserver_config_set_cmd, "config", webserver_config_set, 0);
 HTTPD_CGI_CMD(webserver_config_reset_cmd, "reset-config", webserver_config_reset, 0);
