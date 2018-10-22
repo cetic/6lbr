@@ -50,6 +50,10 @@
 
 #include "log-6lbr.h"
 
+#if CONTIKI_TARGET_NATIVE
+extern void cetic_6lbr_save_ip(void);
+#endif
+
 /*---------------------------------------------------------------------------*/
 //Hooks
 cetic_6lbr_dis_input_hook_t cetic_6lbr_dis_input_hook = cetic_6lbr_dis_input_default_hook;
