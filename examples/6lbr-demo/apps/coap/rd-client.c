@@ -196,7 +196,7 @@ PROCESS_THREAD(rd_client_process, ev, data)
 
     if(!new_address) {
       PRINTF("Update endpoint %s\n", registration_name);
-      coap_init_message(request, COAP_TYPE_CON, COAP_PUT, 0);
+      coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
       coap_set_header_uri_path(request, registration_name);
       sprintf(query_buffer, "b=U&lt=%d", RD_CLIENT_LIFETIME);
       coap_set_header_uri_query(request, query_buffer);
