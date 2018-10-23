@@ -1,22 +1,19 @@
-6LBR is a 6LoWPAN Border Router based on The Contiki Operating System.
+[![license](https://img.shields.io/badge/license-3--clause%20bsd-brightgreen.svg)](https://github.com/cetic/6lbr/blob/master/LICENSE.md)
 
+CETIC-6LBR is an open-source 6LoWPAN/RPL Border Router based on the Contiki Operating System.
 
-This 6LBR repository is a fork of Contiki with additions:
+CETIC-6LBR is an 6LoWPAN/RPL Border Router solution.
+It can work as stand-alone router on embedded hardware or on a Linux host.
+It is designed for flexibility, it can be configured to support various network topologies while smartly interconnecting the WSNs with the IP world.
 
+CETIC-6LBR is deployment-ready for industrial use-cases; you don't need to be a Contiki expert to get started with it.
+It runs out-of-the-box on low-cost and open hardware platforms and Linux hosts.
 
-* The Border Router: in examples/6lbr
-* A modified sky-websense: in examples/6lbr-demo
-* Modifications in core/net related to 6LBR
-* Platform definitions for the Nooliberry in platform/nooliberry
+CETIC-6LBR is based on Contiki or it evolution, Contiki-NG.
 
-This repository is continuously updated with new commits in Contiki. The master 
-branch will never be more than a few commits behind the master Contiki. 
-To track changes, see the 6lbr branch of our main Contiki fork on GitHub.
-Likewise, useful commits for Contiki are submitted back into the official
-Contiki repository through pull requests.
+Find out more :
 
-* Home: http://cetic.github.com/6lbr
+* GitHub repository: http://cetic.github.com/6lbr
 * Documentation: http://github.com/cetic/6lbr/wiki
+* Contiki-NG: https://github.com/contiki-ng/contiki-ng
 * Contiki: http://www.contiki-os.org
-* Nooliberry: https://github.com/Noolitic/Nooliberry/wiki
-* Contiki fork with a 6lbr branch: http://github.com/cetic/contiki
