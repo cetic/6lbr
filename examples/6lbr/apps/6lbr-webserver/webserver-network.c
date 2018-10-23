@@ -42,7 +42,7 @@
 #include "uip-ds6.h"
 #include "uip-ds6-nbr.h"
 #include "uip-ds6-route.h"
-#include "sicslow-ethernet.h"
+#include "mactrans.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "webserver-utils.h"
@@ -88,6 +88,10 @@
 
 #if CETIC_6LBR_NODE_CONFIG
 #include "node-config.h"
+#endif
+
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
+#include "mactrans-registry.h"
 #endif
 
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
@@ -442,11 +446,10 @@ PT_THREAD(generate_network(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
   add("<h2>HW Prefixes cache</h2><pre>");
   for(i = 0; i < prefixCounter; i++) {
-    add("%02x:%02x:%02x\n", prefixBuffer[i][0], prefixBuffer[i][1],
-        prefixBuffer[i][2]);
+    add("%d : %02x:%02x:%02x\n", i, prefixBuffer[i][0], prefixBuffer[i][1], prefixBuffer[i][2]);
   }
   SEND_STRING(&s->sout, buf);
   add("</pre><br />");

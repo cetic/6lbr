@@ -105,6 +105,8 @@
 
 #define CETIC_6LBR_WSN_FILTER_RA	1
 
+#define MAC_TRANS mactrans_registry
+
 #endif
 
 #if CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
@@ -135,6 +137,8 @@
 #define CETIC_6LBR_WSN_FILTER_RA	0
 #endif
 
+#define MAC_TRANS mactrans_registry
+
 #endif
 
 #if CETIC_6LBR_RPL_ROUTER || CETIC_6LBR_RPL_ROOT || CETIC_6LBR_NDP_ROUTER
@@ -156,6 +160,8 @@
 
 #define CETIC_6LBR_ROUTER           1
 
+#define MAC_TRANS mactrans_simple
+
 #if CETIC_6LBR_RPL_ROUTER
 #define CETIC_6LBR_DODAG_ROOT		1
 #define CETIC_6LBR_WSN_FILTER_RA    1
@@ -171,6 +177,7 @@
 #define CETIC_6LBR_WSN_FILTER_RA    1
 #define CETIC_6LBR_ETH_FILTER_RPL	0
 #define CETIC_6LBR_ONE_ITF          1
+#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR 0
 #define CETIC_6LBR_ETH_LINK_STATS   1
 #endif
 
@@ -198,6 +205,8 @@
 #define CETIC_6LBR_WSN_FILTER_RA	1
 
 #define CETIC_6LBR_ETH_LINK_STATS   1
+
+#define MAC_TRANS mactrans_simple
 
 #endif
 

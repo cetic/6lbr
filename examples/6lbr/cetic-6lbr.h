@@ -71,7 +71,7 @@ extern uip_ip6addr_t wsn_net_prefix;
 extern uint8_t wsn_net_prefix_len;
 
 // Ethernet side
-extern ethaddr_t eth_mac_addr;
+extern uip_eth_addr eth_mac_addr;
 extern uip_lladdr_t eth_mac64_addr;     //Created from eth_mac_addr
 
 extern uip_ipaddr_t eth_ip_addr;

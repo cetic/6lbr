@@ -240,7 +240,7 @@ tap_alloc(char *dev)
 }
 /*---------------------------------------------------------------------------*/
 static void
-fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
+fetch_mac(int fd, char const *dev, uip_eth_addr * eth_mac_addr)
 {
   struct ifreq buffer;
 
@@ -276,7 +276,7 @@ tap_alloc(char *dev)
 }
 /*---------------------------------------------------------------------------*/
 static void
-fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
+fetch_mac(int fd, char const *dev, uip_eth_addr * eth_mac_addr)
 {
   struct ifaddrs *ifap, *ifaptr;
   unsigned char *ptr;
@@ -288,8 +288,7 @@ fetch_mac(int fd, char const *dev, ethaddr_t * eth_mac_addr)
          && (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
         ptr =
           (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
-        memcpy(eth_mac_addr, ptr, 6);
-        //(*eth_mac_addr)[5] = 7;
+        memcpy((void *)eth_mac_addr, ptr, 6);
         found = 1;
         break;
       }

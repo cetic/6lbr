@@ -44,7 +44,7 @@
 #include "raw-tap-dev.h"
 #include "nvm-config.h"
 #include "native-config.h"
-#include "sicslow-ethernet.h"
+#include "mactrans.h"
 #include "packet-forwarding-engine.h"
 #if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
@@ -115,14 +115,13 @@ PROCESS_THREAD(eth_drv_process, ev, data)
     while(!radio_ready) {
       PROCESS_PAUSE();
     }
-    mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
-    eth_mac_addr[0] &= ~TRANSLATE_BIT_MASK;
+    MAC_TRANS.lowpan_to_eth(&eth_mac_addr, &wsn_mac_addr);
     eth_mac_addr_ready = 1;
   }
 #else
   //TODO: Ethernet Bridge bullshit !
-  eth_mac_addr[5] += 1;
-  mac_createSicslowpanLongAddr((uint8_t *)eth_mac_addr, &wsn_mac_addr);
+  eth_mac_addr.addr[5] += 1;
+  MAC_TRANS.eth_to_lowpan( &wsn_mac_addr, &eth_mac_addr);
   memcpy(uip_lladdr.addr, wsn_mac_addr.addr, sizeof(uip_lladdr.addr));
   linkaddr_set_node_addr((linkaddr_t *) &wsn_mac_addr);
 #endif

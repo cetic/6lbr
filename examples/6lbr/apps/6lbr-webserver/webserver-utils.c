@@ -156,7 +156,7 @@ lladdr_add(const uip_lladdr_t * addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-ethaddr_add(const ethaddr_t * addr)
+ethaddr_add(const uip_eth_addr * addr)
 {
   if(addr != NULL) {
     int i;
@@ -166,7 +166,7 @@ ethaddr_add(const ethaddr_t * addr)
         add(":");
       }
 
-      add("%x", (*addr)[i]);
+      add("%x", addr->addr[i]);
     }
   } else {
     add("(null)");

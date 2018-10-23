@@ -45,14 +45,7 @@
  *         Colin O'Flynn <coflynn@newae.com>
  *         6LBR Team <6lbr@cetic.be>
  *
- * \addtogroup usbstick 
  */
-
-/**
-   \ingroup usbstick
-   \defgroup sicslowinterop 6LowPan Ethernet Interop
-   @{
-*/
 
 #define LOG6LBR_MODULE "6LE"
 
@@ -69,19 +62,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sicslow-ethernet.h"
+#include "mactrans.h"
 #include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
-#ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
-#endif
-
-#if CETIC_6LBR_ONE_ITF
-#define UIP_CONF_SIMPLE_ADDR_TRANS	1
-#undef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	0
-#endif
+#define UIP_ETHTYPE_802154 0x809A
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define ETHBUF(x) ((struct uip_eth_hdr *)x)
@@ -92,10 +77,16 @@
 #define MSB(u16)     (((uint8_t  *)&(u16))[1])  //!< Most significant byte of \a u16.
 #endif
 
-#define PREFIX_BUFFER_SIZE 32
+typedef struct {
+  uint8_t type;
+  uint8_t length;
+  uint8_t data[16];
+} icmp_opts_t;
 
-uint8_t prefixCounter = 0;
-uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
+#define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_ICMP_OPTS(x) ((icmp_opts_t *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN + x])
+
+static void slide(uint8_t * data, uint8_t length, int16_t slide);
 
 /* 6lowpan max size + ethernet header size + 1 */
 uint8_t raw_buf[127 + UIP_LLH_LEN + 1];
@@ -121,17 +112,6 @@ mac_translateIPLinkLayer(lltype_t target)
   }
   return 0;
 }
-
-typedef struct {
-  uint8_t type;
-  uint8_t length;
-  uint8_t data[16];
-} icmp_opts_t;
-
-#define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
-#define UIP_ICMP_OPTS(x) ((icmp_opts_t *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN + x])
-
-void slide(uint8_t * data, uint8_t length, int16_t slide);
 
 /**
  * \brief Translate the link-layer (L2) addresses in an ICMP packet.
@@ -235,12 +215,9 @@ mac_translateIcmpLinkLayer(lltype_t target)
 
       //Translate addresses
       if(target == ll_802154_type) {
-        mac_createSicslowpanLongAddr(llbuf, (uip_lladdr_t *)
-                                     UIP_ICMP_OPTS(icmp_opt_offset)->data);
+        MAC_TRANS.eth_to_lowpan((uip_lladdr_t *) UIP_ICMP_OPTS(icmp_opt_offset)->data, (uip_eth_addr *)llbuf);
       } else {
-        if(!mac_createEthernetAddr
-           (UIP_ICMP_OPTS(icmp_opt_offset)->data, (uip_lladdr_t *) llbuf))
-          mac_createDefaultEthernetAddr(UIP_ICMP_OPTS(icmp_opt_offset)->data);
+        MAC_TRANS.lowpan_to_eth((uip_eth_addr *)UIP_ICMP_OPTS(icmp_opt_offset)->data, (uip_lladdr_t *) llbuf);
       }
 
       //Adjust the length
@@ -268,7 +245,6 @@ mac_translateIcmpLinkLayer(lltype_t target)
       len -= 8 * UIP_ICMP_OPTS(icmp_opt_offset)->length;
       icmp_opt_offset += 8 * UIP_ICMP_OPTS(icmp_opt_offset)->length;
     } else {
-
       //Not an option we care about, ignore it
       len -= 8 * UIP_ICMP_OPTS(icmp_opt_offset)->length;
 
@@ -277,197 +253,12 @@ mac_translateIcmpLinkLayer(lltype_t target)
         LOG6LBR_TRACE("Option in ND packet has length zero, error?\n");
         len = 0;
       }
-
       icmp_opt_offset += 8 * UIP_ICMP_OPTS(icmp_opt_offset)->length;
-
     }                           //If ICMP_OPT is one we care about
-
   }                             //while(len >= 8)
-
   return 0;
-
 }
 
-
-/**
- * \brief Create a 802.15.4 long address from a 802.3 address
- * \param ethernet   Pointer to ethernet address
- * \param lowpan     Pointer to 802.15.4 address
- */
-uint8_t
-mac_createSicslowpanLongAddr(const uint8_t * ethernet, uip_lladdr_t * lowpan)
-{
-#if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-  //Special case - if the address is our address, we just copy over what we know to be
-  //our 802.15.4 address
-  if(memcmp((uint8_t *) & eth_mac_addr, ethernet, 6) == 0) {
-    memcpy((uint8_t *) lowpan, (uint8_t *) & uip_lladdr, UIP_LLADDR_LEN);
-    return 1;
-  }
-#endif
-
-#if UIP_CONF_SIMPLE_ADDR_TRANS
-
-  lowpan->addr[0] = ethernet[0];
-  lowpan->addr[1] = ethernet[1];
-  lowpan->addr[2] = ethernet[2];
-  lowpan->addr[3] = CETIC_6LBR_ETH_EXT_A;
-  lowpan->addr[4] = CETIC_6LBR_ETH_EXT_B;
-  lowpan->addr[5] = ethernet[3];
-  lowpan->addr[6] = ethernet[4];
-  lowpan->addr[7] = ethernet[5];
-
-#else //!UIP_CONF_SIMPLE_ADDR_TRANS
-
-  uint8_t index;
-
-  //Check if translate bit is set, hence we have to look up the prefix
-  if((ethernet[0] &
-      (TRANSLATE_BIT_MASK | MULTICAST_BIT_MASK | LOCAL_BIT_MASK)) ==
-     (TRANSLATE_BIT_MASK | LOCAL_BIT_MASK)) {
-    //Get top bits
-    index = ethernet[0] >> 3;
-
-    //Copy over prefix
-    lowpan->addr[0] = prefixBuffer[index][0];
-    lowpan->addr[1] = prefixBuffer[index][1];
-    lowpan->addr[2] = prefixBuffer[index][2];
-    lowpan->addr[3] = ethernet[1];
-    lowpan->addr[4] = ethernet[2];
-
-    //Check this is plausible...
-    if(index >= prefixCounter)
-      return 0;
-  } else {
-    lowpan->addr[0] = ethernet[0];
-    lowpan->addr[1] = ethernet[1];
-    lowpan->addr[2] = ethernet[2];
-    lowpan->addr[3] = CETIC_6LBR_ETH_EXT_A;
-    lowpan->addr[4] = CETIC_6LBR_ETH_EXT_B;
-  }
-
-  lowpan->addr[5] = ethernet[3];
-  lowpan->addr[6] = ethernet[4];
-  lowpan->addr[7] = ethernet[5];
-#endif //UIP_CONF_SIMPLE_ADDR_TRANS
-
-  return 1;
-}
-
-
-/**
- * \brief Create a 802.3 address from a 802.15.4 long address
- * \param ethernet   Pointer to ethernet address
- * \param lowpan     Pointer to 802.15.4 address
- */
-uint8_t
-mac_createEthernetAddr(uint8_t * ethernet, const uip_lladdr_t * lowpan)
-{
-#if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-  //Special case - if the address is our address, we just copy over what we know to be
-  //our 802.3 address
-  if(eth_mac_addr_ready
-     && memcmp((uint8_t *) & uip_lladdr, (uint8_t *) lowpan,
-               UIP_LLADDR_LEN) == 0) {
-    memcpy(ethernet, eth_mac_addr, 6);
-    return 1;
-  }
-#endif
-
-#if UIP_CONF_SIMPLE_ADDR_TRANS
-
-    ethernet[0] = lowpan->addr[0];
-    ethernet[1] = lowpan->addr[1];
-    ethernet[2] = lowpan->addr[2];
-    ethernet[3] = lowpan->addr[5];
-    ethernet[4] = lowpan->addr[6];
-    ethernet[5] = lowpan->addr[7];
-
-#else //!UIP_CONF_SIMPLE_ADDR_TRANS
-
-  uint8_t index = 0;
-  uint8_t i;
-
-  //Check if we need to do anything:
-  if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A)
-     && (lowpan->addr[4] == CETIC_6LBR_ETH_EXT_B)) {
-        /** Nope: just copy over 6 bytes **/
-    LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth direct : ");
-    if((lowpan->
-        addr[0] & (TRANSLATE_BIT_MASK | MULTICAST_BIT_MASK | LOCAL_BIT_MASK))
-       == (TRANSLATE_BIT_MASK | LOCAL_BIT_MASK)) {
-      LOG6LBR_INFO("Low2Eth direct : ADDRESS PREFIX CONFLICT\n");
-    }
-
-    ethernet[0] = lowpan->addr[0];
-    ethernet[1] = lowpan->addr[1];
-    ethernet[2] = lowpan->addr[2];
-    ethernet[3] = lowpan->addr[5];
-    ethernet[4] = lowpan->addr[6];
-    ethernet[5] = lowpan->addr[7];
-
-
-  } else {
-        /** Yes: need to store prefix **/
-    LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth translate : ");
-
-    for(i = 0; i < prefixCounter; i++) {
-      //Check the current prefix - if it fails, check next one
-      if((lowpan->addr[0] == prefixBuffer[i][0]) &&
-         (lowpan->addr[1] == prefixBuffer[i][1]) &&
-         (lowpan->addr[2] == prefixBuffer[i][2])) {
-        break;
-      }
-    }
-    index = i;
-
-    if(index >= PREFIX_BUFFER_SIZE) {
-      LOG6LBR_ERROR("Low2Eth buffer overflow\n");
-      // Overflow. Fall back to simple translation.
-      // TODO: Implement me!
-      ethernet[0] = lowpan->addr[0];
-      ethernet[1] = lowpan->addr[1];
-      ethernet[2] = lowpan->addr[2];
-      ethernet[3] = lowpan->addr[5];
-      ethernet[4] = lowpan->addr[6];
-      ethernet[5] = lowpan->addr[7];
-      return 0;
-    } else {
-      //Are we making a new one?
-      if(index == prefixCounter) {
-        LOG6LBR_TRACE("Low2Eth adding prefix\n");
-        prefixCounter++;
-        prefixBuffer[index][0] = lowpan->addr[0];
-        prefixBuffer[index][1] = lowpan->addr[1];
-        prefixBuffer[index][2] = lowpan->addr[2];
-      }
-      //Create ethernet MAC address now
-      ethernet[0] = TRANSLATE_BIT_MASK | LOCAL_BIT_MASK | (index << 3);
-      ethernet[1] = lowpan->addr[3];
-      ethernet[2] = lowpan->addr[4];
-      ethernet[3] = lowpan->addr[5];
-      ethernet[4] = lowpan->addr[6];
-      ethernet[5] = lowpan->addr[7];
-
-      LOG6LBR_LLADDR(TRACE, lowpan, "Low2Eth Lowpan addr : ");
-      LOG6LBR_ETHADDR(TRACE, (ethaddr_t *)ethernet, "Low2Eth Ethernet addr : ");
-    }
-  }
-
-#endif //UIP_CONF_SIMPLE_ADDR_TRANS
-
-  return 1;
-}
-/**
- * \brief Create a 802.3 address (default)
- * \param ethernet   Pointer to ethernet address
- */
-uint8_t
-mac_createDefaultEthernetAddr(uint8_t * ethernet)
-{
-  memcpy(ethernet, &eth_mac_addr, 6);
-  return 1;
-}
 /**
  * \brief        Slide the pointed to memory up a certain amount,
  *               growing/shrinking a buffer
@@ -476,7 +267,7 @@ mac_createDefaultEthernetAddr(uint8_t * ethernet)
  * \param slide  How many bytes to slide the buffer up in memory (if +) or
  *               down in memory (if -)
  */
-void
+static void
 slide(uint8_t * data, uint8_t length, int16_t slide)
 {
   //Sanity checks
@@ -502,9 +293,3 @@ slide(uint8_t * data, uint8_t length, int16_t slide)
     i++;
   }
 }
-
-/** @} */
-
-
-
-/** @} */

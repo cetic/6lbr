@@ -65,7 +65,7 @@ extern void log_lladdr(const linkaddr_t *lladdr);
 #define uip_debug_lladdr_print(x) log_lladdr((const linkaddr_t *)(x))
 #endif
 
-extern void log6lbr_ethaddr_print(uint8_t (*addr)[6]);
+extern void log6lbr_ethaddr_print(uip_eth_addr const *addr);
 extern void log6lbr_dump_packet(uint8_t const *data, uint32_t len);
 
 #define _PRINTF_6ADDR(addr, ...) { printf(__VA_ARGS__); uip_debug_ipaddr_print(addr); printf("\n"); }

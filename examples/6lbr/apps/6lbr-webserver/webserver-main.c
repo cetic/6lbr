@@ -188,7 +188,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 
   add("<br /><h2>Ethernet</h2>");
   add("HW address : ");
-  ethaddr_add((const ethaddr_t*)&eth_mac_addr);
+  ethaddr_add(&eth_mac_addr);
   add("<br />");
 #if CETIC_6LBR_ROUTER
   add("Address : ");

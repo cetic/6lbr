@@ -250,7 +250,7 @@ endif
 # Main code and feature configuration
 ###############################################################################
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-forwarding-engine.c sicslow-ethernet.c nvm-config.c
+PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-forwarding-engine.c mactrans.c mactrans-simple.c mactrans-registry.c nvm-config.c
 
 ifneq ($(WITH_RDC),)
 CFLAGS += -DWITH_RDC_$(WITH_RDC)

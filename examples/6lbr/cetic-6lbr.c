@@ -147,7 +147,7 @@ uip_ipaddr_t wsn_ip_addr;
 uip_ipaddr_t wsn_ip_local_addr;
 
 // Eth
-ethaddr_t eth_mac_addr;
+uip_eth_addr eth_mac_addr;
 uip_lladdr_t eth_mac64_addr;
 uip_ipaddr_t eth_ip_addr;
 uip_ipaddr_t eth_net_prefix;
@@ -205,14 +205,14 @@ cetic_6lbr_init(void)
 
   LOG6LBR_6ADDR(INFO, &wsn_ip_local_addr, "Tentative local IPv6 address ");
 
-  eth_mac64_addr.addr[0] = eth_mac_addr[0];
-  eth_mac64_addr.addr[1] = eth_mac_addr[1];
-  eth_mac64_addr.addr[2] = eth_mac_addr[2];
+  eth_mac64_addr.addr[0] = eth_mac_addr.addr[0];
+  eth_mac64_addr.addr[1] = eth_mac_addr.addr[1];
+  eth_mac64_addr.addr[2] = eth_mac_addr.addr[2];
   eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
   eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
-  eth_mac64_addr.addr[5] = eth_mac_addr[3];
-  eth_mac64_addr.addr[6] = eth_mac_addr[4];
-  eth_mac64_addr.addr[7] = eth_mac_addr[5];
+  eth_mac64_addr.addr[5] = eth_mac_addr.addr[3];
+  eth_mac64_addr.addr[6] = eth_mac_addr.addr[4];
+  eth_mac64_addr.addr[7] = eth_mac_addr.addr[5];
 
 #if CETIC_6LBR_SMARTBRIDGE
 
@@ -343,7 +343,7 @@ cetic_6lbr_init_finalize(void)
 #if CETIC_6LBR_WITH_IP64
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     LOG6LBR_INFO("Starting IP64\n");
-    ip64_eth_addr_set((struct ip64_eth_addr *)eth_mac_addr);
+    ip64_eth_addr_set((struct ip64_eth_addr *)&eth_mac_addr);
     if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_RFC6052_PREFIX) != 0) {
       uip_ip6addr_t ip64_prefix = {{ 0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
       ip64_addr_set_prefix(&ip64_prefix, 96);

@@ -42,7 +42,7 @@ void
 lladdr_add(const uip_lladdr_t * addr);
 
 void
-ethaddr_add(ethaddr_t const* addr);
+ethaddr_add(uip_eth_addr const* addr);
 
 void
 add_key(const uint8_t * key, int size);

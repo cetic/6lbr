@@ -46,7 +46,7 @@
 #include "uip-nd6.h"
 #include "packetbuf.h"
 #include "string.h"
-#include "sicslow-ethernet.h"
+#include "mactrans.h"
 
 #if CETIC_6LBR_WITH_RPL
 #include "rpl-private.h"
@@ -377,7 +377,7 @@ eth_input(void)
     return;
   } else {
     /* Complex Address Translation */
-    if(mac_createSicslowpanLongAddr(&(BUF->dest.addr[0]), &destAddr) == 0) {
+    if(MAC_TRANS.eth_to_lowpan(&destAddr, &BUF->dest) == 0) {
       LOG6LBR_WARN("eth_input: Address translation failed\n");
       uip_len = 0;
       return;
@@ -408,7 +408,7 @@ eth_input(void)
   //-----------------
   if(forwardFrame) {
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-    mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
+    MAC_TRANS.eth_to_lowpan(&srcAddr, &BUF->src);
 #if CETIC_6LBR_LEARN_RPL_MAC
     if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type == ICMP6_RPL) {
       uint8_t *buffer = UIP_ICMP_PAYLOAD;
@@ -442,7 +442,7 @@ eth_input(void)
 #if CETIC_6LBR_ETH_LINK_STATS
   //RPL uses source packet address to populate its neighbor table
   //In this two modes RPL packets are incoming from Eth interface
-  mac_createSicslowpanLongAddr(&(BUF->src.addr[0]), &srcAddr);
+  MAC_TRANS.eth_to_lowpan(&srcAddr, &BUF->src);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *) &srcAddr);
   //The link stats must be manually populated for these nodes
   //We set the link to perfect values as the Ethernet medium is assumed perfect
@@ -574,14 +574,14 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
     BUF->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
     BUF->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
   } else {
-    mac_createEthernetAddr(BUF->dest.addr, dest);
+    MAC_TRANS.lowpan_to_eth(&BUF->dest, dest);
   }
 
   //Source address
   if ( src != NULL ) {
-    mac_createEthernetAddr(BUF->src.addr, src);
+    MAC_TRANS.lowpan_to_eth(&BUF->src, src);
   } else {
-    memcpy(BUF->src.addr, eth_mac_addr, 6);
+    memcpy(BUF->src.addr, eth_mac_addr.addr, 6);
   }
   //Sending packet
   //--------------
@@ -609,8 +609,11 @@ eth_output(const uip_lladdr_t * src, const uip_lladdr_t * dest)
 static uint8_t
 bridge_output(const uip_lladdr_t * dest)
 {
-  int isBroadcast = IS_BROADCAST_ADDR(dest);
-  if(!isBroadcast) {
+  if(uip_len == 0) {
+    LOG6LBR_ERROR("Trying to send empty packet\n");
+    return 0;
+  }
+  if(!IS_BROADCAST_ADDR(dest)) {
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_OUT, dest, "bridge_output: Sending packet to ");
   } else {
     LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast\n");
@@ -643,7 +646,7 @@ bridge_output(const uip_lladdr_t * dest)
   if(!IS_BROADCAST_ADDR(dest)) {
     LOG6LBR_LLADDR_PRINTF(PACKET, PF_OUT, dest, "bridge_output: Sending packet to ");
   } else {
-    LOG6LBR_6ADDR_PRINTF(PACKET, PF_OUT, &UIP_IP_BUF->destipaddr, "bridge_output: Sending broadcast packet to");
+    LOG6LBR_PRINTF(PACKET, PF_OUT, "bridge_output: Sending packet to Broadcast");
   }
 
   if(uip_ipaddr_prefixcmp(&eth_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
