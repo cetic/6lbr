@@ -56,7 +56,7 @@ GEN_CSC=$(CSC)
 $(CSC): $(SOURCE_CSC)
 	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" \
 	-e "/\/firmwares\/slip-radio\/slip-radio-dummy.c/ s/\/slip-radio\//\/$(SLIP_FIRMWARE)\//" \
-	-e "/<commands>/ s|CONTIKI=..\/..\/..\/..\/..|CONTIKI=../$(CONTIKI)|" \
+	-e "/<commands>/ s|CONTIKI=..\/..\/..\/..\/..|CONTIKI=$(abspath $(CONTIKI))|" \
 	$(SOURCE_CSC) > $(CSC)
 
 clean-cooja:
@@ -71,11 +71,11 @@ clean-6lbr:
 
 build-6lbr:
 ifneq (,$(findstring :,$(SIXLBR_BIN)))
-	for BIN in $(subst :, ,$(SIXLBR_BIN)); do pushd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) clean && make WITH_CONTIKI=$(WITH_CONTIKI) $$BIN && popd; done
+	for BIN in $(subst :, ,$(SIXLBR_BIN)); do pushd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)- clean && make WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)) $$BIN && popd; done
 else
-	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) $(SIXLBR_BIN)
+	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)) $(SIXLBR_BIN)
 endif
-	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) plugins
+	cd $(SIXLBR) && make WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)) plugins
 	cd $(SIXLBR)/tools && make
 
 clean-firmwares:
@@ -93,7 +93,7 @@ clean-net:
 	@$(DEMO)/common/sim.sh --clean $(CSC) $(SIXLBR_LIST)
 
 run: $(CSC)
-	@CONTIKI=$(CONTIKI) SIXLBR=$(SIXLBR) COOJA=$(COOJA) SIXLBR_PLUGINS="$(SIXLBR_PLUGINS)" $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
+	@CONTIKI=$(abspath $(CONTIKI)) SIXLBR=$(abspath $(SIXLBR)) COOJA=$(abspath $(COOJA)) SIXLBR_PLUGINS="$(SIXLBR_PLUGINS)" $(DEMO)/common/sim.sh $(CSC) $(SIXLBR_LIST)
 
 all: clean-6lbr clean-firmwares clean build-6lbr run
 

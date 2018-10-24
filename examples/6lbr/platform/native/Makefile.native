@@ -99,14 +99,14 @@ plugins: $(PLUGINS_DIRS)
 ifneq ($(PLUGINS_DIRS),)
 LDFLAGS_ORIG:=$(LDFLAGS)
 $(PLUGINS_DIRS):
-	LDFLAGS="$(LDFLAGS_ORIG)" $(MAKE) -C $@
+	LDFLAGS="$(LDFLAGS_ORIG)" $(MAKE) CONTIKI=$(abspath $(CONTIKI)) -C $@
 endif
 
 plugins-install:
-	for plugin in $(PLUGINS_DIRS); do $(MAKE) -C $$plugin install; done
+	for plugin in $(PLUGINS_DIRS); do $(MAKE) CONTIKI=$(abspath $(CONTIKI)) -C $$plugin install; done
 
 plugins-clean:
-	for plugin in $(PLUGINS_DIRS); do $(MAKE) -C $$plugin clean; done
+	for plugin in $(PLUGINS_DIRS); do $(MAKE) CONTIKI=$(abspath $(CONTIKI)) -C $$plugin clean; done
 else
 
 # Plugin targets
