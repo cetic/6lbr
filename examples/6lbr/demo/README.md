@@ -76,3 +76,8 @@ The [Multi-SmartBridge](multi-smartbridge/README.md) demo shows the configuratio
 ### RPL-Root+RPL-Relay
 
 The [RPL-Root+RPL-Relay](multi-smartbridge/README.md) demo shows the configuration of two 6LBR, one acting as a standalone RPL Root, the second being a simple packet relay.
+
+### Plugins
+
+The [Plugins](plugins/README.md) demo demonstrates loading of plugins in native 6LBR.
+

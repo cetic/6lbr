@@ -16,7 +16,7 @@ SLIP_FIRMWARE?=slip-radio
 SIXLBR_LIST?=6lbr
 TARGET?=cooja
 SIXLBR_BIN?=cetic_6lbr_router
-SIXLBR_PLUGINS?=${SIXLBR}/plugins/dummy/dummy.so ${SIXLBR}/plugins/lwm2m-client/lwm2m.so
+SIXLBR_PLUGINS?=
 
 SHELL:=/bin/bash
 
