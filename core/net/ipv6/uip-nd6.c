@@ -76,7 +76,7 @@
 #include "lib/random.h"
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
 #define LOG6LBR_MODULE "ND6"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 #include "nvm-config.h"
 #if CETIC_6LBR_NODE_INFO
 #include "node-info.h"

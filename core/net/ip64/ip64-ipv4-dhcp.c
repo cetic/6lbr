@@ -38,7 +38,7 @@
 #include "ip64-addr.h"
 
 #if CETIC_6LBR
-#include "cetic-6lbr.h"
+#include "6lbr-ip64.h"
 #endif
 
 #include <stdio.h>

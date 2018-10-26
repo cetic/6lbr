@@ -54,7 +54,7 @@
 #if CETIC_6LBR
 #define LOG6LBR_MODULE "DS6"
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 #endif
 
 #define DEBUG DEBUG_NONE
