@@ -28,46 +28,69 @@
  */
 
 /**
+ * \file
+ *         NAT64 Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "ETH"
+#define LOG6LBR_MODULE "6LBR"
 
 #include "contiki.h"
-#include "contiki-lib.h"
 #include "contiki-net.h"
 
 #include "log-6lbr.h"
-#include "eth-drv.h"
+#include "6lbr-network.h"
+#include "nvm-config.h"
 
+#include "ip64.h"
+#include "ip64-ipv4-dhcp.h"
+#include "ip64-dhcpc.h"
+#include "ip64-eth.h"
+#include "ip64-addr.h"
+
+#if CONTIKI_TARGET_NATIVE
+extern void cetic_6lbr_save_ip(void);
+#endif
+
+uip_ip4addr_t eth_ip64_addr;
+uip_ip4addr_t eth_ip64_netmask;
+uip_ip4addr_t eth_ip64_gateway;
+
+const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
 
 /*---------------------------------------------------------------------------*/
-
 void
-eth_drv_send(uint8_t *packet, uint16_t len)
+cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
 {
-  LOG6LBR_PRINTF(PACKET, ETH_OUT, "write: %d\n", len);
-  LOG6LBR_DUMP_PACKET(ETH_OUT, packet, len);
+  cetic_6lbr_ip64_dhcp_state = s;
+  LOG6LBR_4ADDR(INFO, &s->ipaddr, "Set IPv4 address : ");
+#if CONTIKI_TARGET_NATIVE
+  cetic_6lbr_save_ip();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
-eth_drv_input(uint8_t *packet, uint16_t len)
+cetic_6lbr_ip64_init(void)
 {
-}
-/*---------------------------------------------------------------------------*/
-void
-eth_drv_exit(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-void
-eth_drv_init(void)
-{
-  linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
-  LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
-  eth_mac_addr_ready = 1;
-  ethernet_ready = 1;
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+    LOG6LBR_INFO("Starting IP64\n");
+    ip64_eth_addr_set((struct ip64_eth_addr *)&eth_mac_addr);
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_RFC6052_PREFIX) != 0) {
+      uip_ip6addr_t ip64_prefix = {{ 0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+      ip64_addr_set_prefix(&ip64_prefix, 96);
+    }
+    ip64_init();
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0) {
+      memcpy(&eth_ip64_addr, nvm_data.eth_ip64_addr, sizeof(nvm_data.eth_ip64_addr));
+      memcpy(&eth_ip64_netmask, nvm_data.eth_ip64_netmask, sizeof(nvm_data.eth_ip64_netmask));
+      memcpy(&eth_ip64_gateway, nvm_data.eth_ip64_gateway, sizeof(nvm_data.eth_ip64_gateway));
+      ip64_set_ipv4_address(&eth_ip64_addr, &eth_ip64_netmask);
+      ip64_set_draddr(&eth_ip64_gateway);
+      LOG6LBR_4ADDR(INFO, &eth_ip64_addr, "IPv4 address : ");
+    } else {
+      ip64_ipv4_dhcp_init();
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/

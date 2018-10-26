@@ -39,7 +39,8 @@
 #include "contiki-net.h"
 
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"

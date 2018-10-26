@@ -41,7 +41,6 @@
 #include "httpd-cgi.h"
 #include "webserver.h"
 
-#include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "log-6lbr.h"
 

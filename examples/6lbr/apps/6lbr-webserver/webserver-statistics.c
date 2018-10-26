@@ -52,7 +52,6 @@
 #include "slip-dev.h"
 #endif
 
-#include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #if CETIC_CSMA_STATS

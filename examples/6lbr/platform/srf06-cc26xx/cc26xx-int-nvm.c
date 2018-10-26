@@ -39,7 +39,6 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "nvm-itf.h"
 #include "log-6lbr.h"

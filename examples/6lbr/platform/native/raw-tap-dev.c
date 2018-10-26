@@ -80,7 +80,7 @@ struct ifreq if_idx;
 #include "packetbuf.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 #include "native-config.h"
 #include "log-6lbr.h"
 

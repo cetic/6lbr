@@ -29,15 +29,15 @@
 
 /**
  * \file
- *         Header definition of the 6LBR packet filter
+ *         Header definition of the 6LBR packet forwarding engine
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef PACKET_FILTER_H_
-#define PACKET_FILTER_H_
+#ifndef PACKET_FORWARDING_ENGINE_H_
+#define PACKET_FORWARDING_ENGINE_H_
 
-void packet_filter_init(void);
+void pfe_init(void);
 void eth_input(void);
 void wireless_input(void);
 

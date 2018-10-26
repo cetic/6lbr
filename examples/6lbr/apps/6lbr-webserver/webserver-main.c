@@ -63,7 +63,8 @@
 #include "native-config.h"
 #endif
 
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
 #include "log-6lbr.h"
 
 #if CONTIKI_TARGET_NATIVE

@@ -49,7 +49,6 @@
 #endif
 #include "nvm-data.h"
 #include "6lbr-hooks.h"
-#include "cetic-6lbr.h"
 
 uint8_t node_config_loaded = 0;
 

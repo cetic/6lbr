@@ -57,6 +57,7 @@
 #endif
 
 #if CETIC_6LBR_WITH_IP64
+#include "6lbr-ip64.h"
 #include "ip64.h"
 #include "ip64-addrmap.h"
 #include "ip64-dhcpc.h"
@@ -73,7 +74,7 @@
 #endif
 #endif
 
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 #include "nvm-config.h"
 #include "rio.h"
 #include "log-6lbr.h"

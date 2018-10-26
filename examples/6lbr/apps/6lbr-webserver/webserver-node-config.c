@@ -45,7 +45,6 @@
 #include "ip64-addr.h"
 #endif
 
-#include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #include "node-config.h"

@@ -42,7 +42,6 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#include "cetic-6lbr.h"
 #include "nvm-itf.h"
 #include "log-6lbr.h"
 #include "nvm-proxy.h"

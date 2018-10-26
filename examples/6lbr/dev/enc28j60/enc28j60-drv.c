@@ -39,12 +39,12 @@
 #include "contiki-net.h"
 
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
+#include "mactrans.h"
 #include "enc28j60.h"
 #include "enc28j60-drv.h"
 #include "nvm-config.h"
 #include "packet-forwarding-engine.h"
-#include "sicslow-ethernet.h"
 
 #if CETIC_6LBR_WITH_IP64
 #include "ip64.h"
@@ -100,11 +100,11 @@ eth_drv_init()
   LOG6LBR_INFO("ENC28J60 init\n");
 
   linkaddr_copy((linkaddr_t *) & wsn_mac_addr, &linkaddr_node_addr);
-  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+  MAC_TRANS.lowpan_to_eth(&eth_mac_addr, &wsn_mac_addr);
   LOG6LBR_ETHADDR(INFO, &eth_mac_addr, "Eth MAC address : ");
   eth_mac_addr_ready = 1;
 
-  enc28j60_init(eth_mac_addr);
+  enc28j60_init(eth_mac_addr.addr);
   process_start(&eth_drv_process, NULL);
   ethernet_ready = 1;
 }

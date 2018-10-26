@@ -29,13 +29,13 @@
 
 /**
  * \file
- *         RPL utility functions
+ *         6LBR RPL Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef RPL_UTILS
-#define RPL_UTILS
+#ifndef SIXLBR_RPL_H_
+#define SIXLBR_RPL_H_
 
 #include "rpl.h"
 
@@ -48,15 +48,15 @@ extern rpl_dag_t *cetic_dag;
 
 extern int rpl_fast_startup;
 extern int rpl_wait_delay;
-int rpl_ignore_other_dodags;
+extern int rpl_ignore_other_dodags;
 
-extern void
+void
 cetic_6lbr_init_rpl(void);
 
-extern void
+void
 cetic_6lbr_end_dodag_root(rpl_instance_t *instance);
 
-extern void
+void
 cetic_6lbr_set_rpl_can_become_root(int can_become_root);
 
 int
@@ -70,5 +70,9 @@ is_dodag_root(void);
 
 int
 cetic_6lbr_config_rpl_mop(void);
+
+void
+cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
+                      uip_ipaddr_t * ipaddr);
 
 #endif

@@ -250,7 +250,7 @@ endif
 # Main code and feature configuration
 ###############################################################################
 
-PROJECT_SOURCEFILES += log-6lbr.c rio.c packet-forwarding-engine.c mactrans.c mactrans-simple.c mactrans-registry.c nvm-config.c
+PROJECT_SOURCEFILES += 6lbr-main.c 6lbr-network.c 6lbr-hooks.c log-6lbr.c rio.c packet-forwarding-engine.c mactrans.c mactrans-simple.c mactrans-registry.c nvm-config.c
 
 ifneq ($(WITH_RDC),)
 CFLAGS += -DWITH_RDC_$(WITH_RDC)
@@ -310,7 +310,7 @@ MODULES += core/net/ip64 core/net/ip64-addr
 else
 MODULES += os/services/ip64
 endif
-PROJECT_SOURCEFILES += ip64-eth-driver.c
+PROJECT_SOURCEFILES += 6lbr-ip64.c ip64-eth-driver.c
 endif
 
 ifeq ($(WITH_MULTICAST),1)

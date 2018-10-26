@@ -46,7 +46,7 @@
 #include "native-rdc.h"
 #endif
 
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
 #include "log-6lbr.h"
 
 static

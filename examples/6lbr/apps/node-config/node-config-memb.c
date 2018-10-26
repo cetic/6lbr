@@ -41,7 +41,7 @@
 #include "uip-ds6-route.h"
 
 #include "node-config-memb.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 
 #define COAP_DEFAULT_PORT                    5683
 

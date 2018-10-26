@@ -28,62 +28,29 @@
  */
 
 /**
+ * \file
+ *         NAT64 configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "CC2538"
+#ifndef SIXLBR_IP64_H_
+#define SIXLBR_IP64_H_
 
-#include "contiki.h"
-#include "contiki-lib.h"
-#include "contiki-net.h"
-#include "watchdog.h"
+#include "uip.h"
 
-#include "platform-init.h"
-#include "6lbr-main.h"
-#include "nvm-config.h"
-#include "log-6lbr.h"
+struct ip64_dhcpc_state;
 
 void
-platform_init(void)
-{
-}
+cetic_6lbr_ip64_init(void);
 
 void
-platform_finalize(void)
-{
-}
+cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
 
-void
-platform_load_config(config_level_t level)
-{
-  switch(level) {
-  case CONFIG_LEVEL_BOOT:
-    load_nvm_config();
-    break;
-  default:
-    break;
-  }
-}
+extern uip_ip4addr_t eth_ip64_addr;
+extern uip_ip4addr_t eth_ip64_netmask;
+extern uip_ip4addr_t eth_ip64_gateway;
 
-void
-platform_radio_init(void)
-{
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, nvm_data.pan_id);
-  radio_ready = 1;
-  radio_mac_addr_ready = 1;
-}
+const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
 
-void
-platform_set_wsn_mac(linkaddr_t * mac_addr)
-{
-  linkaddr_set_node_addr(mac_addr);
-}
-
-void
-platform_restart(void)
-{
-  LOG6LBR_INFO("Rebooting...\n");
-  watchdog_reboot();
-}
+#endif

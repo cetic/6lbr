@@ -40,7 +40,6 @@
 #include "contiki-net.h"
 #include "native-config.h"
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
 
 int sixlbr_config_slip_ip = SIXLBR_CONFIG_DEFAULT_SLIP_IP;
 

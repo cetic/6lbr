@@ -50,20 +50,9 @@
 #define LOG6LBR_MODULE "6LE"
 
 #include "contiki.h"
-#include "contiki-lib.h"
-
-#include "uip.h"
-#include "sicslowpan.h"
-#include "uip-ds6.h"
-#include "uip-icmp6.h"
-#include "uip-nd6.h"
-
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include "contiki-net.h"
 
 #include "mactrans.h"
-#include "cetic-6lbr.h"
 #include "log-6lbr.h"
 
 #define UIP_ETHTYPE_802154 0x809A

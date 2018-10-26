@@ -40,7 +40,11 @@
 
 #include "log-6lbr.h"
 
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
+#if CETIC_6LBR_WITH_IP64
+#include "6lbr-ip64.h"
+#endif
 #include "nvm-config.h"
 #include "slip-dev.h"
 #include "native-rdc.h"
@@ -140,12 +144,16 @@ cetic_6lbr_save_ip(void)
     strcat(ip4_file_name, "4");
     FILE *ip4_config_file = fopen(ip4_file_name, "w");
     if(ip4_config_file) {
+#if CETIC_6LBR_WITH_IP64
       if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
         inet_ntop(AF_INET, (struct sockaddr_in *)&eth_ip64_addr, str, INET_ADDRSTRLEN);
         fprintf(ip4_config_file, "%s\n", str);
       } else {
         fprintf(ip4_config_file, "0.0.0.0\n");
       }
+#else
+      fprintf(ip4_config_file, "0.0.0.0\n");
+#endif
       fclose(ip4_config_file);
     } else {
       LOG6LBR_ERROR("Cannot create ip4 log file '%s' : %s\n", ip4_file_name, strerror(errno));

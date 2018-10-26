@@ -40,8 +40,7 @@
 #include "watchdog.h"
 
 #include "platform-init.h"
-#include "cetic-6lbr.h"
-#include "sicslow-ethernet.h"
+#include "6lbr-main.h"
 #include "nvm-config.h"
 #include "log-6lbr.h"
 

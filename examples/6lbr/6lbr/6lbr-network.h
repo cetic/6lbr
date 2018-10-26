@@ -29,75 +29,39 @@
 
 /**
  * \file
- *         Header file for the main 6LBR process
+ *         6LBR Network configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#ifndef CETIC_6LBR_H_
-#define CETIC_6LBR_H_
+#ifndef SIXLBR_NETWORK_H_
+#define SIXLBR_NETWORK_H_
 
 #include "uip.h"
-#if CETIC_6LBR_WITH_IP64
-#include "ip64-dhcpc.h"
-#endif
 
-PROCESS_NAME(cetic_6lbr_process);
+void
+cetic_6lbr_network_init(void);
 
-extern process_event_t cetic_6lbr_restart_event;
-extern process_event_t cetic_6lbr_reload_event;
-
-extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
-                                  uip_ipaddr_t * ipaddr);
-
-#if CETIC_6LBR_WITH_IP64
-extern void cetic_6lbr_ip64_dhcpc_configured(const struct ip64_dhcpc_state *s);
-#endif
-
-typedef uint8_t ethaddr_t[6];
-
-//Initialisation flags
-extern int ethernet_ready;
-extern int eth_mac_addr_ready;
-extern int radio_ready;
-extern int radio_mac_addr_ready;
+void
+cetic_6lbr_mdns_init(void);
 
 // WSN Side
 extern uip_lladdr_t wsn_mac_addr;
 extern uip_ipaddr_t wsn_ip_addr;
-extern uip_ipaddr_t wsn_ip_local_addr;  //Created from wsn_mac_addr
+extern uip_ipaddr_t wsn_ip_local_addr;
 
 extern uip_ip6addr_t wsn_net_prefix;
 extern uint8_t wsn_net_prefix_len;
 
 // Ethernet side
 extern uip_eth_addr eth_mac_addr;
-extern uip_lladdr_t eth_mac64_addr;     //Created from eth_mac_addr
+extern uip_lladdr_t eth_mac64_addr;
 
 extern uip_ipaddr_t eth_ip_addr;
-extern uip_ipaddr_t eth_ip_local_addr;  //Created from eth_mac_addr
+extern uip_ipaddr_t eth_ip_local_addr;
 
 extern uip_ipaddr_t eth_net_prefix;
 
 extern uip_ipaddr_t eth_dft_router;
 
-extern uip_ip4addr_t eth_ip64_addr;
-extern uip_ip4addr_t eth_ip64_netmask;
-extern uip_ip4addr_t eth_ip64_gateway;
-
-#if CETIC_6LBR_WITH_IP64
-const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
-#endif
-
-// Misc
-extern unsigned long cetic_6lbr_startup;
-
-enum cetic_6lbr_restart_type_t {
-  CETIC_6LBR_NO_RESTART,
-  CETIC_6LBR_RESTART,
-  CETIC_6LBR_REBOOT,
-  CETIC_6LBR_HALT
-};
-
-extern enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 #endif

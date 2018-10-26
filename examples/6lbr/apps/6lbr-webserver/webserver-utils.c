@@ -37,7 +37,6 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
-#include "cetic-6lbr.h"
 #include "log-6lbr.h"
 #include "httpd.h"
 #include "httpd-cgi.h"

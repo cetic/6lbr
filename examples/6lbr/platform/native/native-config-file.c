@@ -45,7 +45,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
-#include "cetic-6lbr.h"
 
 #include "native-config-file.h"
 #include "ini.h"

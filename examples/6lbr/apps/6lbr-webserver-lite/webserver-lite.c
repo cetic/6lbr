@@ -44,12 +44,18 @@
 #include "netstack.h"
 #include "rpl.h"
 
-#include "sicslow-ethernet.h"
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
+#if CETIC_6LBR_WITH_RPL
+#include "6lbr-rpl.h"
+#endif
 #include "nvm-config.h"
 #include "rio.h"
 #if CETIC_6LBR_NODE_INFO
 #include "node-info.h"
+#endif
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
+#include "mactrans-registry.h"
 #endif
 
 #if CONTIKI_TARGET_ECONOTAG
@@ -195,8 +201,8 @@ lladdr_add(const uip_lladdr_t * addr)
     add("%x", addr->addr[i]);
   }
 }
-static uip_eth_addr
-ethaddr_add(ethaddr_t * addr)
+static void
+ethaddr_add(uip_eth_addr * addr)
 {
   int i;
 
@@ -643,7 +649,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   reset_buf();
 #endif
 
-#if CETIC_6LBR_TRANSPARENTBRIDGE
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
   add("</pre><h2>HW Prefixes cache</h2><pre>");
   for(i = 0; i < prefixCounter; i++) {
     add("%02x:%02x:%02x\n", prefixBuffer[i][0], prefixBuffer[i][1],

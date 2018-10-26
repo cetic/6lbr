@@ -43,7 +43,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
 
 #if CONTIKI_TARGET_NATIVE && __linux__
 #include <sys/inotify.h>

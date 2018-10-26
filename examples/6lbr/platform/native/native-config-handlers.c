@@ -46,7 +46,6 @@
 #include "native-config-file.h"
 #include "slip-dev.h"
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
 
 #include <stdlib.h>
 

@@ -63,7 +63,7 @@
 #include "link-stats.h"
 #endif
 
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 #include "nvm-config.h"
 #include "platform-init.h"
 #include "log-6lbr.h"
@@ -732,7 +732,7 @@ bridge_output(const uip_lladdr_t * dest)
 /*---------------------------------------------------------------------------*/
 #if WITH_CONTIKI
 void
-packet_filter_init(void)
+pfe_init(void)
 {
   wireless_outputfunc = tcpip_get_outputfunc();
   tcpip_set_outputfunc(bridge_output);
@@ -791,7 +791,7 @@ static struct netstack_ip_packet_processor packet_processor = {
 };
 /*---------------------------------------------------------------------------*/
 void
-packet_filter_init(void)
+pfe_init(void)
 {
   netstack_ip_packet_processor_add(&packet_processor);
 }

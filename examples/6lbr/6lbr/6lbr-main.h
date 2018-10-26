@@ -28,62 +28,38 @@
  */
 
 /**
+ * \file
+ *         Header file for the main 6LBR process
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
 
-#define LOG6LBR_MODULE "CC2538"
+#ifndef SIXLBR_MAIN_H_
+#define SIXLBR_MAIN_H_
 
 #include "contiki.h"
-#include "contiki-lib.h"
-#include "contiki-net.h"
-#include "watchdog.h"
 
-#include "platform-init.h"
-#include "6lbr-main.h"
-#include "nvm-config.h"
-#include "log-6lbr.h"
+PROCESS_NAME(cetic_6lbr_process);
 
-void
-platform_init(void)
-{
-}
+extern process_event_t cetic_6lbr_restart_event;
+extern process_event_t cetic_6lbr_reload_event;
 
-void
-platform_finalize(void)
-{
-}
+//Initialisation flags
+extern int ethernet_ready;
+extern int eth_mac_addr_ready;
+extern int radio_ready;
+extern int radio_mac_addr_ready;
 
-void
-platform_load_config(config_level_t level)
-{
-  switch(level) {
-  case CONFIG_LEVEL_BOOT:
-    load_nvm_config();
-    break;
-  default:
-    break;
-  }
-}
+// Misc
+extern unsigned long cetic_6lbr_startup;
 
-void
-platform_radio_init(void)
-{
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, nvm_data.channel);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, nvm_data.pan_id);
-  radio_ready = 1;
-  radio_mac_addr_ready = 1;
-}
+enum cetic_6lbr_restart_type_t {
+  CETIC_6LBR_NO_RESTART,
+  CETIC_6LBR_RESTART,
+  CETIC_6LBR_REBOOT,
+  CETIC_6LBR_HALT
+};
 
-void
-platform_set_wsn_mac(linkaddr_t * mac_addr)
-{
-  linkaddr_set_node_addr(mac_addr);
-}
+extern enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 
-void
-platform_restart(void)
-{
-  LOG6LBR_INFO("Rebooting...\n");
-  watchdog_reboot();
-}
+#endif

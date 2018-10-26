@@ -41,7 +41,7 @@
 
 #include "log-6lbr.h"
 
-#include "cetic-6lbr.h"
+#include "6lbr-main.h"
 #include "nvm-config.h"
 #include "native-config-file.h"
 #include "native-config-handlers.h"

@@ -40,7 +40,7 @@
 #include "ip64-special-ports.h"
 #include "node-config.h"
 #include "log-6lbr.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 
 #define COAP_DEFAULT_PORT                    5683
 

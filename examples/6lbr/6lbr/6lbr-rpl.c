@@ -29,7 +29,7 @@
 
 /**
  * \file
- *         RPL utility functions
+ *         6LBR RPL Configuration
  * \author
  *         6LBR Team <6lbr@cetic.be>
  */
@@ -46,7 +46,7 @@
 
 #include "6lbr-rpl.h"
 #include "6lbr-hooks.h"
-#include "cetic-6lbr.h"
+#include "6lbr-network.h"
 
 #include "log-6lbr.h"
 

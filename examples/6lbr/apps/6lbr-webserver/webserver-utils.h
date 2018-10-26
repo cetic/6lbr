@@ -4,7 +4,6 @@
 #include "contiki.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
-#include "cetic-6lbr.h"
 
 #define BUF_SIZE (2*256)
 
