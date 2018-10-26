@@ -44,7 +44,7 @@
 #include "uip-mcast6.h"
 #endif
 
-#include "rpl-utils.h"
+#include "6lbr-rpl.h"
 #include "6lbr-hooks.h"
 #include "cetic-6lbr.h"
 
