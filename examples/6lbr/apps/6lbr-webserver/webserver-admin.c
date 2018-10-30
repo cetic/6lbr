@@ -84,6 +84,7 @@ PT_THREAD(generate_admin(struct httpd_state *s))
 static httpd_cgi_call_t *
 webserver_admin_restart(struct httpd_state *s)
 {
+  cetic_6lbr_reboot_needed = 0;
   cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
   webserver_result_title = "Administration";
   webserver_result_text = "Restarting BR...";
@@ -106,6 +107,7 @@ webserver_admin_reset_slip_radio(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_admin_reboot(struct httpd_state *s)
 {
+  cetic_6lbr_reboot_needed = 0;
   cetic_6lbr_restart_type = CETIC_6LBR_REBOOT;
   webserver_result_title = "Administration";
   webserver_result_text = "Rebooting BR...";
@@ -117,6 +119,7 @@ webserver_admin_reboot(struct httpd_state *s)
 static httpd_cgi_call_t *
 webserver_admin_halt(struct httpd_state *s)
 {
+  cetic_6lbr_reboot_needed = 0;
   cetic_6lbr_restart_type = CETIC_6LBR_HALT;
   webserver_result_title = "Administration";
   webserver_result_text = "Halting BR...";

@@ -134,6 +134,7 @@ int radio_mac_addr_ready = 0;
 
 //Misc
 unsigned long cetic_6lbr_startup;
+uint8_t cetic_6lbr_reboot_needed;
 
 enum cetic_6lbr_restart_type_t cetic_6lbr_restart_type;
 /*---------------------------------------------------------------------------*/

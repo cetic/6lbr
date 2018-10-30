@@ -166,7 +166,7 @@ PT_THREAD(generate_sensors_info(struct httpd_state *s))
 #if CETIC_6LBR_WITH_IP64 && CETIC_6LBR_NODE_CONFIG
       if(ip64_addr_is_ip64(&UIP_IP_BUF->srcipaddr)) {
         node_config_t * config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        if(config && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+        if(config && (cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
           add("<td><a href=\"http://");
           ip4addr_add(ip64_get_hostaddr());
           add(":%d/\">web</a></td>", config->http_port);

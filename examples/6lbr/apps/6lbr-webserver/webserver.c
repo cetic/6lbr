@@ -106,7 +106,7 @@ HTTPD_CGI_CMD_NAME(webserver_log_clear_log_cmd)
 void
 webserver_init(void)
 {
-  if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WEBSERVER) != 0) {
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_WEBSERVER) != 0) {
     LOG6LBR_INFO("Webserver disabled\n");
     return;
   }
@@ -156,7 +156,7 @@ webserver_init(void)
   httpd_group_add_page(&status_group, &webserver_rpl);
 #endif
   httpd_group_add_page(&statistics_group, &webserver_statistics);
-  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+  if ((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
 #if CETIC_6LBR_WITH_RPL
     httpd_cgi_command_add(&webserver_rpl_gr_cmd);
     httpd_cgi_command_add(&webserver_rpl_reset_cmd);

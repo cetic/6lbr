@@ -109,7 +109,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   reset_buf();
   add("<h2>Info</h2>");
 #if RESOLV_CONF_SUPPORTS_MDNS
-  if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_MDNS) != 0) {
     add("Hostname : %s.local<br />", nvm_data.dns_host_name);
   } else
 #endif
@@ -200,9 +200,9 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("<br />");
 #endif
 #if CETIC_6LBR_WITH_IP64
-  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("IP64 Address : ");
-    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
+    if((cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
       ip4addr_add(ip64_get_hostaddr());
       add("<br />");
     } else {

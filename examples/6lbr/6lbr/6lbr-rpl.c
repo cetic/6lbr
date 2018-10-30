@@ -81,7 +81,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 #if CETIC_6LBR_SMARTBRIDGE
   int new_prefix = !uip_ipaddr_prefixcmp(&wsn_net_prefix, prefix, len);
   int new_dag_prefix = cetic_dag == NULL || !uip_ipaddr_prefixcmp(&cetic_dag->prefix_info.prefix, prefix, len);
-  if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+  if((cetic_6lbr_mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     LOG6LBR_DEBUG("Ignoring RA\n");
     return;
   }
@@ -97,7 +97,7 @@ cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 #endif
   }
   if(new_dag_prefix) {
-    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+    if((cetic_6lbr_rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
       cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
       rpl_set_prefix(cetic_dag, prefix, len);
       LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
@@ -114,14 +114,14 @@ void
 cetic_6lbr_start_dodag_root(void)
 {
 #if CETIC_6LBR_DODAG_ROOT
-  if((nvm_data.rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
+  if((cetic_6lbr_rpl_config & CETIC_6LBR_MODE_MANUAL_DODAG) != 0) {
     //Manual DODAG ID
     cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, (uip_ipaddr_t*)&nvm_data.rpl_dodag_id);
   } else {
     //Automatic DODAG ID
-    if((nvm_data.rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
+    if((cetic_6lbr_rpl_config & CETIC_6LBR_MODE_GLOBAL_DODAG) != 0) {
 #if CETIC_6LBR_SMARTBRIDGE
-      if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+      if((cetic_6lbr_mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
 #endif
       //DODAGID = global address used !
       cetic_dag = rpl_set_root(nvm_data.rpl_instance_id, &wsn_ip_addr);
@@ -137,7 +137,7 @@ cetic_6lbr_start_dodag_root(void)
     }
   }
 #if CETIC_6LBR_SMARTBRIDGE
-  if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
+  if((cetic_6lbr_mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
     rpl_set_prefix(cetic_dag, &wsn_net_prefix, nvm_data.wsn_net_prefix_len);
   }
 #else
@@ -147,7 +147,7 @@ cetic_6lbr_start_dodag_root(void)
     LOG6LBR_6ADDR(INFO, &cetic_dag->dag_id, "Configured as DODAG Root ");
   }
   if(!uip_is_addr_unspecified(&wsn_ip_addr)) {
-    uip_ds6_addr_add(&wsn_ip_addr, 0, ((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
+    uip_ds6_addr_add(&wsn_ip_addr, 0, ((cetic_6lbr_mode & CETIC_MODE_WSN_AUTOCONF) != 0) ? ADDR_AUTOCONF : ADDR_MANUAL);
   }
 #endif /* CETIC_6LBR_DODAG_ROOT */
 }
@@ -304,7 +304,7 @@ is_dodag_root(void)
 int
 cetic_6lbr_config_rpl_mop(void)
 {
-  if ((nvm_data.rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
+  if ((cetic_6lbr_rpl_config & CETIC_6LBR_RPL_NON_STORING) != 0) {
     return RPL_MOP_NON_STORING;
 #if CETIC_6LBR_WITH_MULTICAST
   } else if (RPL_WITH_MULTICAST_TEST()) {

@@ -709,7 +709,7 @@ void
 uip_ds6_send_ra_periodic(void)
 {
 #if CETIC_6LBR
-  if ((nvm_data.mode & CETIC_MODE_ROUTER_RA_DAEMON) == 0 ) {
+  if ((cetic_6lbr_mode & CETIC_MODE_ROUTER_RA_DAEMON) == 0 ) {
 	  return;
   }
 #endif
@@ -741,7 +741,7 @@ void
 uip_ds6_send_rs(void)
 {
 #if CETIC_6LBR
-  if ((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
+  if ((cetic_6lbr_mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
     return;
   }
 #endif

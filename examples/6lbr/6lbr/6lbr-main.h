@@ -52,6 +52,7 @@ extern int radio_mac_addr_ready;
 
 // Misc
 extern unsigned long cetic_6lbr_startup;
+extern uint8_t cetic_6lbr_reboot_needed;
 
 enum cetic_6lbr_restart_type_t {
   CETIC_6LBR_NO_RESTART,

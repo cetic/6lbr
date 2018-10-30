@@ -44,9 +44,15 @@
 
 #include "nvm-config.h"
 #include "nvm-itf.h"
+#include "conf-mapping.h"
 #include "log-6lbr.h"
 
 nvm_data_t nvm_data;
+
+uint8_t cetic_6lbr_mode;
+uint16_t cetic_6lbr_global_flags;
+uint16_t cetic_6lbr_rpl_config;
+uint8_t cetic_6lbr_eth_ip64_flags;
 
 /*---------------------------------------------------------------------------*/
 
@@ -204,6 +210,11 @@ load_nvm_config(void)
   LOG6LBR_INFO("NVM Version : %x\n", nvm_data.version);
 
   check_nvm(&nvm_data, 0);
+
+  cetic_6lbr_mode = nvm_data.mode;
+  cetic_6lbr_global_flags = nvm_data.global_flags;
+  cetic_6lbr_rpl_config = nvm_data.rpl_config;
+  cetic_6lbr_eth_ip64_flags = nvm_data.eth_ip64_flags;
 }
 
 void

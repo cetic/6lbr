@@ -735,7 +735,7 @@ tcpip_ipv6_output(void)
 #if UIP_ND6_SEND_NS
 #if CETIC_6LBR && UIP_CONF_IPV6_RPL
       /* Don't perform NUD if it has been disabled for WSN */
-      if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) != 0 &&
+      if((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) != 0 &&
          uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64) &&
          route != NULL) {
         uip_clear_buf();
@@ -794,7 +794,7 @@ tcpip_ipv6_output(void)
          DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
 #if CETIC_6LBR && UIP_CONF_IPV6_RPL
       /* Don't update nbr state if we don't want to perform NUD for WSN */
-      if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) == 0 ||
+      if((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_WSN_NUD) == 0 ||
          !uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64) ||
          route == NULL)
 #endif

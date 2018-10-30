@@ -600,7 +600,7 @@ na_input(void)
   }
 #if CETIC_6LBR_SMARTBRIDGE
   /* Address Advertisement */
-  if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
+  if ( (cetic_6lbr_mode & CETIC_MODE_SMART_MULTI_BR) != 0 ) {
     if (uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) && uip_is_mcast_group_id_all_nodes(&UIP_IP_BUF->destipaddr)) {
       LOG6LBR_6ADDR(INFO, &UIP_ND6_NA_BUF->tgtipaddr, "Received purge NA for ");
 #if CETIC_6LBR_NODE_INFO
@@ -721,7 +721,7 @@ discard:
 void
 send_purge_na(uip_ipaddr_t *prefix)
 {
-      if ( (nvm_data.mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
+      if ( (cetic_6lbr_mode & CETIC_MODE_SMART_MULTI_BR) == 0 ) {
     	  return;
       }
           LOG6LBR_6ADDR(INFO, prefix, "Sending purge NA for ");
@@ -1054,7 +1054,7 @@ ra_input(void)
   UIP_STAT(++uip_stat.nd6.recv);
 
 #if CETIC_6LBR
-  if ((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
+  if ((cetic_6lbr_mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
     goto discard;
   }
 #endif

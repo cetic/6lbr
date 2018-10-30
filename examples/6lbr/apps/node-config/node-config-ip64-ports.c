@@ -81,7 +81,7 @@ ip64_special_ports_translate_outgoing(uint16_t incoming_port,
 				      const uip_ip6addr_t *ip6addr,
 				      uint16_t *newport)
 {
-  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+  if(node_config_loaded && (cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
     node_config_t * node_config = node_config_find_by_ip(ip6addr);
     if(node_config != NULL) {
       if(incoming_port == COAP_DEFAULT_PORT) {
@@ -109,7 +109,7 @@ ip64_special_ports_translate_outgoing(uint16_t incoming_port,
 int
 ip64_special_ports_incoming_is_special(uint16_t port)
 {
-  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+  if(node_config_loaded && (cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
     LOG6LBR_PACKET("Looking for incoming %d\n", port);
     node_config_t * node_config = node_config_find_by_port(port);
     if(node_config != NULL) {
@@ -127,7 +127,7 @@ ip64_special_ports_incoming_is_special(uint16_t port)
 int
 ip64_special_ports_outgoing_is_special(uint16_t port)
 {
-  if(node_config_loaded && (nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+  if(node_config_loaded && (cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
     if(port == COAP_DEFAULT_PORT || port == 80) {
       return 1;
     } else {

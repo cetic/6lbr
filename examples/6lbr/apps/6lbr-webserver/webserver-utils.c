@@ -37,6 +37,7 @@
 #define LOG6LBR_MODULE "WEB"
 
 #include "contiki.h"
+#include "6lbr-main.h"
 #include "log-6lbr.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
@@ -278,6 +279,9 @@ PT_THREAD(generate_top(struct httpd_state *s))
     reset_buf();
   }
   add(BODY_AFTER_MENU);
+  if(cetic_6lbr_reboot_needed) {
+    add("<div id=\"topbar\"><form action=\"restart\" method=\"get\">Restart needed to apply changes : <input type=\"submit\" value=\"Restart 6LBR\"/></form></div>");
+  }
   if(s->script->title) {
     add_div_home(s->script->title);
     add("<div id=\"left_home\">");
@@ -323,6 +327,9 @@ PT_THREAD(generate_result_page(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add(BODY_AFTER_MENU);
+  if(cetic_6lbr_reboot_needed) {
+    add("<div id=\"topbar\"><form action=\"restart\" method=\"get\">Restart needed to apply changes : <input type=\"submit\" value=\"Restart 6LBR\"/></form></div>");
+  }
   if(webserver_result_title) {
     add_div_home(webserver_result_title);
   } else {

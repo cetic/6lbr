@@ -62,7 +62,7 @@ PT_THREAD(generate_sensors_config(struct httpd_state *s))
 #if CETIC_6LBR_NODE_CONFIG_HAS_NAME
   add("<td>Name</td>");
 #endif
-  if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+  if((cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
     add("<td>CoAP</td><td>HTTP</td>");
   }
   add("</tr></theader><tbody>");
@@ -77,7 +77,7 @@ PT_THREAD(generate_sensors_config(struct httpd_state *s))
 #if CETIC_6LBR_NODE_CONFIG_HAS_NAME
       add("<td>%s</td>", node_config_get_name(node_config));
 #endif
-      if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
+      if((cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_SPECIAL_PORTS) != 0) {
         add("<td>%d</td><td>%d</td>", node_config->coap_port, node_config->http_port);
       }
       add("</tr>");

@@ -149,7 +149,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
       }
     }
   }
-  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+  if ((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><h3>Actions</h3>");
     add("<form action=\"rpl-gr\" method=\"get\">");
     add("<input type=\"submit\" value=\"Trigger global repair\"/></form><br />");

@@ -210,7 +210,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
 
-    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    if ((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"nbr-rm?");
       ipaddr_add(&nbr->ipaddr);
       add("\">del</a>] ");
@@ -240,7 +240,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   reset_buf();
   for(r = uip_ds6_route_head(), i = 0; r != NULL;
       r = uip_ds6_route_next(r), ++i) {
-    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    if ((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"route-rm?");
       ipaddr_add(&r->ipaddr);
       add("\">del</a>] ");
@@ -328,7 +328,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("</pre><h2>Routed multicast groups</h2><pre>");
   for(mcast_route = uip_mcast6_route_list_head(), i = 0; mcast_route != NULL;
       mcast_route = list_item_next(mcast_route), ++i) {
-    if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    if ((cetic_6lbr_global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
       add("[<a href=\"mcast-rm?");
       ipaddr_add(&mcast_route->group);
       add("\">del</a>] ");
@@ -410,8 +410,8 @@ PT_THREAD(generate_ip64(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   add("<h2>IP64</h2><pre>");
-  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_IP64) != 0) {
+    if((cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
       add("Address : ");
       ip4addr_add(ip64_get_hostaddr());
       add("<br />");
@@ -421,7 +421,7 @@ PT_THREAD(generate_ip64(struct httpd_state *s))
       add("Gateway : ");
       ip4addr_add(ip64_get_draddr());
       add("<br />");
-      if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
+      if((cetic_6lbr_eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
         add("DHCP Server : ");
         ip4addr_add_u8(cetic_6lbr_ip64_dhcp_state->serverid);
         add("<br />");
@@ -436,7 +436,7 @@ PT_THREAD(generate_ip64(struct httpd_state *s))
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
-  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");
     static struct ip64_addrmap_entry *m;
     for(m = ip64_addrmap_list();

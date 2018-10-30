@@ -37,6 +37,12 @@
 
 #include "nvm-config.h"
 
+//Shadow configuration
+
+extern uint8_t cetic_6lbr_mode;
+extern uint16_t cetic_6lbr_global_flags;
+extern uint16_t cetic_6lbr_rpl_config;
+extern uint8_t cetic_6lbr_eth_ip64_flags;
 
 //RA Configuration
 
@@ -84,16 +90,16 @@
 #define RPL_CONF_PREFERENCE         (nvm_data.rpl_preference)
 
 #undef RPL_CONF_WITH_DAO_ACK_TEST
-#define RPL_CONF_WITH_DAO_ACK_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
+#define RPL_CONF_WITH_DAO_ACK_TEST       ((cetic_6lbr_rpl_config & CETIC_6LBR_RPL_DAO_ACK) != 0)
 
 #undef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
-#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)
+#define RPL_CONF_RPL_REPAIR_ON_DAO_NACK    ((cetic_6lbr_rpl_config & CETIC_6LBR_RPL_DAO_ACK_REPAIR) != 0)
 
 #undef RPL_CONF_DIO_REFRESH_DAO_ROUTES
-#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((nvm_data.rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
+#define RPL_CONF_DIO_REFRESH_DAO_ROUTES     ((cetic_6lbr_rpl_config & CETIC_6LBR_RPL_DAO_DISABLE_REFRESH) == 0)
 
 #undef RPL_CONF_DAO_PATH_SEQUENCE_TEST
-#define RPL_CONF_DAO_PATH_SEQUENCE_TEST       ((nvm_data.rpl_config & CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE) != 0)
+#define RPL_CONF_DAO_PATH_SEQUENCE_TEST       ((cetic_6lbr_rpl_config & CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE) != 0)
 
 #if CETIC_6LBR_RPL_RUNTIME_MOP
 extern int cetic_6lbr_config_rpl_mop(void);

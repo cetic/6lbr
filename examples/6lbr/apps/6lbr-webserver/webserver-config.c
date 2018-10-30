@@ -705,10 +705,8 @@ webserver_config_set(struct httpd_state *s)
     if(!reboot_needed) {
       webserver_result_text = "Configuration updated";
     } else {
-      cetic_6lbr_restart_type = CETIC_6LBR_RESTART;
-      webserver_result_text = "Configuration updated, restarting BR...";
-      webserver_result_refresh = 15;
-      process_post(&cetic_6lbr_process, cetic_6lbr_restart_event, NULL);
+      webserver_result_text = "Configuration updated, reboot needed to apply changes";
+      cetic_6lbr_reboot_needed = 1;
     }
   } else {
     webserver_result_text = "Configuration invalid";

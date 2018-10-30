@@ -75,7 +75,7 @@ eth_drv_input(uint8_t *packet, uint16_t len)
   LOG6LBR_DUMP_PACKET(ETH_IN, uip_buf, uip_len + UIP_LLH_LEN);
 
 #if CETIC_6LBR_WITH_IP64
-  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0 &&
+  if((cetic_6lbr_global_flags & CETIC_GLOBAL_IP64) != 0 &&
       (((struct uip_eth_hdr *)packet)->type != UIP_HTONS(UIP_ETHTYPE_IPV6))) {
     IP64_INPUT(packet, len);
   } else {
