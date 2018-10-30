@@ -295,16 +295,6 @@ PT_THREAD(generate_config_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if RESOLV_CONF_SUPPORTS_MDNS
-  add("<br /><h3>MDNS</h3>");
-  INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
-  INPUT_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, "Hostname");
-#if RESOLV_CONF_SUPPORTS_DNS_SD
-  INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
-#endif
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-#endif
 
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
@@ -420,6 +410,17 @@ PT_THREAD(generate_config_services(struct httpd_state *s))
 
   add("<form action=\"config\" method=\"get\">");
   add("<h2>Global services</h2>");
+#if RESOLV_CONF_SUPPORTS_MDNS
+  add("<h3>MDNS</h3>");
+  INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
+  INPUT_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, "Hostname");
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+  INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
+#endif
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+#endif
+  add("<br /><h3>Webserver</h3>");
   INPUT_FLAG("webserver", global_flags, CETIC_GLOBAL_DISABLE_WEBSERVER, "Webserver", "disabled", "enabled" );
   INPUT_INT( "web_port", webserver_port, "Webserver port");
 #if WITH_COAPSERVER
@@ -428,10 +429,12 @@ PT_THREAD(generate_config_services(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #if CETIC_6LBR_WITH_UDPSERVER
+  add("<br /><h3>UDP server</h3>");
   INPUT_FLAG("udp_server", global_flags, CETIC_GLOBAL_DISABLE_UDP_SERVER, "UDP server", "disabled", "enabled" );
   INPUT_INT( "udp_port", udp_server_port, "UDP server port");
 #endif
 #if CETIC_6LBR_WITH_DNS_PROXY
+  add("<br /><h3>DNS Proxy</h3>");
   INPUT_FLAG("dns_proxy", global_flags, CETIC_GLOBAL_DISABLE_DNS_PROXY, "DNS Proxy", "disabled", "enabled" );
 #endif
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
