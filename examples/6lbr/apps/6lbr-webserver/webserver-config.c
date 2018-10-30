@@ -277,24 +277,6 @@ PT_THREAD(generate_config_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-#if CETIC_6LBR_WITH_IP64
-  add("<br /><h3>IP64</h3>");
-  INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
-  INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
-  INPUT_IP4ADDR("ip64_addr", eth_ip64_addr, "Address");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-  INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
-  INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
-  INPUT_FLAG_CB("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, "RFC 6052 prefix" );
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-  INPUT_FLAG_CB("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, "Static port mapping" );
-  INPUT_INT("ip64_coap_port", node_config_first_coap_port, "First CoAP port");
-  INPUT_INT("ip64_http_port", node_config_first_http_port, "First HTTP port");
-  SEND_STRING(&s->sout, buf);
-  reset_buf();
-#endif
 
   if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
     add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
@@ -390,6 +372,42 @@ PT_THREAD(generate_config_rpl(struct httpd_state *s))
   INPUT_FLAG_CB( "dao_ack_repair", rpl_config, CETIC_6LBR_RPL_DAO_ACK_REPAIR, "DAO Ack local repair");
   INPUT_FLAG_INV_CB( "dio_rt_ref", rpl_config, CETIC_6LBR_RPL_DAO_DISABLE_REFRESH, "Route refresh with DIO");
   INPUT_FLAG_CB( "dao_ps", rpl_config, CETIC_6LBR_RPL_CHECK_PATH_SEQUENCE, "Check DAO Path Sequence");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  if ((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_CONFIG) == 0) {
+    add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
+#endif
+
+#if CETIC_6LBR_WITH_IP64
+static
+PT_THREAD(generate_config_ip64(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  add("<form action=\"config\" method=\"get\">");
+  add("<h2>IP64 Configuration</h2>");
+  add("<h3>IP64</h3>");
+  INPUT_FLAG_CB("ip64", global_flags, CETIC_GLOBAL_IP64, "IP64" );
+  INPUT_FLAG_CB("ip64_dhcp", eth_ip64_flags, CETIC_6LBR_IP64_DHCP, "DHCP" );
+  INPUT_IP4ADDR("ip64_addr", eth_ip64_addr, "Address");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  INPUT_IP4ADDR("ip64_netmask", eth_ip64_netmask, "Netmask");
+  INPUT_IP4ADDR("ip64_gateway", eth_ip64_gateway, "Gateway");
+  INPUT_FLAG_CB("ip64_6052", eth_ip64_flags, CETIC_6LBR_IP64_RFC6052_PREFIX, "RFC 6052 prefix" );
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+  add("<br /><h3>Port mapping</h3>");
+  INPUT_FLAG_CB("ip64_port_map", eth_ip64_flags, CETIC_6LBR_IP64_SPECIAL_PORTS, "Static port mapping" );
+  INPUT_INT("ip64_coap_port", node_config_first_coap_port, "First CoAP port");
+  INPUT_INT("ip64_http_port", node_config_first_http_port, "First HTTP port");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -716,6 +734,9 @@ HTTPD_CGI_CALL(webserver_config_radvd, "config_radvd.html", "RA Daemon", generat
 #endif
 #if CETIC_6LBR_WITH_RPL
 HTTPD_CGI_CALL(webserver_config_rpl, "config_rpl.html", "RPL", generate_config_rpl, 0);
+#endif
+#if CETIC_6LBR_WITH_IP64
+HTTPD_CGI_CALL(webserver_config_ip64, "config_ip64.html", "IP64", generate_config_ip64, 0);
 #endif
 HTTPD_CGI_CALL(webserver_config_services, "config_services.html", "Services", generate_config_services, 0);
 HTTPD_CGI_CMD(webserver_config_set_cmd, "config", webserver_config_set, 0);

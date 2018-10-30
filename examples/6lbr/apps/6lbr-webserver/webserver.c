@@ -81,6 +81,7 @@ HTTPD_CGI_CALL_NAME(webserver_sensors_config)
 HTTPD_CGI_CALL_NAME(webserver_config_network)
 HTTPD_CGI_CALL_NAME(webserver_config_radvd)
 HTTPD_CGI_CALL_NAME(webserver_config_rpl)
+HTTPD_CGI_CALL_NAME(webserver_config_ip64)
 HTTPD_CGI_CALL_NAME(webserver_config_services)
 HTTPD_CGI_CMD_NAME(webserver_config_set_cmd)
 HTTPD_CGI_CMD_NAME(webserver_config_reset_cmd)
@@ -125,6 +126,9 @@ webserver_init(void)
 #endif
 #if CETIC_6LBR_WITH_RPL
   httpd_group_add_page(&config_group, &webserver_config_rpl);
+#endif
+#if CETIC_6LBR_WITH_IP64
+  httpd_group_add_page(&config_group, &webserver_config_ip64);
 #endif
   httpd_group_add_page(&config_group, &webserver_config_services);
 #if CETIC_6LBR_NODE_INFO
