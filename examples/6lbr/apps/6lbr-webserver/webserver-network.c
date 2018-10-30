@@ -136,7 +136,6 @@ add_address_type(uint8_t type) {
   }
 }
 
-
 static
 PT_THREAD(generate_network(struct httpd_state *s))
 {
@@ -204,34 +203,6 @@ PT_THREAD(generate_network(struct httpd_state *s))
   }
   SEND_STRING(&s->sout, buf);
   reset_buf();
-
-#if CETIC_6LBR_WITH_IP64
-  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
-    add("</pre><h2>IP64</h2><pre>");
-    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
-      add("Address : ");
-      ip4addr_add(ip64_get_hostaddr());
-      add("<br />");
-      add("Netmask : ");
-      ip4addr_add(ip64_get_netmask());
-      add("<br />");
-      add("Gateway : ");
-      ip4addr_add(ip64_get_draddr());
-      add("<br />");
-      if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
-        add("DHCP Server : ");
-        ip4addr_add_u8(cetic_6lbr_ip64_dhcp_state->serverid);
-        add("<br />");
-        add("DHCP lease time : %d s<br />",
-            uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[1]));
-      }
-    } else {
-      add("Waiting configuration<br />");
-    }
-    SEND_STRING(&s->sout, buf);
-    reset_buf();
-  }
-#endif
 
   add("</pre><h2>Neighbors</h2><pre>");
 
@@ -407,7 +378,64 @@ PT_THREAD(generate_network(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
+  add("</pre><h2>6LoWPAN Prefix contexts</h2><pre>");
+  for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
+    if(addr_contexts[i].used == 1) {
+      add("%d : ", addr_contexts[i].number);
+      ipaddr_add_u8_len(addr_contexts[i].prefix, 8);
+      add("\n");
+    }
+  }
+#endif
+
+#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
+  add("</pre><h2>HW Prefixes cache</h2><pre>");
+  for(i = 0; i < prefixCounter; i++) {
+    add("%d : %02x:%02x:%02x\n", i, prefixBuffer[i][0], prefixBuffer[i][1], prefixBuffer[i][2]);
+  }
+#endif
+
+  add("</pre><br />");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
+
+  PSOCK_END(&s->sout);
+}
+
 #if CETIC_6LBR_WITH_IP64
+static
+PT_THREAD(generate_ip64(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  add("<h2>IP64</h2><pre>");
+  if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
+    if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) == 0 || ip64_hostaddr_is_configured()) {
+      add("Address : ");
+      ip4addr_add(ip64_get_hostaddr());
+      add("<br />");
+      add("Netmask : ");
+      ip4addr_add(ip64_get_netmask());
+      add("<br />");
+      add("Gateway : ");
+      ip4addr_add(ip64_get_draddr());
+      add("<br />");
+      if((nvm_data.eth_ip64_flags & CETIC_6LBR_IP64_DHCP) != 0) {
+        add("DHCP Server : ");
+        ip4addr_add_u8(cetic_6lbr_ip64_dhcp_state->serverid);
+        add("<br />");
+        add("DHCP lease time : %d s<br />",
+            uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[0])*65536ul + uip_ntohs(cetic_6lbr_ip64_dhcp_state->lease_time[1]));
+      }
+    } else {
+      add("Waiting configuration<br />");
+    }
+  } else {
+    add("IP64 is disabled<br />");
+  }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   if((nvm_data.global_flags & CETIC_GLOBAL_IP64) != 0) {
     add("</pre><h2>IP64 connections mapping</h2><pre>");
     static struct ip64_addrmap_entry *m;
@@ -431,33 +459,14 @@ PT_THREAD(generate_network(struct httpd_state *s))
       reset_buf();
     }
   }
-#endif
-
-#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
-  add("</pre><h2>6LoWPAN Prefix contexts</h2><pre>");
-  for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
-    if(addr_contexts[i].used == 1) {
-      add("%d : ", addr_contexts[i].number);
-      ipaddr_add_u8_len(addr_contexts[i].prefix, 8);
-      add("\n");
-    }
-  }
   add("</pre><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
-#endif
 
-#if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_FULL_TRANSPARENT_BRIDGE || CETIC_6LBR_RPL_RELAY
-  add("<h2>HW Prefixes cache</h2><pre>");
-  for(i = 0; i < prefixCounter; i++) {
-    add("%d : %02x:%02x:%02x\n", i, prefixBuffer[i][0], prefixBuffer[i][1], prefixBuffer[i][2]);
-  }
-  SEND_STRING(&s->sout, buf);
-  add("</pre><br />");
-  reset_buf();
-#endif
   PSOCK_END(&s->sout);
 }
+#endif
+
 static void
 add_network_cases(const uint8_t state)
 {
@@ -568,6 +577,9 @@ webserver_network_nbr_rm(struct httpd_state *s)
 }
 
 HTTPD_CGI_CALL(webserver_network, "network.html", "IPv6", generate_network, 0);
+#if CETIC_6LBR_WITH_IP64
+HTTPD_CGI_CALL(webserver_ip64, "ip64.html", "IP64", generate_ip64, 0);
+#endif
 HTTPD_CGI_CMD(webserver_network_route_add_cmd, "route-add", webserver_network_route_add, 0);
 HTTPD_CGI_CMD(webserver_network_route_rm_cmd, "route-rm", webserver_network_route_rm, 0);
 HTTPD_CGI_CMD(webserver_network_nbr_rm_cmd, "nbr-rm", webserver_network_nbr_rm, 0);

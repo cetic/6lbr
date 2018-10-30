@@ -53,6 +53,9 @@ HTTPD_GROUP(admin_group, "Administration");
 
 HTTPD_CGI_CALL_NAME(webserver_main)
 HTTPD_CGI_CALL_NAME(webserver_network)
+#if CETIC_6LBR_WITH_IP64
+HTTPD_CGI_CALL_NAME(webserver_ip64)
+#endif
 HTTPD_CGI_CMD_NAME(webserver_network_route_add_cmd)
 HTTPD_CGI_CMD_NAME(webserver_network_route_rm_cmd)
 HTTPD_CGI_CMD_NAME(webserver_network_nbr_rm_cmd)
@@ -142,6 +145,9 @@ webserver_init(void)
   httpd_group_add_page(&config_group, &webserver_sensors_config);
 #endif
   httpd_group_add_page(&status_group, &webserver_network);
+#if CETIC_6LBR_WITH_IP64
+  httpd_group_add_page(&status_group, &webserver_ip64);
+#endif
 #if CETIC_6LBR_WITH_RPL
   httpd_group_add_page(&status_group, &webserver_rpl);
 #endif
