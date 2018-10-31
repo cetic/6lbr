@@ -108,6 +108,16 @@ static int native_config_native_handler(config_level_t level, void* user, const 
       slip_default_device->crc8 = atoi(value);
     }
     return 1;
+  } else if(strcmp(name, "slip.api_major") == 0) {
+    if(slip_default_device) {
+      slip_default_device->slip_api_major = atoi(value);
+    }
+    return 1;
+  } else if(strcmp(name, "slip.api_minor") == 0) {
+    if(slip_default_device) {
+      slip_default_device->slip_api_minor = atoi(value);
+    }
+    return 1;
   } else if(strcmp(name, "slip.reboot") == 0) {
     SET_FLAG(slip_default_device->features, SLIP_RADIO_FEATURE_REBOOT, atoi(value));
     return 1;
@@ -186,6 +196,12 @@ static int native_config_slip_radio_handler(config_level_t level, void* user, co
     return 1;
   } else if(strcmp(name, "crc8") == 0) {
     slip_device->crc8 = atoi(value);
+    return 1;
+  } else if(strcmp(name, "api_major") == 0) {
+    slip_device->slip_api_major = atoi(value);
+    return 1;
+  } else if(strcmp(name, "api_minor") == 0) {
+    slip_device->slip_api_minor = atoi(value);
     return 1;
   } else if(strcmp(name, "reboot") == 0) {
     SET_FLAG(slip_device->features, SLIP_RADIO_FEATURE_REBOOT, atoi(value));

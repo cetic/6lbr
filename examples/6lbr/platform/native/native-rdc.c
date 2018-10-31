@@ -462,22 +462,42 @@ slip_set_mac(linkaddr_t const * mac_addr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-slip_set_rf_channel(uint8_t channel, uint8_t *msg, int *len)
+slip_set_rf_channel(slip_descr_t *slip_device, uint8_t channel, uint8_t *msg, int *len)
 {
-  msg[0] = '!';
-  msg[1] = 'C';
-  msg[2] = channel;
-  *len = 3;
+  int i = 0;
+  if(slip_device->slip_api_major == SLIP_RADIO_API_MAJOR_CONTIKI) {
+    msg[i++] = '!';
+    msg[i++] = 'C';
+    msg[i++] = channel;
+  } else {
+    msg[i++] = '!';
+    msg[i++] = 'V';
+    msg[i++] = 0;
+    msg[i++] = RADIO_PARAM_CHANNEL;
+    msg[i++] = 0;
+    msg[i++] = channel;
+  }
+  *len = i;
 }
 /*---------------------------------------------------------------------------*/
 static void
-slip_set_pan_id(uint16_t pan_id, uint8_t *msg, int *len)
+slip_set_pan_id(slip_descr_t *slip_device, uint16_t pan_id, uint8_t *msg, int *len)
 {
-  msg[0] = '!';
-  msg[1] = 'P';
-  msg[2] = pan_id & 0xFF;
-  msg[3] = (pan_id >> 8) & 0xFF;
-  *len = 4;
+  int i = 0;
+  if(slip_device->slip_api_major == SLIP_RADIO_API_MAJOR_CONTIKI) {
+    msg[0] = '!';
+    msg[1] = 'P';
+    msg[2] = pan_id & 0xFF;
+    msg[3] = (pan_id >> 8) & 0xFF;
+  } else {
+    msg[i++] = '!';
+    msg[i++] = 'V';
+    msg[i++] = 0;
+    msg[i++] = RADIO_PARAM_PAN_ID;
+    msg[i++] = (pan_id >> 8) & 0xFF;
+    msg[i++] = pan_id & 0xFF;
+  }
+  *len = i;
 }
 /*---------------------------------------------------------------------------*/
 PT_THREAD(send_slip_cmd(struct pt * pt, process_event_t ev, slip_descr_t *slip_device, uint8_t const *msg, int len, int reply, int *status))
@@ -546,6 +566,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
         ifindex = 0;
 #endif
         slip_device = get_slip_device(ifindex);
+        LOG6LBR_INFO("Configuring SLIP RADIO %d (API: %d.%d)\n", ifindex, slip_device->slip_api_major, slip_device->slip_api_minor);
         if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
           slip_reboot(slip_device);
         }
@@ -557,7 +578,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
         }
         //Set radio channel and PAN-ID
         if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
-          slip_set_rf_channel(nvm_data.channel, buf, &len);
+          slip_set_rf_channel(slip_device, nvm_data.channel, buf, &len);
           PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
           if(status != 0) {
             LOG6LBR_ERROR("Set channel failed\n");
@@ -565,7 +586,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
         }
         if((slip_device->features & SLIP_RADIO_FEATURE_PAN_ID) != 0) {
           frame802154_set_pan_id(nvm_data.pan_id);
-          slip_set_pan_id(nvm_data.pan_id, buf, &len);
+          slip_set_pan_id(slip_device, nvm_data.pan_id, buf, &len);
           PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
           if(status != 0) {
             LOG6LBR_ERROR("Set PAN-ID failed\n");

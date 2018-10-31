@@ -718,6 +718,8 @@ slip_new_device(void)
     slip_devices[i].serialize_tx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_SERIALIZE_TX;
     slip_devices[i].deserialize_rx_attrs = SIXLBR_CONFIG_DEFAULT_SLIP_DESERIALIZE_RX;
     slip_devices[i].crc8 = SIXLBR_CONFIG_DEFAULT_SLIP_CRC8;
+    slip_devices[i].slip_api_major = SIXLBR_CONFIG_DEFAULT_SLIP_API_MAJOR;
+    slip_devices[i].slip_api_minor = SIXLBR_CONFIG_DEFAULT_SLIP_API_MINOR;
     slip_devices[i].features = SIXLBR_CONFIG_DEFAULT_SLIP_FEATURES;
     //Temporary until proper multi mac layer configuration
 #if CETIC_6LBR_MULTI_RADIO

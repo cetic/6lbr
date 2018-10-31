@@ -80,6 +80,8 @@ border_router_cmd_handler(const uint8_t * data, int len)
       LOG6LBR_DEBUG("Sensor data received\n");
       //border_router_set_sensors((const char *)&data[2], len - 2);
       return 1;
+    } else if(data[1] == 'V' && command_context == CMD_CONTEXT_RADIO) {
+      LOG6LBR_DEBUG("Radio status received : %d = %d\n", data[3], (data[4] << 8) + data[5]);
     }
   } else if(data[0] == '?') {
     LOG6LBR_DEBUG("Got request message of type %c\n", data[1]);
