@@ -123,6 +123,7 @@
 #undef RDC_CONF_WITH_DUPLICATE_DETECTION
 #define RDC_CONF_WITH_DUPLICATE_DETECTION 1
 
+#undef UIP_CONF_BYTE_ORDER
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || \
     defined(__BIG_ENDIAN__) || \
@@ -130,18 +131,27 @@
     defined(__THUMBEB__) || \
     defined(__AARCH64EB__) || \
     defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
-#undef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
 #elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
     defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ || \
     defined(__LITTLE_ENDIAN__) || \
+    defined(__i386) || defined(__i386__) || defined(_M_IX86) || \
+    defined(__amd64) || defined(__amd64__) || defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || \
     defined(__ARMEL__) || \
     defined(__THUMBEL__) || \
     defined(__AARCH64EL__) || \
     defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
-#undef UIP_CONF_BYTE_ORDER
 #define UIP_CONF_BYTE_ORDER UIP_LITTLE_ENDIAN
 #else
+#include <endian.h>
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN
+#define UIP_CONF_BYTE_ORDER UIP_BIG_ENDIAN
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER UIP_LITTLE_ENDIAN
+#endif
+#endif
+
+#ifndef UIP_CONF_BYTE_ORDER
 #error "I don't know what architecture this is!"
 #endif
 
