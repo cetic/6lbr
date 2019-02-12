@@ -79,8 +79,8 @@ endif
 	cd $(SIXLBR)/tools && make
 
 clean-firmwares:
-	cd $(DEMO)/firmwares/slip-radio/ && $(MAKE) TARGET=$(TARGET) clean
-	cd $(DEMO)/firmwares/$(NODE_FIRMWARE)/ && $(MAKE) TARGET=$(TARGET) clean
+	cd $(DEMO)/firmwares/slip-radio/ && $(MAKE) TARGET=$(TARGET) WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)) clean
+	cd $(DEMO)/firmwares/$(NODE_FIRMWARE)/ && $(MAKE) TARGET=$(TARGET) WITH_CONTIKI=$(WITH_CONTIKI) CONTIKI=$(abspath $(CONTIKI)) clean
 	
 clean:
 ifneq ($(SIXLBR_LIST),-)
