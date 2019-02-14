@@ -37,7 +37,8 @@
 #define LOG6LBR_MODULE "6LE"
 
 #include "log-6lbr.h"
-
+#include "6lbr-main.h"
+#include "6lbr-network.h"
 #include "mactrans-registry.h"
 
 //! Location of TRANSLATE (TR) bit in Ethernet address
@@ -56,6 +57,10 @@ static uint8_t
 eth_to_lowpan(uip_lladdr_t * lowpan, const uip_eth_addr * ethernet)
 {
   uint8_t index;
+  if(memcmp((uint8_t *) &eth_mac_addr, ethernet, 6) == 0) {
+    memcpy((uint8_t *) lowpan, (uint8_t *) &uip_lladdr, UIP_LLADDR_LEN);
+    return 1;
+  }
 
   //Check if translate bit is set, hence we have to look up the prefix
   if((ethernet->addr[0] &
@@ -93,6 +98,11 @@ lowpan_to_eth(uip_eth_addr * ethernet, const uip_lladdr_t * lowpan)
 {
   uint8_t index = 0;
   uint8_t i;
+
+  if(eth_mac_addr_ready && memcmp((uint8_t *) &uip_lladdr, (uint8_t *) lowpan, UIP_LLADDR_LEN) == 0) {
+    memcpy(ethernet, &eth_mac_addr, 6);
+    return 1;
+  }
 
   //Check if we need to do anything:
   if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A)

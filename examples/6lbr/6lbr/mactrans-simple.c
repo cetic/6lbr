@@ -34,11 +34,20 @@
  *         6LBR Team <6lbr@cetic.be>
  */
 
+#include "contiki.h"
+#include "contiki-net.h"
+#include "6lbr-main.h"
+#include "6lbr-network.h"
+
 #include "mactrans-simple.h"
 
 static uint8_t
 eth_to_lowpan(uip_lladdr_t * lowpan, const uip_eth_addr * ethernet)
 {
+  if(memcmp((uint8_t *) &eth_mac_addr, ethernet, 6) == 0) {
+    memcpy((uint8_t *) lowpan, (uint8_t *) &uip_lladdr, UIP_LLADDR_LEN);
+    return 1;
+  }
   lowpan->addr[0] = ethernet->addr[0];
   lowpan->addr[1] = ethernet->addr[1];
   lowpan->addr[2] = ethernet->addr[2];
@@ -54,6 +63,10 @@ eth_to_lowpan(uip_lladdr_t * lowpan, const uip_eth_addr * ethernet)
 static uint8_t
 lowpan_to_eth(uip_eth_addr * ethernet, const uip_lladdr_t * lowpan)
 {
+  if(eth_mac_addr_ready && memcmp((uint8_t *) &uip_lladdr, (uint8_t *) lowpan, UIP_LLADDR_LEN) == 0) {
+    memcpy(ethernet, &eth_mac_addr, 6);
+    return 1;
+  }
   ethernet->addr[0] = lowpan->addr[0];
   ethernet->addr[1] = lowpan->addr[1];
   ethernet->addr[2] = lowpan->addr[2];
