@@ -51,11 +51,14 @@ ifeq ($(SOURCE_CSC),)
 	$(error "No CSC configuration file specified")
 endif
 
+FULL_NODE_FIRMWARE=$(abspath $(SIXLBR)/demo/firmwares/$(NODE_FIRMWARE))
+FULL_SLIP_FIRMWARE=$(abspath $(SIXLBR)/demo/firmwares/$(SLIP_FIRMWARE))
+
 CSC=gensetup.csc
 GEN_CSC=$(CSC)
 $(CSC): $(SOURCE_CSC)
-	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s/node/$(NODE_FIRMWARE)/" \
-	-e "/\/firmwares\/slip-radio\/slip-radio-dummy.c/ s/\/slip-radio\//\/$(SLIP_FIRMWARE)\//" \
+	sed -e "/\/firmwares\/node\/6lbr-demo.c/ s|\[CONFIG_DIR\]/\.\./firmwares/node/6lbr-demo\.c|$(FULL_NODE_FIRMWARE)/6lbr-demo.c|" \
+	-e "/\/firmwares\/slip-radio\/slip-radio-dummy.c/ s|\[CONFIG_DIR\]/\.\./firmwares/slip-radio/slip-radio-dummy\.c|$(FULL_SLIP_FIRMWARE)/slip-radio-dummy.c|" \
 	-e "/<commands>/ s|CONTIKI=..\/..\/..\/..\/..|CONTIKI=$(abspath $(CONTIKI))|" \
 	$(SOURCE_CSC) > $(CSC)
 
