@@ -110,7 +110,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("<h2>Info</h2>");
 #if RESOLV_CONF_SUPPORTS_MDNS
   if((cetic_6lbr_global_flags & CETIC_GLOBAL_MDNS) != 0) {
-    add("Hostname : %s.local<br />", nvm_data.dns_host_name);
+    add("Hostname : %s.local<br />", nvm_data.mdns_host_name);
   } else
 #endif
 #if CONTIKI_TARGET_NATIVE

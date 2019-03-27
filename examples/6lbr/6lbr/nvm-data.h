@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define NVM_DATA_DNS_HOST_NAME_SIZE 32
+#define NVM_DATA_MDNS_HOST_NAME_SIZE 32
 
 typedef struct {
   //NVM header
@@ -80,7 +80,7 @@ typedef struct {
 
   //DNS
   uint8_t dns_flags;
-  uint8_t dns_host_name[NVM_DATA_DNS_HOST_NAME_SIZE + 1];
+  uint8_t mdns_host_name[NVM_DATA_MDNS_HOST_NAME_SIZE + 1];
 
   //Webserver configuration
   uint16_t webserver_port;
@@ -275,7 +275,7 @@ typedef struct {
 #define CETIC_6LBR_NVM_DEFAULT_NONCORESEC_FLAGS 0
 
 #define CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS (CETIC_6LBR_DNS_DNS_SD)
-#define CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME "6lbr"
+#define CETIC_6LBR_NVM_DEFAULT_MDNS_HOST_NAME "6lbr"
 
 #define CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT 80
 

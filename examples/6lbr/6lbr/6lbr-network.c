@@ -204,7 +204,7 @@ cetic_6lbr_mdns_init(void)
   if((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0) {
     LOG6LBR_INFO("Starting MDNS\n");
     process_start(&resolv_process, NULL);
-    resolv_set_hostname((char *)nvm_data.dns_host_name);
+    resolv_set_hostname((char *)nvm_data.mdns_host_name);
 #if RESOLV_CONF_SUPPORTS_DNS_SD
     if((nvm_data.dns_flags & CETIC_6LBR_DNS_DNS_SD) != 0) {
       resolv_add_service("_6lbr._tcp", "", nvm_data.webserver_port);

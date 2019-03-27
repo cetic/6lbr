@@ -431,7 +431,7 @@ PT_THREAD(generate_config_services(struct httpd_state *s))
 #if RESOLV_CONF_SUPPORTS_MDNS
   add("<h3>MDNS</h3>");
   INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
-  INPUT_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, "Hostname");
+  INPUT_STRING("hostname", mdns_host_name, NVM_DATA_MDNS_HOST_NAME_SIZE, "Hostname");
 #if RESOLV_CONF_SUPPORTS_DNS_SD
   INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
 #endif
@@ -545,6 +545,7 @@ else if(strcmp(param, name) == 0) { \
 #define UPDATE_STRING(name, nvm_name, size, reboot) \
   else if(strcmp(param, name) == 0) { \
     strncpy((char *)nvm_data.nvm_name, value, size); \
+    nvm_data.nvm_name[size - 1] = '\0'; \
     *reboot_needed |= (reboot); \
   }
 
@@ -623,7 +624,7 @@ update_config(const char *name, uint8_t *reboot_needed)
 #endif
 #if RESOLV_CONF_SUPPORTS_MDNS
     UPDATE_FLAG("mdns", global_flags, CETIC_GLOBAL_MDNS, 1)
-    UPDATE_STRING("hostname", dns_host_name, NVM_DATA_DNS_HOST_NAME_SIZE, 1)
+    UPDATE_STRING("hostname", mdns_host_name, NVM_DATA_MDNS_HOST_NAME_SIZE + 1, 1)
 #if RESOLV_CONF_SUPPORTS_DNS_SD
     UPDATE_FLAG("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, 1)
 #endif

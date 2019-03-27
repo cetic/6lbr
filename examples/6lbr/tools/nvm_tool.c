@@ -312,6 +312,14 @@ ip4addrconv(const char *parameter, const char *addrstr, uint8_t * ipaddr)
 }
 
 void
+textconv(const char *parameter, const char *textsrc,
+         uint8_t * text, uint8_t max)
+{
+  strncpy((char *)text, textsrc, max-1);
+  text[max-1] = '\0';
+}
+
+void
 euiconv(const char *parameter, const char *addrstr, uint8_t max,
         uint8_t * ipaddr)
 {
@@ -468,7 +476,7 @@ migrate_nvm(uint8_t print_info)
     memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
 
     nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
-    strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+    strcpy((char *)nvm_data->mdns_host_name, CETIC_6LBR_NVM_DEFAULT_MDNS_HOST_NAME);
 
     nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
 
@@ -585,6 +593,12 @@ print_hex(uint32_t value)
 }
 
 void
+print_text(uint8_t *value)
+{
+  printf("%s", value);
+}
+
+void
 print_bool(uint16_t value, uint16_t mask)
 {
   if((value & mask) == 0) {
@@ -629,6 +643,10 @@ print_bool_inv(uint16_t value, uint16_t mask)
   print_ipaddr_len(nvm_data->option, 8); \
   printf("\n");
 
+#define PRINT_TEXT(text, option) \
+  printf(text " : "); \
+  print_text(nvm_data->option); \
+  printf("\n");
 
 #define PRINT_KEY(text, option, size) \
   printf(text " : "); \
@@ -657,7 +675,6 @@ print_nvm(void)
   PRINT_BOOL("WSN accept RA", mode, CETIC_MODE_WAIT_RA_MASK);
   PRINT_BOOL("WSN IP address autoconf", mode, CETIC_MODE_WSN_AUTOCONF);
   PRINT_CONTEXT("WSN 6LoWPAN context 0", wsn_6lowpan_context_0);
-  PRINT_IP("DNS server", dns_server);
   printf("\n");
   PRINT_IP("Eth network prefix", eth_net_prefix);
   PRINT_INT("Eth network prefix length", eth_net_prefix_len);
@@ -733,6 +750,13 @@ print_nvm(void)
   PRINT_INT("First HTTP port", node_config_first_http_port);
   printf("\n");
 
+  //MDNS
+  PRINT_IP("DNS server", dns_server);
+  PRINT_BOOL("Multicast DNS", global_flags, CETIC_GLOBAL_MDNS);
+  PRINT_TEXT("DNS hostname", mdns_host_name);
+  PRINT_BOOL("DNS-SD", dns_flags, CETIC_6LBR_DNS_DNS_SD);
+  printf("\n");
+
   //Misc
   PRINT_BOOL("Local address rewrite", mode, CETIC_MODE_REWRITE_ADDR_MASK);
   PRINT_BOOL("Smart Multi BR", mode, CETIC_MODE_SMART_MULTI_BR);
@@ -762,8 +786,7 @@ print_nvm(void)
 #define wsn_accept_ra_option 2105
 #define wsn_addr_autoconf_option 2106
 #define wsn_6lowpan_context_0_option 2107
-#define dns_server_option 2108
-#define wsn_disable_nud_option 2109
+#define wsn_disable_nud_option 2108
 
 #define eth_mac_option 3000
 #define eth_net_prefix_option 3001
@@ -852,8 +875,14 @@ print_nvm(void)
 //Multicast
 #define multicast_engine_option 15000
 
+//DNS
+#define dns_server_option 16000
+#define mdns_option 16001
+#define mdns_host_name_option 16002
+#define dns_sd_option 16003
+
 //Verbose
-#define verbose_option 16000
+#define verbose_option 17000
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
@@ -870,7 +899,6 @@ static struct option long_options[] = {
   {"wsn-accept-ra", required_argument, 0, wsn_accept_ra_option},
   {"wsn-ip-autoconf", required_argument, 0, wsn_addr_autoconf_option},
   {"wsn-context-0", required_argument, 0, wsn_6lowpan_context_0_option},
-  {"dns-server", required_argument, 0, dns_server_option},
   {"wsn-disable-nud", required_argument, 0, wsn_disable_nud_option},
 
   {"eth-mac", required_argument, 0, eth_mac_option},
@@ -944,6 +972,12 @@ static struct option long_options[] = {
   {"nat64-first-coap-port", required_argument, 0, node_config_first_coap_port_option},
   {"nat64-first-http-port", required_argument, 0, node_config_first_http_port_option},
 
+  //DNS
+  {"dns-server", required_argument, 0, dns_server_option},
+  {"mdns-enable", required_argument, 0, mdns_option},
+  {"mdns-hostname", required_argument, 0, mdns_host_name_option},
+  {"dns-sd-enable", required_argument, 0, dns_sd_option},
+
   //Global flags
   {"addr-rewrite", required_argument, 0, local_addr_rewrite_option},
   {"smart-multi-br", required_argument, 0, smart_multi_br_option},
@@ -998,8 +1032,6 @@ help(char const *name)
     ("\t--wsn-ip-autoconf <0|1>\t\t Use EUI-64 address to create global address\n");
   printf
     ("\t--wsn-context-0 <IPv6 prefix>\t IPv6 prefix of 6LoWPAN context 0\n");
-  printf
-    ("\t--dns-server <IPv6 address>\t IPv6 address of DNS server\n");
   printf
     ("\t--wsn-disable-nud <0|1>\t\t Disable NDP NUD on the WSN subnet\n");
   printf("\n");
@@ -1090,10 +1122,18 @@ help(char const *name)
   printf("\t--nat64-first-http-port <port>\t NAT64 first HTTP port for static mapping\n");
   printf("\n");
 
+  // DNS
+  printf("\nDNS :\n");
+  printf("\t--dns-server <IPv6 address>\t IPv6 address of DNS server\n");
+  printf("\t--mdns-enable <0|1>\t\t Enable Multicast DNS\n");
+  printf("\t--mdns-hostname <name>\t\t Multicast DNS hostname\n");
+  printf("\t--dns-sd-enable <0|1>\t\t Enable DNS-SD advertising\n");
+
   printf("\nMisc :\n");
   printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
   printf("\t--smart-multi-br <0|1>\t\t Enable Smart Multi BR support\n");
   printf("\n");
+
   //Global flags
   printf("\t--disable-config <0|1> \t\t Disable webserver configuration page\n");
   printf("\t--webserver-enable <0|1> \t Enable webserver\n");
@@ -1133,13 +1173,13 @@ help(char const *name)
 
 #define UPDATE_FLAG(arg_name, option, mode, mask) \
 	if(option) { \
-    printf("\"%s\" has been set to \"%s\"\n", arg_name, option ? "True" : "False");\
+    printf("\"%s\" has been set to \"%s\"\n", arg_name, option);\
 	  nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? mask : 0); \
     }
 
 #define UPDATE_FLAG_INV(arg_name, option, mode, mask) \
     if(option) { \
-      printf("\"%s\" has been set to \"%s\"\n", arg_name, option ? "False" : "True");\
+      printf("\"%s\" has been set to \"%s\"\n", arg_name, option);\
       nvm_data->mode = (nvm_data->mode & (~mask)) | (boolconv(arg_name, option) ? 0 : mask); \
     }
 
@@ -1161,12 +1201,17 @@ help(char const *name)
       contextconv(arg_name, option, nvm_data->option); \
     }
 
+#define UPDATE_TEXT(arg_name, option) \
+        if(option) { \
+          printf("\"%s\" has been set to \"%s\"\n", arg_name, option);\
+          textconv(arg_name, option, nvm_data->option, sizeof(nvm_data->option)); \
+        }
+
 #define UPDATE_KEY(arg_name, option) \
         if(option) { \
           printf("\"%s\" has been set to \"%s\"\n", arg_name, option);\
           euiconv(arg_name, option, 16, nvm_data->option); \
         }
-
 
 //Main Program
 int
@@ -1191,7 +1236,6 @@ main(int argc, char *argv[])
   char *wsn_accept_ra = NULL;
   char *wsn_addr_autoconf = NULL;
   char *wsn_6lowpan_context_0 = NULL;
-  char *dns_server = NULL;
   char *wsn_disable_nud = NULL;
 
   char *eth_net_prefix = NULL;
@@ -1266,6 +1310,12 @@ main(int argc, char *argv[])
   char *node_config_first_coap_port = NULL;
   char *node_config_first_http_port = NULL;
 
+  //DNS
+  char *dns_server = NULL;
+  char *mdns = NULL;
+  char *mdns_host_name = NULL;
+  char *dns_sd = NULL;
+
   //Global flags
   char *disable_config = NULL;
   char *webserver_enable = NULL;
@@ -1306,7 +1356,6 @@ main(int argc, char *argv[])
     CASE_OPTION(wsn_accept_ra)
     CASE_OPTION(wsn_addr_autoconf)
     CASE_OPTION(wsn_6lowpan_context_0)
-    CASE_OPTION(dns_server)
     CASE_OPTION(wsn_disable_nud)
 
     CASE_OPTION(eth_net_prefix)
@@ -1382,6 +1431,12 @@ main(int argc, char *argv[])
     CASE_OPTION(node_config_first_coap_port)
     CASE_OPTION(node_config_first_http_port)
 
+    //DNS
+    CASE_OPTION(dns_server)
+    CASE_OPTION(mdns)
+    CASE_OPTION(mdns_host_name)
+    CASE_OPTION(dns_sd)
+
     //Global flags
     CASE_OPTION(disable_config)
     CASE_OPTION(webserver_enable)
@@ -1454,7 +1509,6 @@ main(int argc, char *argv[])
     UPDATE_FLAG("wsn-accept-ra", wsn_accept_ra, mode, CETIC_MODE_WAIT_RA_MASK)
     UPDATE_FLAG("wsn-ip-autoconf", wsn_addr_autoconf, mode, CETIC_MODE_WSN_AUTOCONF)
     UPDATE_CONTEXT("wsn-context-0", wsn_6lowpan_context_0)
-    UPDATE_IP("dns-server", dns_server)
     UPDATE_FLAG("wsn-disable-nud", wsn_disable_nud, global_flags, CETIC_GLOBAL_DISABLE_WSN_NUD)
 
     UPDATE_IP("eth-prefix", eth_net_prefix)
@@ -1528,6 +1582,12 @@ main(int argc, char *argv[])
     UPDATE_IP4("nat64-ip-gateway", eth_ip64_gateway)
     UPDATE_INT("nat64-first-coap-port", node_config_first_coap_port)
     UPDATE_INT("nat64-first-http-port", node_config_first_http_port)
+
+    //DNS
+    UPDATE_IP("dns-server", dns_server)
+    UPDATE_FLAG("mdns-enable", mdns, global_flags, CETIC_GLOBAL_MDNS)
+    UPDATE_TEXT("mdns-hostname", mdns_host_name)
+    UPDATE_FLAG("dns-sd-enable", dns_sd, dns_flags, CETIC_6LBR_DNS_DNS_SD)
 
     //Global flags
     UPDATE_FLAG("disable-config", disable_config, global_flags, CETIC_GLOBAL_DISABLE_CONFIG)

@@ -159,7 +159,7 @@ check_nvm(nvm_data_t * nvm_data, int reset)
     memcpy(&nvm_data->eth_ip64_gateway, &loc_fip4addr.u8, sizeof(loc_fip4addr));
 
     nvm_data->dns_flags = CETIC_6LBR_NVM_DEFAULT_DNS_FLAGS;
-    strcpy((char *)nvm_data->dns_host_name, CETIC_6LBR_NVM_DEFAULT_DNS_HOST_NAME);
+    strcpy((char *)nvm_data->mdns_host_name, CETIC_6LBR_NVM_DEFAULT_MDNS_HOST_NAME);
 
     nvm_data->webserver_port = CETIC_6LBR_NVM_DEFAULT_WEBSERVER_PORT;
 
