@@ -75,6 +75,8 @@ PT_THREAD(generate_lwm2m(struct httpd_state *s))
   } else {
     add("Host : -<br />");
   }
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
   add("Address : ");
   ipaddr_add_u8(rd_client_get_rd_address()->u8);
   add(" : %d<br />", rd_client_get_rd_port());
