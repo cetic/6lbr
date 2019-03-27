@@ -1156,6 +1156,7 @@ newdata(void)
       continue;
     }
 
+    if(RESOLV_SUPPORTS_MDNS_TEST)
     {
       struct dns_question *question = (struct dns_question *)skip_name(queryptr);
 
@@ -1853,6 +1854,7 @@ resolv_query(const char *name)
   ++seqno;
 
 #if RESOLV_CONF_SUPPORTS_MDNS
+  if(RESOLV_SUPPORTS_MDNS_TEST)
   {
     /* Determine if we should use mDNS or DNS. */
     size_t name_len = strlen(name);
@@ -1866,9 +1868,9 @@ resolv_query(const char *name)
     } else {
       nameptr->is_mdns = 0;
     }
+    nameptr->is_probe = (mdns_state == MDNS_STATE_PROBING) &&
+                        (0 == strcmp(nameptr->name, resolv_hostname));
   }
-  nameptr->is_probe = (mdns_state == MDNS_STATE_PROBING) &&
-                      (0 == strcmp(nameptr->name, resolv_hostname));
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
   /* Force check_entries() to run on our process. */
