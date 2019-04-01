@@ -27,6 +27,19 @@ fi
 
 DEV_TAP_MAC="02:a:b:c:d:%x"
 
+OS=`uname`
+
+case $OS in
+    Linux)
+        ;;
+    Darwin)
+        export JAVA_HOME=$(/usr/libexec/java_home)
+        ;;
+   *)
+        echo Unknown OS
+        ;;
+esac
+
 function find_xterm() {
 	if [ -x /etc/alternatives/x-terminal-emulator ]; then
 		XTERM=/etc/alternatives/x-terminal-emulator
@@ -118,7 +131,9 @@ function clean() {
 	#The cleansing might fail
 	set +e
 
-	killall 6lbr
+	killall 6lbr || true
+
+        sleep 1
 
 	TAP_ID=0
 
@@ -157,21 +172,10 @@ function run() {
 	echo Press enter to close simulation...
 	read dummy
 
-	killall 6lbr
-
 	kill $PID_COOJA || true
 	wait $PID_COOJA > /dev/null 2>&1 || true
 
-	sleep 1
-
-	TAP_ID=0
-
-	for sixlbr in $SIXLBR_LIST; do
-		remove-tap "tap$TAP_ID"
-		TAP_ID=$((TAP_ID + 1))
-	done
-
-	remove-bridge
+        clean
 }
 
 case $ACTION in
