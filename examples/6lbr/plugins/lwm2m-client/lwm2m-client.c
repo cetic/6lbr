@@ -71,7 +71,7 @@ PT_THREAD(generate_lwm2m(struct httpd_state *s))
   add("<br /><h2>LWM2M</h2>");
   host = rd_client_get_rd_host();
   if(host != NULL) {
-    add("Host : %s<br />");
+    add("Host : %s<br />", host);
   } else {
     add("Host : -<br />");
   }
