@@ -74,6 +74,8 @@
 #define DEBUG CONTIKI_TARGET_COOJA
 #endif
 
+#define VERBOSE_DEBUG 0
+
 #if UIP_UDP
 
 #include <string.h>
@@ -1989,7 +1991,8 @@ static void
 resolv_found(char *name, uip_ipaddr_t * ipaddr)
 {
 #if RESOLV_CONF_SUPPORTS_MDNS
-  if(strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
+  if(RESOLV_SUPPORTS_MDNS_TEST &&
+     strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
      ipaddr
 #if NETSTACK_CONF_WITH_IPV6
      && !uip_ds6_is_my_addr(ipaddr)
@@ -2036,7 +2039,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
 
   } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
-
+  {
 #if VERBOSE_DEBUG
   if(ipaddr) {
     PRINTF("resolver: Found address for \"%s\".\n", name);
@@ -2056,6 +2059,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
 #endif /* VERBOSE_DEBUG */
 
   process_post(PROCESS_BROADCAST, resolv_event_found, name);
+  }
 }
 
 #if RESOLV_CONF_SUPPORTS_MDNS
