@@ -60,7 +60,11 @@ PT_THREAD(gethostbyname(struct pt *pt, process_event_t ev, void *data, char cons
       while(1) {
         PT_YIELD_UNTIL(pt, ev == resolv_event_found);
         const char *name = data;
-        if(strcmp(name, host) == 0) {
+        if(data == NULL) {
+          PRINTF("Error resolving '%s'\n", host);
+          uip_create_unspecified(ipaddr);
+          break;
+        } else if(strcmp(name, host) == 0) {
           if(resolv_lookup(name, &resolv_result) == RESOLV_STATUS_CACHED) {
             PRINTF("Host '%s' resolved : ", host);
             PRINT6ADDR(resolv_result);
