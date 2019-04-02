@@ -142,12 +142,11 @@ extern int sixlbr_config_select_timeout;
 #undef SELECT_CONF_TIMEOUT
 #define SELECT_CONF_TIMEOUT sixlbr_config_select_timeout
 
-
 #endif
 
 #if RESOLV_CONF_SUPPORTS_MDNS
-#undef RESOLV_SUPPORTS_MDNS_TEST
-#define RESOLV_SUPPORTS_MDNS_TEST ((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0)
+#undef RESOLV_CONF_SUPPORTS_MDNS_TEST
+#define RESOLV_CONF_SUPPORTS_MDNS_TEST ((nvm_data.global_flags & CETIC_GLOBAL_MDNS) != 0)
 #endif
 
 #endif

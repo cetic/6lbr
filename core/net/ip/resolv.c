@@ -1681,6 +1681,7 @@ PROCESS_THREAD(resolv_process, ev, data)
   resolv_conn = udp_new(NULL, 0, NULL);
 
 #if RESOLV_CONF_SUPPORTS_MDNS
+  if(RESOLV_SUPPORTS_MDNS_TEST) {
   PRINTF("resolver: Supports MDNS.\n");
   uip_udp_bind(resolv_conn, UIP_HTONS(MDNS_PORT));
 
@@ -1691,6 +1692,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
+  }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
   while(1) {
