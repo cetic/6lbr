@@ -251,7 +251,6 @@ PT_THREAD(generate_config_network(struct httpd_state *s))
 #if CETIC_6LBR_SMARTBRIDGE
   INPUT_FLAG_CB("smart_multi", mode, CETIC_MODE_SMART_MULTI_BR, "Multi-BR support");
 #endif
-  INPUT_IPADDR("dns", dns_server, "DNS server");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #if CETIC_6LBR_NODE_CONFIG
@@ -428,9 +427,13 @@ PT_THREAD(generate_config_services(struct httpd_state *s))
 
   add("<form action=\"config\" method=\"get\">");
   add("<h2>Global services</h2>");
+  add("<h3>DNS</h3>");
+  INPUT_IPADDR("dns", dns_server, "DNS server");
+  SEND_STRING(&s->sout, buf);
+  reset_buf();
 #if RESOLV_CONF_SUPPORTS_MDNS
   add("<h3>MDNS</h3>");
-  INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS publishing" );
+  INPUT_FLAG_CB("mdns", global_flags, CETIC_GLOBAL_MDNS, "MDNS resolve" );
   INPUT_STRING("hostname", mdns_host_name, NVM_DATA_MDNS_HOST_NAME_SIZE, "Hostname");
 #if RESOLV_CONF_SUPPORTS_DNS_SD
   INPUT_FLAG_CB("dns_sd", dns_flags, CETIC_6LBR_DNS_DNS_SD, "DNS-SD publishing" );
