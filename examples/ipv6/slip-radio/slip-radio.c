@@ -184,7 +184,14 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       return 1;
     } else if(data[1] == 'C' && len == 3) {
       uint8_t channel = data[2];
+      PRINTF("CMD: setting channel: %d\n", channel);
       NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
+      return 1;
+    } else if(data[1] == 'M' && len == 10) {
+      printf("CMD: Set MAC\n");
+      memcpy(uip_lladdr.addr, data+2, sizeof(uip_lladdr.addr));
+      linkaddr_set_node_addr((linkaddr_t *) uip_lladdr.addr);
+      NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, data+2, 8);
       return 1;
 #endif
     }
