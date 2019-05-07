@@ -156,11 +156,22 @@ void
 cetic_6lbr_end_dodag_root(rpl_instance_t *instance)
 {
   if(is_dodag_root()) {
+    int nb_of_dag = 0;
+    rpl_dag_t *dag;
+    rpl_dag_t *end;
     LOG6LBR_INFO("Leaving DODAG root\n");
     rpl_local_repair(instance);
     dio_output(instance, NULL);
     rpl_free_dag(instance->current_dag);
-    rpl_free_instance(instance);
+    for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
+      if(dag->used) {
+        nb_of_dag++;
+      }
+    }
+    if(nb_of_dag == 0) {
+      //Contiki does not support a RPL instance without DAGs
+      rpl_free_instance(instance);
+    }
     if(!rpl_fast_startup) {
       //Restart DODAG creation check
       ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
@@ -189,7 +200,7 @@ check_dodag_creation(void *data)
       cetic_6lbr_start_dodag_root();
     } else {
       //Another DODAG is present on the network, stay as simple router
-      ctimer_set(&create_dodag_root_timer, CLOCK_SECOND, check_dodag_creation, NULL);
+      ctimer_set(&create_dodag_root_timer, dodag_root_check_interval, check_dodag_creation, NULL);
     }
   }
 }

@@ -56,6 +56,7 @@
 #include "sys/ctimer.h"
 
 #if CETIC_6LBR
+#include "net/packetbuf.h"
 #include "6lbr-hooks.h"
 #endif
 
@@ -1491,8 +1492,17 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   instance = rpl_get_instance(dio->instance_id);
 
 #if CETIC_6LBR
-  if(!cetic_6lbr_dio_input_hook(from, instance, dag, dio)) {
-    return;
+  {
+    linkaddr_t lladdr;
+    linkaddr_copy(&lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    if(!cetic_6lbr_dio_input_hook(from, instance, dag, dio)) {
+      return;
+    }
+    //Restore the sender address if a packet has been sent
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &lladdr);
+    //Redo the get as the hook might have modified the RPL tables !
+    dag = get_dag(dio->instance_id, &dio->dag_id);
+    instance = rpl_get_instance(dio->instance_id);
   }
 #endif
 
