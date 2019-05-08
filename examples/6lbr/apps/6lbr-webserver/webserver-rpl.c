@@ -134,6 +134,18 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
             add("<br />Next DIO : -");
             add("<br />Next Interval : %u", (etimer_expiration_time(&instance_table[i].dio_timer.etimer) - clock_time()) / CLOCK_SECOND);
           }
+          SEND_STRING(&s->sout, buf);
+          reset_buf();
+          if(!etimer_expired(&instance_table[i].dao_timer.etimer)) {
+            add("<br />Next DAO : %u", (etimer_expiration_time(&instance_table[i].dao_timer.etimer) - clock_time()) / CLOCK_SECOND );
+          } else {
+            add("<br />Next DAO : -");
+          }
+          if(!etimer_expired(&instance_table[i].dao_lifetime_timer.etimer)) {
+            add("<br />DAO lifetime expiration : %u", (etimer_expiration_time(&instance_table[i].dao_lifetime_timer.etimer) - clock_time()) / CLOCK_SECOND );
+          } else {
+            add("<br />DAO lifetime expiration : -");
+          }
           add("<br />");
           SEND_STRING(&s->sout, buf);
           reset_buf();
