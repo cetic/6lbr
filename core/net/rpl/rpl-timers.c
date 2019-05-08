@@ -269,6 +269,12 @@ handle_dao_timer(void *ptr)
     return;
   }
 
+  if(rpl_get_global_addr(&instance->current_dag->prefix_info.prefix) == 0) {
+    PRINTF("RPL: No global address set for this node - delaying DAO\n");
+    ctimer_set(&instance->dao_timer, CLOCK_SECOND, handle_dao_timer, instance);
+    return;
+  }
+
   /* Send the DAO to the DAO parent set -- the preferred parent in our case. */
   if(instance->current_dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");

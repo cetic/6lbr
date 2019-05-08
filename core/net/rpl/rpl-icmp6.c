@@ -140,8 +140,8 @@ prepare_for_dao_fwd(uint8_t sequence, uip_ds6_route_t *rep)
 }
 #endif /* RPL_WITH_STORING */
 /*---------------------------------------------------------------------------*/
-static int
-get_global_addr(uip_ipaddr_t *addr)
+int
+rpl_get_global_addr(uip_ipaddr_t *addr)
 {
   int i;
   int state;
@@ -1146,7 +1146,7 @@ handle_dao_retransmission(void *ptr)
   PRINTF("RPL: will retransmit DAO - seq:%d trans:%d\n", instance->my_dao_seqno,
          instance->my_dao_transmissions);
 
-  if(get_global_addr(&prefix) == 0) {
+  if(rpl_get_global_addr(&prefix) == 0) {
     return;
   }
 
@@ -1167,7 +1167,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   /* Destination Advertisement Object */
   uip_ipaddr_t prefix;
 
-  if(get_global_addr(&prefix) == 0) {
+  if(rpl_get_global_addr(&prefix) == 0) {
     PRINTF("RPL: No global address set for this node - suppressing DAO\n");
     return;
   }
