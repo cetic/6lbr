@@ -198,10 +198,14 @@ mqtt_data_put_handler(void *request, void *response, uint8_t *buffer, uint16_t p
   }
 }
 /*---------------------------------------------------------------------------*/
+static int load(void) {
+  native_config_add_callback(&coap_proxy_config_cb, "coap-proxy", coap_proxy_config_handler, NULL);
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 static int init(void) {
   LOG6LBR_INFO("MQTT-CoAP Bridge Server init\n");
 
-  native_config_add_callback(&coap_proxy_config_cb, "coap-proxy", coap_proxy_config_handler, NULL);
   rest_activate_resource(&resource_mqtt_data, mqtt_relay_uri);
   return 0;
 }
@@ -222,6 +226,7 @@ sixlbr_plugin_t sixlbr_plugin_info = {
   .api_version = SIXLBR_PLUGIN_API_VERSION,
   .id = "cmp",
   .description = "CoAP-MQTT Proxy plugin",
+  .load = load,
   .init = init,
   .version = version,
   .status = status,
