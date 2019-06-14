@@ -48,11 +48,31 @@
 #include "uthash.h"
 #include "log-6lbr.h"
 #include "plugin.h"
+#include "native-config-file.h"
 
-char const *mqtt_coap_data_script = "./test.sh";
+static native_config_callback_t coap_proxy_config_cb;
+
+char const *mqtt_coap_data_script = "/etc/6lbr/mqtt_pub.sh";
 
 char * mqtt_relay_uri = "r";
 
+/*---------------------------------------------------------------------------*/
+static int coap_proxy_config_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  if(level != CONFIG_LEVEL_BASE) {
+    //Parse config only when in application init phase
+    return 1;
+  }
+  if(!name) {
+    //ignore end of section
+    return 1;
+  }
+  if(strcmp(name, "mqtt-data-script") == 0) {
+    mqtt_coap_data_script = strdup(value);
+    return 1;
+  }
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
 
 static void
@@ -181,6 +201,7 @@ mqtt_data_put_handler(void *request, void *response, uint8_t *buffer, uint16_t p
 static int init(void) {
   LOG6LBR_INFO("MQTT-CoAP Bridge Server init\n");
 
+  native_config_add_callback(&coap_proxy_config_cb, "coap-proxy", coap_proxy_config_handler, NULL);
   rest_activate_resource(&resource_mqtt_data, mqtt_relay_uri);
   return 0;
 }
