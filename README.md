@@ -9,7 +9,7 @@ It is designed for flexibility, it can be configured to support various network 
 CETIC-6LBR is deployment-ready for industrial use-cases; you don't need to be a Contiki expert to get started with it.
 It runs out-of-the-box on low-cost and open hardware platforms and Linux hosts.
 
-CETIC-6LBR is based on Contiki or it evolution, Contiki-NG.
+CETIC-6LBR is based on Contiki or its evolution, Contiki-NG.
 
 Find out more :
 
