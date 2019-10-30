@@ -18,8 +18,6 @@ APPDIRS += $(6LBR)/apps $(6LBR)/../6lbr-demo/apps
 
 PROJECTDIRS += $(6LBR) $(6LBR)/6lbr
 
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-
 ifeq ($(TARGET),)
 TARGET=native
 endif
@@ -91,7 +89,7 @@ WITH_DTLS_COAP?=0
 RUNTIME_TARGETS?=cetic_6lbr_router cetic_6lbr_smart_bridge cetic_6lbr_rpl_root cetic_6lbr_6lr cetic_6lbr_rpl_relay cetic_6lbr_full_transparent_bridge cetic_6lbr_ndp_router
 
 ###############################################################################
-# Mod selection
+# Mode selection
 ###############################################################################
 
 ifeq ($(CETIC_6LBR_RPL_ROUTER),1)
@@ -99,6 +97,7 @@ CFLAGS +=-DCETIC_6LBR_RPL_ROUTER=1
 CETIC_6LBR_MODE = RPL-Router
 WITH_RPL = 1
 WITH_UDPCLIENT = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_SMARTBRIDGE),1)
@@ -106,6 +105,7 @@ CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=1
 CETIC_6LBR_MODE = SmartBridge
 WITH_RPL = 1
 WITH_UDPCLIENT = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_RPL_RELAY),1)
@@ -117,6 +117,7 @@ WITH_IP64 = 0
 WITH_MULTI_RADIO = 0
 WITH_UDPSERVER = 0
 WITH_UDPCLIENT = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_FULL_TRANSPARENT_BRIDGE),1)
@@ -128,6 +129,7 @@ WITH_IP64 = 0
 WITH_MULTI_RADIO = 0
 WITH_UDPSERVER = 0
 WITH_UDPCLIENT = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_NDP_ROUTER),1)
@@ -136,6 +138,7 @@ CETIC_6LBR_MODE = NDP-Router
 WITH_RPL = 0
 WITH_UDPCLIENT = 0
 WITH_MULTICAST = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_6LR),1)
@@ -144,6 +147,7 @@ CETIC_6LBR_MODE = 6LR
 WITH_RPL = 1
 WITH_IP64 = 0
 WITH_UDPSERVER = 0
+HAS_MODE = 1
 endif
 
 ifeq ($(CETIC_6LBR_RPL_ROOT),1)
@@ -151,14 +155,27 @@ CFLAGS +=-DCETIC_6LBR_RPL_ROOT=1
 CETIC_6LBR_MODE = RPL-Root
 WITH_RPL = 1
 WITH_UDPCLIENT = 0
+HAS_MODE = 1
 endif
 
-CETIC_6LBR_MODE?=Custom
-CFLAGS +=-DCETIC_6LBR_MODE=\"$(CETIC_6LBR_MODE)\"
+ifeq ($(CETIC_6LBR_CUSTOM),1)
+CETIC_6LBR_MODE=Custom
+HAS_MODE = 1
+endif
 
 ###############################################################################
 # Global configuration
 ###############################################################################
+
+# To avoid multiple definition due to the recursive make calls
+# We use a flag to only set up the configuration when the mode
+# is known.
+
+ifeq ($(HAS_MODE),1)
+
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+
+CFLAGS +=-DCETIC_6LBR_MODE=\"$(CETIC_6LBR_MODE)\"
 
 CFLAGS+=-DWITH_CONTIKI=$(WITH_CONTIKI)
 
@@ -353,6 +370,11 @@ ifneq ($(6LBR_PLUGIN),)
 APPS=$(PLUGIN_APPS)
 endif
 
+LDGENFLAGS += $(CFLAGS)
+
+# End of HAS_MODE block
+endif
+
 ###############################################################################
 # Targets
 ###############################################################################
@@ -426,8 +448,6 @@ endif
 	@echo "--------------------------------------------------------------------------------"
 	@echo
 
-LDGENFLAGS += $(CFLAGS)
-
 tools:
 	cd tools && $(MAKE)
 
@@ -444,6 +464,12 @@ clean-all: clean $(TARGET_CLEAN_EXTRA)
 	rm -rf $(TARGET_BIN)
 
 all: clean-all $(RUNTIME_TARGETS_CLEAN)
+
+ifeq ($(HAS_MODE),)
+#TODO: Ugly workaround until the Makefile is split between build and packaging
+clean:
+	$(MAKE) TARGET=$(TARGET) CETIC_6LBR_CUSTOM=1 clean
+endif
 
 # 6LBR Runtime Modes
 
@@ -486,7 +512,9 @@ endif # 6LBR_PLUGIN
 
 CUSTOM_DEFAULT_TARGET=1
 
+ifeq ($(HAS_MODE),1)
 include $(CONTIKI)/Makefile.include
+endif
 
 %: show_config %.$(TARGET)
 	@

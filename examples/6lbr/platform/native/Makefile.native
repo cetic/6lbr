@@ -108,17 +108,18 @@ plugins-install:
 
 plugins-clean:
 	for plugin in $(PLUGINS_DIRS); do $(MAKE) CONTIKI=$(abspath $(CONTIKI)) -C $$plugin clean; done
+
 else
 
 # Plugin targets
+
+HAS_MODE=1
 
 all: $(6LBR_PLUGIN)
 
 install:
 	install -d $(DESTDIR)/usr/lib/6lbr/plugins
 	install $(6LBR_PLUGIN) $(DESTDIR)/usr/lib/6lbr/plugins
-
-endif
 
 HOST_OS=$(shell uname)
 ifeq ($(HOST_OS),Darwin)
@@ -154,5 +155,7 @@ endif
 	$(Q) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(PLUGIN_LDFLAGS)
 
 CLEAN += *.so obj_$(TARGET)/*.so
+
+endif
 
 .PHONY: plugins ipk $(PLUGINS_DIRS)
