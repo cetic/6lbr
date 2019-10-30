@@ -109,6 +109,13 @@ plugins-install:
 plugins-clean:
 	for plugin in $(PLUGINS_DIRS); do $(MAKE) CONTIKI=$(abspath $(CONTIKI)) -C $$plugin clean; done
 
+HOST_OS=$(shell uname)
+ifeq ($(HOST_OS),Linux)
+TARGET_LIBFILES+=-ldl
+LDFLAGS+=-Wl,--whole-archive
+LDFLAGS_AFTER=-Wl,--no-whole-archive
+endif
+
 else
 
 # Plugin targets
@@ -127,11 +134,6 @@ PLUGIN_LDFLAGS+=-dynamiclib -Wl,-undefined,dynamic_lookup
 else
 PLUGIN_LDFLAGS+=-shared
 CFLAGS+=-fPIC
-TARGET_LIBFILES+=-ldl
-ifeq ($(6LBR_PLUGIN),)
-LDFLAGS+=-Wl,--whole-archive
-LDFLAGS_AFTER=-Wl,--no-whole-archive
-endif
 endif
 
 ifndef RELSTR
