@@ -139,9 +139,11 @@ mqtt_data_export_data(coap_entry_t *entry)
   char topic [40+1];
   snprintf(topic, 40, "/dev/%02X%02X%02X%02X%02X%02X%02X%02X/data", entry->src.u8[8], entry->src.u8[9], entry->src.u8[10], entry->src.u8[11],
       entry->src.u8[12], entry->src.u8[13], entry->src.u8[14], entry->src.u8[15]);
-  pid_t child_pid;
+  /* Reallocate place to add the end of string \0 */
+  entry->data = (uint8_t *)realloc(entry->data, entry->data_len + 1);
+  entry->data[entry->data_len] = 0;
   LOG6LBR_INFO("Invoking %s for %s : %s (%d bytes)\n", mqtt_coap_data_script, topic, entry->data, entry->data_len);
-  child_pid = fork();
+  pid_t child_pid = fork();
   if(child_pid != 0) {
    return;
   } else {
