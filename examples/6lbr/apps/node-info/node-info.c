@@ -58,6 +58,19 @@
 #include "node-info-export.h"
 #endif
 
+// Specific code for COMAC
+#include "native-config-file.h"
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+int node_info_dump_interval = 1;
+int br_identifier = 0;
+float x = 0;
+float y = 0;
+static native_config_callback_t node_info_dump_config_cb;
+PROCESS(node_info_dump_process, "Node info export");
+static char const *mqtt_coap_data_script = "/etc/6lbr/mqtt_pub.sh";
+
 #define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
@@ -80,13 +93,95 @@ node_info_route_notification_cb(int event,
   }
 }
 
+static int
+node_info_dump_config_handler(config_level_t level, void* user, const char* section, const char* name,
+    const char* value) {
+  if(level != CONFIG_LEVEL_BASE) {
+    //Parse config only when application has been started
+    return 1;
+  }
+  if(!name) {
+    //End of section, apply configuration
+    return 1;
+  }
+  if(strcmp(name, "interval") == 0) {
+    node_info_dump_interval = atoi(value);
+    if(node_info_dump_interval > 0) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else if(strcmp(name, "br") == 0) {
+    br_identifier = atoi(value);
+    return 1;
+  } else if(strcmp(name, "x") == 0) {
+    x = atof(value);
+    return 1;
+  } else if(strcmp(name, "y") == 0) {
+    y = atof(value);
+    return 1;
+  }
+  return 0;
+}
+
+static void
+child_cleanup(int signal) {
+  while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {}
+}
+
+static void
+mqtt_data_export_data(uip_ipaddr_t src)
+{
+  char *topic = "/comac";
+  char data [256+1];
+  snprintf(data, 256, "{\"br\": %d, \"x\": %f, \"y\": %f, \"deveui\": \"%02X%02X%02X%02X%02X%02X%02X%02X\"}", br_identifier, x, y, src.u8[8], src.u8[9], src.u8[10], src.u8[11],
+      src.u8[12], src.u8[13], src.u8[14], src.u8[15]);
+  LOG6LBR_DEBUG("Invoking %s for %s : %s (%d bytes)\n", mqtt_coap_data_script, topic, data, strlen(data));
+  signal(SIGCHLD, child_cleanup);
+  pid_t child_pid = fork();
+  if(child_pid != 0) {
+   return;
+  } else {
+     execlp(mqtt_coap_data_script, mqtt_coap_data_script, topic, data, NULL);
+     LOG6LBR_ERROR("Could not spawn %s\n", mqtt_coap_data_script);
+     abort();
+  }
+}
+
 void
 node_info_config(void)
 {
 #if CETIC_6LBR_NODE_INFO_EXPORT
   node_info_export_config();
 #endif
+  native_config_add_callback(&node_info_dump_config_cb, "node-info.dump", node_info_dump_config_handler, NULL);
+  process_start(&node_info_dump_process, NULL);
 }
+
+PROCESS_THREAD(node_info_dump_process, ev, data)
+{
+  static struct etimer et;
+  PROCESS_BEGIN();
+  etimer_set(&et, node_info_dump_interval * CLOCK_SECOND);
+
+  while(1) {
+    PROCESS_YIELD();
+    if(etimer_expired(&et)) {
+      int i;
+      for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+        if(!node_info_table[i].isused || (node_info_table[i].flags & NODE_INFO_HAS_ROUTE) == 0) {
+          continue;
+        }
+        LOG6LBR_6ADDR(INFO, &node_info_table[i].ipaddr, "Managed Node: ");
+        mqtt_data_export_data(node_info_table[i].ipaddr);
+      }
+      etimer_set(&et, node_info_dump_interval * CLOCK_SECOND);
+    }
+  }
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+
 
 void
 node_info_init(void)

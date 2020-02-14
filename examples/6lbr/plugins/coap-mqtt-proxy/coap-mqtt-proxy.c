@@ -144,9 +144,7 @@ mqtt_data_export_data(coap_entry_t *entry)
     return;
   }
   signal(SIGCHLD, child_cleanup);
-  char topic [40+1];
-  snprintf(topic, 40, "/dev/%02X%02X%02X%02X%02X%02X%02X%02X/data", entry->src.u8[8], entry->src.u8[9], entry->src.u8[10], entry->src.u8[11],
-      entry->src.u8[12], entry->src.u8[13], entry->src.u8[14], entry->src.u8[15]);
+  char const *topic = "/comac";
   /* Reallocate place to add the end of string \0 */
   entry->data = (uint8_t *)realloc(entry->data, entry->data_len + 1);
   entry->data[entry->data_len] = 0;

@@ -64,7 +64,7 @@ tcpip_handler(void)
 
   if(uip_newdata()) {
     ((char *)uip_appdata)[uip_datalen()] = 0;
-    LOG6LBR_6ADDR(DEBUG, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
+    LOG6LBR_6ADDR(INFO, &UIP_IP_BUF->srcipaddr, "Server received: '%s' from ", (char *)uip_appdata);
 
 #if CETIC_6LBR_NODE_INFO
     node_info_t * node = node_info_update(&UIP_IP_BUF->srcipaddr, (char *)uip_appdata);
