@@ -40,6 +40,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -131,11 +133,17 @@ find_coap_entry(uip_ipaddr_t *src)
 }
 /*---------------------------------------------------------------------------*/
 static void
+child_cleanup(int signal) {
+  while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {}
+}
+/*---------------------------------------------------------------------------*/
+static void
 mqtt_data_export_data(coap_entry_t *entry)
 {
   if(mqtt_coap_data_script == NULL) {
     return;
   }
+  signal(SIGCHLD, child_cleanup);
   char topic [40+1];
   snprintf(topic, 40, "/dev/%02X%02X%02X%02X%02X%02X%02X%02X/data", entry->src.u8[8], entry->src.u8[9], entry->src.u8[10], entry->src.u8[11],
       entry->src.u8[12], entry->src.u8[13], entry->src.u8[14], entry->src.u8[15]);
