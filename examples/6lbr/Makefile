@@ -83,7 +83,7 @@ WITH_COAPSERVER?=0
 WITH_NVM_PROXY?=0
 WITH_DNS_PROXY?=0
 WITH_TINYDTLS?=0
-WITH_DTLSECHO?=0
+WITH_DTLS_ECHO?=0
 WITH_DTLS_COAP?=0
 
 RUNTIME_TARGETS?=cetic_6lbr_router cetic_6lbr_smart_bridge cetic_6lbr_rpl_root cetic_6lbr_6lr cetic_6lbr_rpl_relay cetic_6lbr_full_transparent_bridge cetic_6lbr_ndp_router
@@ -258,7 +258,7 @@ CFLAGS += -DWITH_TINYDTLS=1
 PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 endif
 
-ifneq ($(WITH_DTLSECHO), 0)
+ifneq ($(WITH_DTLS_ECHO), 0)
 CFLAGS += -DWITH_DTLS_ECHO=1
 PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo
 PROJECT_SOURCEFILES += dtls-echo.c
