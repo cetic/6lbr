@@ -60,7 +60,7 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       make all
+       cd examples/6lbr ; make all
     #   make release
 
     - name: Perform CodeQL Analysis
