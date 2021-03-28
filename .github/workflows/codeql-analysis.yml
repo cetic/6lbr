@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'cpp', 'java', 'javascript', 'python' ]
+        language: [ 'cpp' ]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
         # Learn more:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
@@ -60,7 +60,9 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       cd examples/6lbr ; make TARGET=native bin/cetic_6lbr_router
+       apt-get install git build-essential libncurses5-dev;
+       git submodule update --init --recursive;
+       cd examples/6lbr ; make clean; make all
     #   make release
 
     - name: Perform CodeQL Analysis
