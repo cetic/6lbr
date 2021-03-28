@@ -60,7 +60,7 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       apt-get install git build-essential libncurses5-dev;
+       
        git submodule update --init --recursive;
        cd examples/6lbr ; make clean; make all
     #   make release
