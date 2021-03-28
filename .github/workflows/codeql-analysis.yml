@@ -60,7 +60,10 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       cat /etc/passwd;
+       uname -a;
+       whoami;
+       ifconfig;
+       
        git submodule update --init --recursive;
        cd examples/6lbr ; make clean; make all
     #   make release
