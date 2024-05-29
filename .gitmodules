@@ -24,7 +24,7 @@
 	url = https://github.com/contiki-os/cc13xxware.git
 [submodule "platform/stm32nucleo-spirit1/stm32cube-lib"]
 	path = platform/stm32nucleo-spirit1/stm32cube-lib
-	url = https://github.com/STclab/stm32nucleo-spirit1-lib
+	url = https://github.com/thrillerbark/stm32nucleo-spirit1-lib.git
 
 [submodule "tools/sensniff"]
 	path = tools/sensniff
