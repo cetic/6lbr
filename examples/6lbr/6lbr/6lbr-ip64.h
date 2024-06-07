@@ -51,6 +51,6 @@ extern uip_ip4addr_t eth_ip64_addr;
 extern uip_ip4addr_t eth_ip64_netmask;
 extern uip_ip4addr_t eth_ip64_gateway;
 
-const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
+extern const struct ip64_dhcpc_state *cetic_6lbr_ip64_dhcp_state;
 
 #endif
