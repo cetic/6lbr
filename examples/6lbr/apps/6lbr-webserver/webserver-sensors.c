@@ -239,46 +239,50 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
 {
   static int i;
   PSOCK_BEGIN(&s->sout);
-  add
-    ("<center>"
-     "<img src=\"https://quickchart.io/graphviz?graph=digraph%7B");
+
+  // Start the Graphviz graph
+  add("<center>"
+      "<img src=\"https://quickchart.io/graphviz?graph=digraph%20%7B");
+
 #if CETIC_6LBR_NODE_CONFIG_HAS_NAME
-  node_config_t *  my_config = node_config_find_by_lladdr(&uip_lladdr);
+  node_config_t *my_config = node_config_find_by_lladdr(&uip_lladdr);
   if (my_config) {
-    add("%2522%s%2522;", node_config_get_name(my_config));
+    add("%22%s%22;", node_config_get_name(my_config));
   } else {
-   add("%2522%04hx%2522;",
-     (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+    add("%22%04hx%22;",
+        (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
   }
 #else
-  add("%2522%04hx%2522;",
-    (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+  add("%22%04hx%22;",
+      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
 #endif
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(node_info_table[i].isused) {
-      if(! uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
+
+  // Loop through the nodes and add edges
+  for (i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if (node_info_table[i].isused) {
+      if (!uip_is_addr_unspecified(&node_info_table[i].ip_parent)) {
 #if CETIC_6LBR_NODE_CONFIG_HAS_NAME
-        node_config_t * node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
-        node_config_t * parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
-        if ( node_config ) {
-          if ( parent_node_config ) {
-            add("%2522%s%2522->%2522%s%2522;",
+        node_config_t *node_config = node_config_find_by_ip(&node_info_table[i].ipaddr);
+        node_config_t *parent_node_config = node_config_find_by_ip(&node_info_table[i].ip_parent);
+        if (node_config) {
+          if (parent_node_config) {
+            add("%22%s%22->%22%s%22;",
                 node_config_get_name(node_config),
                 node_config_get_name(parent_node_config));
           } else {
-            add("%2522%s%2522->%2522%04hx%2522;",
+            add("%22%s%22->%22%04hx%22;",
                 node_config_get_name(node_config),
                 (node_info_table[i].ip_parent.u8[14] << 8) +
                 node_info_table[i].ip_parent.u8[15]);
           }
         } else {
           if (parent_node_config) {
-            add("%2522%04hx%2522->%2522%s%2522;",
+            add("%22%04hx%22->%22%s%22;",
                 (node_info_table[i].ipaddr.u8[14] << 8) +
                 node_info_table[i].ipaddr.u8[15],
                 node_config_get_name(parent_node_config));
           } else {
-            add("%2522%04hx%2522->%2522%04hx%2522;",
+            add("%22%04hx%22->%22%04hx%22;",
                 (node_info_table[i].ipaddr.u8[14] << 8) +
                 node_info_table[i].ipaddr.u8[15],
                 (node_info_table[i].ip_parent.u8[14] << 8) +
@@ -286,7 +290,7 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
           }
         }
 #else
-        add("%2522%04hx%2522->%2522%04hx%2522;",
+        add("%22%04hx%22->%22%04hx%22;",
             (node_info_table[i].ipaddr.u8[14] << 8) +
             node_info_table[i].ipaddr.u8[15],
             (node_info_table[i].ip_parent.u8[14] << 8) +
@@ -297,7 +301,9 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
       }
     }
   }
-  add("%7D\" alt=\"\" /></center>");
+
+  // Close the Graphviz graph
+  add("%7D\" alt=\"Graph\" /></center>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
