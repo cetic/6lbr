@@ -247,8 +247,8 @@ PT_THREAD(generate_sensors_tree(struct httpd_state *s))
   if (my_config) {
     add("%2522%s%2522;", node_config_get_name(my_config));
   } else {
-    add("%2522%04hx%2522;",
-      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
+   add("%2522%04hx%2522;",
+     (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
   }
 #else
   add("%2522%04hx%2522;",
