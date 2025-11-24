@@ -206,6 +206,10 @@ next_string(lexer_t *lexer, const char *s)
   *lexer->token = STRING_VALUE;
   lexer->input = end + 1; /* Skip the closing delimiter. */
 
+  if(length > DB_MAX_ELEMENT_SIZE - 1) {
+    length = DB_MAX_ELEMENT_SIZE - 1;
+  }
+  
   memcpy(lexer->value, s, length);
   (*lexer->value)[length] = '\0';
 
@@ -234,6 +238,10 @@ next_token(lexer_t *lexer, const char *s)
      so we regard it as an identifier. */
 
   *lexer->token = IDENTIFIER;
+
+  if(length > DB_MAX_ELEMENT_SIZE - 1) {
+    length = DB_MAX_ELEMENT_SIZE - 1;
+  }
 
   memcpy(lexer->value, s, length);
   (*lexer->value)[length] = '\0';
